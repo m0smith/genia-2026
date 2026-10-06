@@ -6294,7 +6294,7 @@ Explicit limitations (deferred, not implemented):
 ## 9.41) R28 E28-1 native Genia MCP server skeleton (`apps/mcp/mcp.genia`)
 
 Status: Implemented (Python reference host), **Experimental, intermediate
-development surface of an incomplete release**. R28 (epic #700) is not complete;
+development surface of the then-incomplete R28 release** (R28, epic #700, is complete as of section 9.49);
 this section records only what E28-1 (issue #702) landed under the approved
 contract `docs/design/r28-genia-mcp-contract-threat-model.md` (including
 Clarification A1) and design `docs/design/r28-e28-1-native-mcp-skeleton-design.md`.
@@ -6384,7 +6384,7 @@ Explicit limitations (not implemented in E28-1):
 ## 9.42) R28 E28-2 `genia_parse` over the native Genia MCP server
 
 Status: Implemented (Python reference host), **Experimental, intermediate development
-surface of an incomplete release** (R28, epic #700, is not complete; E28-2 is issue #703).
+surface of the then-incomplete R28 release** (R28, epic #700, is complete as of section 9.49; E28-2 is issue #703).
 Governing documents: contract `docs/design/r28-genia-mcp-contract-threat-model.md`
 (Clarifications A2 and A3) and design `docs/design/r28-e28-2-parse-tool-design.md`.
 Section 9.41 still applies; this section records only what E28-2 adds.
@@ -6441,7 +6441,7 @@ or prompts, no C++ MCP support or parity claim, no checked-in client configurati
 ## 9.43) R28 E28-3 `genia_run` over the native Genia MCP server
 
 Status: Implemented (Python reference host), **Experimental, intermediate development
-surface of an incomplete release** (R28, epic #700, is not complete; E28-3 is issue
+surface of the then-incomplete R28 release** (R28, epic #700, is complete as of section 9.49; E28-3 is issue
 #704). Governing documents: contract `docs/design/r28-genia-mcp-contract-threat-model.md`
 (Clarifications A2, A3, A4) and design `docs/design/r28-e28-3-genia-run-design.md`.
 Sections 9.41 and 9.42 still apply; this section records only what E28-3 adds. It is not
@@ -6564,8 +6564,8 @@ Implemented (Python reference host, POSIX only; verified on Linux only, R28-H43)
 
 Explicit limitations: Streamable HTTP is deferred (no listener); a client that only speaks the legacy
 `initialize` handshake could not use the server when this section was written (R28-H36; superseded by
-amendment A5, section 9.47); no VS Code or GitHub Copilot run had succeeded (R28-H39); a SIGKILLed host may leave an empty private temp directory; R28 is not complete (the
-E28-5 conformance evidence is section 9.45; the E28-6 demo and final audit remain); no C++ MCP support or parity is claimed.
+amendment A5, section 9.47); no VS Code or GitHub Copilot run had succeeded (R28-H39); a SIGKILLed host may leave an empty private temp directory; R28 was not yet complete when this section was written (the
+E28-5 conformance evidence is section 9.45; the E28-6 demo and final audit are section 9.46; completion is section 9.49); no C++ MCP support or parity is claimed.
 
 ## 10) Explicitly not implemented (current)
 
@@ -6690,13 +6690,13 @@ strings do not cross the JSON boundary unchanged (a pair becomes the scalar valu
 Unicode identifiers are not accepted by the parser; SDK-default clients that send `initialize`
 could not connect when E28-5 was written (R28-H36; the VS Code run then showed an amendment was
 required; section 9.47); no successful VS Code or Copilot run is recorded (R28-H39); Streamable HTTP is deferred and C++ MCP is not
-supported; R28 is not complete and E28-6 (demo, publishing, final audit) remains. Issue #1078 (the
+supported; R28 was not yet complete when this section was written (E28-6 demo, publishing, and final audit: section 9.46; completion: section 9.49). Issue #1078 (the
 spec-runner adapter timeout) is separate infrastructure work.
 
 ## 9.46) R28 E28-6 demo, publishing documentation, and release-candidate audit (issue #707)
 
 Documentation, example, and entrypoint phase. It adds no Genia syntax, builtin, Core IR node, MCP tool,
-resource, prompt, or transport. **R28 is not complete**: this section records a release candidate.
+resource, prompt, or transport. This section records the E28-6 release candidate as it stood then (R28 completed later: section 9.49).
 
 - **Demo:** `docs/mcp/demo.md` walks a first-time user from `git clone` to parse, diagnose, repair, and run of
   an Outcome-aware validated record pipeline through the MCP server, using the ordinary Genia in
@@ -6712,14 +6712,14 @@ resource, prompt, or transport. **R28 is not complete**: this section records a 
 - **Clients:** the official TypeScript client is automated in CI; the official Inspector 2.9.0 CLI was run
   manually (not in CI); both default to the legacy `initialize` handshake, which the server serves since
   amendment A5 (section 9.47). VS Code with GitHub Copilot run 1 (2026-10-05) **failed at `initialize`**
-  (R28-H39); the post-amendment rerun is pending; the procedure is `docs/mcp/vscode-copilot-acceptance.md`
+  (R28-H39); the rerun then pending passed later (section 9.49); the procedure is `docs/mcp/vscode-copilot-acceptance.md`
   and the record is `docs/mcp/acceptance/vscode-copilot-evidence.md`.
 - **Release gate:** `tests/unit/test_r28_release_gate.py` fails any document that claims R28 complete
   until the latest run in that record is executed, complete, and `PASS` with a negotiation path the amended
   contract allows (`initialize` with `2025-11-25`, or `server/discover` with `2026-07-28`).
 - **Audit:** `docs/design/r28-e28-6-final-audit-plan.md` and the ledger disposition of every non-closed
   entry; new findings R28-H42 (a failed run returns no diagnostic text) and R28-H43 (evidence is Linux only).
-- **Release page:** `docs/releases/R28.md` (Release Candidate). The R20 follow-up (#1067) remains scheduled
+- **Release page:** `docs/releases/R28.md` (Release Candidate at the time; Complete as of section 9.49). The R20 follow-up (#1067) remains scheduled
   after R28 and before R29; #1078 remains separate infrastructure work.
 
 ## 9.47) R28 E28-6 amendment A5: the `2025-11-25` compatibility era (issue #707)
@@ -6755,7 +6755,7 @@ Python host code: it is entirely native Genia in `apps/mcp/mcp.genia`.
   client scenario on the default, `auto`, legacy, and `2026-07-28`-pin paths (`docs/mcp/conformance-matrix.md`).
 - **Not claimed:** VS Code's behavior after `initialize` (the `initialized` notification, when it lists tools,
   `ping`) rests on the SDK reference and run 1's trace; run 2 (pending; `docs/mcp/vscode-copilot-acceptance.md`)
-  decides it. R28 is **not complete**; R28-H39 stays open. macOS evidence so far shows only that VS Code
+  decided it (run 3 passed; section 9.49). When this section was written macOS evidence showed only that VS Code
   discovered `.mcp.json`, started the launcher, and spoke stdio JSON-RPC (R28-H43).
 
 ## 9.48) R28 E28-6 macOS portability of the governed `genia_run` profile (issue #707, ledger R28-H47)
@@ -6786,7 +6786,38 @@ prompt, protocol, authority, limit, parse behavior, or envelope changed.
   regression, diagnostic hygiene, probe, `ps`/`lsof` process backend); the lifecycle helpers use `/proc` on Linux
   and `ps`/`lsof` where there is no `/proc`; Linux-only namespace tests are skipped elsewhere with a stated reason.
 - **Full macOS suite run (owner, `44ec62cd`): 1135 passed, 18 skipped, 3 failed**, all test assumptions or platform facts (ledger R28-H48): the namespace-probe test assumed Linux; macOS injects `__CF_USER_TEXT_ENCODING` into every process (the supervisor does not pass it); plain file mode (a development path) reads stdin through the locale-dependent interpreter decoder, which is `strict` on macOS (the launcher path decodes with `surrogateescape` itself and is unaffected). Repaired in tests; the full macOS R28/MCP suite then passed at `d0e4f2a4` (**1141 passed, 18 skipped, 0 failed**).
-- **Not claimed:** authentic VS Code acceptance on the repaired branch (run 3 pending). The macOS suite passes (Linux-only namespace tests skip there); macOS still has no address-space bound and no network namespace. macOS governed execution, worker supervision, cancellation, timeout, and cleanup
-  remain **unverified** until the owner's macOS commands and VS Code run 3. R28 is **not complete**; R28-H39 and
-  R28-H47 stay open; R28-H36 (protocol compatibility) is closed by run 2.
+- **Outcome:** macOS governed execution is Mac-verified (owner: full R28/MCP suite `1141 passed, 18 skipped, 0 failed`
+  at `d0e4f2a4`) and authentic VS Code run 3 passed (section 9.49). macOS still has no address-space bound and no network
+  namespace (Linux-only; Linux-only namespace tests skip on macOS). R28-H47 and R28-H48 are closed; R28-H36 was closed by run 2.
+
+## 9.49) R28 completion: authentic VS Code + GitHub Copilot acceptance (issue #707, epic #700)
+
+R28 (Genia MCP Server) is **Complete**: contract section 12.2 is satisfied by an authentic VS Code + GitHub Copilot
+run. The evidence record is `docs/mcp/acceptance/vscode-copilot-evidence.md`; the release page is `docs/releases/R28.md`.
+This section adds no Genia syntax, builtin, Core IR node, MCP tool, resource, prompt, transport, protocol, authority, limit,
+or envelope.
+
+- **Run 3 (PASS), revision `0ff058a28e488275f344ee24bbd12d072bd3e9cc`, macOS, VS Code 1.138.0, Copilot Chat 0.66.0:**
+  VS Code started the repository-configured `genia` server (`.mcp.json`, `initialize` for `2025-11-25`) and reported
+  `Discovered 3 tools`; `genia_capabilities` returned protocol `2025-11-25`, transport `stdio`, exactly `genia_capabilities`,
+  `genia_parse`, `genia_run`, profile `source-only-isolated-v1`, timeout 5000 ms, and every authority flag `false`; the
+  broken canonical demo through `genia_parse` gave `parse_error` (phase `parse`) at character offset 171; the corrected
+  demo parsed (`parsed`, AST returned); through Copilot Agent `genia_run` returned `ok`/`completed`, exit code 0, stdout
+  `"2\n"`, stderr `"record_validation_failed\nrecord_validation_failed\n"`, and a rendered value with the clean records Ada
+  and Edsger and the two structured validation diagnostics, with value, stdout, and stderr separate; after the server
+  stopped no `mcp_launch`, `mcp_host`, or `mcp_worker` process remained. `resources_or_prompts_visible: none` rests on the
+  server's advertised `capabilities: {tools: {}}`, automated `-32601` for resources and prompts, and VS Code's report of exactly
+  three discovered tools, not on a separately reported UI inspection (stated in the evidence file).
+- **History is preserved:** run 1 failed at `initialize` (fixed by contract amendment A5, section 9.47); run 2 failed at
+  `genia_run` on macOS (fixed by ledger R28-H47, section 9.48). The release gate (`tests/unit/test_r28_release_gate.py`) reads the
+  latest run: executed, complete, `PASS`, on a negotiation path the amended contract allows.
+- **Ledger:** R28-H36, H39, H45, H47, H48 and the accepted-limitation entries are closed; the post-R28 follow-up candidates
+  (H05-H09, H15, H24, H26) stay open in the ledger and the parking lot, not ticketed. R20 follow-up #1067 stays after R28 and
+  before R29; #1078 is separate infrastructure work.
+- **Agent guidance (contract 12.3):** `docs/ai/LLM_CONTRACT.md` and `.github/copilot-instructions.md` direct Genia development
+  agents to prefer the Genia MCP server for parsing and running Genia source where an MCP client is available; they add no
+  language semantics and do not make MCP a prerequisite.
+- **Supported platforms and limits:** Python reference host only; local stdio only; exactly three tools; no resources, prompts,
+  Streamable HTTP, or C++ MCP; Linux (CI) and macOS (owner-run, not in CI) verified, Windows unsupported; macOS has no address-space
+  bound and no network namespace; the execution profile is a defense-in-depth profile, not a security sandbox.
 

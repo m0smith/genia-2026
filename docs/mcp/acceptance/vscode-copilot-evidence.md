@@ -122,36 +122,73 @@ clean_lifecycle_after_disconnect: not reached
 disposition: FAIL
 ```
 
-## Run 3: after the macOS execution repair (pending)
+## Run 3: after the macOS execution repair, on revision `0ff058a28e488275f344ee24bbd12d072bd3e9cc`
 
-**NOT EXECUTED.** To be performed by the repository owner on the repaired branch with
-`docs/mcp/vscode-copilot-acceptance.md`, after the macOS verification commands in that document pass. Do
-not fill any field from an SDK client, the Inspector, documentation, or reasoning.
+Executed by the repository owner on macOS (Darwin x64 24.6.0) from the repository-configured `.mcp.json`, against
+commit `0ff058a28e488275f344ee24bbd12d072bd3e9cc` of the PR #1082 branch, after the owner's macOS verification
+(`1141 passed, 18 skipped, 0 failed` for `pytest tests/unit -k "r28 or mcp"` at `d0e4f2a4`, ledger R28-H47/H48;
+CI green on the branch head). VS Code `1.138.0` and Copilot Chat `0.66.0` are the owner's environment from runs 1 and 2
+(the run-3 report did not restate them). The owner reported **PASS** with these observations (the raw VS Code
+trace for this run was not supplied; the entries below are the owner's reported results, not log lines):
+
+- VS Code started the `genia` MCP server successfully and reported `Discovered 3 tools`.
+- **`genia_capabilities` (Copilot Agent): PASS.** MCP protocol `2025-11-25`; transport `stdio`; tools exactly
+  `genia_capabilities`, `genia_parse`, `genia_run`; execution profile `source-only-isolated-v1`; timeout `5000` ms;
+  filesystem, environment, configuration, secrets, and network all `false`.
+- **Broken canonical demo through `genia_parse`: PASS.** `status: error`, `kind: parse_error`, `phase: parse`,
+  character offset `171`.
+- **Corrected canonical demo through `genia_parse`: PASS.** `status: ok`, `kind: parsed`, AST returned.
+- **Corrected canonical demo through Copilot Agent `genia_run`: PASS.** `status: ok`, `kind: completed`, `exit_code: 0`,
+  stdout exactly `"2\n"`, stderr exactly `"record_validation_failed\nrecord_validation_failed\n"`; the rendered value
+  contains the clean records Ada and Edsger and the two expected structured validation diagnostics; value, stdout,
+  and stderr stayed separate.
+- After stopping the MCP server, `pgrep -af "mcp_launch|mcp_host|mcp_worker"` returned no processes.
+
+How each field was established (stated at its actual strength; nothing below is promoted beyond the owner's report):
+
+- `negotiated_protocol_version: 2025-11-25` is the value `genia_capabilities` returned as `mcp.protocol_version`
+  (A5.6: the revision serving the request), and `negotiation_path: initialize` follows from that, because only
+  `initialize` selects that era (the first authentic trace, run 1, shows VS Code sends `initialize` for `2025-11-25`).
+- `workspace_trusted: yes` and `server_state_shown: Running`: the server started from the workspace's `.mcp.json`
+  (VS Code does not start a workspace MCP server from an untrusted workspace); the owner did not separately
+  report the trust prompt.
+- `resources_or_prompts_visible: none`: the server advertises only `capabilities: {tools: {}}` and answers every
+  `resources/*` and `prompts/*` request `-32601` (automated: conformance matrix K5/K6), and VS Code reported exactly
+  `Discovered 3 tools`; the owner did not report separately opening the VS Code resources or prompts views.
+- `executed_on` is the date of the owner's report; the run took place on or just before it.
 
 ```evidence run=3
-status: NOT EXECUTED
-executed_on:
-vscode_version:
-copilot_extension_version:
-repository_revision:
-failed_at:
-workspace_trusted:
-mcp_json_discovered:
-server_state_shown:
-negotiation_path:
-negotiated_protocol_version:
-host_log_excerpt:
-tools_visible:
-resources_or_prompts_visible:
-parse_invoked_from_host:
-invalid_source_feedback:
-corrected_source_parsed:
-run_invoked_from_host:
-run_result:
-channel_separation_visible:
-clean_lifecycle_after_disconnect:
-disposition:
+status: EXECUTED
+executed_on: 2026-10-06
+vscode_version: 1.138.0
+copilot_extension_version: 0.66.0
+repository_revision: 0ff058a28e488275f344ee24bbd12d072bd3e9cc
+failed_at: none
+workspace_trusted: yes
+mcp_json_discovered: yes
+server_state_shown: Running
+negotiation_path: initialize
+negotiated_protocol_version: 2025-11-25
+host_log_excerpt: VS Code reported "Discovered 3 tools"; genia_capabilities returned mcp.protocol_version 2025-11-25, transport stdio
+tools_visible: genia_capabilities, genia_parse, genia_run
+resources_or_prompts_visible: none
+parse_invoked_from_host: yes
+invalid_source_feedback: status error, kind parse_error, phase parse, character offset 171
+corrected_source_parsed: yes
+run_invoked_from_host: yes
+run_result: status ok, kind completed, exit_code 0, stdout "2\n", stderr "record_validation_failed\nrecord_validation_failed\n", rendered value with records Ada and Edsger and two structured validation diagnostics
+channel_separation_visible: yes
+clean_lifecycle_after_disconnect: yes
+disposition: PASS
 ```
+
+Run 3 satisfies contract section 12.2 items 1 to 8 as follows: (1) discovery, start, and a supported negotiated
+revision; (2) exactly the three tools, no other tool, resource, or prompt advertised; (3) `genia_capabilities`;
+(4) `genia_parse` diagnostic and success; (5) `genia_run` with value, stdout, and stderr separately; (6) the
+recorded loop invalid source, `genia_parse` feedback, corrected source, successful `genia_run`; (7) a program
+writing both stdout and stderr did not corrupt MCP framing; (8) the configuration and the observed process hold
+no authority beyond the fixed profile (capabilities report all authority flags `false`; no worker or launcher
+process remained).
 
 ## Notes
 

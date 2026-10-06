@@ -1,6 +1,6 @@
 # Genia MCP security and deployment limitations (R28)
 
-Status: **Release candidate.** `GENIA_STATE.md` is the final authority. This page says what R28 actually
+Status: **Complete release (R28).** `GENIA_STATE.md` is the final authority. This page says what R28 actually
 guarantees and what it does not. The Genia MCP server is a **local development tool for trusted stdio
 clients**. Its execution profile is a **defense-in-depth profile**: **not a security sandbox and not
 production multi-tenant isolation**. Do not expose it to untrusted callers.
@@ -66,11 +66,11 @@ pruned environment, runtime stubs, and limits are the contract; the namespace is
 - **Protocol revisions:** exactly `2026-07-28` and `2025-11-25` are served; older revisions that also use
   `initialize` are rejected, not negotiated down. VS Code behavior after `initialize` (the `initialized`
   notification, timing of `tools/list`, `ping`) rests on the SDK reference and the first authentic trace
-  and is pending the owner's second run (ledger R28-H39).
+  and was exercised end to end by the authentic acceptance run 3 (ledger R28-H39, H45).
 
 ## Deployment
 
 Supported: run the server from a git clone on Linux as a stdio child of a trusted client on the same machine
-(`docs/mcp/demo.md`). macOS: **not yet verified** — run 2 showed `genia_run` failing there; the repair (ledger R28-H47) is awaiting the owner's macOS verification, and even then macOS has no address-space bound and no network namespace (network denial rests on the policy, pruned-binding, and runtime-stub layers). Not supported: Windows. Prerequisites: `git`, and `uv` or
+(`docs/mcp/demo.md`). macOS: verified by the owner (whole MCP suite and an authentic VS Code run; not in CI), with no address-space bound and no network namespace (network denial rests on the policy, pruned-binding, and runtime-stub layers; ledger R28-H47). Not supported: Windows. Prerequisites: `git`, and `uv` or
 Python 3.10+. Nothing is installed or downloaded when the server starts. There is no published package, no
 container image, and no registry entry; the supported distribution is the repository checkout.

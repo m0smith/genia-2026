@@ -22,7 +22,7 @@ secret.
   or `git` it fails closed with one stderr line).
 - `uv` on `PATH` and a Python 3.10+ interpreter `uv` can find. Nothing is installed or downloaded
   at launch.
-- POSIX. Linux is the only platform with recorded evidence; macOS is not yet verified (authentic VS Code run 2 on macOS: discovery, negotiation, capabilities and parse worked, `genia_run` failed; repair pending verification, ledger R28-H47); Windows is not supported.
+- POSIX. Linux (CI) and macOS (owner-run, not in CI) are verified, including an authentic VS Code + GitHub Copilot run on macOS; macOS has no address-space bound and no network namespace (ledger R28-H47); Windows is not supported.
 - The client must start that command with the repository root as working directory, or use `scripts/genia-mcp` (no arguments), which works from any directory and starts the same launcher.
 
 ## Use
@@ -43,7 +43,7 @@ secret.
   `data.supported` list; the server never negotiates down. Both eras serve the same three tools. Client
   capabilities (roots, sampling, elicitation, tasks, extensions) are accepted and ignored: they grant
   nothing. The first VS Code run failed because this server then had no `initialize` (ledger R28-H36);
-  whether VS Code now completes the whole flow is pending run 2 (ledger R28-H39).
+  authentic VS Code acceptance run 3 (macOS) completed the whole flow: negotiation, three tools, parse, and run (ledger R28-H39).
 - Startup takes about 0.5 s; wait for the first response.
 - `uv` or `git` missing, or a wrong working directory, makes the server fail to start; the client
   shows the launcher's stderr line.
@@ -59,8 +59,9 @@ read from `.mcp.json` (`node acceptance.mjs`; `node negotiation.mjs` records how
 mode behaves). The full evidence matrix is `docs/mcp/conformance-matrix.md`; run the whole R28 suite
 as on a host that denies unprivileged namespaces with `GENIA_R28_TEST_DENY_NAMESPACE=1`.
 
-A VS Code / GitHub Copilot run cannot be executed in the CI or cloud environment: we do not claim one
-(ledger R28-H39). The exact procedure and the record format are `docs/mcp/vscode-copilot-acceptance.md` and
+A VS Code / GitHub Copilot run cannot be executed in the CI or cloud environment; the recorded acceptance run is manual
+(owner, macOS: run 3 passed; ledger R28-H39), and we do not claim it as automated or CI evidence, nor claim Windows, HTTP, or
+multi-tenant use. The exact procedure and the record format are `docs/mcp/vscode-copilot-acceptance.md` and
 `docs/mcp/acceptance/vscode-copilot-evidence.md`; the summary:
 
 1. Record the VS Code version and the Copilot extension version.

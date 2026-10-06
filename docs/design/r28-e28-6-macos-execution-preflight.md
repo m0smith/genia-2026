@@ -2,7 +2,7 @@
 
 Status: **Pre-flight** (issue #707, epic #700, ledger R28-H47, with R28-H39 and R28-H43). This follows the R26+
 gate (`docs/process/run-change.md`). `GENIA_STATE.md` remains final authority for implemented behavior.
-**R28 is not complete.** No code in this change alters Genia syntax, semantics, the MCP surface, the A5
+(Historical pre-flight; R28 completed later, `GENIA_STATE.md` section 9.49.) No code in this change alters Genia syntax, semantics, the MCP surface, the A5
 negotiation, the parse path, authority policy, or the output envelopes.
 
 ## Change identity

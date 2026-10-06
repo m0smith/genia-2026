@@ -93,7 +93,7 @@ pre-flight, when promoted), **raised in**.
 ### Intrinsic host capabilities
 
 **R28-H04 — Hard deadline, kill/reap, OS-level isolation, byte enforcement**
-- Class: **A**. Status: `open`.
+- Class: **A**. Status: `closed`.
 - Evidence: `execution.process` (STATE §9.40; `src/genia/process_transport.py`)
   already provides monotonic deadline, SIGKILL + reap, and incremental 1 MiB
   per-channel limits. OS-level filesystem/network/process denial is not provided by
@@ -104,6 +104,7 @@ pre-flight, when promoted), **raised in**.
   an E28-3 design question.
 - Raised in: E28-0/E28-1.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Evidence: M:T1–T8, M:X1–X10, M:A21–A22; the OS layer is best effort and never claimed as a sandbox.
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 ### Current Genia capability gaps (class B)
 
@@ -174,7 +175,7 @@ pre-flight, when promoted), **raised in**.
 - E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. Evidence: the 8 MiB multiplexer back-pressure is the documented limitation (M:L8).
 
 **R28-H10 — No build / revision identity facility**
-- Class: **A/B (needs refinement)**. Status: `open`.
+- Class: **A/B (needs refinement)**. Status: `closed`.
 - Evidence: Genia has no builtin exposing build identity; the contract requires
   `contract_revision` as a 40-hex value that is not request-selected and carries no
   dirty-workspace description.
@@ -197,6 +198,7 @@ pre-flight, when promoted), **raised in**.
   the open question.
 - Raised in: E28-1 (approval feedback).
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. A clone without `.git`/`git` fails closed with one stderr line (documented prerequisite); no general build-identity facility is proposed.
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 ### Observations (knowledge, not gaps)
 
@@ -264,7 +266,7 @@ pre-flight, when promoted), **raised in**.
 
 
 **R28-H17 — Genia source cannot reach the parser**
-- Class: **A**. Status: `open`.
+- Class: **A**. Status: `closed`.
 - Evidence: no Genia-visible `parse`/`read` facility exists (probed builtins and
   prelude; metacircular `eval` works on quoted values). E28-0 §1 forbids R28 from
   adding a builtin or prelude function. The approved parse surface is
@@ -279,9 +281,10 @@ pre-flight, when promoted), **raised in**.
   facility is worth a proposal.
 - Raised in: E28-2 design.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. One explicit host capability returns normalized parse JSON; no Genia builtin was added (M:P1–P12).
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H18 — No code-point length or substring helpers**
-- Class: **B**. Status: `open`.
+- Class: **B**. Status: `closed`.
 - Evidence: `length("héllo")` and `substring`/`slice`/`chars` are unavailable;
   `byte_length` exists. Contract §2.4 names a character `maxLength` guard, and
   parse diagnostics would ideally give line/column.
@@ -293,6 +296,7 @@ pre-flight, when promoted), **raised in**.
   are a character offset only, no line/column); evidence preserved for the E28-6 audit.
 - Raised in: E28-2 design.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Parse diagnostics are a character offset only (no line/column); limits are UTF-8 bytes (M:P4, P8, L5).
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H19 — Contract §2.4 invalid-Unicode wording vs strict JSON decoding**
 - Class: **N (contract wording)**. Status: `closed` (resolved by Clarification A2).
@@ -310,7 +314,7 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-2 design. Resolved in: E28-0 Clarification A2 (issue #703).
 
 **R28-H20 — Capability provisioning needs an in-process host bootstrap**
-- Class: **A** (relates to H05). Status: `open`.
+- Class: **A** (relates to H05). Status: `closed`.
 - Evidence: CLI file mode passes only strings to `main(args)`; a host-built
   capability can reach `mcp.genia` only if the host loads the program in-process and
   calls a Genia function with it, as `hosts/python/exec_ollama_chat.py` already does.
@@ -324,6 +328,7 @@ pre-flight, when promoted), **raised in**.
   E28-6 audit decides together with H05 whether a general mechanism is worth a proposal.
 - Raised in: E28-2 design.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. `serve(revision, host)` is the explicit provisioning boundary; `docs/mcp/host-portability.md` lists the host's responsibilities.
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H21 — Stale #703 wording ("official MCP client contract tests")**
 - Class: **N (process/documentation drift)**. Status: `closed`.
@@ -484,7 +489,7 @@ pre-flight, when promoted), **raised in**.
 - E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. The supervisor is the only code that would disappear (H05–H08).
 
 **R28-H27 — Cancellation versus the native single-threaded stdin loop**
-- Class: **B** (refines H08, H09). Status: `open`.
+- Class: **B** (refines H08, H09). Status: `closed`.
 - Evidence: `serve_lines` processes one request synchronously, so a
   `notifications/cancelled` message sits unread in stdin while `genia_run` blocks.
   Contract section 5 requires cancellation to terminate and reap the worker; E28-3 may
@@ -509,9 +514,10 @@ pre-flight, when promoted), **raised in**.
   order, worker reaped) and the supervisor tests. Stays `open` for the E28-6 audit.
 - Raised in: E28-3 design.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Cancellation is implemented and tested (M:X1–X10); above 8 MiB of pending input it is best effort (documented).
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H28 — Shell stages bypass environment pruning**
-- Class: **A**. Status: `open`.
+- Class: **A**. Status: `closed`.
 - Evidence: `$(cmd)` lexes to `SHELL_STAGE`; the evaluator's `_eval_shell_stage` calls
   `subprocess.run(shell=True)` directly, not through a global binding, so removing
   bindings cannot deny it.
@@ -525,9 +531,10 @@ pre-flight, when promoted), **raised in**.
   creates no marker with policy on and off). Preserve evidence; audit decides.
 - Raised in: E28-3 design.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Static policy, runtime stubs, and the optional namespace are each asserted (M:A10, A9, A22).
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H29 — Contract "no implicit entrypoint" versus STATE command-mode `main` dispatch**
-- Class: **N (contract versus documented CLI behavior)**. Status: `open`.
+- Class: **N (contract versus documented CLI behavior)**. Status: `closed`.
 - Evidence: contract section 2.5 requires command-source evaluation semantics with no
   file-mode `main` dispatch or implicit entrypoint; STATE section 9 states that in file
   and `-c` command mode `main/1` is preferred over `main/0`, and `_resolve_program_result`
@@ -539,9 +546,10 @@ pre-flight, when promoted), **raised in**.
   difference is not rediscovered as a defect.
 - Raised in: E28-3 design.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. The contract wins for MCP; the difference from CLI `-c` is pinned (M:R9) and documented in `docs/mcp/reference.md`.
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H30 — Canonical value rendering cannot be bounded incrementally**
-- Class: **B**. Status: `open`.
+- Class: **B**. Status: `closed`.
 - Evidence: `format_debug` returns a finished string; contract section 5 asks for
   incremental limit enforcement and the 1 MiB value limit.
 - Workaround (E28-3 design): the worker bounds the rendering with the wall-clock
@@ -552,6 +560,7 @@ pre-flight, when promoted), **raised in**.
   Preserve evidence; audit decides.
 - Raised in: E28-3 design.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Bounded by the deadline, `RLIMIT_AS` and a post-check (M:L8); documented.
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H31 — The E28-1 server did not flush responses on a live pipe**
 - Class: **N (defect found in an earlier phase; native Genia fix)**. Status: `closed`.
@@ -564,7 +573,7 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-3 implementation.
 
 **R28-H32 — The canonical debug renderer exposes host representations**
-- Class: **N (existing behavior; observation)**. Status: `open`.
+- Class: **N (existing behavior; observation)**. Status: `closed`.
 - Evidence: `genia_run` of `print` returns `<function make_global_env.<locals>.print_fn at
   0x...>` and of a user function `GeniaFunctionGroup(name='f', functions={1: <function
   f/1>}, ...)`, exactly what ordinary command mode prints, so MCP inherits Python class and
@@ -581,6 +590,7 @@ pre-flight, when promoted), **raised in**.
   E28-6 audit decides whether a portable rendering for callable values is worth a proposal.
 - Raised in: E28-3 implementation. Refined in: E28-5.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Audit: the contract (§2.5) says the value is rendered by the existing canonical debug renderer and is not claimed to be lossless JSON or a new serialization, so host text for callable values violates no requirement; E28-5 proved a captured protected value is never rendered and no deterministic comparison uses callable values. Documented as debug text, not a portable format. No renderer change. A portable callable rendering would be a separate proposal.
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H33 — Live-process tests raced server bootstrap, and the namespace probe sat in the request path**
 - Class: **A** (host-initialization responsibility) and **N** (test-synchronization finding). Status: `closed`.
@@ -770,7 +780,7 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-4 design.
 
 **R28-H39 — VS Code/Copilot acceptance cannot be executed in the development environment**
-- Class: **N (process limitation)**. Status: `open` (for the E28-6 audit).
+- Class: **N (process limitation)**. Status: `closed`.
 - Evidence: this environment has no GUI and no GitHub authentication, and the proxy blocks
   `code.visualstudio.com`. Configuration facts were taken from the `microsoft/vscode-docs` source
   (pre-flight section 3), which does not state VS Code's protocol versions.
@@ -808,9 +818,11 @@ pre-flight, when promoted), **raised in**.
 - E28-6 run-2 disposition: **Held open: release blocker (was: the protocol; now: macOS governed execution).**
   Run 3 follows the H47 repair and the owner's macOS verification commands
   (`docs/mcp/vscode-copilot-acceptance.md`).
+- Run 3 (owner, macOS, `0ff058a28e488275f344ee24bbd12d072bd3e9cc`, VS Code 1.138.0, Copilot Chat 0.66.0): **PASS** (`evidence run=3`). VS Code started `genia`, `Discovered 3 tools`; `genia_capabilities` (protocol `2025-11-25`, profile `source-only-isolated-v1`, all authority flags false), broken `genia_parse` (`parse_error`, offset 171), corrected `genia_parse`, and the corrected canonical demo through Copilot Agent `genia_run` (`ok`/`completed`, exit 0, stdout `"2\n"`, two `record_validation_failed` stderr lines, rendered value with Ada and Edsger and two validation diagnostics, channels separate); after stopping the server `pgrep -af "mcp_launch|mcp_host|mcp_worker"` was empty. Contract 12.2 items 1-8 are met (mapped in the evidence file).
+- E28-6 completion disposition: **Closed.** The acceptance criterion of contract 12.2 is satisfied by the latest run; runs 1 and 2 remain as history. Two fields were established by protocol-level evidence rather than a reported UI inspection and are labeled so in the evidence file (`resources_or_prompts_visible`, `workspace_trusted`).
 
 **R28-H40 — UTF-16 surrogate escapes in program strings cannot cross the JSON boundary unchanged**
-- Class: **N (host string representation; documented limitation)**. Status: `open` (for the E28-6 audit).
+- Class: **N (host string representation; documented limitation)**. Status: `closed`.
 - Evidence: found by the E28-5 channel matrix. Genia `\u` escapes build strings holding UTF-16
   surrogate code units, which are not Unicode scalar values. Direct evaluation keeps them
   (`"\ud83d\ude00"` renders as two code units). Through MCP the worker reply is JSON: a valid pair is
@@ -825,6 +837,7 @@ pre-flight, when promoted), **raised in**.
   need not share).
 - Raised in: E28-5.
 - E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Audit: the contract (§2.4, A2) requires rejecting invalid Unicode at the JSON-RPC boundary and does not require preserving UTF-16 surrogate code units created by string escapes; the path fails closed with a fixed message, leaks nothing, and framing is intact. Not a contract violation and no Genia string semantics are changed. A language-level ticket would need its own pre-flight and owner approval; none is created.
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H41 — SIGHUP left the worker running and its private temp directory behind**
 - Class: **A** (host lifecycle; refines H38). Status: `closed`.
@@ -840,7 +853,7 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-5. Resolved in: E28-5.
 
 **R28-H42 — A failed run gives an agent no diagnostic text**
-- Class: **N (design consequence; documented limitation)**. Status: `open` (accepted limitation).
+- Class: **N (design consequence; documented limitation)**. Status: `closed`.
 - Evidence: found by the E28-6 skeptical audit while building the demo. `genia_run` failures carry only a
   fixed message (`Genia source failed during evaluation`) and parse failures only a character offset
   (no line/column, H18), because contract sections 2.2 and 6 forbid raw diagnostics, source text, and host
@@ -854,9 +867,10 @@ pre-flight, when promoted), **raised in**.
   first. Documented in `docs/mcp/demo.md` and `docs/mcp/reference.md`.
 - E28-6 final disposition: Accepted R28 limitation; post-R28 follow-up candidate (recorded in the parking lot; not ticketed).
 - Raised in: E28-6.
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H43 — The platform evidence is Linux only**
-- Class: **N (evidence gap; documentation correction)**. Status: `open` (accepted limitation).
+- Class: **N (evidence gap; documentation correction)**. Status: `closed`.
 - Evidence: every lifecycle and process test reads `/proc` and the namespace layer uses `unshare`; CI is a
   Linux host. Earlier text said "POSIX (Linux or macOS)". No macOS run exists.
 - Disposition: documentation corrected in E28-6 to "Linux verified; macOS not verified; Windows not
@@ -866,6 +880,8 @@ pre-flight, when promoted), **raised in**.
 - Run 2 (macOS), at actual strength: macOS now also proves MCP negotiation (`2025-11-25`), capabilities, tool discovery, and the parse path (the host-process parse capability). It proves that **governed execution did not work on macOS**: `genia_run` returned `internal_error` and 53 of 73 tests in `test_r28_mcp_run.py` failed there (H47). Worker supervision, process groups, cancellation, timeout, and cleanup are unverified on macOS (the macOS-only evidence is failure). After the H47 repair the platform claim is still only "Linux verified"; macOS becomes verified only by the owner's macOS commands and run 3.
 - E28-6 run-2 update: macOS evidence is stated above at its actual strength; the accepted-limitation wording "Linux verified; macOS not verified" stays until run 3 and the macOS suite pass.
 - Raised in: E28-6.
+- Run 3 and the macOS suite (see H39, H47): macOS now has verified governed execution and the whole R28/MCP suite (`1141 passed, 18 skipped, 0 failed` at `d0e4f2a4`). Platform statement: **Linux (CI) and macOS (owner-run, not in CI) verified; Windows unsupported**; other OS versions and distributions are unverified.
+- E28-6 completion disposition: **Closed (accepted limitation):** macOS is not in CI; Windows is unsupported.
 
 **R28-H44 — The release gate could not represent a failed authentic run**
 - Class: **N (process; test schema)**. Status: `closed`.
@@ -874,21 +890,24 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-6 (A5).
 
 **R28-H45 — VS Code's post-`initialize` behavior is inferred, not observed**
-- Class: **N (evidence gap)**. Status: `open` (accepted until run 2).
+- Class: **N (evidence gap)**. Status: `closed`.
 - Evidence: only `initialize` was observed. Whether VS Code then sends `notifications/initialized`, when it lists tools, and whether it pings, is taken from the v1 SDK 1.31.0 reference. The server is therefore deliberately tolerant: it does not require `notifications/initialized`, answers `ping` in every state, and serves `tools/*` as soon as `initialize` succeeded.
 - Disposition: closed by run 2.
 - E28-6 final disposition: Held open for run 2 (H39); the tolerance rules are pinned by `tests/unit/test_r28_mcp_compat.py`.
 - Raised in: E28-6 (A5).
+- Run 3 passed end to end in authentic VS Code (initialization, tool discovery, three tool calls, clean shutdown), so the server's tolerance rules (no gating on `notifications/initialized`, `ping` answered in every state, `tools/*` served as soon as `initialize` succeeds) were sufficient. VS Code's exact post-`initialize` message order was not captured for run 3 (no raw trace supplied); it is not needed for acceptance.
+- E28-6 completion disposition: **Closed.**
 
 **R28-H46 — The repository revision of the first authentic run was not recorded**
-- Class: **N (evidence provenance)**. Status: `open` (accepted limitation).
+- Class: **N (evidence provenance)**. Status: `closed`.
 - Evidence: the owner's trace did not include the commit that run used; run 1 records `repository_revision: not recorded` rather than a guess.
 - Disposition: the run 2 procedure makes `git rev-parse HEAD` the first step and the gate requires it.
 - E28-6 final disposition: Accepted: run 1 is history, not release evidence; run 2 must carry its revision.
 - Raised in: E28-6 (A5).
+- E28-6 completion disposition: **Closed** (accepted R28 limitation; run 3 passed, R28 complete).
 
 **R28-H47 — The governed worker does not run on macOS: every `genia_run` is `internal_error`**
-- Class: **N (portability defect; Linux-only assumptions in the supervisor tests)**. Status: `open` (repair implemented; awaiting macOS verification).
+- Class: **N (portability defect; Linux-only assumptions in the supervisor tests)**. Status: `closed`.
 - Evidence: authentic run 2 and the owner's `pytest tests/unit/test_r28_mcp_run.py` on macOS (53 failed, 17 passed, 3 skipped). Class A: nearly every execution test, including worker-decided outcomes (`parse_error`, `policy_denied`, `runtime_error`), returned `internal_error`, i.e. the worker failed in its bootstrap before it read the source; `genia_parse` (host process) and discovery were unaffected. Class B: the test helper read `/proc` (absent on macOS), and the namespace tests assumed `/proc/net/dev` and `unshare`. The `ModuleNotFoundError: hosts` from running `mcp_worker.py` as a script is not the production path (production uses `-m hosts.python.mcp_worker` with `PYTHONPATH`).
 - Root cause: localized to the worker's `apply_limits()` (the only platform-sensitive production step before readiness; the supervisor, `Popen`, `start_new_session`, `killpg`, `select`, pruned environment, and the working directory are POSIX and the same on Linux). Linux reproduces the identical failure signature when the worker's `setrlimit(RLIMIT_AS)` raises. **Confirmed on the Mac (owner, SHA `48467fcd`):** the worker probe printed `VERDICT OK` and showed Darwin's `setrlimit(RLIMIT_AS, 2 GiB)` raising `ValueError: current limit exceeds maximum limit`; the supervised production `1 + 2` returned `3`; and `tests/unit/test_r28_mcp_run.py` went from 53 failed to 5 failed (64 passed, 4 skipped): every execution, semantics, authority, error, and limit test passes. `tools/mcp_diagnostics/worker_probe.py` and the development-only `GENIA_MCP_WORKER_DIAG` stderr diagnostic exist to confirm or refute it on the Mac in one command; the wire stays sanitized.
 - Disposition: (pre-flight `docs/design/r28-e28-6-macos-execution-preflight.md`) macOS can meet the R28 contract (no contract text names an rlimit, `/proc`, or a namespace). The four POSIX limits (`FSIZE`, `CORE`, `CPU`, `NOFILE`) are required and fail closed on every platform; `RLIMIT_AS` is required and fails closed on every platform except Darwin, where a rejection is tolerated and the memory bound is absent (a documented, weaker macOS bound). No other failure is tolerated; no Linux behavior changed; no namespace or sandbox is claimed on macOS. Tests: `test_r28_mcp_portability.py` (red first), a portable process-inspection backend (`/proc` on Linux, `ps`/`lsof` on macOS, tested on Linux), Linux-only namespace tests skipped elsewhere with a stated reason.
@@ -896,6 +915,8 @@ pre-flight, when promoted), **raised in**.
 - Follow-up candidates (not in R28): a supervisor-side memory watchdog for macOS; a reviewed macOS sandbox mechanism.
 - E28-6 final disposition: Held open until VS Code run 3 (the execution fix, the process-discovery repair, and the full R28/MCP suite are Mac-verified: 1141 passed, 18 skipped, 0 failed at `d0e4f2a4`); the weaker macOS memory bound is an accepted R28 limitation once verified.
 - Raised in: E28-6 (run 2).
+- Run 3 (authentic VS Code, macOS, `0ff058a2`): `genia_run` of the canonical demo passed through Copilot Agent, with value, stdout, and stderr separate, and no worker or launcher process remained after the server stopped. The full R28/MCP suite passed on the Mac (`1141 passed, 18 skipped, 0 failed` at `d0e4f2a4`).
+- E28-6 completion disposition: **Closed.** macOS governed execution works with platform-aware limits (four POSIX limits everywhere; `RLIMIT_AS` fail-closed except on Darwin). Remaining, accepted and documented: macOS has no address-space bound and no network namespace; a macOS memory watchdog and a reviewed macOS sandbox are post-R28 follow-up candidates, not ticketed.
 
 **R28-H48 — Three further macOS differences found by the Mac suite run (test assumptions and platform facts)**
 - Class: **N (portability; test assumptions)**. Status: `closed` (repaired and Mac-verified by the full suite at `d0e4f2a4`).
@@ -960,6 +981,7 @@ pre-flight, when promoted), **raised in**.
 | E28-5 evidence | H32 (renderer: no leak, no destabilization), H36 (investigation and recommendation), H39 (re-checked, still open) refined; no entry closed except H41 |
 | E28-6 amendment A5 (after run 1) | H36 (executed evidence, amendment, implementation), H39 (run 1 recorded; rerun pending), H43 (macOS evidence stated at actual strength) updated; H44 (gate schema; closed), H45 (post-initialize behavior inferred; open), H46 (run 1 revision not recorded; accepted) added |
 | E28-6 run 2 (macOS) | H36 closed (A5 demonstrated in authentic VS Code); H39 held open (genia_run failed on macOS); H43 updated to actual strength; H47 added (governed worker does not run on macOS; repair implemented, awaiting macOS verification) |
+| E28-6 run 3 (completion) | authentic VS Code run 3 PASS at `0ff058a2`; H39, H45, H47 closed; accepted-limitation entries (H04, H10, H17, H18, H20, H27-H30, H32, H40, H42, H43, H46) closed; follow-up candidates H05-H09, H15, H24, H26 stay open (post-R28, parking lot, not ticketed) |
 | E28-6 macOS verification 5 | full R28/MCP suite on macOS at `d0e4f2a4`: 1141 passed, 18 skipped, 0 failed; H48 closed; H47 stays open for VS Code run 3 |
 | E28-6 macOS verification 4 | H48 repair Mac-verified on the three-file subset at `b65e7218`: 188 passed, 7 skipped, 0 failed; the full macOS suite re-run is pending |
 | E28-6 macOS verification 3 | full R28 suite on macOS: 1135 passed, 18 skipped, 3 failed; H48 added (probe-test Linux assumption, platform-injected `__CF_USER_TEXT_ENCODING`, file-mode stdin decoder locale dependence); repaired, awaiting re-run |

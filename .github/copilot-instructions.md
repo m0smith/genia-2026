@@ -19,3 +19,4 @@ Before making changes, read:
 - Do not redefine language semantics or source-of-truth precedence in this file
 - Refer back to the canonical docs instead of duplicating semantic rules
 - Keep protected semantic facts aligned with `docs/contract/semantic_facts.json` and `tests/doc/test_semantic_doc_sync.py`
+- When the repository's `genia` MCP server is available (`.mcp.json`), prefer its `genia_parse` and `genia_run` tools over reconstructing Genia behavior from Python implementation details; see `docs/ai/LLM_CONTRACT.md`

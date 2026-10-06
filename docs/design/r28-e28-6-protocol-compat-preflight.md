@@ -3,7 +3,7 @@
 Status: **Pre-flight for contract amendment A5** (issue #707, epic #700, ledger R28-H36 and R28-H39). This
 follows the R26+ gate (`docs/process/run-change.md`, `.github/ISSUE_TEMPLATE/genia-change-preflight.md`).
 `GENIA_STATE.md` remains final authority for implemented behavior; nothing here is implemented until the
-phases below land. **R28 is not complete.**
+phases below land. (Historical pre-flight; R28 completed later, `GENIA_STATE.md` section 9.49.)
 
 ## Change identity
 

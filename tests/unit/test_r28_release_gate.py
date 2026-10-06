@@ -254,6 +254,22 @@ def test_run_2_is_preserved_as_protocol_success_and_the_genia_run_failure_on_mac
     assert not _release_satisfied(_runs()[:2])  # a failed latest run never releases
 
 
+def test_run_3_is_the_authentic_passing_acceptance_run():
+    runs = _runs()
+    assert len(runs) >= 3 and [r["failed_at"] for r in runs[:2]] == ["initialize", "run"]  # history is untouched
+    run3 = runs[2]
+    assert _state(run3) == "passed" and _problems(run3) == []
+    assert run3["repository_revision"] == "0ff058a28e488275f344ee24bbd12d072bd3e9cc"
+    assert (run3["vscode_version"], run3["copilot_extension_version"]) == ("1.138.0", "0.66.0")
+    assert (run3["negotiation_path"], run3["negotiated_protocol_version"]) == ("initialize", "2025-11-25")
+    assert run3["tools_visible"] == EXPECTED_TOOLS and run3["resources_or_prompts_visible"] == "none"
+    assert "offset 171" in run3["invalid_source_feedback"] and "parse_error" in run3["invalid_source_feedback"]
+    assert '"2\\n"' in run3["run_result"] and "record_validation_failed" in run3["run_result"]
+    assert run3["failed_at"] == "none" and run3["channel_separation_visible"] == "yes"
+    assert run3["clean_lifecycle_after_disconnect"] == "yes"
+    assert _release_satisfied(runs)  # the latest run governs, and it passes
+
+
 def test_the_gate_distinguishes_not_executed_failed_and_passed_runs():
     states = [_state(run) for run in _runs()]
     assert states[0] == "failed"

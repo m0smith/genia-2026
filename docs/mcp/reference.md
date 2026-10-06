@@ -1,7 +1,7 @@
 # Genia MCP reference (R28, Python reference host)
 
-Status: **Release candidate reference.** `GENIA_STATE.md` is the final authority for implemented
-behavior; the contract is `docs/design/r28-genia-mcp-contract-threat-model.md`. R28 is not complete (see
+Status: **R28 reference (complete release).** `GENIA_STATE.md` is the final authority for implemented
+behavior; the contract is `docs/design/r28-genia-mcp-contract-threat-model.md`. R28 is complete (see
 `docs/releases/R28.md`). This page documents only what is implemented and tested.
 
 ## Surface
@@ -19,7 +19,7 @@ behavior; the contract is `docs/design/r28-genia-mcp-contract-threat-model.md`. 
   never answered; the latter changes nothing). Everything else is `-32601`.
 - Tools: exactly `genia_capabilities`, `genia_parse`, `genia_run`, in that order.
 - **No MCP resources. No MCP prompts. No HTTP transport. No C++ MCP implementation.**
-- Platform: Python reference host, POSIX. Verified on Linux. macOS: not yet verified (run 2 found `genia_run` failing there; repair pending verification, ledger R28-H47; on macOS there is no address-space bound and no network namespace); Windows is not
+- Platform: Python reference host, POSIX. Verified on Linux (CI) and macOS (owner-run, not in CI; on macOS there is no address-space bound and no network namespace, ledger R28-H47); Windows is not
   supported.
 
 ## The 2025-11-25 era

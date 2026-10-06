@@ -12,13 +12,13 @@ Status of each part, so nothing is mistaken for more than it is:
 | Part | Status |
 |---|---|
 | Server over local stdio, exactly three tools | automated in CI |
-| Official MCP TypeScript client (version negotiation `auto`) | automated in CI |
-| MCP Inspector 2.9.0, command-line mode | manually executed once; not run in CI; the web and terminal UIs were not executed |
-| VS Code with GitHub Copilot | **not yet verified**: no run is recorded (see `docs/mcp/vscode-copilot-acceptance.md`) |
+| Official MCP TypeScript client (default, `auto`, and pinned negotiation) | automated in CI |
+| MCP Inspector 2.9.0, command-line mode | manually executed; not run in CI; the web and terminal UIs were not executed |
+| VS Code with GitHub Copilot | **verified by an authentic run** (acceptance run 3, macOS: discovery, three tools, parse diagnostic and success, and this demo's `genia_run`); manual, not in CI (`docs/mcp/vscode-copilot-acceptance.md`) |
 
 ## Prerequisites
 
-- **Linux.** This is the only platform with recorded evidence. **macOS is not yet verified**: on macOS the discovery and parse tools worked in an authentic VS Code run, but `genia_run` failed there; a repair awaits macOS verification. Windows is not supported.
+- **Linux or macOS.** Linux is verified in CI; macOS is verified by the owner (the whole MCP test suite, and an authentic VS Code + GitHub Copilot run of this demo; not in CI). On macOS there is no address-space bound and no network namespace (Linux-only hardening). Windows is not supported.
 - `git`, and either `uv` (recommended) or Python 3.10 or newer, on `PATH`. Nothing is installed or downloaded when the server starts.
 - A **git clone** of the repository (the server reports the clone's commit as its revision; a copy without
   `.git` refuses to start with one line on stderr).
@@ -62,11 +62,11 @@ MCP_INSPECTOR_SECRET_STORE=memory npx @modelcontextprotocol/inspector@2.9.0 --cl
   --config genia-mcp.json --server genia --protocol-era auto --method tools/list
 ```
 
-Without `--protocol-era auto` the Inspector fails with `Method not found`, for the same reason.
+Without `--protocol-era auto` the Inspector uses its default era and connects too (`2025-11-25` via `initialize`; `auto` connects with `2026-07-28`); both list the same three tools.
 
-**VS Code with GitHub Copilot** is expected to discover the repository's `.mcp.json` when the folder is
-opened and trusted. This has **not been verified** by the authors; follow
-`docs/mcp/vscode-copilot-acceptance.md` and report what you see.
+**VS Code with GitHub Copilot** discovers the repository's `.mcp.json` when the folder is opened and trusted
+(verified on macOS with VS Code 1.138.0 and Copilot Chat 0.66.0: it starts `genia`, negotiates `2025-11-25`, and
+`Discovered 3 tools`). To repeat the check, follow `docs/mcp/vscode-copilot-acceptance.md`.
 
 ## 3. Discover the tools
 

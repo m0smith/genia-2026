@@ -37,7 +37,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R24 — C++ Minimal Conforming Host](R24.md) — COMPLETE; E24-8 skeptical audit PASS
 - [R25 — C++ Stateful Runtime and Concurrency](R25.md) — COMPLETE; E25-5 skeptical audit PASS
 - [R26 — C++ REPL and Data Bridges](R26.md) — COMPLETE; `repl`, `bytes_utf8`, `json_strict` all `PARITY_OK`
-- [R28 — Genia MCP Server](R28.md) — **Release Candidate; not complete** (E28-0 through E28-5 merged; run 1 failed at `initialize`; amendment A5 fixed it; run 2 failed at `genia_run` on macOS; run 3 pending)
+- [R28 — Genia MCP Server](R28.md) — COMPLETE; authentic VS Code + GitHub Copilot run 3 PASS (runs 1 and 2 failed and were repaired: amendment A5, ledger R28-H47)
 
 ## Process
 

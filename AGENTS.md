@@ -385,6 +385,16 @@ Mode, and HTTP Serving" accordingly. R28 and later behavior is not implemented b
 R27 and must not be inferred from roadmap placement. See `docs/releases/R27.md`
 and `docs/analysis/r27-release-truth-audit.md`.
 
+**R28 — Genia MCP Server is complete (E28-0 through E28-6).** A native Genia
+program (`apps/mcp/mcp.genia`) serves exactly `genia_capabilities`, `genia_parse`,
+and `genia_run` over local stdio on the Python reference host, accepted by an
+authentic VS Code + GitHub Copilot run (`docs/mcp/acceptance/vscode-copilot-evidence.md`).
+It adds no Genia language semantics, no resources or prompts, no HTTP transport, and
+no C++ MCP; its execution profile is defense in depth, not a security sandbox. Agents
+with an MCP client may prefer it for parsing and running Genia source
+(`docs/ai/LLM_CONTRACT.md`); `GENIA_STATE.md` section 9.49 and `docs/releases/R28.md`
+are the implemented truth.
+
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
 

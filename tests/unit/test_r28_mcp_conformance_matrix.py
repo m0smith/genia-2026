@@ -98,11 +98,11 @@ def test_stated_corpus_sizes_match_the_code():
 
 def test_the_matrix_keeps_its_honesty_statements():
     text = _text()
-    assert "**R28 is not complete**" in text
+    assert "**R28 is complete**" in text
     assert "E28-6" in text
     assert re.search(r"Z4 \| Streamable HTTP parity .* NOT APPLICABLE", text)
     assert re.search(r"Z5 \| C\+\+ MCP parity .* NOT APPLICABLE", text)
-    assert "No successful VS Code / GitHub Copilot run is recorded" in text
+    assert "**run 3 passed**" in text  # the authentic acceptance run (Z3)
     assert "not a sandbox" in text or "never the security contract" in text
     for banned in ("fully aligned", "complete coverage", "no drift", "all examples"):
         assert banned not in text.lower()

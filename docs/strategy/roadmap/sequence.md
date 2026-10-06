@@ -142,7 +142,7 @@ and outbound HTTP were deferred (E27-3, E27-4) rather than partially claimed.
 
 ## MCP
 
-R28 is the planned Genia MCP Server release. It is integration infrastructure, not a new language-semantics layer. Existing epic #700 and issues #701–#707 are the R28/E28-* issue set after renumbering.
+R28 is the Genia MCP Server release (complete; `docs/releases/R28.md`). It is integration infrastructure, not a new language-semantics layer. Existing epic #700 and issues #701–#707 are the R28/E28-* issue set after renumbering.
 
 R28 is placed after the C++ host expansion arc to keep that arc contiguous. Its own contract may still authorize an initial Python-reference-host implementation; roadmap position alone does not require complete cross-host parity.
 
@@ -191,7 +191,7 @@ Python-to-Genia migrations in this arc follow one rule: Genia owns portable poli
 
 Dependency note: R39's roadmap dependencies are R18, R35, and R36 (not R33). R33 tooling/introspection is the prerequisite only for the documentation-generation and lint-policy migrations, which also need R35 for writing outputs. R42 stays an independent branch. The host parity gate is part of R39 (see [`r39.md`](r39.md)); a Genia release-check program over evidence bundles is a parking-lot candidate. Rationale and inventory: `docs/analysis/python-to-genia-meaningful-migration-review.md` (non-authoritative).
 
-R8 through R27 are complete; R28 through R42 remain planned and not active unless a specific gate says otherwise. Python remains the full-language reference host; C++ is the bounded R27 production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
+R8 through R28 are complete; R29 through R42 remain planned and not active unless a specific gate says otherwise. Python remains the full-language reference host; C++ is the bounded R27 production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
 
 ## Configuration and secret hardening
 
