@@ -1068,3 +1068,71 @@ unchanged. The profile is static text: it grants nothing, reads nothing, and ref
 |---|---|
 | 2.1, 2.3, A1 C1, 12.2, A5.7 | the final surface is four tools; `tools` reports the advertised set |
 | 19 | this amendment |
+
+
+## 20. Amendment A7: scoped maturity and gap discovery (#1086)
+
+Approved direction: the #1086 implementation request authorizes the pre-flight
+selection in `docs/design/r28-follow-up-1086-maturity-gap-preflight.md`. This
+amendment defines an MCP application contract, not Genia semantics. Its approval
+does not claim implementation; implemented truth is recorded in STATE after
+verification. A7 supersedes only A6.1's closed language member set by adding
+`discovery`; the other eight members and their values remain unchanged.
+
+### A7.1 Closed output and source mapping
+
+`result.language.discovery` has exactly `coverage` and `facts`. `coverage` is
+`"curated_non_exhaustive"`; omitted facts imply nothing. `facts` contains exactly
+the following 12 objects, in table order, each with exactly `id`, `scope`,
+`status`, `maturity`, `summary`, and `state_sections`. Section identifiers are
+JSON strings in arrays, in the listed order, referencing `GENIA_STATE.md` at the
+launch `contract_revision`. Table nulls are JSON null, not strings.
+
+| `id` | `scope` | `status` | `maturity` | `summary` | `state_sections` |
+|---|---|---|---|---|---|
+| `pattern_branching` | language | implemented | null | Branching uses pattern matching. | 5 |
+| `tail_calls` | language | implemented | null | Tail calls are optimized. | 8 |
+| `if_and_loops` | language | unsupported | null | There is no dedicated if expression or while/for loop syntax. | 5, 9.50 |
+| `flow_shared_coverage` | shared_conformance | partial | Experimental | Flow runs in Python; shared executable coverage is limited to first-wave cases. | 0, 1 |
+| `core_ir_stability` | shared_conformance | partial | Partial | Portable Core IR stability remains Partial. | 0 |
+| `cpp_language_floor` | cpp_host | partial | null | C++ implements the bounded R27 production floor, not Python feature parity. | 0 |
+| `other_language_hosts` | other_hosts | planned | null | Node.js, Java, Rust, and Go hosts are planned, not implemented. | 0 |
+| `browser_runtime` | browser | scaffolded | null | Browser artifacts are documentation scaffolding; no runtime or playground is implemented. | 0.1 |
+| `mcp_surface` | mcp | implemented | null | Python-host local stdio MCP exposes four tools after A6. | 9.49, 9.50 |
+| `cpp_mcp` | mcp | unsupported | null | There is no C++ MCP implementation. | 9.49, 9.50 |
+| `windows_mcp` | mcp_windows | unsupported | null | Windows MCP deployment is unsupported. | 9.49 |
+| `macos_hardening` | mcp_macos | partial | null | macOS MCP runs are verified without an address-space bound or network namespace; the profile is not a security sandbox. | 9.48, 9.49 |
+
+Status is scoped implementation/support availability: `implemented`, `partial`,
+`planned`, `scaffolded`, or `unsupported`. Maturity is an explicit STATE rating
+(`Experimental`, `Partial`, `Stable`) or null for unspecified; null never means
+Stable or unsupported. No selected row is Stable. `partial` in the C++/macOS
+rows describes bounded support/hardening, not an inferred maturity label.
+Scaffolding is documentation only; absent syntax is not a future promise.
+Partial shared Flow coverage does not imply missing Python Flow behavior.
+Language support does not grant governed MCP execution authority.
+
+The scope enumeration is exactly `language`, `shared_conformance`, `cpp_host`,
+`other_hosts`, `browser`, `mcp`, `mcp_windows`, `mcp_macos`. IDs are adapter labels,
+not host capability names. Summaries are fixed table text, at most 256 UTF-8
+bytes each. Encoded discovery JSON is at most 16,384 UTF-8 bytes. These are
+static-output bounds, not new runtime limits or failure paths.
+
+### A7.2 Design and preservation boundaries
+
+Implement one native constant in `apps/mcp/mcp.genia` and attach it in
+`language_value`. Use the existing `nil` value for JSON null. No runtime STATE
+parsing, evidence scanning, environment access, client input, timestamp, host
+probe, acquisition, or host-code change is permitted. The catalogue is static
+and identical across calls, protocol eras, namespace modes, and plain file
+mode; only the existing profile launch revision varies. Claims must be reviewed
+against their cited STATE sections when changed. Explicit later implemented
+R26/R27 and R28 completion entries govern over their older historical summaries.
+
+Tool count/order, descriptors, omitted/empty argument policy, revision identity,
+A6 examples, `genia_capabilities` payload, envelope `genia.mcp.v1`, execution
+policy, cancellation, limits, and authority remain unchanged. No new Genia
+syntax, parser/evaluator/Core IR behavior, builtin, host protocol, shared spec,
+C++ MCP, resource, prompt, HTTP transport, filesystem/shell/workspace authority,
+or #1087 showcase is added. Authentic acceptance runs 1–3 predate A6 and A7 and
+remain evidence for their original three-tool revision.

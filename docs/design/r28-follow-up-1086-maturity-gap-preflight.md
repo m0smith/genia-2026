@@ -2,7 +2,8 @@
 
 Status: **Completed pre-flight / design decision, 2026-10-06.** R28 follow-up,
 not a new release or implemented MCP behavior. `GENIA_STATE.md` remains final
-authority. The proposed output below is not returned by the current server.
+authority. The proposal and initial gate below record the pre-flight phase.
+Subsequent phase authorization is recorded under "Phase progression".
 
 ## Change identity
 
@@ -294,3 +295,14 @@ new tests belong to the subsequent failing-test phase.
 After merging main at `2a85290` (PR #1088), the same focused selection plus
 `tests/doc/test_roadmap_split.py` passed: **683 passed, 1 skipped**, with the
 same inapplicable release-gate scenario. `git diff --check` passed again.
+
+
+## Phase progression
+
+The subsequent #1086 request explicitly approves the 12-fact extension and
+authorizes contract/design through implementation, documentation, audit, and
+distillation on this branch. It supersedes the initial requirement to stop
+after this pre-flight and the recommendation to create separate child issues;
+the phases proceed under #1086 with separate commits. Amendment A7 (application
+contract section 20) locks the table above. Implementation still follows a
+committed failing-test phase; none of this adds language semantics.
