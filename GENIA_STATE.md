@@ -6855,3 +6855,48 @@ PYTHON REFERENCE HOST (MCP adapter):
 - **Not claimed / not done:** no source-specific parse or run diagnostic hints; the VS Code + GitHub Copilot acceptance record
   (runs 1-3) predates this tool and describes the three-tool surface, and no new authentic client run is recorded for the fourth.
 
+
+
+### R28 follow-up amendment A7: scoped maturity/gap facts (issue #1086)
+
+LANGUAGE CONTRACT: unchanged. This extends MCP adapter metadata only.
+
+PYTHON REFERENCE HOST (MCP adapter): `genia_language_profile` now adds
+`language.discovery`, exactly `{coverage, facts}`. `coverage` is
+`"curated_non_exhaustive"`; `facts` is the fixed ordered 12-row catalogue below.
+Each row has exactly `{id, scope, status, maturity, summary, state_sections}`.
+Summaries and the closed value sets are specified in application contract
+amendment A7 (section 20); section identifiers are strings in ordered arrays
+referencing this file at the launch revision. No live discovery occurs.
+
+| ID | Scope | Status | Maturity | STATE sections |
+|---|---|---|---|---|
+| pattern_branching | language | implemented | null | 5 |
+| tail_calls | language | implemented | null | 8 |
+| if_and_loops | language | unsupported | null | 5, 9.50 |
+| flow_shared_coverage | shared_conformance | partial | Experimental | 0, 1 |
+| core_ir_stability | shared_conformance | partial | Partial | 0 |
+| cpp_language_floor | cpp_host | partial | null | 0 |
+| other_language_hosts | other_hosts | planned | null | 0 |
+| browser_runtime | browser | scaffolded | null | 0.1 |
+| mcp_surface | mcp | implemented | null | 9.49, 9.50 |
+| cpp_mcp | mcp | unsupported | null | 9.49, 9.50 |
+| windows_mcp | mcp_windows | unsupported | null | 9.49 |
+| macos_hardening | mcp_macos | partial | null | 9.48, 9.49 |
+
+Status describes support within the row's scope; maturity copies an explicit
+STATE rating or is JSON null for unspecified. Null does not mean Stable or
+unavailable. Partial C++ support is the bounded R27 language floor, not C++
+MCP; partial Flow shared coverage does not mean missing Python Flow behavior.
+Browser scaffolding is documentation only. macOS hardening is bounded as in
+9.48; no security sandbox is claimed. These facts grant no execution authority
+and are not an exhaustive language/host inventory.
+
+The discovery constant is defined only in `apps/mcp/mcp.genia`. Its JSON is
+bounded to 16,384 UTF-8 bytes with summaries at most 256 bytes each; these are
+static output bounds, not new runtime limits. Output remains deterministic
+across calls, protocol eras, namespace modes, and plain file mode. Existing
+profile members/examples, launch revision, arguments, four-tool surface,
+`genia_capabilities`, envelopes, authority, and host behavior are unchanged.
+Evidence: `tests/unit/test_r28_mcp_language_profile.py`; matrix row D10. No
+new authentic client acceptance run is claimed; runs 1–3 predate A6 and A7.
