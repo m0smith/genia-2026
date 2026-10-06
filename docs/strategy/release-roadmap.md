@@ -74,7 +74,7 @@ findings during its audit gate -- E23-7 and E23-9 -- were each repaired
 and re-verified. Python remains the reference and full-language host;
 `m0smith/genia-cpp` is the bounded R27 production host (R24's minimal
 floor, R25's stateful runtime, R26's scripted REPL/strict JSON data
-bridge, and R27's Flow phase 1 and pipe mode), not feature parity. R28 adds the Genia MCP server (native `apps/mcp/mcp.genia` over local stdio on the Python reference host, exactly three tools, accepted by an authentic VS Code + GitHub Copilot run); it adds no Genia language semantics and no C++ MCP support.
+bridge, and R27's Flow phase 1 and pipe mode), not feature parity. R28 adds the Genia MCP server (native `apps/mcp/mcp.genia` over local stdio on the Python reference host, exactly four tools after follow-up amendment A6: `genia_capabilities`, `genia_parse`, `genia_run`, and `genia_language_profile`; the original three-tool surface was accepted by an authentic VS Code + GitHub Copilot run); it adds no Genia language semantics and no C++ MCP support.
 See the corresponding release pages and `GENIA_STATE.md` for implemented truth.
 
 ## Post-R20 planning reset
