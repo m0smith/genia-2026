@@ -114,7 +114,7 @@ only this host implements MCP.
 
 Input: `{}` (closed; `arguments` may be omitted; any non-empty `arguments` is `-32602`). Needs no host capability, so every
 server advertises it. Result: the common envelope with `result = {"language": {...}}`, a fixed description of Genia's
-control-flow model for assistants. It is MCP adapter text, not language behavior (`GENIA_STATE.md` governs):
+language model and selected maturity/host gaps for assistants. It is MCP adapter text, not language behavior (`GENIA_STATE.md` governs):
 
 - `name` (`"Genia"`), `contract_revision` (the same value `genia_capabilities` reports);
 - `control_flow`: `conditionals: "pattern_matching"`, `if_expression: false`, `loops: false`, `recursion: true`,

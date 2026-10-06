@@ -1072,11 +1072,10 @@ unchanged. The profile is static text: it grants nothing, reads nothing, and ref
 
 ## 20. Amendment A7: scoped maturity and gap discovery (#1086)
 
-Approved direction: the #1086 implementation request authorizes the pre-flight
-selection in `docs/design/r28-follow-up-1086-maturity-gap-preflight.md`. This
-amendment defines an MCP application contract, not Genia semantics. Its approval
-does not claim implementation; implemented truth is recorded in STATE after
-verification. A7 supersedes only A6.1's closed language member set by adding
+Pre-flight: `docs/design/r28-follow-up-1086-maturity-gap-preflight.md`.
+This amendment defines an MCP application contract, not Genia semantics;
+implemented truth is recorded in STATE 9.50. A7 supersedes only A6.1's closed
+language member set by adding
 `discovery`; the other eight members and their values remain unchanged.
 
 ### A7.1 Closed output and source mapping

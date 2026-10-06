@@ -1,16 +1,17 @@
 # GENIA Change Pre-Flight: MCP maturity and known-gap discovery (#1086)
 
-Status: **Completed pre-flight / design decision, 2026-10-06.** R28 follow-up,
-not a new release or implemented MCP behavior. `GENIA_STATE.md` remains final
-authority. The proposal and initial gate below record the pre-flight phase.
-Subsequent phase authorization is recorded under "Phase progression".
+Status: **Completed pre-flight / design decision, 2026-10-06; implemented as
+amendment A7 under #1086.** `GENIA_STATE.md` section 9.50 records implemented
+truth. Sections 1–11 preserve the original pre-flight snapshot, including its
+candidate shape and recommended issue split. The subsequent request authorized
+all phases under #1086 instead; see the final decision and phase progression.
 
 ## Change identity
 
 - **Change name:** scoped maturity and known-gap discovery in the language profile
 - **Release / issue:** R28 follow-up, #1086; classification parent #1085
 - **Proposed branch:** `issue-1086-mcp-maturity-preflight`
-- **Owner:** repository owner; agent-authored recommendation pending review
+- **Owner:** repository owner; direction approved by the subsequent #1086 request
 
 ## 1. Scope lock
 
@@ -270,17 +271,19 @@ claim is made. **Can one host merge before the other:** N/A for MCP-only data.
 
 ## 12. Final GO / NO-GO
 
-**GO** for the selected `genia_language_profile` extension to proceed to a
-separate contract/design amendment. **NO-GO for runtime implementation now:**
-A6 currently closes the language member set; the new amendment must be
-approved and failing tests committed before implementation. This is a process
-dependency, not a deferred discovery decision. No language or runtime behavior
-is implemented or approved by this document alone.
+**GO:** the subsequent #1086 request approved this direction and authorized
+the remaining phases. A7's contract/design is committed at `d894e7e`; the
+failing-test gate at `46dab56` recorded 16 expected failures and 33 passes;
+implementation at `ae89c36` passed all 49 profile tests; docs sync is
+`1145bf1`. The initial NO-GO for implementation until amendment/failing tests
+was satisfied before code changed. No separate child issues are required.
 
-**Remaining dependencies:** owner review of this recommendation, approved
-application amendment, final claim review, and failing-test SHA. No unresolved
-surface choice remains. **Decision date:** 2026-10-06; agent recommendation,
-not a claim of owner approval.
+The scoped truth audit is recorded in commit `aae3250`. Linux CI must verify
+the existing official-client disconnect assertion before merge: its `/proc`
+proof is unavailable on macOS, including on main. No host/test behavior has
+been changed to mask that limitation.
+
+**Decision date:** 2026-10-06. No unresolved 12-fact or scope decision remains.
 
 ## Verification of this pre-flight
 

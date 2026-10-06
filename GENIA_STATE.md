@@ -6855,8 +6855,6 @@ PYTHON REFERENCE HOST (MCP adapter):
 - **Not claimed / not done:** no source-specific parse or run diagnostic hints; the VS Code + GitHub Copilot acceptance record
   (runs 1-3) predates this tool and describes the three-tool surface, and no new authentic client run is recorded for the fourth.
 
-
-
 ### R28 follow-up amendment A7: scoped maturity/gap facts (issue #1086)
 
 LANGUAGE CONTRACT: unchanged. This extends MCP adapter metadata only.
