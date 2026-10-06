@@ -314,7 +314,7 @@ def test_the_release_page_states_its_real_status():
 
 def test_the_release_page_covers_every_required_topic():
     text = RELEASE_PAGE.read_text(encoding="utf-8").lower()
-    for topic in ("release purpose", "architecture", "exactly three tools", "stdio", "governed execution",
+    for topic in ("release purpose", "architecture", "exactly four tools", "stdio", "governed execution",
                   "client integration", "conformance evidence", "demo", "security", "limitations",
                   "host portability", "out of scope", "verification evidence", "vs code"):
         assert topic in text, f"docs/releases/R28.md must cover {topic!r}"

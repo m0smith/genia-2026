@@ -11,7 +11,7 @@ Status of each part, so nothing is mistaken for more than it is:
 
 | Part | Status |
 |---|---|
-| Server over local stdio, exactly three tools | automated in CI |
+| Server over local stdio, exactly four tools (`genia_language_profile` added by amendment A6) | automated in CI |
 | Official MCP TypeScript client (default, `auto`, and pinned negotiation) | automated in CI |
 | MCP Inspector 2.9.0, command-line mode | manually executed; not run in CI; the web and terminal UIs were not executed |
 | VS Code with GitHub Copilot | **verified by an authentic run** (acceptance run 3, macOS: discovery, three tools, parse diagnostic and success, and this demo's `genia_run`); manual, not in CI (`docs/mcp/vscode-copilot-acceptance.md`) |
@@ -62,7 +62,7 @@ MCP_INSPECTOR_SECRET_STORE=memory npx @modelcontextprotocol/inspector@2.9.0 --cl
   --config genia-mcp.json --server genia --protocol-era auto --method tools/list
 ```
 
-Without `--protocol-era auto` the Inspector uses its default era and connects too (`2025-11-25` via `initialize`; `auto` connects with `2026-07-28`); both list the same three tools.
+Without `--protocol-era auto` the Inspector uses its default era and connects too (`2025-11-25` via `initialize`; `auto` connects with `2026-07-28`); both list the same tools (three at the time of the manual check; `genia_language_profile` came later, amendment A6).
 
 **VS Code with GitHub Copilot** discovers the repository's `.mcp.json` when the folder is opened and trusted
 (verified on macOS with VS Code 1.138.0 and Copilot Chat 0.66.0: it starts `genia`, negotiates `2025-11-25`, and
@@ -70,11 +70,12 @@ Without `--protocol-era auto` the Inspector uses its default era and connects to
 
 ## 3. Discover the tools
 
-List the server's tools. There are exactly three, and no resources or prompts:
+List the server's tools. There are exactly four, and no resources or prompts:
 
 - `genia_capabilities`: what this server supports and its limits.
 - `genia_parse`: parse Genia source; returns the structure or a diagnostic. Never runs the source.
 - `genia_run`: run Genia source in a fresh, restricted, disposable worker.
+- `genia_language_profile`: Genia's language model (pattern matching instead of `if`, recursion instead of loops, canonical examples); no arguments.
 
 ## 4. Parse a program that has a mistake
 

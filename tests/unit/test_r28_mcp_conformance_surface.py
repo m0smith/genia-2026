@@ -40,6 +40,12 @@ from tests.fixtures.r28_mcp_helpers import (
 
 pytestmark = pytest.mark.unit
 
+LANGUAGE_PROFILE_DESCRIPTION = (
+    "Describe Genia's language model for assistants before they write source: branching is pattern matching, "
+    "there is no if-expression or loop, repetition is recursion, with canonical examples. Takes no arguments; "
+    "returns a fixed, deterministic description."
+)
+
 # Exact descriptions. The contract does not make descriptions normative; they are pinned here
 # only as drift detectors (a change must be a deliberate, reviewed edit of this table).
 DESCRIPTIONS = {
@@ -57,6 +63,7 @@ DESCRIPTIONS = {
         "fields, or a bounded failure. Source only: no file, environment, configuration, secret, "
         "network, process, or import authority."
     ),
+    "genia_language_profile": LANGUAGE_PROFILE_DESCRIPTION,
 }
 SOURCE_SCHEMA = {
     "type": "object",
@@ -68,6 +75,7 @@ INPUT_SCHEMAS = {
     "genia_capabilities": {"type": "object", "additionalProperties": False, "properties": {}},
     "genia_parse": SOURCE_SCHEMA,
     "genia_run": SOURCE_SCHEMA,
+    "genia_language_profile": {"type": "object", "additionalProperties": False, "properties": {}},
 }
 
 
@@ -86,7 +94,7 @@ def _discovery(mode):
 
 
 @pytest.mark.parametrize("mode", NS_MODES)
-def test_discovery_advertises_exactly_the_three_tools_in_contract_order(mode):
+def test_discovery_advertises_exactly_the_four_tools_in_contract_order(mode):
     discover, listed, listed_again, _ = _discovery(mode)
     tools = listed["result"]["tools"]
     assert [tool["name"] for tool in tools] == list(RUN_TOOLS)  # exact names, exact order
@@ -155,12 +163,16 @@ def test_unadvertised_protocol_surface_is_method_not_found(method):
         "GENIA_RUN",
         " genia_run",
         "genia_run ",
+        "genia_language",
+        "genia_profile",
+        "genia_language_profile ",
+        "genia_Language_Profile",
         "genia_run\u0000",
         "genia-run",
         "",
     ],
 )
-def test_no_fourth_tool_and_no_host_only_tool_is_callable(name):
+def test_no_fifth_tool_and_no_host_only_tool_is_callable(name):
     out = launcher_batch([request("tools/call", 1, {"name": name, "arguments": {}})])[1][0]
     assert_protocol_error(out, -32602, req_id=1, message=UNKNOWN_TOOL_MESSAGE)
 
@@ -168,10 +180,10 @@ def test_no_fourth_tool_and_no_host_only_tool_is_callable(name):
 def test_tool_names_exist_only_in_native_genia_not_in_python_host_modules():
     native = (REPO_ROOT / "apps" / "mcp" / "mcp.genia").read_text(encoding="utf-8")
     quoted = set(re.findall(r'"(genia_[a-z_]+)"', native))
-    assert {"genia_capabilities", "genia_parse", "genia_run"} <= quoted
+    assert {"genia_capabilities", "genia_parse", "genia_run", "genia_language_profile"} <= quoted
     for path in sorted((REPO_ROOT / "hosts" / "python").glob("mcp_*.py")):
         text = path.read_text(encoding="utf-8")
-        assert not re.search(r'"genia_(capabilities|parse|run)"', text), path.name
+        assert not re.search(r'"genia_(capabilities|parse|run|language_profile)"', text), path.name
 
 
 @pytest.mark.parametrize("tool", sorted(INPUT_SCHEMAS))
@@ -180,7 +192,7 @@ def test_tool_names_exist_only_in_native_genia_not_in_python_host_modules():
 )
 def test_no_extra_input_property_is_accepted_by_any_tool(tool, extra):
     arguments = dict(extra)
-    if tool != "genia_capabilities":
+    if tool not in ("genia_capabilities", "genia_language_profile"):
         arguments["source"] = "1"
     out = launcher_batch([request("tools/call", 1, {"name": tool, "arguments": arguments})])[1][0]
     assert_protocol_error(out, -32602, req_id=1)

@@ -6672,7 +6672,7 @@ SIGTERM, so the worker is reaped and its private directory removed (ledger R28-H
   classified, not hidden: `main` is not dispatched by MCP (contract 2.5; the CLI `-c` mode
   dispatches it, R28-H29); an authority available to direct execution is a policy restriction
   (`policy_denied`), not a semantic difference.
-- **Verified boundaries:** exactly the three tools and closed schemas; no resources, prompts, or
+- **Verified boundaries:** exactly the three tools (four since amendment A6, section 9.50) and closed schemas; no resources, prompts, or
   other protocol surface; every failure class is the closed envelope with a fixed message and no
   partial data; limits are UTF-8 byte sizes (one below, exact, one above, including multibyte and
   the aggregate); 55 authority attempts plus every denied binding are rejected by static policy,
@@ -6817,7 +6817,41 @@ or envelope.
 - **Agent guidance (contract 12.3):** `docs/ai/LLM_CONTRACT.md` and `.github/copilot-instructions.md` direct Genia development
   agents to prefer the Genia MCP server for parsing and running Genia source where an MCP client is available; they add no
   language semantics and do not make MCP a prerequisite.
-- **Supported platforms and limits:** Python reference host only; local stdio only; exactly three tools; no resources, prompts,
+- **Supported platforms and limits:** Python reference host only; local stdio only; exactly four tools (the fourth, `genia_language_profile`, is section 9.50; acceptance runs saw three); no resources, prompts,
   Streamable HTTP, or C++ MCP; Linux (CI) and macOS (owner-run, not in CI) verified, Windows unsupported; macOS has no address-space
   bound and no network namespace; the execution profile is a defense-in-depth profile, not a security sandbox.
+
+## 9.50) R28 follow-up amendment A6: `genia_language_profile` (MCP adapter affordance)
+
+Contract amendment A6 (section 19 of `docs/design/r28-genia-mcp-contract-threat-model.md`; pre-flight
+`docs/design/r28-a6-language-profile-preflight.md`) adds one MCP tool to the R28 server. It adds no Genia syntax, parser or
+evaluator behavior, builtin, Core IR node, host capability, resource, prompt, transport, limit, or authority, and no Python
+host code: the tool is entirely native Genia in `apps/mcp/mcp.genia`. It is an adapter affordance for assistants, not
+language behavior; this file and `GENIA_RULES.md` remain the language authority. Python reference host only; no C++ MCP.
+
+LANGUAGE CONTRACT: none. The MCP wire behavior below is the application contract of `apps/mcp/mcp.genia`.
+
+PYTHON REFERENCE HOST (MCP adapter):
+
+- The advertised surface is exactly four tools, in this order: `genia_capabilities`, `genia_parse`, `genia_run`,
+  `genia_language_profile`. `genia_language_profile` needs no host capability, so plain file mode (no host capability) advertises
+  `genia_capabilities` and `genia_language_profile`; the launcher advertises all four. `genia_capabilities.tools` reports the advertised
+  set. No resources, prompts, pagination, or other protocol surface is added.
+- It takes no arguments: `arguments` omitted or `{}` is accepted and any other value is `-32602`. The input schema is identical to
+  `genia_capabilities`. It returns the normal `CallToolResult` with `structuredContent` and one text item holding the same
+  `genia.mcp.v1` envelope (`result = {language: {...}}`).
+- `language` is a fixed constant except `contract_revision` (the launch revision `genia_capabilities` reports). It states:
+  `control_flow` (`conditionals: "pattern_matching"`, `if_expression: false`, `loops: false`, `recursion: true`,
+  `tail_call_optimization: true`), `supported_forms`, `absent_forms` (`if_expression`, `while_loop`, `for_loop`), `patterns`
+  (function-argument, literal, wildcard, tuple, list, map, and guard patterns; first-match resolution), `idioms`, and two `examples`
+  (`gcd`, `factorial`). Each claim restates implemented behavior of sections 5 and 8 and the open-function clause rules; the example
+  programs evaluate to `6` and `120` under direct command-source evaluation (verified by tests).
+- **Example spelling:** a function whose clauses start with a literal parameter pattern needs the first clause declared `open`
+  (`open gcd(a, 0) = a`); the same text without `open` is rejected (`Invalid function definition parameter token`). The profile therefore
+  carries the `open` form and states that rule in `idioms.clauses`.
+- Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the encoder's sorted order.
+- **Evidence:** `tests/unit/test_r28_mcp_language_profile.py` plus the updated four-tool discovery, descriptor, and architecture
+  tests; matrix rows D1, D5, D6, D9 in `docs/mcp/conformance-matrix.md`.
+- **Not claimed / not done:** no source-specific parse or run diagnostic hints; the VS Code + GitHub Copilot acceptance record
+  (runs 1-3) predates this tool and describes the three-tool surface, and no new authentic client run is recorded for the fourth.
 

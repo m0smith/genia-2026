@@ -65,7 +65,7 @@ def test_the_exact_vscode_initialize_from_the_first_authentic_run_now_succeeds()
     init, listed = [json.loads(frame) for frame in frames(done.stdout)]  # exactly two frames: nothing for the notification
     assert init == {"jsonrpc": "2.0", "id": 1, "result": INIT_RESULT}
     assert set(listed["result"]) == {"tools"} and listed["id"] == 2
-    assert [t["name"] for t in listed["result"]["tools"]] == ["genia_capabilities"]  # native-only server
+    assert [t["name"] for t in listed["result"]["tools"]] == ["genia_capabilities", "genia_language_profile"]  # native-only server
 
 
 def test_initialize_result_is_exactly_version_tools_capability_and_identity():

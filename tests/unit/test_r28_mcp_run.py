@@ -83,7 +83,7 @@ def _run(source, req_id=1, **kwargs):
 
 def test_cli_mode_without_capabilities_does_not_advertise_or_serve_run():
     listed = call(request("tools/list", 1))["result"]["tools"]
-    assert [tool["name"] for tool in listed] == ["genia_capabilities"]
+    assert [tool["name"] for tool in listed] == ["genia_capabilities", "genia_language_profile"]
     response = call(run_request("1 + 2", 2))
     assert_protocol_error(response, -32602, req_id=2, message=UNKNOWN_TOOL_MESSAGE)
 

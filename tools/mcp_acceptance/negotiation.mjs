@@ -2,7 +2,7 @@
 // mode against the configured server. Evidence only; the server is not changed by this script.
 // Prints one JSON report line. Exit 0 iff the recorded expectation holds (amendment A5): the SDK
 // default and `legacy` negotiate 2025-11-25 via `initialize`; `auto` and a pinned 2026-07-28 negotiate
-// 2026-07-28; every path lists exactly the three tools.
+// 2026-07-28; every path lists exactly the four tools.
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,7 +38,7 @@ const results = [
   await attempt('pin', { mode: { pin: '2026-07-28' } }),
 ];
 const by = Object.fromEntries(results.map((r) => [r.label, r]));
-const tools = ['genia_capabilities', 'genia_parse', 'genia_run'];
+const tools = ['genia_capabilities', 'genia_parse', 'genia_run', 'genia_language_profile'];
 const want = { 'sdk-default': '2025-11-25', legacy: '2025-11-25', auto: '2026-07-28', pin: '2026-07-28' };
 const ok = Object.entries(want).every(([label, v]) =>
   by[label].connected && by[label].negotiated_protocol_version === v && JSON.stringify(by[label].tools) === JSON.stringify(tools));

@@ -165,7 +165,7 @@ def test_the_stdio_guide_states_scope_and_limits_without_overclaiming():
     assert STDIO_GUIDE_PATH.is_file(), "E28-4 not implemented"
     text = STDIO_GUIDE_PATH.read_text(encoding="utf-8").lower()
     for required in (
-        "exactly three",
+        "exactly four",
         "genia_capabilities",
         "genia_parse",
         "genia_run",

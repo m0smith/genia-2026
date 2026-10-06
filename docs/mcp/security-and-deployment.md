@@ -9,7 +9,7 @@ production multi-tenant isolation**. Do not expose it to untrusted callers.
 
 | Guarantee | How |
 |---|---|
-| Exactly three tools, no resources, no prompts, no HTTP, no listener | closed discovery, architecture and configuration tests (M:D1–D6, Z6) |
+| Exactly four tools, no resources, no prompts, no HTTP, no listener | closed discovery, architecture and configuration tests (M:D1–D6, Z6) |
 | A fresh, disposable worker per `genia_run` call; nothing carries over between calls | one process per call in its own process group, killed and reaped after every call (M:R10, X9, Y7) |
 | A fixed minimal worker environment | only loader and encoding variables; no `PATH`, no `HOME`, no user variables (M:A3) |
 | A private, empty working directory, removed after the worker is reaped | `genia-worker-*` temporary directory (M:X2, Y6) |

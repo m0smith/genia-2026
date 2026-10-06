@@ -17,6 +17,9 @@ Clarification A3 (issue #703, ledger entry R28-H22) states that the `genia_parse
 `ast` is carried as a lossless JSON wire fragment and is not subject to the R9
 portable-JSON integer range; see section 16.
 
+Amendment A6 (language-profile follow-up) adds a fourth tool, `genia_language_profile`, to the
+locked surface; see section 19. It changes no authority, limit, isolation, or threat-model decision.
+
 Clarification A4 (issue #704, ledger entries R28-H24 and R28-H25) places pre-execution
 policy inspection at the host execution boundary, over the existing raw parser AST,
 because the normalized parse surface lacks the information policy needs; see
@@ -1027,3 +1030,41 @@ before. Streamable HTTP and any C++ MCP implementation remain out of scope.
 | 7.1 | scope statement and the `initialize` wording defer to A5 |
 | 12.2 | item 1 accepts either supported negotiation path |
 | 18 | this amendment |
+
+## 19. Amendment A6: `genia_language_profile`
+
+Pre-flight: `docs/design/r28-a6-language-profile-preflight.md`. This amendment supersedes only the "exactly
+three tools" wording of sections 2.1, 2.3, A1 C1, 12.2 and A5.7; the surface becomes exactly these four tools, in this order:
+
+- `genia_capabilities`
+- `genia_parse`
+- `genia_run`
+- `genia_language_profile`
+
+### A6.1 Behavior
+
+`genia_language_profile` is an **MCP adapter affordance**, not Genia language behavior. It takes no arguments (omitted or
+`{}` accepted; any non-empty `arguments` object is `-32602`; input schema identical to `genia_capabilities`). Unlike
+`genia_parse` and `genia_run` it needs no host capability, so every server, including plain file mode, advertises it, and
+`genia_capabilities.tools` reports it like any other advertised tool. It is defined entirely in `apps/mcp/mcp.genia`; no
+Python host module defines its literals.
+
+The successful result is the common envelope (section 2.2) with `result.language` equal to a fixed constant, except
+`contract_revision`, which is the same launch revision `genia_capabilities` reports. The constant has exactly these members:
+`name`; `contract_revision`; `control_flow` (`conditionals: "pattern_matching"`, `if_expression: false`, `loops: false`,
+`recursion: true`, `tail_call_optimization: true`); `supported_forms`; `patterns`; `absent_forms`; `idioms`; `examples`.
+Every claim must be true of the implemented language (`GENIA_STATE.md` governs); every example must evaluate as documented
+under direct command-source evaluation. The output is byte-identical across calls, protocol eras, and namespace modes.
+
+### A6.2 What does not change
+
+No new syntax, parser/evaluator behavior, AST or Core IR node, builtin, host capability, resource, prompt, transport, or C++
+MCP. The envelope schema stays `genia.mcp.v1`. Authority, limits, isolation, cancellation, and protected-value rules are
+unchanged. The profile is static text: it grants nothing, reads nothing, and reflects no client input.
+
+### A6.3 Sections changed
+
+| Section | Change |
+|---|---|
+| 2.1, 2.3, A1 C1, 12.2, A5.7 | the final surface is four tools; `tools` reports the advertised set |
+| 19 | this amendment |

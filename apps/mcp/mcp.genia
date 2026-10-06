@@ -14,7 +14,8 @@
 # Surface: genia_capabilities always; genia_parse (E28-2) only when the host
 # provisions the `parse` capability as an explicit argument to serve(revision, host)
 # (docs/design/r28-e28-2-parse-tool-design.md). Plain file mode calls serve(rev, {}),
-# so it advertises only genia_capabilities. The execution tool belongs to E28-3.
+# so it advertises genia_capabilities and the native-only genia_language_profile
+# (amendment A6, section 19 of the contract). The execution tool belongs to E28-3.
 
 pattern Json(value) = representation_match("json", value)
 
@@ -141,6 +142,7 @@ advertised(c, name) =
   (k, "genia_capabilities") -> true |
   (k, "genia_parse") -> parse_enabled(k) |
   (k, "genia_run") -> run_enabled(k) |
+  (k, "genia_language_profile") -> true |
   (_, _) -> false
 
 tool_names(c) = tool_descriptors(c) |> map((t) -> field(t, "name"))
@@ -197,9 +199,16 @@ run_descriptor = {
                 properties: {source: {type: "string", maxLength: 262144}}}
 }
 
-# Contract order: genia_capabilities, genia_parse, genia_run (only those provisioned).
+profile_descriptor = {
+  name: "genia_language_profile",
+  description: "Describe Genia's language model for assistants before they write source: branching is pattern matching, there is no if-expression or loop, repetition is recursion, with canonical examples. Takes no arguments; returns a fixed, deterministic description.",
+  inputSchema: {type: "object", additionalProperties: false, properties: {}}
+}
+
+# Contract order: genia_capabilities, genia_parse, genia_run, genia_language_profile
+# (only those provisioned; the profile needs no host capability).
 tool_descriptors(c) =
-  [tool_descriptor, parse_descriptor, run_descriptor] |> filter((t) -> advertised(c, field(t, "name")))
+  [tool_descriptor, parse_descriptor, run_descriptor, profile_descriptor] |> filter((t) -> advertised(c, field(t, "name")))
 
 discover_result(c) = {
   resultType: "complete",
@@ -252,6 +261,74 @@ error_envelope(kind, phase, message) = {
 }
 
 call_result(c) = tool_result(c, capabilities_envelope(c))
+
+# ---- genia_language_profile (amendment A6) ----
+#
+# A fixed description of Genia's control-flow model for assistants. It is MCP adapter
+# text, not language behavior: GENIA_STATE.md governs, and tests evaluate every example
+# directly. The only varying datum is the launch contract_revision.
+
+LANGUAGE_CONTROL_FLOW = {
+  conditionals: "pattern_matching",
+  if_expression: false,
+  loops: false,
+  recursion: true,
+  tail_call_optimization: true
+}
+
+LANGUAGE_SUPPORTED_FORMS = [
+  "function_definition",
+  "function_call",
+  "binary_expression",
+  "literal",
+  "variable",
+  "pattern_dispatch",
+  "case_expression",
+  "open_function_clauses",
+  "pipeline"
+]
+
+LANGUAGE_PATTERNS = {
+  function_argument_patterns: true,
+  literal_patterns: true,
+  wildcard_patterns: true,
+  tuple_patterns: true,
+  list_patterns: true,
+  map_patterns: true,
+  guard_patterns: true,
+  ordered_resolution: "first_match"
+}
+
+LANGUAGE_ABSENT_FORMS = ["if_expression", "while_loop", "for_loop"]
+
+LANGUAGE_IDIOMS = {
+  branching: "Use pattern-matched function clauses or case expressions.",
+  repetition: "Use recursion; tail-recursive calls are optimized in tail position.",
+  clauses: "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open."
+}
+
+LANGUAGE_EXAMPLES = {
+  gcd: "open gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)",
+  factorial: "open fact(0) = 1\nfact(n) = n * fact(n - 1)\nfact(5)"
+}
+
+language_value(c) = {
+  name: "Genia",
+  contract_revision: map_get(c, "rev"),
+  control_flow: LANGUAGE_CONTROL_FLOW,
+  supported_forms: LANGUAGE_SUPPORTED_FORMS,
+  patterns: LANGUAGE_PATTERNS,
+  absent_forms: LANGUAGE_ABSENT_FORMS,
+  idioms: LANGUAGE_IDIOMS,
+  examples: LANGUAGE_EXAMPLES
+}
+
+profile_envelope(c) = {
+  schema_version: "genia.mcp.v1",
+  status: "ok",
+  result: {language: language_value(c)},
+  error: nil
+}
 
 # ---- request validation (JSON-RPC shape and per-request _meta) ----
 
@@ -329,11 +406,16 @@ call_tool(c) =
   k ? tool_of(k) == "genia_capabilities" -> call_capabilities(k) |
   k ? tool_of(k) == "genia_parse" && parse_enabled(k) -> call_parse(k) |
   k ? tool_of(k) == "genia_run" && run_enabled(k) -> call_run(k) |
+  k ? tool_of(k) == "genia_language_profile" -> call_language_profile(k) |
   k -> unknown_tool_response(k)
 
 call_capabilities(c) =
   k ? arguments_ok(k) == false -> invalid_params(k) |
   k -> result_response(k, call_result(k))
+
+call_language_profile(c) =
+  k ? arguments_ok(k) == false -> invalid_params(k) |
+  k -> result_response(k, tool_result(k, profile_envelope(k)))
 
 call_parse(c) =
   k ? parse_arguments_ok(k) == false -> invalid_params(k) |
