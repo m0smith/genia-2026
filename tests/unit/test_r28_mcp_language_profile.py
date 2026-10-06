@@ -1,4 +1,4 @@
-"""R28 amendment A6: the `genia_language_profile` MCP tool.
+"""R28 amendments A6/A7: the `genia_language_profile` MCP tool.
 
 Python-host tests of the MCP adapter boundary (launcher/stdio wire behavior) for a tool defined
 entirely in `apps/mcp/mcp.genia`. They add no Genia semantics: the profile is static adapter text,
@@ -43,6 +43,7 @@ TOP_LEVEL_KEYS = [
     "absent_forms",
     "idioms",
     "examples",
+    "discovery",
 ]
 
 
@@ -248,3 +249,144 @@ def test_the_profile_literals_live_only_in_native_genia():
     for path in sorted((REPO_ROOT / "hosts" / "python").glob("*.py")):
         text = path.read_text(encoding="utf-8")
         assert PROFILE_TOOL not in text and "first_match" not in text, path.name
+
+
+# A7 contract values: independent wire oracle, not loaded from implementation or docs.
+DISCOVERY_FACTS = [{'id': 'pattern_branching',
+  'scope': 'language',
+  'status': 'implemented',
+  'maturity': None,
+  'summary': 'Branching uses pattern matching.',
+  'state_sections': ['5']},
+ {'id': 'tail_calls',
+  'scope': 'language',
+  'status': 'implemented',
+  'maturity': None,
+  'summary': 'Tail calls are optimized.',
+  'state_sections': ['8']},
+ {'id': 'if_and_loops',
+  'scope': 'language',
+  'status': 'unsupported',
+  'maturity': None,
+  'summary': 'There is no dedicated if expression or while/for loop syntax.',
+  'state_sections': ['5', '9.50']},
+ {'id': 'flow_shared_coverage',
+  'scope': 'shared_conformance',
+  'status': 'partial',
+  'maturity': 'Experimental',
+  'summary': 'Flow runs in Python; shared executable coverage is limited to first-wave cases.',
+  'state_sections': ['0', '1']},
+ {'id': 'core_ir_stability',
+  'scope': 'shared_conformance',
+  'status': 'partial',
+  'maturity': 'Partial',
+  'summary': 'Portable Core IR stability remains Partial.',
+  'state_sections': ['0']},
+ {'id': 'cpp_language_floor',
+  'scope': 'cpp_host',
+  'status': 'partial',
+  'maturity': None,
+  'summary': 'C++ implements the bounded R27 production floor, not Python feature parity.',
+  'state_sections': ['0']},
+ {'id': 'other_language_hosts',
+  'scope': 'other_hosts',
+  'status': 'planned',
+  'maturity': None,
+  'summary': 'Node.js, Java, Rust, and Go hosts are planned, not implemented.',
+  'state_sections': ['0']},
+ {'id': 'browser_runtime',
+  'scope': 'browser',
+  'status': 'scaffolded',
+  'maturity': None,
+  'summary': 'Browser artifacts are documentation scaffolding; no runtime or playground is implemented.',
+  'state_sections': ['0.1']},
+ {'id': 'mcp_surface',
+  'scope': 'mcp',
+  'status': 'implemented',
+  'maturity': None,
+  'summary': 'Python-host local stdio MCP exposes four tools after A6.',
+  'state_sections': ['9.49', '9.50']},
+ {'id': 'cpp_mcp',
+  'scope': 'mcp',
+  'status': 'unsupported',
+  'maturity': None,
+  'summary': 'There is no C++ MCP implementation.',
+  'state_sections': ['9.49', '9.50']},
+ {'id': 'windows_mcp',
+  'scope': 'mcp_windows',
+  'status': 'unsupported',
+  'maturity': None,
+  'summary': 'Windows MCP deployment is unsupported.',
+  'state_sections': ['9.49']},
+ {'id': 'macos_hardening',
+  'scope': 'mcp_macos',
+  'status': 'partial',
+  'maturity': None,
+  'summary': 'macOS MCP runs are verified without an address-space bound or network namespace; the profile '
+             'is not a security sandbox.',
+  'state_sections': ['9.48', '9.49']}]
+
+
+def test_discovery_is_the_exact_closed_scoped_catalogue():
+    discovery = _profile()["discovery"]
+    assert discovery == {"coverage": "curated_non_exhaustive", "facts": DISCOVERY_FACTS}
+    assert set(discovery) == {"coverage", "facts"}
+    assert len(discovery["facts"]) == 12
+    assert len({fact["id"] for fact in discovery["facts"]}) == 12
+    assert len(json.dumps(discovery, ensure_ascii=False).encode("utf-8")) <= 16384
+    for fact in discovery["facts"]:
+        assert set(fact) == {"id", "scope", "status", "maturity", "summary", "state_sections"}
+        assert fact["status"] in {"implemented", "partial", "planned", "scaffolded", "unsupported"}
+        assert fact["maturity"] in {None, "Experimental", "Partial", "Stable"}
+        assert 0 < len(fact["summary"].encode("utf-8")) <= 256
+        assert fact["state_sections"] and all(isinstance(s, str) for s in fact["state_sections"])
+
+
+def test_discovery_plain_file_mode_matches_launcher_without_host_authority():
+    (response,) = responses(run_messages([PROFILE_CALL], args=(REVISION,)))
+    assert structured(response)[1]["result"]["language"]["discovery"] == _profile()["discovery"]
+
+
+def test_discovery_does_not_expand_capabilities_payload():
+    _, out = launcher_batch([request("tools/call", 4, {"name": "genia_capabilities"})])
+    capabilities = structured(out[0])[1]["result"]
+    assert set(capabilities) == {"server", "mcp", "genia", "tools", "execution_profile"}
+    assert set(capabilities["genia"]) == {"host", "contract_revision", "portable_mcp_implementation"}
+    assert capabilities["genia"]["portable_mcp_implementation"] is False
+    assert capabilities["tools"] == list(RUN_TOOLS)
+
+
+@pytest.mark.parametrize("fact", DISCOVERY_FACTS, ids=lambda fact: fact["id"])
+def test_discovery_claims_have_scoped_state_authority(fact):
+    state = (REPO_ROOT / "GENIA_STATE.md").read_text(encoding="utf-8")
+    sections = dict(re.findall(r"^## ([0-9.]+)\) [^\n]+\n(.*?)(?=^## |\Z)", state, re.M | re.S))
+    cited = "\n".join(sections[section] for section in fact["state_sections"])
+    # Pin semantic evidence, not just existence of a heading. These fragments
+    # deliberately select current entries rather than obsolete release summaries.
+    evidence = {
+        "pattern_branching": ["implemented via pattern matching in function definitions and case expressions"],
+        "tail_calls": ["proper tail-call optimization is implemented via trampoline evaluation"],
+        "if_and_loops": ["if_expression: false", "loops: false"],
+        "flow_shared_coverage": ["first-wave", "**Experimental**", "Flow behavior is implemented in Python"],
+        "core_ir_stability": ["IR stability remains **Partial**"],
+        "cpp_language_floor": ["C++ is the bounded R27 production host", "not Python feature parity"],
+        "other_language_hosts": ["Node.js, Java, Rust, Go: planned only, not implemented"],
+        "browser_runtime": ["no browser playground application runtime is implemented", "architecture/contract scaffolding only"],
+        "mcp_surface": ["exactly four tools", "local stdio only"],
+        "cpp_mcp": ["no C++ MCP"],
+        "windows_mcp": ["Windows unsupported"],
+        "macos_hardening": ["no address-space bound", "no network namespace", "not a security sandbox"],
+    }
+    for fragment in evidence[fact["id"]]:
+        assert fragment in cited, (fact["id"], fragment)
+    observed = {row["id"]: row for row in _profile()["discovery"]["facts"]}
+    assert observed[fact["id"]] == fact
+
+
+def test_discovery_literals_remain_native_application_data():
+    native = (REPO_ROOT / "apps" / "mcp" / "mcp.genia").read_text(encoding="utf-8")
+    assert "curated_non_exhaustive" in native
+    for path in sorted((REPO_ROOT / "hosts" / "python").glob("*.py")):
+        text = path.read_text(encoding="utf-8")
+        assert "curated_non_exhaustive" not in text, path.name
+        assert all(fact["id"] not in text for fact in DISCOVERY_FACTS), path.name
