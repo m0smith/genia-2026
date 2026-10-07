@@ -57,9 +57,9 @@ straightforward test behavior without redundant docstrings.
 
 ## Initial rollout status (#1101)
 
-The initial inventory records 3,950 accepted legacy findings in genia-2026 and
+The initial inventory records 3,964 accepted legacy findings in genia-2026 and
 379 in genia-cpp. Findings include module-purpose gaps, declaration-documentation
-gaps and explicit parse/unsupported cases; these are not 4,329 independently
+gaps and explicit parse/unsupported cases; these are not 4,343 independently
 verified semantic defects. The baseline is an actionable debt inventory, not an
 exemption or a claim that existing prose has passed quality review.
 

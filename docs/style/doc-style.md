@@ -325,6 +325,10 @@ Coverage is enforced over both the registered prelude surface and the non-intern
 Python-host builtin registry. The generated function reference consumes the same two
 surfaces; generated pages are not a documentation source.
 
+## State record (non-authoritative)
+
+Exact text displaced from `GENIA_STATE.md` during the #1099 distillation is preserved verbatim, as provenance only, in: [`docs/state-record/tooling-and-examples.md`](../state-record/tooling-and-examples.md). `GENIA_STATE.md` governs.
+
 ## 13. Maintained application and implementation code
 
 The [maintained-code documentation contract](../contract/code-documentation.md)

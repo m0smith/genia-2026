@@ -445,3 +445,7 @@ Neither question may change the operation, request, result, or failure contract
 above. The next phase is **independent contract review**, followed only after
 approval by design, failing tests, implementation, documentation sync, and a
 skeptical audit.
+
+## State record (non-authoritative)
+
+Exact text displaced from `GENIA_STATE.md` during the #1099 distillation is preserved verbatim, as provenance only, in: [`docs/state-record/server-and-process-records.md`](../state-record/server-and-process-records.md). `GENIA_STATE.md` governs.
