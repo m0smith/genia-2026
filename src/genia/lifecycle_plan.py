@@ -65,6 +65,13 @@ def _normalize_phase(
     index: int,
     seen_phase_names: set[GeniaSymbol],
 ) -> GeniaMap:
+    """Validate one phase map and return its normalized descriptor.
+
+    Require symbol-valued name/action fields, reject duplicate names through
+    the caller-owned set, preserve accepted optional fields, and default
+    missing always to False. No action lookup or callback execution occurs.
+    """
+
     path = f"{_PLAN}.phases[{index}]"
     if not isinstance(value, GeniaMap):
         _fail(path, "expected map", value)
@@ -97,6 +104,8 @@ def _normalize_phase(
 
 
 def _required(record: GeniaMap, field: str, path: str) -> Any:
+    """Return a required field value or raise a path-specific missing-field error."""
+
     if not record.has(field):
         raise ValueError(
             f"invalid lifecycle plan at {path}.{field}: missing required field"
@@ -105,11 +114,15 @@ def _required(record: GeniaMap, field: str, path: str) -> Any:
 
 
 def _require_identifier(value: Any, path: str) -> None:
+    """Require a Genia symbol used as an inert lifecycle identifier."""
+
     if not isinstance(value, GeniaSymbol):
         _fail(path, "expected identifier", value)
 
 
 def _validate_optional_plan_field(field: str, value: Any) -> None:
+    """Validate optional top-level plan fields without normalizing their values."""
+
     path = f"{_PLAN}.{field}"
     if field == "description" and not isinstance(value, str):
         _fail(path, "expected string", value)
@@ -118,6 +131,8 @@ def _validate_optional_plan_field(field: str, value: Any) -> None:
 
 
 def _validate_optional_phase_field(field: str, value: Any, phase_path: str) -> None:
+    """Validate optional phase fields, including symbol-valued scope."""
+
     path = f"{phase_path}.{field}"
     if field == "scope":
         _require_identifier(value, path)
@@ -128,6 +143,13 @@ def _validate_optional_phase_field(field: str, value: Any, phase_path: str) -> N
 
 
 def _normalize_cleanup_policy(value: Any) -> GeniaMap:
+    """Return the closed cleanup policy with supported defaults applied.
+
+    Reject unknown fields, non-boolean flags and unsupported order symbols.
+    Accepted values preserve entered-scope cleanup, reject unentered-scope
+    cleanup, and keep cleanup failures observable. No cleanup operation runs.
+    """
+
     path = f"{_PLAN}.cleanup"
     if not isinstance(value, GeniaMap):
         _fail(path, "expected map", value)
@@ -207,6 +229,14 @@ def _normalize_cleanup_policy(value: Any) -> GeniaMap:
 
 
 def _normalize_failure_policy(value: Any) -> GeniaMap:
+    """Return the closed failure policy with supported defaults applied.
+
+    Only the current first-non-cleanup primary failure, recorded secondary
+    cleanup failure, failed cleanup-only status and abort-to-cleanup
+    continuation are accepted. Policies that drop or overwrite failures are
+    rejected before any lifecycle execution can observe them.
+    """
+
     path = f"{_PLAN}.failure_policy"
     if not isinstance(value, GeniaMap):
         _fail(path, "expected map", value)
@@ -308,6 +338,12 @@ def _normalize_failure_policy(value: Any) -> GeniaMap:
 
 
 def _normalize_result_policy(value: Any) -> GeniaMap:
+    """Return the closed result policy with deterministic defaults applied.
+
+    Failure order must stay observed-order. Include flags are independently
+    boolean and may be explicitly true or false; omitted flags default to true.
+    """
+
     path = f"{_PLAN}.result_policy"
     if not isinstance(value, GeniaMap):
         _fail(path, "expected map", value)
@@ -359,6 +395,8 @@ def _reject_unknown_policy_fields(
     path: str,
     policy_name: str,
 ) -> None:
+    """Reject policy map keys outside the supplied closed field set."""
+
     for key, _ in record.items():
         if key not in allowed_fields:
             raise ValueError(
@@ -368,31 +406,43 @@ def _reject_unknown_policy_fields(
 
 
 def _require_boolean(value: Any, path: str) -> None:
+    """Require an exact Python boolean for lifecycle policy flags."""
+
     if not isinstance(value, bool):
         _fail(path, "expected boolean", value)
 
 
 def _require_policy_symbol(value: Any, path: str) -> None:
+    """Require a Genia symbol before comparing policy vocabulary values."""
+
     if not isinstance(value, GeniaSymbol):
         _fail(path, "expected identifier", value)
 
 
 def _fail_unsupported_failure_policy(path: str, value: GeniaSymbol) -> None:
+    """Raise the shared unsupported-failure-policy diagnostic for a symbol value."""
+
     raise ValueError(
         f"invalid lifecycle plan at {path}: unsupported failure policy {value}"
     )
 
 
 def _symbol(name: str) -> GeniaSymbol:
+    """Construct the local symbol literal used for policy comparisons."""
+
     return GeniaSymbol(name)
 
 
 def _fail(path: str, expected: str, value: Any) -> None:
+    """Raise a path-specific lifecycle-plan shape error with a runtime type name."""
+
     actual = _lifecycle_type_name(value)
     raise ValueError(f"invalid lifecycle plan at {path}: {expected}, got {actual}")
 
 
 def _lifecycle_type_name(value: Any) -> str:
+    """Return lifecycle diagnostics' type name, spelling symbols as symbol."""
+
     if isinstance(value, GeniaSymbol):
         return "symbol"
     return _runtime_type_name(value)
