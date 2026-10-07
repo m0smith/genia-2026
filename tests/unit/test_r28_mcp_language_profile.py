@@ -156,6 +156,19 @@ def test_profile_pattern_and_form_claims():
     assert not set(language["absent_forms"]) & set(language["supported_forms"])
     assert "pattern" in language["idioms"]["branching"].lower()
     assert "recursion" in language["idioms"]["repetition"].lower()
+    pipelines = language["idioms"]["pipelines"]
+    for term in ("|>", "keep_some", "some", "none", "err"):
+        assert term in pipelines
+    assert "define" in pipelines
+
+
+def test_validated_pipeline_fact_is_last_experimental_and_scoped_to_state_section_6():
+    fact = _profile()["discovery"]["facts"][-1]
+    assert fact["id"] == "validated_data_pipelines"
+    assert (fact["scope"], fact["status"], fact["maturity"], fact["state_sections"]) == ("language", "implemented", "Experimental", ["6"])
+    assert "callers define" in fact["summary"]
+    for overclaim in ("complete", "fully", "all "):
+        assert overclaim not in fact["summary"].lower()
 
 
 def test_profile_contract_revision_is_the_one_capabilities_reports():
@@ -263,8 +276,8 @@ def test_discovery_is_the_exact_closed_scoped_catalogue():
     discovery = _profile()["discovery"]
     assert discovery == {"coverage": "curated_non_exhaustive", "facts": DISCOVERY_FACTS}
     assert set(discovery) == {"coverage", "facts"}
-    assert len(discovery["facts"]) == 12
-    assert len({fact["id"] for fact in discovery["facts"]}) == 12
+    assert len(discovery["facts"]) == 13
+    assert len({fact["id"] for fact in discovery["facts"]}) == 13
     assert len(json.dumps(discovery, ensure_ascii=False).encode("utf-8")) <= 16384
     for fact in discovery["facts"]:
         assert set(fact) == {"id", "scope", "status", "maturity", "summary", "state_sections"}

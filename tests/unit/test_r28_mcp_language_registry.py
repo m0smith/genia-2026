@@ -182,6 +182,13 @@ def _probe_open_clause_rule():
         _direct("gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)")
 
 
+def _probe_validated_pipeline_evaluates():
+    assert _direct('["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect') == [10, 20]
+    outcomes = _direct('validate_each([{name: "a"}, {}], (r) -> validate_required("name", r))')
+    assert len(outcomes) == 2
+    assert str(outcomes[0]).startswith("some(") and str(outcomes[1]).startswith("err(")
+
+
 PROBES = {
     "absent_forms_are_absent": _probe_absent_forms_are_absent,
     "tail_recursion_constant_stack": _probe_tail_recursion_constant_stack,
@@ -189,6 +196,7 @@ PROBES = {
     "pattern_kinds_evaluate": _probe_pattern_kinds_evaluate,
     "supported_forms_evaluate": _probe_supported_forms_evaluate,
     "open_clause_rule": _probe_open_clause_rule,
+    "validated_pipeline_evaluates": _probe_validated_pipeline_evaluates,
 }
 
 
@@ -218,6 +226,17 @@ def test_executable_probe_holds(name):
 @pytest.mark.parametrize("name", sorted(MANIFEST_CHECKS))
 def test_manifest_cross_check_holds(name):
     assert MANIFEST_CHECKS[name](_manifest())
+
+
+def test_validated_pipeline_registry_entries_are_anchored_and_probed():
+    fact = next(f for f in REGISTRY["discovery"]["facts"] if f["id"] == "validated_data_pipelines")
+    assert fact["anchors"] == ["state:validated-pipelines"]
+    assert REGISTRY["state_anchors"]["state:validated-pipelines"] == {"legacy_section": "6"}
+    assert any(i == {"kind": "probe", "name": "validated_pipeline_evaluates"} for i in fact["evidence"])
+    idioms = REGISTRY["language"]["idioms"]
+    assert "pipelines" in idioms["value"]
+    assert any(i.get("anchor") == "state:validated-pipelines" for i in idioms["evidence"])
+    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 13
 
 
 def test_the_direct_evaluation_helper_really_evaluates():

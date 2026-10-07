@@ -138,6 +138,16 @@
         ],
         "status": "partial",
         "summary": "macOS MCP runs are verified without an address-space bound or network namespace; the profile is not a security sandbox."
+      },
+      {
+        "id": "validated_data_pipelines",
+        "maturity": "Experimental",
+        "scope": "language",
+        "state_sections": [
+          "6"
+        ],
+        "status": "implemented",
+        "summary": "Experimental: |> pipelines using lines, map, keep_some and some/none/err Outcomes validate records; callers define the parse and validate functions."
       }
     ]
   },
@@ -148,6 +158,7 @@
   "idioms": {
     "branching": "Use pattern-matched function clauses or case expressions.",
     "clauses": "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open.",
+    "pipelines": "Build data pipelines with |>: lines makes a Flow, map transforms, keep_some keeps only some results, and some, none, and err Outcomes carry validation; callers define the parse and validate functions.",
     "repetition": "Use recursion; tail-recursive calls are optimized in tail position."
   },
   "name": "Genia",
