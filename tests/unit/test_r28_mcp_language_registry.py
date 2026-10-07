@@ -183,6 +183,12 @@ def _probe_open_clause_rule():
 
 
 def _probe_validated_pipeline_evaluates():
+    """Evaluate the documented validated-pipeline shape directly (#1119).
+
+    Evidence for `idioms.pipelines` and `validated_data_pipelines`: `lines |> keep_some(parse_int)`
+    keeps only the parsed payloads, and `validate_each` returns one Outcome per record, `some` for a
+    valid record and `err` for an invalid one.
+    """
     assert _direct('["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect') == [10, 20]
     outcomes = _direct('validate_each([{name: "a"}, {}], (r) -> validate_required("name", r))')
     assert len(outcomes) == 2
