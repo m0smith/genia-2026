@@ -120,14 +120,15 @@ language model and selected maturity/host gaps for assistants. It is MCP adapter
 - `control_flow`: `conditionals: "pattern_matching"`, `if_expression: false`, `loops: false`, `recursion: true`,
   `tail_call_optimization: true`;
 - `supported_forms`, `absent_forms` (`if_expression`, `while_loop`, `for_loop`), `patterns` (function-argument, literal,
-  wildcard, tuple, list, map, and guard patterns; `ordered_resolution: "first_match"`), `idioms` (branching, repetition, and
-  the `open` rule for multi-clause functions);
+  wildcard, tuple, list, map, and guard patterns; `ordered_resolution: "first_match"`), `idioms` (branching, repetition, the
+  `open` rule for multi-clause functions, and, from A8, `pipelines`: `|>` pipelines with `lines`, `map`, `keep_some`, and
+  `some`/`none`/`err` Outcomes, where callers define the parse and validate functions);
 - `examples`: `gcd` and `factorial`, each a runnable program (`gcd(48, 18)` is `6`, `fact(5)` is `120`). Several clauses of
   one function with a literal first parameter must declare the first clause with `open`; the same text without `open` is
   rejected by the language, so the profile does not use it.
 
 Amendment A7 (#1086) also returns `discovery`, exactly `{coverage, facts}`:
-`coverage: "curated_non_exhaustive"` and an ordered array of 12 static facts.
+`coverage: "curated_non_exhaustive"` and an ordered array of 13 static facts (A8, #1119, appends `validated_data_pipelines`, Experimental, STATE section 6; contract section 21).
 Each fact has exactly `id`, `scope`, `status`, `maturity`, `summary`, and
 `state_sections` (ordered strings referencing STATE at `contract_revision`).
 The IDs, scopes, statuses, maturity labels, summaries, and section mappings are defined in the
@@ -136,7 +137,7 @@ The IDs, scopes, statuses, maturity labels, summaries, and section mappings are 
 
 Status is one of `implemented`, `partial`, `planned`, `scaffolded`,
 `unsupported`, within the stated scope. Maturity is `Experimental`, `Partial`,
-`Stable`, or JSON null for unspecified; none of these 12 facts is Stable.
+`Stable`, or JSON null for unspecified; none of these 13 facts is Stable.
 Partial shared Flow coverage does not mean missing Python Flow, bounded C++
 language support does not mean C++ MCP, and browser scaffolding is docs only.
 The catalogue grants no governed execution authority; omitted facts imply

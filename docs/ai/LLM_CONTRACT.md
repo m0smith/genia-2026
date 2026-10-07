@@ -268,7 +268,7 @@ prefer it for parsing and running Genia source instead of reconstructing behavio
 - `genia_parse` for structured parse output or a normalized diagnostic;
 - `genia_run` for the rendered value, program stdout, and program stderr, separately, under the governed source-only profile;
 - `genia_capabilities` to confirm the tool set and profile;
-- `genia_language_profile` (no arguments) to learn the language model before writing source: branching is pattern matching and there is no `if` or loop, repetition is recursion, and multi-clause functions with a literal first parameter need `open`. It is an adapter affordance, not a language rule. Its static `discovery` catalogue provides 12 scoped maturity/gap facts mapped to STATE; separate support status from maturity, and do not infer exhaustive coverage or execution authority.
+- `genia_language_profile` (no arguments) to learn the language model before writing source: branching is pattern matching and there is no `if` or loop, repetition is recursion, and multi-clause functions with a literal first parameter need `open`, and (A8) validated data pipelines use `|>` with `lines`, `map`, `keep_some`, and `some`/`none`/`err` Outcomes (Experimental; callers define the parse and validate functions). It is an adapter affordance, not a language rule. Its static `discovery` catalogue provides 13 scoped maturity/gap facts mapped to STATE; separate support status from maturity, and do not infer exhaustive coverage or execution authority.
 
 Boundaries: it is optional (agents without an MCP client keep using the normal CLI and test workflow); it is a defense-in-depth
 profile, not a security sandbox; it grants no file, environment, configuration, secret, network, process, or import authority; a
