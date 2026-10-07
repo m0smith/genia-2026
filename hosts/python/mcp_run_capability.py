@@ -1,6 +1,6 @@
 """Worker supervisor for the MCP source-execution tool (R28 E28-3, issue #704).
 
-A narrow host capability (ledger R28-H26, design D2): `RunCapability(...)(source,
+A narrow host capability (ledger R28-H26, design D2): `RunCapability(...).run(source,
 is_cancel)` runs one fresh disposable worker (`hosts/python/mcp_worker.py`) for the
 call and returns one closed reply line. It exists because `execution.process` cannot
 launch the worker (child stdin is unavailable and argv cannot carry the allowed source
@@ -81,6 +81,8 @@ _unshare_path = None  # resolved once, by the successful probe
 
 
 def _probe_code() -> str:
+    """Return trusted probe source listing interfaces from Linux /proc/net/dev.
+    """
     return (
         "print(','.join(l.split(':')[0].strip() "
         "for l in open('/proc/net/dev').read().splitlines()[2:]))"
@@ -100,6 +102,12 @@ def network_isolation_available() -> bool:
 
 
 def _run_probe() -> bool:
+    """Try one bounded Linux user/network namespace probe; return verified success.
+
+    Absence of unshare, unsupported platforms, OS failures and subprocess failures
+    return False. Only exit zero with exactly the loopback interface records the
+    resolved unshare path. The caller owns caching this result.
+    """
     global _unshare_path
     unshare = shutil.which("unshare")
     if unshare is None or not sys.platform.startswith("linux"):
@@ -132,6 +140,11 @@ def worker_command(argv, isolated=None):
 
 
 def _worker_environment() -> dict:
+    """Build fresh worker variables from the launch allowlist and repository paths.
+
+    Adds only repository PYTHONPATH, UTF-8 and bytecode suppression. Ambient PATH,
+    HOME, secrets and development diagnostics are not forwarded.
+    """
     env = {key: os.environ[key] for key in ENV_ALLOWLIST if key in os.environ}
     env["PYTHONPATH"] = os.pathsep.join([str(REPO_ROOT), str(REPO_ROOT / "src")])
     env["PYTHONUTF8"] = "1"
@@ -140,6 +153,13 @@ def _worker_environment() -> dict:
 
 
 class RunCapability:
+    """Own a fixed execution profile and supervise disposable workers sequentially.
+
+    Construction probes best-effort isolation once. Each run returns closed reply
+    text and owns worker-group termination, reaping and temporary-directory removal.
+    The native cancellation predicate interprets raw stdin lines; this class has no
+    MCP dispatch or request-id logic. Not a security sandbox.
+    """
     def __init__(
         self,
         mux=None,
@@ -150,6 +170,13 @@ class RunCapability:
         handshake=None,
         isolated=None,
     ):
+        """Configure worker launch, deadlines in milliseconds, mux and isolation profile.
+
+        The real worker defaults to a readiness handshake; substituted worker argv
+        defaults to no handshake. Explicit handshake/isolated overrides support tests.
+        isolated=None performs the cached namespace probe now, before request handling.
+        This constructor creates no worker and does not validate supplied durations.
+        """
         self._mux = mux
         self._argv = list(worker_argv) if worker_argv is not None else list(DEFAULT_WORKER_ARGV)
         self._deadline_s = deadline_ms / 1000.0
@@ -166,6 +193,12 @@ class RunCapability:
         return {"network_namespace": self._isolated}
 
     def run(self, source: str, is_cancel) -> str:
+        """Execute source once and return closed worker reply text, timeout or cancellation.
+
+        source is UTF-8 text; is_cancel claims raw lines via the optional mux. Ordinary
+        exceptions become fixed internal_error without host details. BaseException
+        unwinds propagate after _run cleanup; no partial result is returned on failure.
+        """
         try:
             return self._run(source, is_cancel)
         except Exception:
@@ -174,6 +207,13 @@ class RunCapability:
     __call__ = run
 
     def _run(self, source: str, is_cancel) -> str:
+        """Check queued cancellation, then own one fresh worker and private directory.
+
+        A claimed queued line returns cancelled before launch. Otherwise encode source,
+        start a new session with three pipes and the fixed environment, and supervise.
+        The finally block kills/reaps a created worker before removing its directory,
+        including on exceptions; errors propagate to run for normalization.
+        """
         mux = self._mux
         if mux is not None and mux.scan(is_cancel):
             return _CANCELLED  # claimed before any worker existed
@@ -200,6 +240,14 @@ class RunCapability:
             shutil.rmtree(workdir, ignore_errors=True)
 
     def _supervise(self, proc, data: bytes, is_cancel) -> str:
+        """Exchange source/reply bytes while observing readiness, deadlines and cancellation.
+
+        Makes worker pipes nonblocking, drains stderr and caps accumulated stdout.
+        The execution deadline starts at readiness (at spawn without a handshake);
+        bootstrap expiry or reply overflow returns internal_error, execution expiry
+        returns timeout, and a claimed raw mux line returns cancelled. Successful exit
+        is checked by _finish. This method does not reap: _run owns final cleanup.
+        """
         mux = self._mux
         stdin_fd, out_fd, err_fd = proc.stdin.fileno(), proc.stdout.fileno(), proc.stderr.fileno()
         for fd in (stdin_fd, out_fd, err_fd):

@@ -25,10 +25,22 @@ from hosts.python.mcp_stdin import LineMux
 
 
 def _terminate(signum, _frame):
+    """Unwind host execution on SIGTERM/SIGHUP with shell-style exit status.
+
+    Raising SystemExit lets active supervisor finally blocks reap the worker and
+    remove its directory; no cleanup is performed inside this signal handler.
+    """
     raise SystemExit(128 + signum)
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Load the native MCP server and serve with explicit parse/run capabilities.
+
+    argv supplies exactly the server path and revision; wrong arity writes a fixed
+    stderr diagnostic and returns 1. Installs termination handlers, consumes stdin
+    through LineMux, and probes isolation before serving. Returns 0 when serve
+    finishes; file, evaluation, initialization and signal exceptions propagate.
+    """
     args = list(sys.argv[1:] if argv is None else argv)
     if len(args) != 2:
         sys.stderr.write("host bootstrap: expected <server path> <revision>\n")

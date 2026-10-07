@@ -30,6 +30,13 @@ _INTERNAL_ERROR = '{"status": "internal_error"}'
 
 
 def parse_source(source: str) -> str:
+    """Parse source without evaluation and return the module-defined text transport.
+
+    Success carries a parsed header and lossless normalized AST JSON on a second
+    line. Syntax failure carries an integer offset or null; all other failures,
+    including serialization exceptions, yield the fixed internal_error reply.
+    Source validation and MCP envelopes belong to the native caller.
+    """
     try:
         parsed = parse_and_normalize(source)
         if parsed.get("kind") == "ok":

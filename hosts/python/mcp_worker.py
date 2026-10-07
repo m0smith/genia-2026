@@ -58,12 +58,19 @@ class BoundedStream:
     """In-memory text sink that stops the program when its byte limit is crossed."""
 
     def __init__(self, limit: int):
+        """Create an empty output sink with a byte limit and clear overflow flag.
+        """
         self._limit = limit
         self._parts: list[str] = []
         self._bytes = 0
         self.overflowed = False
 
     def write(self, text: str) -> int:
+        """Append text and return its character count while charging UTF-8 bytes.
+
+        Uses surrogatepass for accounting. Exceeding the limit sets overflowed, clears
+        partial data and raises ChannelLimitExceeded; the sink is not reset afterward.
+        """
         self._bytes += len(text.encode("utf-8", "surrogatepass"))
         if self._bytes > self._limit:
             self.overflowed = True
@@ -73,9 +80,13 @@ class BoundedStream:
         return len(text)
 
     def flush(self) -> None:
+        """Accept text-stream flush calls; this in-memory sink has nothing to flush.
+        """
         return None
 
     def getvalue(self) -> str:
+        """Return concatenated captured text; after overflow partial data was discarded.
+        """
         return "".join(self._parts)
 
 
@@ -121,6 +132,8 @@ def _development_diagnostic(exc: BaseException) -> None:
 
 
 def _deny(*_args, **_kwargs):
+    """Reject a patched authority operation with the fixed PermissionError message.
+    """
     raise PermissionError("not permitted in the MCP execution profile")
 
 
@@ -186,8 +199,13 @@ def build_reply(value, stdout: str, stderr: str) -> dict:
 def execute_source(source: str, *, enforce_policy: bool = True) -> dict:
     """Evaluate `source` once and return the closed reply dictionary.
 
-    Does not apply process limits (that is `main`'s job); the restricted-runtime
-    stubs are scoped to this call.
+    Creates a fresh pruned environment with empty stdin and bounded output.
+    Parse errors include an offset or null; policy rejection, runtime failure,
+    output overflow and internal failures return status-only replies. Completed
+    replies include debug-rendered value/stdout/stderr, never protected values.
+    enforce_policy=False bypasses only AST inspection for tests: pruning and
+    runtime stubs still apply. Does not apply process limits or a deadline
+    (main and the supervisor own those); stubs are scoped to this call.
     """
     try:
         nodes = Parser(lex(source), source=source, filename="<command>").parse_program()
@@ -231,12 +249,25 @@ def execute_source(source: str, *, enforce_policy: bool = True) -> dict:
 
 
 def _serialize(reply: dict) -> bytes:
+    """Encode a closed reply dictionary as one ASCII JSON line.
+
+    Unicode is escaped, nonfinite numbers are rejected and serialization errors
+    propagate to the worker caller; no MCP envelope is added.
+    """
     return (json.dumps(reply, ensure_ascii=True, allow_nan=False) + "\n").encode("ascii")
 
 
 def main() -> int:
     # The runtime stubs stay installed until the process exits, so threads an evaluated
     # program leaves behind cannot create processes or use sockets after evaluation.
+    """Run one disposable worker exchange and terminate without waiting for threads.
+
+    Installs runtime denials, applies limits, writes readiness to real stderr,
+    arms the orphan alarm and reads bounded UTF-8 stdin. Oversized source or
+    bootstrap/decode/evaluation exceptions produce internal_error. Writes one
+    ASCII reply to real stdout; os._exit(0) runs even if reply writing fails.
+    This entry point never returns normally and must run in its own process.
+    """
     with _restricted_runtime():
         try:
             apply_limits()
