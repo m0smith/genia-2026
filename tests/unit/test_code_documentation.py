@@ -124,3 +124,11 @@ def test_initial_baseline_cannot_hide_a_new_binding(tmp_path):
     previous = parent_baseline(tmp_path, 'HEAD', 'absent.json', records)
     current = {r['id']: r['fingerprint'] for r in records if not r['documented']}
     assert baseline_errors(previous, current) == ['Baseline expansion/change: sample.py::binding::new']
+
+
+def test_documentation_policy_and_checker_guide_are_published():
+    from tools.stage_docs_for_mkdocs import STRATEGY_DOCS, README_LINK_REWRITES
+    assert 'docs/contract/code-documentation.md' in STRATEGY_DOCS
+    assert 'docs/process/code-documentation.md' in STRATEGY_DOCS
+    assert README_LINK_REWRITES['(docs/contract/'] == '(contract/'
+    assert README_LINK_REWRITES['(docs/process/'] == '(process/'
