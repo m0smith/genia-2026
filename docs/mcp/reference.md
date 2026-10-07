@@ -143,6 +143,12 @@ nothing. Discovery JSON is at most 16,384 UTF-8 bytes, summaries at most 256
 bytes; these bound the static payload, not execution. There are no live reads
 or host probes, including in plain file mode.
 
+The profile's governed members and the discovery catalogue are generated into a delimited block of
+`apps/mcp/mcp.genia` from the `mcp_language_profile` registry in `docs/contract/semantic_facts.json`
+(`python tools/gen_mcp_language_profile.py`, verified by `--check`). The registry is a guarded projection source:
+`GENIA_STATE.md` remains authority, and each fact carries semantic anchors (`state:` markers in STATE) and
+evidence. The server does not read the registry at runtime, and the wire output is unchanged by this arrangement.
+
 The output is byte-identical across calls, protocol eras, and namespace modes. Members are emitted in the encoder's sorted
 order; object member order is not a claim. The fact array order is fixed by A7.
 

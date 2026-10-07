@@ -1135,3 +1135,9 @@ syntax, parser/evaluator/Core IR behavior, builtin, host protocol, shared spec,
 C++ MCP, resource, prompt, HTTP transport, filesystem/shell/workspace authority,
 or #1087 showcase is added. Authentic acceptance runs 1–3 predate A6 and A7 and
 remain evidence for their original three-tool revision.
+
+**Maintenance note (#1099, no wire change).** The A6 members and the A7 catalogue are generated
+into `apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
+`docs/contract/semantic_facts.json`; `state_sections` values are the legacy section numbers recorded
+in the registry's anchor crosswalk. This amendment's wire contract, vocabularies, and bounds are
+unchanged. See `docs/design/r28-follow-up-1099-registry-contract.md`.

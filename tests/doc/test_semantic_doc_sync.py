@@ -35,6 +35,7 @@ def normalize(text: str) -> str:
 FACTS = json.loads(FACTS_PATH.read_text(encoding="utf-8"))
 CANONICAL_FIELD_PATH_SEPARATOR_FACT = "canonical_format_field_path_separator"
 CANONICAL_NAMED_ACCESS_SEPARATOR_FACT = "canonical_named_access_separator"
+MCP_LANGUAGE_PROFILE_KEY = "mcp_language_profile"
 
 
 def test_semantic_facts_file_stays_small_and_complete() -> None:
@@ -61,9 +62,14 @@ def test_semantic_facts_file_stays_small_and_complete() -> None:
         "r18_equality_relation",
         CANONICAL_FIELD_PATH_SEPARATOR_FACT,
         CANONICAL_NAMED_ACCESS_SEPARATOR_FACT,
+        MCP_LANGUAGE_PROFILE_KEY,
     }
     assert set(FACTS) == expected_keys
-    assert len(FACTS) <= 22, "semantic facts surface should stay intentionally small"
+    # The 22 sentence facts stay intentionally small; the one non-string key is the guarded
+    # MCP language-profile projection source (#1099), not a language definition.
+    sentence_facts = {key: value for key, value in FACTS.items() if isinstance(value, str)}
+    assert len(sentence_facts) <= 22, "semantic facts surface should stay intentionally small"
+    assert set(FACTS) - set(sentence_facts) == {MCP_LANGUAGE_PROFILE_KEY}
 
 
 def test_authoritative_docs_capture_the_one_equality_relation() -> None:

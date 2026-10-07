@@ -74,6 +74,9 @@ Verify:
 - Design ↔ Implementation match
 - Tests ↔ Contract coverage
 - Docs ↔ actual behavior
+- MCP language-knowledge impact answered; if affected, registry in
+  `docs/contract/semantic_facts.json` updated and
+  `tools/gen_mcp_language_profile.py --check` passes
 - No scope expansion
 - Edge cases handled
 
