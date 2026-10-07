@@ -202,3 +202,12 @@ because it depends only on completed R10 and R13, not on any release from
 R14 onward; it is free to schedule and ship independently, subject to its
 own contract/design/test/implementation/documentation/audit gates. See
 `docs/strategy/roadmap/r40.md`.
+
+## Required infrastructure — maintained code documentation (#1101)
+
+Define the repository-wide standard and establish initial documentation CI
+enforcement after R28, before new R29 implementation. Coordinate with the
+unnumbered R20 follow-up #1067 without introducing a new release number.
+Remediate existing gaps in bounded subsystem slices alongside roadmap work,
+starting with MCP. The entire legacy backlog does not block R29. This work
+does not reopen R28 or change language/runtime behavior.

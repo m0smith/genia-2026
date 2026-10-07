@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "exclude": [
+    {
+      "path": "docs/strategy/roadmap/archive",
+      "reason": "Immutable historical planning snapshots; no executable maintained source."
+    }
+  ],
+  "exemptions": {}
+}

@@ -3589,3 +3589,10 @@ The selection step is a deterministic example-local exact-term overlap over the 
 or evidence authenticity; answer generation remains outside Genia with the MCP client. Document ids and metadata are client-asserted labels; the example preserves supplied spans and diagnostics but does not verify
 origin or trust. Evidence: `tests/unit/test_r28_mcp_grounded_evidence_example.py`.
 
+
+## Development documentation infrastructure
+
+The maintained-code documentation policy and native-language coverage checker
+are development infrastructure, not language semantics or host capabilities.
+See `docs/contract/code-documentation.md` and `docs/process/code-documentation.md`.
+Existing source-documentation debt is tracked separately from semantic host gaps.

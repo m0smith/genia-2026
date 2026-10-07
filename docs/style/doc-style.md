@@ -328,3 +328,12 @@ surfaces; generated pages are not a documentation source.
 ## State record (non-authoritative)
 
 Exact text displaced from `GENIA_STATE.md` during the #1099 distillation is preserved verbatim, as provenance only, in: [`docs/state-record/tooling-and-examples.md`](../state-record/tooling-and-examples.md). `GENIA_STATE.md` governs.
+
+## 13. Maintained application and implementation code
+
+The [maintained-code documentation contract](../contract/code-documentation.md)
+extends documentation obligations to applications, internal implementation,
+tooling, tests and scripts in both repositories. Public prelude/builtin coverage
+remains strict under §12. Internal naming alone does not exempt substantial
+behavior. The separate native-language checker tracks legacy implementation debt
+without weakening DOC008/DOC009.

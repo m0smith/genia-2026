@@ -1,0 +1,39 @@
+# Check maintained source contracts and prevent new or edited legacy debt.
+name: Code documentation
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install pinned documentation tools
+        run: |
+          python -m pip install uv
+          uv sync --dev
+      - name: Check source coverage and baseline ratchet
+        env:
+          BASE_REV: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          args=()
+          if [ -n "$BASE_REV" ] && [ "$BASE_REV" != "0000000000000000000000000000000000000000" ]; then
+            args+=(--base-ref "$BASE_REV")
+          fi
+          uv run python -m tools.code_documentation "${args[@]}" --inventory code-documentation-inventory.json
+      - name: Verify checker behavior
+        run: uv run pytest -q tests/unit/test_code_documentation.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-documentation-inventory
+          path: code-documentation-inventory.json

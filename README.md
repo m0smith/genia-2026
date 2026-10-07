@@ -1792,3 +1792,10 @@ For stricter implementation constraints and invariants, see:
 - `GENIA_STATE.md`
 - `GENIA_RULES.md`
 - `GENIA_REPL_README.md`
+
+### Maintained code documentation
+
+Contributors follow the [code documentation contract](docs/contract/code-documentation.md)
+and [coverage/checker guide](docs/process/code-documentation.md). The gate covers
+maintained first-party code, including applications and substantial internal
+bindings, while tracking pre-existing debt explicitly.

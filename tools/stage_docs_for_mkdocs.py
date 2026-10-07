@@ -1,3 +1,4 @@
+"""Stage maintained user documentation and rewrite root links for strict MkDocs builds."""
 from __future__ import annotations
 
 import shutil
@@ -26,6 +27,8 @@ DOC_DIRS = [
 # material that is not published wholesale. Publish only the live roadmap
 # bundle; the frozen pre-split archive remains repository history only.
 STRATEGY_DOCS = [
+    "docs/contract/code-documentation.md",
+    "docs/process/code-documentation.md",
     "docs/strategy/release-roadmap.md",
     "docs/strategy/roadmap/README.md",
     "docs/strategy/roadmap/r15.md",
@@ -46,6 +49,8 @@ STRATEGY_DOCS = [
 ]
 SKIP_FILENAMES = {"CHAPTER_TEMPLATE.md"}
 README_LINK_REWRITES = {
+    "(docs/contract/": "(contract/",
+    "(docs/process/": "(process/",
     "(docs/architecture/": "(architecture/",
     "(docs/cheatsheet/": "(cheatsheet/",
     "(docs/host-interop/": "(host-interop/",
@@ -56,12 +61,14 @@ README_LINK_REWRITES = {
 
 
 def reset_staging_dir() -> None:
+    """Replace the disposable staging directory before copying the current documentation."""
     if STAGING_ROOT.exists():
         shutil.rmtree(STAGING_ROOT)
     STAGING_ROOT.mkdir(parents=True)
 
 
 def stage_root_doc(filename: str) -> None:
+    """Copy an authoritative root document, rewriting README links for its published location."""
     source = REPO_ROOT / filename
     target_name = "index.md" if filename == "README.md" else filename
     target = STAGING_ROOT / target_name
@@ -73,6 +80,7 @@ def stage_root_doc(filename: str) -> None:
 
 
 def stage_strategy_doc(relpath: str) -> None:
+    """Copy one explicitly selected repository document into its corresponding published path."""
     source = REPO_ROOT / relpath
     target = STAGING_ROOT / Path(relpath).relative_to("docs")
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -80,6 +88,7 @@ def stage_strategy_doc(relpath: str) -> None:
 
 
 def stage_doc_tree(directory: str) -> None:
+    """Copy Markdown from one maintained documentation tree, omitting named templates."""
     source_root = REPO_ROOT / directory
     target_root = STAGING_ROOT / source_root.name
     for source in source_root.rglob("*.md"):
@@ -92,6 +101,7 @@ def stage_doc_tree(directory: str) -> None:
 
 
 def main() -> None:
+    """Rebuild the complete configured documentation staging tree and report its path."""
     reset_staging_dir()
     for filename in ROOT_DOCS:
         stage_root_doc(filename)
