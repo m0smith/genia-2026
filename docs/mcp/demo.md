@@ -188,6 +188,35 @@ A program that fails while running (for example by dividing by zero) returns `st
 return the underlying error text, so test unfamiliar programs with `genia_parse` first and keep diagnostics
 in your program's own values, as this demo does.
 
+## 8. Optional grounded-evidence example
+
+`examples/mcp/grounded_evidence.genia` is a second checked-in example for the
+same `genia_run` tool. It validates client-supplied document literals, chunks
+valid documents with Experimental R12 `chunk/2`, and prints one strict JSON
+evidence package on stdout. The final value is still Genia debug rendering; use
+stdout, not `value.rendered`, as the machine-readable channel.
+
+The example is Python-reference-host MCP behavior only. It adds no MCP tool,
+resource, prompt, authority, builtin, parser/evaluator behavior, or Core IR
+form. The package includes `ordinary_example_selection_not_r12_retrieve` because
+its tiny `exact_term_overlap` pass is ordinary example code, not R12 `retrieve/4`,
+not semantic retrieval, not embedding, not reranking, not RAG, and not answer
+generation. Answer generation remains the MCP client's job. Document ids and
+metadata are client-asserted labels; Genia preserves the supplied provenance
+spans but does not verify origin or trust.
+
+Run it directly:
+
+```bash
+genia examples/mcp/grounded_evidence.genia
+```
+
+Or submit the file's source to `genia_parse`, then `genia_run`. The stdout JSON
+contains `version`, `status`, `question`, `documents`, `evidence`, `sources`,
+`diagnostics`, and the selection descriptor. Invalid documents, duplicate ids,
+and zero-chunk documents appear as indexed diagnostics and do not abort the
+package.
+
 ## What the server will not do
 
 Source run through `genia_run` cannot read or write files, see environment variables, read
