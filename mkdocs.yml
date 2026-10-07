@@ -33,6 +33,8 @@ nav:
 
   - Style:
       - "@doc Style Guide": style/doc-style.md
+      - Maintained Code Contract: contract/code-documentation.md
+      - Documentation Checks: process/code-documentation.md
 
   - Releases:
       - Overview: releases/README.md

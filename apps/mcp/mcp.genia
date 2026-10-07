@@ -6,8 +6,9 @@
 # (selected by `initialize`; one process-local state bit). This program owns
 # decode, validation, era selection, dispatch, result construction, JSON
 # encoding/framing, and stdout production. Both eras reach the same tool
-# definitions and implementations. The only host-supplied datum is the
-# build/launch `contract_revision`, passed as the single program argument. See
+# definitions and implementations. The build/launch contract_revision is passed
+# as the single program argument; hosted launch explicitly supplies parse/run
+# callbacks through the host capability map. See
 # docs/design/r28-genia-mcp-contract-threat-model.md (sections 2, 7.1, 14, 18)
 # and docs/design/r28-e28-1-native-mcp-skeleton-design.md.
 #
@@ -15,7 +16,8 @@
 # provisions the `parse` capability as an explicit argument to serve(revision, host)
 # (docs/design/r28-e28-2-parse-tool-design.md). Plain file mode calls serve(rev, {}),
 # so it advertises genia_capabilities and the native-only genia_language_profile
-# (amendment A6, section 19 of the contract). The execution tool belongs to E28-3.
+# (amendment A6, section 19 of the contract). Hosted launch advertises genia_run
+# only when its run callback is provisioned.
 
 @doc "Match and unwrap one json representation layer."
 pattern Json(value) = representation_match("json", value)
@@ -178,6 +180,7 @@ advertised(c, name) =
 @doc "Return advertised tool names in contract descriptor order."
 tool_names(c) = tool_descriptors(c) |> map((t) -> field(t, "name"))
 
+@doc "Fixed source-only worker limits and unavailable capabilities; defense in depth, not a security sandbox."
 EXECUTION_PROFILE = {
   name: "source-only-isolated-v1",
   source_max_bytes: 262144,
@@ -212,12 +215,14 @@ capabilities_envelope(c) = {
   error: nil
 }
 
+@doc "Argument-free capability discovery schema and assistant-facing description."
 tool_descriptor = {
   name: "genia_capabilities",
   description: "Report the Genia MCP server identity, protocol revision, transport, advertised tools, and governed execution profile.",
   inputSchema: {type: "object", additionalProperties: false, properties: {}}
 }
 
+@doc "Closed source-only parse-tool schema; the native byte policy is authoritative."
 parse_descriptor = {
   name: "genia_parse",
   description: "Parse explicit Genia source text and return the existing normalized parse output, or a bounded parse diagnostic. Parsing never evaluates the source.",
@@ -225,6 +230,7 @@ parse_descriptor = {
                 properties: {source: {type: "string", maxLength: 262144}}}
 }
 
+@doc "Closed source-only execution-tool schema and explicit authority restrictions."
 run_descriptor = {
   name: "genia_run",
   description: "Run explicit Genia source in a fresh, disposable, policy-restricted worker. Returns the canonical debug rendering of the value, program stdout, and program stderr as separate fields, or a bounded failure. Source only: no file, environment, configuration, secret, network, process, or import authority.",
@@ -232,6 +238,7 @@ run_descriptor = {
                 properties: {source: {type: "string", maxLength: 262144}}}
 }
 
+@doc "Argument-free static language-profile schema and assistant-facing purpose."
 profile_descriptor = {
   name: "genia_language_profile",
   description: "Describe Genia's language model for assistants before they write source: branching is pattern matching, there is no if-expression or loop, repetition is recursion, with canonical examples. Takes no arguments; returns a fixed, deterministic description.",
@@ -320,6 +327,7 @@ call_result(c) = tool_result(c, capabilities_envelope(c))
 # text, not language behavior: GENIA_STATE.md governs, and tests evaluate every example
 # directly. The only varying datum is the launch contract_revision.
 
+@doc "Canonical GCD and factorial source examples verified by existing profile tests."
 LANGUAGE_EXAMPLES = {
   gcd: "open gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)",
   factorial: "open fact(0) = 1\nfact(n) = n * fact(n - 1)\nfact(5)"
@@ -486,8 +494,8 @@ profile_envelope(c) = {
 # ---- request validation (JSON-RPC shape and per-request _meta) ----
 
 # Total accessors: `&&`/`||` do not short-circuit, so every check below is safe
-# to evaluate on any JSON value. `field` yields nil for an absent key or a
-# non-object, and nil satisfies none of the type checks.
+# to evaluate on any JSON value. `field` yields the empty-list sentinel for an
+# absent/null key or a non-object; that sentinel fails the relevant type checks.
 # JSON null decodes to none("nil"), and none(...) short-circuits ordinary calls,
 # so null and absent both normalize to [] (which fails every type check).
 @doc "Replace null-decoding absence Outcomes with an inert empty-list sentinel."
@@ -1056,7 +1064,7 @@ Build launch context with a fresh compatibility state bit and consume stdin.
 `rev`: validated revision string. `host`: explicit capability map with optional parse and run callables.
 
 ## Returns
-Pipeline terminal result after stdin is consumed. Creates ref(false) for compatibility initialization; writes and flushes protocol responses through `emit`.
+Pipeline terminal result after stdin is consumed. Creates a false-valued Ref for compatibility initialization; writes and flushes protocol responses through `emit`.
 """
 serve(rev, host) = serve_lines({rev: rev, host: host, state: ref(false)})
 

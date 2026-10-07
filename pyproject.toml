@@ -1,3 +1,4 @@
+# Python package metadata and development tooling; runtime dependencies stay explicit.
 [project]
 name = "genia"
 version = "0.1.14"

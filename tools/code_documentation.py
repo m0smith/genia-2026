@@ -16,7 +16,10 @@ import subprocess
 
 
 LANGUAGES = {'.py': 'python', '.genia': 'genia', '.cpp': 'cpp', '.hpp': 'cpp',
-             '.h': 'cpp', '.ts': 'typescript', '.tsx': 'tsx', '.sh': 'bash',
+             '.h': 'cpp', '.ts': 'typescript', '.tsx': 'tsx', '.js': 'typescript',
+             '.jsx': 'tsx', '.mjs': 'typescript', '.cjs': 'typescript', '.sh': 'bash',
+             '.rs': 'unsupported', '.go': 'unsupported', '.java': 'unsupported',
+             '.ps1': 'unsupported', '.c': 'unsupported', '.toml': 'config',
              '.yml': 'config', '.yaml': 'config', '.cmake': 'config'}
 
 
@@ -235,7 +238,7 @@ def inventory(root, manifest):
         language = LANGUAGES.get(file.suffix)
         if file.name == 'CMakeLists.txt':
             language = 'config'
-        if language == 'config' and not (path.startswith('.github/workflows/') or file.suffix == '.cmake' or file.name == 'CMakeLists.txt'):
+        if language == 'config' and not (path.startswith('.github/workflows/') or file.suffix == '.cmake' or file.name in ('CMakeLists.txt', 'pyproject.toml')):
             continue  # Declarative specs/data are covered by their existing contract checks.
         if language is None and file.read_bytes().startswith(b'#!'):
             language = 'bash' if b'sh' in file.read_bytes().split(b'\n')[0] else 'unsupported'
