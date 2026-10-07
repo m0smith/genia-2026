@@ -6898,3 +6898,35 @@ profile members/examples, launch revision, arguments, four-tool surface,
 `genia_capabilities`, envelopes, authority, and host behavior are unchanged.
 Evidence: `tests/unit/test_r28_mcp_language_profile.py`; matrix row D10. No
 new authentic client acceptance run is claimed; runs 1–3 predate A6 and A7.
+
+## 9.51) R28 follow-up: MCP grounded-evidence example (issue #1087)
+
+LANGUAGE CONTRACT: unchanged. This is one checked-in example program and tests,
+not a new Genia feature.
+
+PYTHON REFERENCE HOST (MCP example): `examples/mcp/grounded_evidence.genia`
+runs through the existing `genia_run` tool. It validates client-supplied
+document literals, chunks valid documents with Experimental R12 `chunk/2`, and
+prints one strict JSON evidence package on stdout. The package includes the
+question, retained validated input documents, selected evidence with exact
+`chunk/2` source spans, first-occurrence sources, indexed diagnostics, and a
+selection descriptor whose claim is
+`ordinary_example_selection_not_r12_retrieve`.
+
+The example uses only ordinary Genia plus existing public helpers. It adds no
+MCP tool, resource, prompt, transport, authority, builtin, parser/evaluator
+behavior, Core IR node, provider, or host capability. It is Python-reference-host
+MCP behavior only; no C++ MCP or cross-host parity is claimed.
+
+The selection step is a deterministic example-local exact-term overlap over the
+checked-in source literals. It is not R12 `retrieve/4`, semantic retrieval,
+embedding, reranking, RAG, citation validation, answer generation, or evidence
+authenticity. Answer generation remains outside Genia with the MCP client.
+Document ids and metadata are client-asserted labels; the example preserves
+supplied spans and diagnostics but does not verify origin or trust.
+
+Evidence: `tests/unit/test_r28_mcp_grounded_evidence_example.py` exercises the
+program through real MCP `genia_run`, direct CLI execution, deterministic stdout
+JSON, Unicode code-point provenance, invalid/duplicate/zero-chunk diagnostics,
+input limit behavior, prompt-like text as inert data, and static denial of
+imports, private underscore host functions, and denied names.
