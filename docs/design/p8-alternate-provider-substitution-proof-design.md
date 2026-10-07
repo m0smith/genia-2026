@@ -549,3 +549,7 @@ Restating each `stage0.md` house rule against this specific design:
    only the public `retrieve/4` Outcome surface end-to-end. This design
    traces both helpers as existing evidence of the compatibility mechanism
    but does not mandate which the implementation phase calls directly.
+
+## State record (non-authoritative)
+
+Exact text displaced from `GENIA_STATE.md` during the #1099 distillation is preserved verbatim, as provenance only, in: [`docs/state-record/provider-proof-records.md`](../state-record/provider-proof-records.md). `GENIA_STATE.md` governs.

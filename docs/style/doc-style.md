@@ -324,3 +324,7 @@ python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
 Coverage is enforced over both the registered prelude surface and the non-internal
 Python-host builtin registry. The generated function reference consumes the same two
 surfaces; generated pages are not a documentation source.
+
+## State record (non-authoritative)
+
+Exact text displaced from `GENIA_STATE.md` during the #1099 distillation is preserved verbatim, as provenance only, in: [`docs/state-record/tooling-and-examples.md`](../state-record/tooling-and-examples.md). `GENIA_STATE.md` governs.
