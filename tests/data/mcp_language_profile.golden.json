@@ -1,0 +1,175 @@
+{
+  "absent_forms": [
+    "if_expression",
+    "while_loop",
+    "for_loop"
+  ],
+  "control_flow": {
+    "conditionals": "pattern_matching",
+    "if_expression": false,
+    "loops": false,
+    "recursion": true,
+    "tail_call_optimization": true
+  },
+  "discovery": {
+    "coverage": "curated_non_exhaustive",
+    "facts": [
+      {
+        "id": "pattern_branching",
+        "maturity": null,
+        "scope": "language",
+        "state_sections": [
+          "5"
+        ],
+        "status": "implemented",
+        "summary": "Branching uses pattern matching."
+      },
+      {
+        "id": "tail_calls",
+        "maturity": null,
+        "scope": "language",
+        "state_sections": [
+          "8"
+        ],
+        "status": "implemented",
+        "summary": "Tail calls are optimized."
+      },
+      {
+        "id": "if_and_loops",
+        "maturity": null,
+        "scope": "language",
+        "state_sections": [
+          "5",
+          "9.50"
+        ],
+        "status": "unsupported",
+        "summary": "There is no dedicated if expression or while/for loop syntax."
+      },
+      {
+        "id": "flow_shared_coverage",
+        "maturity": "Experimental",
+        "scope": "shared_conformance",
+        "state_sections": [
+          "0",
+          "1"
+        ],
+        "status": "partial",
+        "summary": "Flow runs in Python; shared executable coverage is limited to first-wave cases."
+      },
+      {
+        "id": "core_ir_stability",
+        "maturity": "Partial",
+        "scope": "shared_conformance",
+        "state_sections": [
+          "0"
+        ],
+        "status": "partial",
+        "summary": "Portable Core IR stability remains Partial."
+      },
+      {
+        "id": "cpp_language_floor",
+        "maturity": null,
+        "scope": "cpp_host",
+        "state_sections": [
+          "0"
+        ],
+        "status": "partial",
+        "summary": "C++ implements the bounded R27 production floor, not Python feature parity."
+      },
+      {
+        "id": "other_language_hosts",
+        "maturity": null,
+        "scope": "other_hosts",
+        "state_sections": [
+          "0"
+        ],
+        "status": "planned",
+        "summary": "Node.js, Java, Rust, and Go hosts are planned, not implemented."
+      },
+      {
+        "id": "browser_runtime",
+        "maturity": null,
+        "scope": "browser",
+        "state_sections": [
+          "0.1"
+        ],
+        "status": "scaffolded",
+        "summary": "Browser artifacts are documentation scaffolding; no runtime or playground is implemented."
+      },
+      {
+        "id": "mcp_surface",
+        "maturity": null,
+        "scope": "mcp",
+        "state_sections": [
+          "9.49",
+          "9.50"
+        ],
+        "status": "implemented",
+        "summary": "Python-host local stdio MCP exposes four tools after A6."
+      },
+      {
+        "id": "cpp_mcp",
+        "maturity": null,
+        "scope": "mcp",
+        "state_sections": [
+          "9.49",
+          "9.50"
+        ],
+        "status": "unsupported",
+        "summary": "There is no C++ MCP implementation."
+      },
+      {
+        "id": "windows_mcp",
+        "maturity": null,
+        "scope": "mcp_windows",
+        "state_sections": [
+          "9.49"
+        ],
+        "status": "unsupported",
+        "summary": "Windows MCP deployment is unsupported."
+      },
+      {
+        "id": "macos_hardening",
+        "maturity": null,
+        "scope": "mcp_macos",
+        "state_sections": [
+          "9.48",
+          "9.49"
+        ],
+        "status": "partial",
+        "summary": "macOS MCP runs are verified without an address-space bound or network namespace; the profile is not a security sandbox."
+      }
+    ]
+  },
+  "examples": {
+    "factorial": "open fact(0) = 1\nfact(n) = n * fact(n - 1)\nfact(5)",
+    "gcd": "open gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)"
+  },
+  "idioms": {
+    "branching": "Use pattern-matched function clauses or case expressions.",
+    "clauses": "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open.",
+    "repetition": "Use recursion; tail-recursive calls are optimized in tail position."
+  },
+  "name": "Genia",
+  "patterns": {
+    "function_argument_patterns": true,
+    "guard_patterns": true,
+    "list_patterns": true,
+    "literal_patterns": true,
+    "map_patterns": true,
+    "ordered_resolution": "first_match",
+    "tuple_patterns": true,
+    "wildcard_patterns": true
+  },
+  "supported_forms": [
+    "function_definition",
+    "function_call",
+    "binary_expression",
+    "literal",
+    "variable",
+    "pattern_dispatch",
+    "case_expression",
+    "open_function_clauses",
+    "pipeline"
+  ]
+}

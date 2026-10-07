@@ -13,6 +13,36 @@ test file was changed to produce it. Measurements were taken against
 - **Proposed branch:** `issue-1099-state-distillation-mcp-sync` (this pre-flight was produced on `claude/issue-1099-preflight-pm2cgg`)
 - **Owner:** repository owner
 
+## Review decision (2026-10-07): GO to PR A with one amendment
+
+The owner approved C1–C7, Option 1 (extend `semantic_facts.json`), and the two-PR
+sequence (PR A: sync architecture; PR B: STATE distillation), and directed **stopping
+after PR A** for review before any STATE surgery. One amendment **supersedes** earlier
+text in this document where they conflict:
+
+1. **Semantic anchors replace section numbers as identities.** Section numbers are not
+   the long-term stable identifiers (this supersedes "section numbers are stable
+   identifiers" in Part B/Part H and condition C3's renumbering/duplicate-number plan).
+   PR A introduces semantic anchor IDs (`state:control-flow`, `state:pattern-matching`,
+   `state:tail-calls`, `state:host-status`, `state:mcp-surface`, ...) placed in STATE
+   independently of presentation numbering. The registry points at anchors. The legacy
+   wire values (`"5"`, `"9.50"`, ...) are kept for R28 byte-compatibility through an
+   explicit anchor-to-legacy-section crosswalk, so PR B may reorganize STATE freely.
+   Duplicate heading numbers (`1`, `4.1`) are no longer an identity problem because
+   anchors disambiguate them; renumbering is deferred to PR B.
+2. **Three layers: semantic anchor → structured fact → evidence.** The fact's identity
+   is its stable semantic ID plus its anchor, not its prose. Evidence is one or more
+   verification mechanisms: a STATE text fragment that shows STATE explicitly states
+   the fact, an executable probe, or a machine-truth cross-check. This supersedes
+   "pins must be verbatim STATE text" as the identity rule; text fragments are
+   verification, so wording improvements re-pin a fragment without changing the fact.
+3. **C4 is mandatory in PR A.** STATE states, independently of the MCP sections, that
+   there is no `if` form, no dedicated loop syntax, and that repetition is recursion
+   with tail-call optimization.
+
+PR A implementation record: `docs/design/r28-follow-up-1099-registry-contract.md`
+(contract) and `docs/design/r28-follow-up-1099-registry-design.md` (design).
+
 ## Summary of findings
 
 1. **STATE is 6,932 lines / 72,424 words / 572 KB, but the bloat is concentrated.**
