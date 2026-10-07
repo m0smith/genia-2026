@@ -5,9 +5,9 @@ locked by the approved R14 contract
 (``docs/design/r14-composable-lifecycle-contract.md``, "HTTP operation
 representation" section, issue #622). ``construct_http_operation`` performs
 no network IO of any kind — it only validates six fields and returns one
-closed, ordinary map, or a staged ``err(...)``. Transport (issue #623), the
-outbound client lifecycle (issue #624), and protected credential sinks
-(issue #625) are separate, later tickets.
+closed, ordinary map, or a staged ``err(...)``. The landed outbound client
+in ``http_client.py`` owns activation and protected-header declassification;
+``http_transport.py`` owns the private Python-host network attempt.
 """
 
 from __future__ import annotations
@@ -38,28 +38,50 @@ _CONTENT_TYPE_KEY = "content-type"
 
 
 def _stage_error(stage: str) -> GeniaOptionErr:
+    """Return a non-sensitive invalid-operation Outcome naming the first failed field."""
     return GeniaOptionErr("http-operation-invalid", GeniaMap().put("stage", symbol(stage)))
 
 
 def _validate_method(value: Any) -> Any:
+    """Accept only a Genia symbol naming get, post, put, patch or delete.
+
+    Return some of the unchanged symbol, otherwise a method-stage error.
+    """
     if isinstance(value, GeniaSymbol) and value.name in _METHODS:
         return GeniaOptionSome(value)
     return _stage_error("method")
 
 
 def _validate_base_url(value: Any) -> Any:
+    """Accept lowercase http(s)://host[:digits] with an ASCII host and no path.
+
+    Host characters are letters, digits, dots and hyphens. The regex checks
+    spelling only, not DNS reachability or port range; return some of the
+    unchanged string or a base_url-stage error.
+    """
     if isinstance(value, str) and _BASE_URL_RE.fullmatch(value):
         return GeniaOptionSome(value)
     return _stage_error("base_url")
 
 
 def _validate_path(value: Any) -> Any:
+    """Accept a string starting with / and containing neither ? nor #.
+
+    Preserve its spelling without escaping or URL normalization; otherwise
+    return a path-stage error.
+    """
     if isinstance(value, str) and value.startswith("/") and "?" not in value and "#" not in value:
         return GeniaOptionSome(value)
     return _stage_error("path")
 
 
 def _validate_headers(value: Any) -> Any:
+    """Copy a GeniaMap to lowercase string keys, preserving header values.
+
+    Values must be strings or exact protected carriers; no declassification
+    occurs here. Reject non-string keys, unsupported values or collisions after
+    lowercasing with a headers-stage error. No HTTP token validation is added.
+    """
     if not isinstance(value, GeniaMap):
         return _stage_error("headers")
     normalized: dict[str, Any] = {}
@@ -79,6 +101,11 @@ def _validate_headers(value: Any) -> Any:
 
 
 def _validate_query(value: Any) -> Any:
+    """Copy string-to-string GeniaMap entries without changing case or order.
+
+    Return some of the copy, or a query-stage error for invalid entries,
+    including protected values. URL encoding is deferred to the client.
+    """
     if not isinstance(value, GeniaMap):
         return _stage_error("query")
     result = GeniaMap()
@@ -90,6 +117,14 @@ def _validate_query(value: Any) -> Any:
 
 
 def _validate_body(value: Any, json_encode: Callable[[Any], Any]) -> Any:
+    """Normalize absence/text/JSON to some((body, implicit_content_type)).
+
+    Any none reason becomes http-no-body with no content type. Text and JSON
+    maps retain only their declared body fields; JSON requires a value key and
+    a successful supplied json_encode Outcome, preserving the original value.
+    Invalid bodies or encoder rejection return a body-stage error. Encoder
+    exceptions propagate; encoding here validates only and performs no HTTP IO.
+    """
     if isinstance(value, GeniaOptionNone):
         return GeniaOptionSome((make_none(_NO_BODY_REASON), None))
     if isinstance(value, GeniaMap):
@@ -127,6 +162,11 @@ def construct_http_operation(
     one. Performs zero network IO. Returns ``some(HttpOperation)`` — one
     closed map with keys ``method, base_url, path, headers, query, body`` —
     or ``err("http-operation-invalid", {stage: quote(<field>)})``.
+
+    Header names lowercase with collision rejection; protected header values
+    retain their identity. Query strings stay unencoded. Body validation uses
+    the supplied JSON encoder and adds a content type only when none was set.
+    Callback exceptions propagate rather than becoming staged errors.
     """
 
     method_result = _validate_method(method)
