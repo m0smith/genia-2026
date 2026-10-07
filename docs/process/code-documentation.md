@@ -65,9 +65,9 @@ exemption or a claim that existing prose has passed quality review.
 
 MCP source now has contracts for its named functions/pattern, plus the important
 handwritten descriptor/profile values. Native protocol and host callbacks remain
-unchanged. Python host-boundary remediation and the remaining subsystem slices
-are still required before closing #1101. C++ rollout requires its separate PR
-and the canonical checker provider commit to be available.
+unchanged. The remaining Python runtime and subsystem slices are still required
+before closing #1101. C++ rollout requires its separate PR and the canonical
+checker provider commit to be available.
 
 The Python MCP host-boundary slice (#1101) documents all named bindings in the
 seven `hosts/python/mcp_*.py` modules: launcher/bootstrap, parse transport, stdin
@@ -76,3 +76,13 @@ It removes 28 legacy entries, leaving 3,936 in genia-2026 and 379 in genia-cpp.
 The earlier counts above record the initial inventory. Existing behavioral
 regressions and a docstring-stripped AST comparison verify this slice; prose
 review remains necessary. No worker, protocol, limit or capability changes.
+
+The allowlisted Python runtime host-bridge slice (#1106) documents all 24 stable
+identities in `src/genia/host_bridge.py`: packaged source/resource loading,
+recursive Genia/Python conversion, Option and map-key handling, protected-value
+rejection, opaque file IO, JSON compatibility, callable-awareness markers, and
+allowlisted module construction. It removes 24 more legacy entries, leaving
+3,912 in genia-2026. Focused host-boundary regressions, documentation gates,
+prose review, and an exactly matching docstring-stripped AST verify the slice.
+No runtime, module, conversion, IO, exception, capability, or language-profile
+behavior changes.
