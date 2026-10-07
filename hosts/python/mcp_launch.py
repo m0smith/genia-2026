@@ -4,7 +4,7 @@ This module is build/launch identity plumbing only. It resolves the repository
 revision (``contract_revision``), validates it as an inert 40-lowercase-hex value,
 and starts ``apps/mcp/mcp.genia`` on the Python reference host (through the
 in-process host bootstrap, ``hosts/python/mcp_host.py``) with a fixed environment
-allowlist and that single program argument. It contains no MCP
+allowlist and the bootstrap path/revision arguments. It contains no MCP
 protocol, validation, dispatch, policy, capability, or JSON construction: all of
 that lives in ``mcp.genia`` (docs/analysis/r28-host-dependency-inventory.md,
 R28-H10).
@@ -51,6 +51,8 @@ class McpLaunchError(RuntimeError):
 
 
 def _valid_revision(value: str) -> bool:
+    """Return whether value is exactly 40 lowercase hexadecimal characters.
+    """
     return _REVISION.fullmatch(value) is not None
 
 
@@ -81,14 +83,23 @@ def resolve_contract_revision(repo_root: Path | None = None) -> str:
 
 
 def build_server_command(revision: str, python: str = sys.executable) -> list[str]:
-    """Return the argv that starts ``mcp.genia`` with only the revision datum."""
+    """Build bootstrap argv with the fixed server path and validated revision.
+
+    Invalid revision text raises McpLaunchError before launch. python selects
+    the interpreter executable; the returned list is not a shell command.
+    """
     if not _valid_revision(revision):
         raise McpLaunchError("contract revision must be 40 lowercase hex digits")
     return [python, "-c", _GENIA_MAIN, str(SERVER_PATH), revision]
 
 
 def server_environment(base: Mapping[str, str]) -> dict[str, str]:
-    """Return the fixed launch environment: an allowlist, nothing user-defined."""
+    """Copy allowed launch variables, prepend repository src to PYTHONPATH.
+
+    An existing PYTHONPATH from base is retained after src; UTF-8 defaults to 1.
+    This is the host bootstrap environment, not the stricter worker environment.
+    base is not mutated and unrelated user variables are omitted.
+    """
     env = {key: base[key] for key in _ENV_ALLOWLIST if key in base}
     src = str(REPO_ROOT / "src")
     existing = base.get("PYTHONPATH")
@@ -98,6 +109,13 @@ def server_environment(base: Mapping[str, str]) -> dict[str, str]:
 
 
 def main() -> int:
+    """Launch the host with repository identity and relay termination signals.
+
+    Revision failures write a fixed stderr diagnostic and return 1. The child
+    inherits standard streams; this launcher waits and returns its exit status.
+    Launch failures propagate. SIGTERM/SIGINT/SIGHUP are forwarded so host cleanup
+    can run; signal handlers stay installed for this launcher process.
+    """
     try:
         command = build_server_command(resolve_contract_revision())
     except McpLaunchError as error:
@@ -110,6 +128,8 @@ def main() -> int:
     def forward(signum, _frame):
         # Termination plumbing only: hand the signal to the host, which unwinds, reaps
         # its worker, and exits; this launcher then returns the host's status.
+        """Forward a signal to the child, ignoring OS errors if it has already exited.
+        """
         with contextlib.suppress(OSError):
             child.send_signal(signum)
 

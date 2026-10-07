@@ -68,3 +68,11 @@ handwritten descriptor/profile values. Native protocol and host callbacks remain
 unchanged. Python host-boundary remediation and the remaining subsystem slices
 are still required before closing #1101. C++ rollout requires its separate PR
 and the canonical checker provider commit to be available.
+
+The Python MCP host-boundary slice (#1101) documents all named bindings in the
+seven `hosts/python/mcp_*.py` modules: launcher/bootstrap, parse transport, stdin
+multiplexing, worker supervision, restricted worker and policy classification.
+It removes 28 legacy entries, leaving 3,936 in genia-2026 and 379 in genia-cpp.
+The earlier counts above record the initial inventory. Existing behavioral
+regressions and a docstring-stripped AST comparison verify this slice; prose
+review remains necessary. No worker, protocol, limit or capability changes.

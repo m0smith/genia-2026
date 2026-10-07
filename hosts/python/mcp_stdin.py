@@ -25,7 +25,16 @@ _READ_SIZE = 65536
 
 
 class LineMux:
+    """Buffer ordered raw stdin lines for native dispatch and cancellation scanning.
+
+    Owns framing and queue accounting, not protocol interpretation. Reads one
+    descriptor without closing it; only newline bytes split lines. UTF-8 uses
+    surrogateescape and EOF flushes an unterminated tail. Single-consumer host
+    plumbing; no concurrent-access guarantee.
+    """
     def __init__(self, fd: int):
+        """Initialize an empty mux borrowing fd; reads and EOF detection happen later.
+        """
         self._fd = fd
         self._buffer = b""
         self.pending: deque[str] = deque()
@@ -33,13 +42,22 @@ class LineMux:
         self.eof = False
 
     def fileno(self) -> int:
+        """Return the borrowed descriptor for select without reading or transferring ownership.
+        """
         return self._fd
 
     def wants_read(self) -> bool:
+        """Report whether input remains open and buffered bytes permit another read.
+
+        The threshold controls subsequent reads; a chunk or unterminated line can
+        overshoot it. The provider drains queued input independently of this check.
+        """
         return not self.eof and self.pending_bytes + len(self._buffer) <= MAX_PENDING_BYTES
 
     @staticmethod
     def _enqueue(raw: bytes) -> str:
+        """Decode one framed byte line with UTF-8 surrogateescape; do not queue it.
+        """
         return raw.decode("utf-8", "surrogateescape")
 
     def _read_available(self) -> list[str]:
@@ -58,6 +76,8 @@ class LineMux:
         return lines
 
     def _accept(self, line: str) -> None:
+        """Append a decoded line and charge its re-encoded byte length to the pending queue.
+        """
         self.pending.append(line)
         self.pending_bytes += len(line.encode("utf-8", "surrogateescape"))
 
@@ -104,6 +124,10 @@ class LineMux:
 
 
 def _claims(is_cancel, line: str) -> bool:
+    """Call the native predicate and coerce its result to bool.
+
+    Ordinary predicate exceptions mean not claimed; BaseException still propagates.
+    """
     try:
         return bool(is_cancel(line))
     except Exception:  # a failing predicate is never a cancellation
