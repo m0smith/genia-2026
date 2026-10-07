@@ -54,3 +54,17 @@ The checker does not decide whether prose is exemplary, prove exception coverage
 or establish portability. In particular, existing C++ comments remain useful
 contracts even without Doxygen syntax, and descriptive test names can explain
 straightforward test behavior without redundant docstrings.
+
+## Initial rollout status (#1101)
+
+The initial inventory records 3,950 accepted legacy findings in genia-2026 and
+379 in genia-cpp. Findings include module-purpose gaps, declaration-documentation
+gaps and explicit parse/unsupported cases; these are not 4,329 independently
+verified semantic defects. The baseline is an actionable debt inventory, not an
+exemption or a claim that existing prose has passed quality review.
+
+MCP source now has contracts for its named functions/pattern, plus the important
+handwritten descriptor/profile values. Native protocol and host callbacks remain
+unchanged. Python host-boundary remediation and the remaining subsystem slices
+are still required before closing #1101. C++ rollout requires its separate PR
+and the canonical checker provider commit to be available.
