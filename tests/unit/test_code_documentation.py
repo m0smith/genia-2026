@@ -132,3 +132,8 @@ def test_documentation_policy_and_checker_guide_are_published():
     assert 'docs/process/code-documentation.md' in STRATEGY_DOCS
     assert README_LINK_REWRITES['(docs/contract/'] == '(contract/'
     assert README_LINK_REWRITES['(docs/process/'] == '(process/'
+
+
+def test_empty_comment_is_not_a_binding_contract():
+    records = discover('cpp', '// Purpose.\n\n/** */\nint f() {return 1;}', 'sample.hpp')
+    assert not next(r for r in records if r['binding'] == 'f')['documented']
