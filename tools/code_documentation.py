@@ -40,7 +40,15 @@ def comment_before(lines, line):
     if line <= 2:
         return False
     previous = lines[line - 2].strip()
-    return bool(previous and re.match(r'(//\s*\S|/\*|\*|#\s*[^!\s])', previous))
+    if not previous or not re.match(r'(//|/\*|\*|#\s)', previous):
+        return False
+    block = previous
+    if previous.endswith('*/'):
+        index = line - 3
+        while '/*' not in block and index >= 0:
+            block = lines[index].strip() + '\n' + block
+            index -= 1
+    return bool(re.search(r'[\w]', re.sub(r'[/#*]', '', block)))
 
 
 def module_comment(source):
