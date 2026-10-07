@@ -137,3 +137,10 @@ def test_documentation_policy_and_checker_guide_are_published():
 def test_empty_comment_is_not_a_binding_contract():
     records = discover('cpp', '// Purpose.\n\n/** */\nint f() {return 1;}', 'sample.hpp')
     assert not next(r for r in records if r['binding'] == 'f')['documented']
+
+
+def test_rust_internal_function_and_method_are_inventoried():
+    source = '//! Purpose.\n\nfn internal() {}\nstruct C;\nimpl C { fn work(&self) {} }\n'
+    records = discover('rust', source, 'sample.rs')
+    assert any(r['binding'].endswith('internal') and not r['documented'] for r in records)
+    assert any(r['binding'].endswith('work') and not r['documented'] for r in records)
