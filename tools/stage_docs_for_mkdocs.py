@@ -20,6 +20,7 @@ DOC_DIRS = [
     "docs/design",
     "docs/releases",
     "docs/reference",
+    "docs/state-record",
 ]
 # Individually staged planning files. docs/strategy/ contains broader planning
 # material that is not published wholesale. Publish only the live roadmap

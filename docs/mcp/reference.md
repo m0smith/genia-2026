@@ -130,8 +130,9 @@ Amendment A7 (#1086) also returns `discovery`, exactly `{coverage, facts}`:
 `coverage: "curated_non_exhaustive"` and an ordered array of 12 static facts.
 Each fact has exactly `id`, `scope`, `status`, `maturity`, `summary`, and
 `state_sections` (ordered strings referencing STATE at `contract_revision`).
-The IDs, scopes, statuses, maturity labels, and section mappings are listed in
-`GENIA_STATE.md` section 9.50; exact summaries are in contract section 20.
+The IDs, scopes, statuses, maturity labels, summaries, and section mappings are defined in the
+`mcp_language_profile` registry (`docs/contract/semantic_facts.json`) and described in
+`GENIA_STATE.md` section 9.50; the A7 contract is section 20.
 
 Status is one of `implemented`, `partial`, `planned`, `scaffolded`,
 `unsupported`, within the stated scope. Maturity is `Experimental`, `Partial`,

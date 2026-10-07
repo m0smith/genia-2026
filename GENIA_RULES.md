@@ -467,8 +467,8 @@ Required constraints:
   never a new numeric Core IR node family. `/` remains ordinary
   `IrBinary(op=SLASH)`.
 - This boundary itself implements no Decimal/Rational/Float64 runtime
-  arithmetic, equality, or map-key behavior; see `GENIA_STATE.md` sections
-  9.21–9.22 and `docs/design/r21-numeric-source-portable-representation-contract.md`.
+  arithmetic, equality, or map-key behavior; see `GENIA_STATE.md` section
+  9.21 and `docs/design/r21-numeric-source-portable-representation-contract.md`.
   R22 (below) builds runtime numeric semantics on top of this frozen
   boundary without reopening it.
 
@@ -514,8 +514,8 @@ Required constraints:
   `==`.
 - Canonical display/debug spelling, field-format presentation, JSON
   numeric transport policy, new numeric literal syntax, and transcendental
-  APIs are explicitly out of scope; see `GENIA_STATE.md` sections
-  9.23–9.31, `docs/releases/R22.md`, and
+  APIs are explicitly out of scope; see `GENIA_STATE.md` section
+  9.21, `docs/releases/R22.md`, and
   `docs/design/r22-exact-numeric-runtime-contract.md`.
 
 ## 9) Operator model

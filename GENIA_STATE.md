@@ -2,9 +2,35 @@
 
 This file describes what is **actually implemented now** in the Python runtime.
 
+## Authority, scope, and navigation
+
+`GENIA_STATE.md` is the **final authority for implemented Genia behavior**: what exists now, its syntax and semantics, runtime
+invariants, execution modes, host support and the portable/host-specific split, maturity classifications, and current limitations.
+If it is not here, it is not part of the language. It records no release chronology, issue-by-issue history, test counts, or audit
+narrative; those live in the documents below. Source-of-truth order (`AGENTS.md`): this file, `GENIA_RULES.md`, `GENIA_REPL_README.md`,
+`README.md`, `spec/*`, `docs/host-interop/*`, `docs/architecture/*`, implementation, `docs/process/run-change.md`.
+
+Where detail lives:
+
+| Topic | Document |
+|---|---|
+| Release scope, evidence, examples | `docs/releases/R*.md` (index: `docs/releases/README.md`) |
+| Approved contracts and designs | `docs/design/` (for example `r14-composable-lifecycle-contract.md`, `r22-exact-numeric-runtime-contract.md`) |
+| Release truth audits | `docs/analysis/` |
+| Host capability contract and matrix | `docs/host-interop/` (`capabilities.md` is the capability registry) |
+| Portable Core IR boundary | `docs/architecture/core-ir-portability.md` |
+| Shared executable conformance | `spec/`, `tools/spec_runner/README.md` |
+| MCP server | `docs/mcp/`, `docs/design/r28-genia-mcp-contract-threat-model.md` |
+| Generated function reference | `docs/reference/` |
+| Semantic guard facts and the MCP language-profile registry | `docs/contract/semantic_facts.json` (a guard and projection source, never authority) |
+| Exact text displaced from this file (provenance only) | `docs/state-record/README.md` |
+
+Retired section numbers are mapped to their current location in `docs/state-record/crosswalk.md`. Stable semantic anchors (`<!-- anchor: state:... -->`) identify sections independently of heading numbers; the MCP language-profile
+registry and its tests refer to them. Section numbers are legacy identifiers and may be cross-referenced by other documents.
+`docs/state-record/` is a non-authoritative provenance layer: it never defines behavior and is not part of the truth hierarchy.
+
 ## 0) Multi-host status
 <!-- anchor: state:host-status -->
-
 
 Implemented today:
 
@@ -16,223 +42,103 @@ Implemented today:
   - cli
   - flow
   - error
-- The implemented shared Semantic Spec System currently executes **eval**, **ir**, **cli**, **flow**, **error**, and **parse** cases.
-- The current shared spec runner compares normalized:
-  - eval `stdout`
-  - eval `stderr`
-  - eval `exit_code`
-  - cli `stdout`
-  - cli `stderr`
-  - cli `exit_code`
-  - flow `stdout`
-  - flow `stderr`
-  - flow `exit_code`
-  - error `stdout`
-  - error `stderr`
-  - error `exit_code`
-  - IR portable normalized output
-  - parse normalized AST (exact match for `kind: ok`) or parse error type + message substring (for `kind: error`)
-- The working Python implementation lives in:
-  - `src/genia/`
-  - `tests/`
-  - `src/genia/std/prelude/`
-  - `hosts/python/` (adapter, normalization, and category execution modules)
-- Multi-host documentation/spec scaffolding exists in:
-  - `docs/host-interop/`
-  - `docs/architecture/core-ir-portability.md`
-  - `spec/`
-  - `tools/spec_runner/README.md`
-  - `hosts/`
-- A formal host capability registry contract is documented at `docs/host-interop/capabilities.md`. It is the authoritative reference for capability names, Genia surface, input/output shapes, normalized error behavior, and portability status for each host capability.
-- **R16 — Multi-Host Conformance Infrastructure is complete through E16-7** (epic #756; contract at `docs/design/r16-multi-host-conformance-infrastructure-contract.md`). A generic, versioned subprocess host-adapter protocol exists:
-  - `tools/spec_runner/protocol.py` (E16-1, issue #758): the JSON request/response envelope for `parse`/`lower`/`eval`/`cli`, stdout/stderr channel separation (evaluated-program output travels only inside `result` fields, never the adapter's own transport stream), and the deterministic outcome taxonomy — an adapter can only ever self-report `ok` or `unsupported`; `protocol_error`/`crash`/`timeout` are always derived by the runner from process/JSON facts, never adapter-reported.
-  - `python -m tools.spec_runner --host '<command>'` (E16-2, issue #759): runs applicable discovered cases through that protocol instead of the in-process Python adapter. **The in-process default path (used when `--host` is omitted) is unchanged** and remains available as a developer-optimization path, not the conformance definition.
-  - a mandatory `capabilities` protocol operation plus an optional per-case `requires:` field (E16-3, issue #760): `--host` mode fetches and validates a host's capability declaration once per run; a case requiring a capability the host does not declare exactly `supported` is reported `unsupported` without invoking the adapter for it — never silently skipped or counted as passing. Issue #836 adds the capability-gated optional protocol-v1 `eval.input.modules` shape: multi-file cases require `multi_file_eval`, applicability is resolved before request construction, and a v1 host that does not opt in never receives that field. Unknown operation-input fields otherwise remain invalid.
-  - `tools/spec_runner/revision.py` (E16-4, issue #761): classifies a host's declared `contract_revision` against this checkout's actual revision using local git history only (never a remote fetch, never rewriting the host's claim) — an exact match is honest pinned-conformance evidence (`current`); a real older commit is current-main-compatibility-only evidence (`resolvable_ancestor`); an unresolvable declaration stops the run with exit code 1 before any case executes.
-  - `hosts/python/protocol_adapter.py` (E16-5, issue #762): the Python reference host itself, proven through this same subprocess protocol at full scale — 641 total, 623 passed, 0 failed, 18 unsupported, 0 protocol_error/crash/timeout, identical to the in-process path for every applicable case.
-    CI keeps this authoritative full-suite proof in `tests/spec/test_python_protocol_adapter_parity_762.py`, marked `full_conformance`, and runs it nightly or by manual dispatch on canonical Python 3.14 in the dedicated regression `full-conformance` job. Ordinary slow spec-runner pytest coverage runs in the same regression workflow on canonical Python 3.14 with `full_conformance` excluded; supported-version compatibility is established separately by the regression compatibility matrix. This is test organization only and does not change case discovery, protocol behavior, or semantic coverage.
-    Issue #883 further deduplicates semantic-spec execution within `tests/spec/`: `test_spec_ir_runner_blackbox.py` and `test_cli_shared_spec_runner.py` previously replayed most of the shared corpus (parametrized over nearly every eval/ir/cli/flow/error fixture) purely to prove runner wiring; they now execute a small representative sample per category instead, and the expensive `command_mode_collect_sum` CLI fixture is kept unique to a single pytest file. The full corpus is still proven once per supported Python version by `python -m tools.spec_runner` in the regression compatibility matrix, and once on Python 3.14 in routine CI; no shared case, expected result, or discovery assertion changed. This is test organization only.
-  - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) (R25): the first external production host, implementing the deliberately bounded R24 parser -> portable Core IR -> evaluator floor plus R25 Ref, Cell, and local Process capabilities with pinned R16 evidence. It is not feature-parity with Python; `hosts/cpp/` here remains a pointer to that repository (see `hosts/cpp/README.md`).
-  - `tools/spec_runner/evidence.py` and `--evidence <path>` (E16-7, issue #764): one deterministic per-host JSON evidence document (contract revision, protocol version, capabilities, applicable-case count, full outcome taxonomy), a pure function of its inputs so identical runs produce byte-identical evidence. Proven against both the Python reference host (623 pass / 18 unsupported / 0 else, revision `current`) and the `genia-cpp` bootstrap placeholder (641 unsupported / 0 else, revision `resolvable_ancestor`). See `docs/strategy/roadmap/multi-host-conformance-policy.md`'s "Evidence model and CI expectations" for the external-host CI contract this defines.
-  - `tools/spec_runner/host_parity_gate.py` and `spec/known_host_gaps.json` (pre-flight issue #1018, the first use of the R26+ Change Pre-Flight process): a CI/process-only gate over the existing E16-7 evidence documents. It compares a Python evidence document against a C++ evidence document at the `spec/manifest.json` optional-capability granularity: a capability the C++ host does not declare `supported` must have a matching, reasoned, issue-backed entry in `spec/known_host_gaps.json` or the gate fails as an undocumented gap; each manifest entry must include a GitHub issue reference, affected host, affected tests or spec area, short reason, and removal condition; a manifest entry whose capability the host now declares `supported` also fails, as a stale/closed gap that must be removed from the manifest; and a nonzero `fail`/`protocol_error`/`crash`/`timeout`/`invalid` count in either evidence document always fails the gate regardless of gap bookkeeping. It adds no new protocol, evidence format, or capability registry. `.github/workflows/host-parity.yml` runs it in CI whenever `spec/**`, `src/genia/**`, `hosts/**`, or `tools/spec_runner/**` change, reusing the same Docker dev image, `genia-cpp` checkout, and build/run steps already proven by `.github/workflows/docker-dev-environment.yml` (which remains scoped to proving the development image only, per `docs/architecture/development-container.md`).
+
+- The implemented shared Semantic Spec System executes **parse**, **ir**, **eval**, **cli**, **flow**, and **error** cases. The runner
+  compares normalized `stdout`, `stderr`, and `exit_code` for eval, cli, flow, and error cases; portable normalized Core IR output for
+  IR cases; and, for parse cases, the normalized AST (exact match for `kind: ok`) or error type plus message substring (`kind: error`).
+
+- The working Python implementation lives in `src/genia/` (core runtime), `src/genia/std/prelude/`, `tests/`, and `hosts/python/` (adapter,
+  normalization, and category execution modules). Multi-host documentation and spec scaffolding live in `docs/host-interop/`,
+  `docs/architecture/core-ir-portability.md`, `spec/`, `tools/spec_runner/README.md`, and `hosts/`.
+- The formal host capability registry contract is `docs/host-interop/capabilities.md`: the authoritative reference for capability names,
+  Genia surface, input/output shapes, normalized error behavior, and portability status.
+- **Multi-host conformance infrastructure (R16, complete).** Contract: `docs/design/r16-multi-host-conformance-infrastructure-contract.md`;
+  policy: `docs/strategy/roadmap/multi-host-conformance-policy.md`; release page `docs/releases/R16.md`.
+  - A versioned subprocess host-adapter protocol (`tools/spec_runner/protocol.py`) carries `parse`/`lower`/`eval`/`cli` requests and
+    responses; evaluated-program output travels only inside `result` fields. An adapter can self-report only `ok` or `unsupported`;
+    `protocol_error`, `crash`, and `timeout` are always derived by the runner from process and JSON facts.
+  - `python -m tools.spec_runner --host '<command>'` runs applicable cases through that protocol. The in-process default path (no
+    `--host`) is a developer-optimization path, not the conformance definition.
+  - A mandatory `capabilities` operation and an optional per-case `requires:` field gate cases: a case requiring a capability the host
+    does not declare exactly `supported` is reported `unsupported` without invoking the adapter, never silently skipped or counted as
+    passing. Multi-file cases require `multi_file_eval` (the optional `eval.input.modules` shape); unknown input fields are invalid.
+  - `tools/spec_runner/revision.py` classifies a host's declared `contract_revision` against local git history only: an exact match is
+    `current` (pinned-conformance evidence), a real older commit is `resolvable_ancestor` (current-main compatibility only), and an
+    unresolvable declaration stops the run with exit code 1.
+  - `tools/spec_runner/evidence.py` and `--evidence <path>` emit one deterministic per-host JSON evidence document (revision, protocol
+    version, capabilities, applicable-case count, full outcome taxonomy); identical runs give byte-identical evidence.
+  - `tools/spec_runner/host_parity_gate.py` with `spec/known_host_gaps.json` is a CI/process gate (`.github/workflows/host-parity.yml`)
+    over those evidence documents at `spec/manifest.json` optional-capability granularity: a capability the C++ host does not declare
+    `supported` needs a matching entry with a GitHub issue, affected host, affected tests or spec area, reason, and removal condition; a
+    stale entry for a now-supported capability fails; any nonzero `fail`/`protocol_error`/`crash`/`timeout`/`invalid` count fails. It adds
+    no protocol, evidence format, or capability registry.
+  - The Python reference host is itself proven through the same protocol (`hosts/python/protocol_adapter.py`), with the full-suite proof
+    kept in `tests/spec/test_python_protocol_adapter_parity_762.py` (`full_conformance`, run nightly or by dispatch). Test-suite
+    organization changes there alter no case discovery, protocol behavior, or semantic coverage.
+  - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) is the first external production host (bounded floor, see the C++ host
+    entry below); `hosts/cpp/` here is a pointer to that repository (`hosts/cpp/README.md`).
 
 Scaffolded or planned, not implemented as hosts:
 
 - Node.js, Java, Rust, Go: planned only, not implemented.
-- C++: R25 is complete through its reviewed PR stack in `m0smith/genia-cpp`. In addition to the bounded R24 floor, it supports the independently gated portable `refs`, `cell_primitives`, and local `process_primitives` contracts. Final E25-5 evidence is `762 total / 149 pass / 613 unsupported`, with every failure-class count zero; the exact E25-5 contract revision and C++ evidence commit are recorded in `docs/releases/R25.md`. Actor remains unsupported and belongs to R38. C++ is a genuine second host, not Python feature parity.
 - `hosts/python/` is the adapter location, but the core runtime remains in `src/genia/`.
-- **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). No second production host implements the full language. `m0smith/genia-cpp` is the R25-complete second host for a deliberately bounded, evidence-backed subset; other external-host proofs remain either Python-reference-host evidence or non-semantic protocol fixtures.
+- No second production host implements the full language. `m0smith/genia-cpp` is the bounded R27 production host (see below); other
+  external-host proofs are Python-reference-host evidence or non-semantic protocol fixtures.
 
 **Maturity:**
 
-- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in the Python reference host. Other hosts are not implemented.
-- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in this phase.
-- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, selected rule result defaulting/no-effect behavior, focused Flow `map` / `filter` / `scan` coverage, selected Seq-compatible `each` / `collect` / `run` / `reduce` terminal behavior, and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output. Advanced Flow behavior is not covered by shared semantic specs in this phase.
-- IR stability remains **Partial**: the minimal portable Core IR contract is documented with field-level lowering invariants (bare `none` reason=null, `none()` reason wrapped as `IrQuote`, canonical `lhs.name` -> `IrBinary(op=SLASH, named_access=true)` for narrow named access (ordinary slash/division lowers as `IrBinary(op=SLASH)` without `named_access`; legacy `lhs/name` compatibility removed); neither form is general field-path lookup, `IrAssign` placement in `IrBlock.exprs`, optional fields), the Python runtime guards that boundary, and shared semantic-spec case coverage now validates the full portable node family in the Python reference host, including `quasiquote` bodies with `unquote` and `unquote_splicing` in list context.
+- Shared host contract is **Partial**: executable shared spec coverage exists for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`,
+  and initial `parse` behavior in the Python reference host and, for the bounded C++ floor, as recorded in the C++ host entry below.
+- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for those categories.
+- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is **active but partial**: first-wave cases cover
+  lazy pull-based behavior through early termination, single-use enforcement, deterministic output, `evolve(init, f)`, `refine(..steps)`,
+  `rules(..fns)` compatibility, `step_*`/`rule_*` equivalence, selected rule defaulting, `map`/`filter`/`scan`, Seq-compatible `each`/
+  `collect`/`run`/`reduce` terminals, and bounded `drop |> take |> collect` finalization. Advanced Flow behavior is not covered by shared specs.
+- IR stability remains **Partial**: the minimal portable Core IR contract is documented with field-level lowering invariants (bare `none`
+  lowers with `reason=null`; `none()` reason wrapped as `IrQuote`; canonical `lhs.name` lowers to `IrBinary(op=SLASH, named_access=true)`
+  for narrow named access, never general field-path lookup, while ordinary division lowers as `IrBinary(op=SLASH)` without
+  `named_access`; legacy `lhs/name` compatibility is removed; `IrAssign` appears directly in `IrBlock.exprs`), the Python runtime guards
+  that boundary, and shared cases validate the full portable node family, including `quasiquote` with `unquote`/`unquote_splicing`.
 
 **Explicit limitations:**
 
-- Python is the full-language production host; `m0smith/genia-cpp` is the R25-complete second production host for the bounded floor recorded above. All other hosts (Node.js, Java, Rust, Go) are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7); `m0smith/genia-cpp` supplies the completed R24 external-host evidence while Python remains the full-language reference.
-- Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
-- Parse shared semantic-spec coverage is limited to initial cases for stable, already-implemented syntax forms; parse spec coverage expands only when new forms are explicitly added and tested.
-- Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
-- Flow orchestration supports both `refine(..steps)` (preferred) and `rules(..fns)` (compatibility); both are available and behave identically.
-- Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
-- Flow shared semantic-spec coverage is limited to first-wave observable cases only; advanced Flow behavior remains uncovered in shared specs.
-- CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
-- **R26-1 REPL portability contract (issue #1023):** the smallest portable
-  `repl` boundary is now approved in
-  `docs/design/r26-cpp-repl-contract.md`. It covers no-argument mode
-  selection, persistent successful bindings across complete submissions,
-  multiline submission without standardizing Python's completeness
-  heuristic, canonical debug-result echo (including `none("nil")`) to
-  `stdout`, normalized diagnostics to `stderr` with session recovery,
-  successful EOF termination, and no implicit `main` dispatch. Banner/prompt
-  text, terminal editing/history, signals, Python colon commands, and
-  cross-stream timing remain host-local. Shared executable REPL evidence now
-  exists (three capability-gated `cli` cases declaring `requires: [repl]`:
-  `repl_persistent_binding_basic`, `repl_failed_submission_diagnostic`,
-  `repl_none_result_rendering`) and passes against the Python reference host.
-  At the time this contract was approved, C++ still declared `repl`
-  unsupported with the known-gap entry pending this evidence and a
-  `PARITY_OK` host-parity result; both are now satisfied -- see the
-  following "R26-1 C++ scripted REPL" entry for the completed state. This
-  contract itself adds no C++ implementation or Python/C++ feature-parity
-  claim. Making that evidence honestly comparable required one
-  narrow Python reference-host fix: `repl()` no longer writes its banner or
-  `>>> `/`... ` prompts to `stdout` when `stdin` is not an interactive tty,
-  since section 3 already documented them as host-local, non-portable
-  cosmetics that must not appear in the portable observation.
-- **R26-1 C++ scripted REPL (issue #1023, `genia-cpp`):** the C++ adapter
-  retains one environment across complete submissions, renders each result,
-  reports normalized submission failures, and continues after a failure.
-  All three `requires: [repl]` shared CLI cases pass. The pinned C++ evidence
-  is `772 total / 149 pass / 623 unsupported` with zero failure classes;
-  the host parity gate reports `repl` as `PARITY_OK` after removing its
-  stale known-gap entry. Interactive prompt/banner/history behavior remains
-  host-local. Strict JSON is tracked separately by #1024.
-- **R26-2 reference-host defect repairs (issue #1024):** `docs/analysis/r26-release-size-preflight.md`'s
-  preflight probing found genuine Python reference-host defects in the
-  bytes/JSON boundary that a future C++ host must not inherit; three are
-  now repaired:
-  - `GeniaDecimal._as_fraction()` (used by `stable_json_decimal`, and
-    therefore by `json_decode`/`json_encode` on every fraction/exponent
-    number) now rejects an exponent whose `10 ** exponent` expansion would
-    exceed the existing private numeric resource-limit bound before
-    attempting that expansion, raising the same
-    `NumericResourceLimitError` R22 already uses for this failure class.
-    Previously, a small-magnitude exponent (e.g. from decoding
-    `"1e999999999"`) passed the constructor's own bit-length check but
-    still expanded to an astronomically large integer, an unbounded
-    resource-exhaustion hang reachable from ordinary Genia source.
-  - `_runtime_type_name` (the portable type-name table every diagnostic
-    boundary uses) now has an explicit `GeniaSymbol` branch returning
-    `"symbol"`. Previously, a bare symbol is not a `str` subclass and has
-    no explicit branch, so it fell through to Python's own
-    `type(value).__name__`, and `json_encode(quote(a))` leaked the raw
-    class name `"GeniaSymbol"` as `value_type` -- the same leak class the
-    E23-6 diagnostics sweep already repaired for other unsupported kinds,
-    just never exercised with a symbol value.
-  - `json_parse`, `parse_jsonl_record`, `json_stringify`, and `json_encode`
-    now normalize `RecursionError` from deeply nested input into their
-    existing clean, deterministic diagnostic shape (`none("json-parse-error", ...)`,
-    `err("invalid_jsonl_record", ...)`, `none("json-stringify-error", ...)`,
-    and `err("json_nesting_too_deep", ...)` respectively), matching strict
-    `json_decode`'s existing `RecursionError` handling. Previously, deep
-    nesting (or, for encode/stringify, a deeply nested protected-value
-    check that ran before any try block) raised a raw uncaught Python
-    `RecursionError` with the literal message "maximum recursion depth
-    exceeded" straight through the boundary.
-  These are diagnostics-cleanliness and resource-safety repairs only -- no
-  JSON value mapping, limit, or Outcome shape changed for any input that
-  was already well-behaved. See `tests/unit/test_r22_misuse_resource_limits_894.py`
-  and `tests/unit/test_r23_e23_6_diagnostics_sweep.py`.
-- **R26-2 E26-0 data bridge contract (issue #1024):** the portable
-  `bytes_utf8`/`json_strict` boundary is approved in
-  `docs/design/r26-cpp-data-bridge-contract.md`. It restates and pins
-  already-implemented behavior only (key-sort basis, escape set, layout,
-  BOM rejection, `line`/`column` semantics, error precedence, the
-  `value_type` vocabulary, and the numeric/nesting resource bounds) -- no
-  JSON/Bytes value mapping, limit, or Outcome shape changes. It inherits
-  R24/E24-7's numeric codec path and R9 facet carrier rather than
-  re-deriving them, decides compatibility JSON
-  (`json_parse`/`json_stringify`/`json_pretty`, plus `parse_jsonl_record`)
-  is **not portable** and remains Python-host-only, narrows the malformed-
-  `utf8_decode` portable claim to well-formed input only (Genia source
-  cannot construct arbitrary malformed bytes today), and removes ZIP from
-  R26 entirely (deferred, contract-first, roadmap home TBD).
-  `spec/manifest.json` now declares `bytes_utf8`, `json_strict`, and
-  `json_compat` in place of the retired `bytes_json_zip` bundle; every
-  previously-ungated JSON/Bytes/compatibility-JSON shared case is
-  retro-gated with the matching `requires:` tag, and the missing coverage
-  this contract identified (nesting 128/129 boundary for decode and
-  encode, lone-vs-paired surrogate handling, duplicate-key `key` context,
-  BOM rejection, key-sort basis, escape-set/layout rules) is added as new
-  `spec/eval/*.yaml` cases, all passing against the Python reference host
-  (`spec/known_host_gaps.json` tracks `bytes_utf8`/`json_strict` as
-  issue-backed C++ gaps and `json_compat` as a permanent-by-design
-  Python-host-only classification). C++ implementation had not started
-  as of this gating; see the following entry for `bytes_utf8`'s
-  completion.
-- **R26-2 C++ `bytes_utf8` (issue #1024, `genia-cpp`):** `genia-cpp`
-  implements `utf8_decode` for well-formed UTF-8 input (an in-house RFC
-  3629 validator, `src/utf8.hpp` -- no ICU, per the R24 dependency policy;
-  malformed input or a non-Bytes argument stays honestly `unsupported`,
-  never guessed at) and `<bytes N>` display rendering (`src/render.hpp`,
-  matching `GeniaBytes.__repr__` verbatim), closing the sole
-  `requires: [bytes_utf8]` shared case,
-  `spec/eval/r19-unicode-utf8-encode-decode-roundtrip.yaml`. `genia-cpp`
-  now declares `bytes_utf8` supported and `tools/spec_runner/host_parity_gate.py`
-  reports it `PARITY_OK`; its `spec/known_host_gaps.json` entry has been
-  removed. Bytes-value structural equality was already required R18
-  baseline conformance, ungated by this capability. `json_strict` and
-  `json_compat` remain unimplemented by `genia-cpp` and are unaffected by
-  this change.
-- **R26-2 C++ `json_strict` (issue #1024, `genia-cpp` PR #33):** `genia-cpp`
-  widens R24's E24-7 scalar-numeric-only `json_decode`/`json_encode` slice
-  to the full contract grammar -- objects, arrays, strings (with `\uXXXX`
-  surrogate-pair combination and Unicode-scalar validation), booleans,
-  `null` (decoding to `none("nil")`), nesting bounded at exactly 128
-  containers for both decode and encode, duplicate-object-key rejection
-  with the key in context, a leading BOM correctly not accepted as
-  insignificant whitespace, and deterministic sorted-key/2-space-indented
-  encode layout -- reusing E24-7's numeric codec unchanged (no second
-  numeric parser). `json_decode`/`json_encode` accept exactly one outer
-  `json`-represented layer, and a non-String/Bytes `json_decode` argument
-  raises the exact contract-required `TypeError`. `genia-cpp` now declares
-  `json_strict` supported; `spec/known_host_gaps.json`'s entry has been
-  removed. Pinned C++ evidence: `772 total / 178 pass / 594 unsupported`
-  with every failure-class count zero; every `requires: [json_strict]`
-  shared case passes except `spec/flow/json-representation-template-flow.yaml`,
-  which needs Template/Flow features (`pattern`, `refinement_match`,
-  `open_shape_match`, `validate_each`, `collect`) genuinely outside this
-  bounded host's floor and stays honestly `unsupported`.
-  `tools/spec_runner/host_parity_gate.py` reports `json_strict`
-  `PARITY_OK`. `json_compat` remains unimplemented by `genia-cpp`
-  (permanent, by contract) and is unaffected by this change. This closes
-  R26-2 and, with R26-1's completed scripted REPL, completes R26.
-- **R27 C++ Flow phase 1 and pipe mode (issues #1035, #1038, #1047, #1049;
-  `genia-cpp` PRs #34, #35, #36):** `genia-cpp` implements the portable Flow
-  runtime kernel -- lazy, pull-based, single-use Flow with `stdin`/list `lines`,
-  `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`, and
-  `collect`/`run`/`reduce` -- and `genia -p '<stage expr>'` pipe mode, and declares
-  `flow_phase_1` and `cli_pipe_mode` supported. The claim is exactly the shared
-  cases that carry `requires: [flow_phase_1]` (37) or `requires: [cli_pipe_mode]`
-  (16); all 53 pass. Pinned C++ evidence: `793 total / 257 pass / 536 unsupported`
-  with every failure-class count zero (Python: `793 total / 775 pass / 18
-  unsupported`). `tools/spec_runner/host_parity_gate.py` reports both capabilities
-  `PARITY_OK` and their `spec/known_host_gaps.json` entries are removed. C++
-  limits: no trailing script arguments after `-p <expr>`; `argv()` only in pipe
-  mode; `upper`/`trim`/`parse_int` decide ASCII input only; `tee`/`merge`/`zip`,
-  `rules`/`refine`, list-form `scan`, Flow display, and a pipeline inside call
-  arguments are unsupported; the config/model/Template/JSON cross-release Flow and
-  pipe cases stay Python-host-only. The HTTP server (#1041) and outbound HTTP
-  (#1043) were decided **not** part of R27: both remain Python-host-only with
-  tracked C++ gaps. This adds no language behavior; Python semantics are
-  unchanged. See `docs/releases/R27.md` and
-  `docs/analysis/r27-release-truth-audit.md`.
+- Shared semantic-spec case files exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/`. Parse
+  coverage is limited to stable, already-implemented syntax forms and expands only when new forms are explicitly added and tested.
+- Flow is a lazy, pull-based, single-use runtime value; async, multi-port, and advanced Flow features are not present. Flow orchestration
+  supports `refine(..steps)` (preferred) and `rules(..fns)` (compatibility), identically; step/rule helpers exist as `step_*` (preferred)
+  and `rule_*` (compatibility). Flow shared-spec coverage is first-wave only.
+- The CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI
+  features exist.
+- **R26-1 REPL portability contract:** the portable `repl` boundary (`docs/design/r26-cpp-repl-contract.md`) is no-argument mode selection,
+  persistent successful bindings across complete submissions, multiline submission (Python's completeness heuristic is not standardized),
+  canonical debug-result echo (including `none("nil")`) to `stdout`, normalized diagnostics to `stderr` with session recovery, successful
+  EOF termination, and no implicit `main` dispatch. Banner/prompt text, terminal editing/history, signals, colon commands, and cross-stream
+  timing stay host-local; `repl()` writes no banner or prompts to `stdout` when `stdin` is not an interactive tty. Shared evidence is three
+  capability-gated `cli` cases declaring `requires: [repl]`.
+
+- **C++ host (`m0smith/genia-cpp`), current state.** The bounded production floor is parser, AST lowering, command/file CLI, local open
+  functions, Ref/Cell/local Process, a scripted REPL, Bytes/UTF-8 and strict JSON data bridges, Flow phase 1, and `genia -p` pipe mode, each
+  declared `supported` only for the shared cases carrying the matching `requires:` capability. It is not Python feature parity; pinned
+  evidence and gaps live in `docs/releases/R24.md` through `R27.md`, `spec/known_host_gaps.json`, and the host parity gate.
+  - **Scripted REPL:** one environment retained across complete submissions, normalized failure reporting, recovery; interactive
+    prompt/banner/history stays host-local.
+  - **Data bridge contract** (`docs/design/r26-cpp-data-bridge-contract.md`): `bytes_utf8` (`utf8_decode` for well-formed UTF-8 only; `<bytes N>`
+    display) and `json_strict` (full grammar, nesting bounded at exactly 128 containers for decode and encode, duplicate-key rejection with the
+    key in context, a leading BOM not accepted as whitespace, sorted-key 2-space-indented encode, exactly one outer `json` layer). Compatibility JSON
+    (`json_parse`/`json_stringify`/`json_pretty`/`parse_jsonl_record`, capability `json_compat`) is **not portable** and stays Python-host-only;
+    ZIP is out of R26. `spec/manifest.json` declares `bytes_utf8`, `json_strict`, and `json_compat`.
+  - **Flow phase 1 and pipe mode** (`flow_phase_1`, `cli_pipe_mode`): lazy single-use Flow with `lines`, `evolve`, `map`/`filter`/`take`/`drop`/
+    `scan`/`keep_some`/`each`, and `collect`/`run`/`reduce`. C++ limits: no trailing script arguments after `-p <expr>`; `argv()` only in pipe
+    mode; `upper`/`trim`/`parse_int` decide ASCII input only; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan`, Flow display, and a
+    pipeline inside call arguments are unsupported; config/model/Template/JSON cross-release Flow and pipe cases stay Python-host-only.
+  - The HTTP server and outbound HTTP are not part of the C++ floor; both remain Python-host-only with tracked C++ gaps.
+- **Python reference-host repairs recorded for the data bridge:** decoding or computing a Decimal whose `10 ** exponent` expansion would exceed the
+  numeric resource bound raises `NumericResourceLimitError` before expansion; the portable type-name table names a bare symbol `"symbol"`;
+  `json_parse`, `parse_jsonl_record`, `json_stringify`, and `json_encode` normalize `RecursionError` from deep nesting to their existing
+  diagnostic shapes (`none("json-parse-error", ...)`, `err("invalid_jsonl_record", ...)`, `none("json-stringify-error", ...)`,
+  `err("json_nesting_too_deep", ...)`). These changed no value mapping, limit, or Outcome shape for well-behaved input.
+
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
@@ -241,7 +147,6 @@ Scaffolded or planned, not implemented as hosts:
 - Only the minimal portable Core IR node families are used in the contract; host-local optimized nodes (e.g., `IrListTraversalLoop`) are excluded.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
-
 ## 0.1) Browser playground status
 <!-- anchor: state:browser -->
 
@@ -268,10 +173,6 @@ Clarifications:
 - browser execution is planned to use the Python reference host on a backend service in the current V1 direction
 - browser execution remains a host-capability adaptation concern and does not define a new Genia dialect
 - `examples/ants_web.genia` is a browser-viewer demo served by the current host-backed HTTP helper; it is not a browser-native Genia runtime or playground
-
-
-
-
 ## 1) Shared Conformance — Semantic Spec System
 <!-- anchor: state:conformance -->
 
@@ -286,162 +187,48 @@ LANGUAGE CONTRACT:
   - error (**active**, executable shared spec files; initial coverage only)
 - `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior are implemented as executable shared spec files in the Python reference host.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
-- Coverage is still partial and experimental; see below for category status.
 
-PYTHON REFERENCE HOST:
+- Coverage is partial and experimental. The spec is authoritative for covered categories; uncovered behavior is not guaranteed and may differ in future hosts.
+- Eval shared cases (`spec/eval/`) cover deterministic command-source output: final rendered results, `stdout`/`stderr` separation, stdin-fed cases,
+  Option rendering and pipeline lifting/short-circuit, pattern-matching families (first-match, literals, wildcard/variable binding, list/tuple/map,
+  option, guard, glob, named reusable patterns), list/Seq-compatible helper behavior, selected validation helpers (`collect_validated/1`,
+  `validate_each/2`, optional/required field and nested-path diagnostics, Experimental, initial coverage only), and deterministic failures with exact
+  `stderr` and `exit_code` (including Flow/value boundary errors such as `each` given a list, `first` given a Flow, `reduce` given a non-Seq value).
+- Flow cases (`spec/flow/`) run through command-source execution in the Python host adapter; the first-wave inventory is summarized in section 0.
 
-- Python is the full-language reference host; C++ implements the bounded R27 floor.
-- All conformance is validated against the Python reference host.
-- The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`. Eval shared coverage includes list-side Seq-compatible `collect`, `run`, lazy `each`, item-preserving `each |> collect`, the existing `seq-compatible-list-transform-chain` fixture, list-side `scan` (accepting list input and returning list), Seq-compatible non-list/non-Flow diagnostics for `each`, `collect`, `run`, `map`, `filter`, `take`, `drop`, and `scan`.
-- The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
-- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs, including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases; Seq-compatible terminal coverage for `each` preserving items, `each(print) |> run`, `collect` materialization, and `reduce` accumulation over Flow; and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output.
-- The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
-- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, `-p` pipe mode behavior, and selected native `--test` mode outcomes. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results, plus selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes. REPL mode is covered only by the three capability-gated `requires: [repl]` cases described above (issue #1023); every other REPL scenario remains uncovered by shared executable specs.
-- The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
-- The observable error shared-spec contract in this phase is limited to `stdout`, `stderr`, and `exit_code`.
-- Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
-- Error shared spec cases are loaded from YAML files under `spec/error/`; each case provides source text plus optional stdin text, requires `stdout: ""`, exact `stderr`, and `exit_code: 1`, and may include informational `notes` that are not machine-asserted.
-- Shared spec YAML loading prefers `PyYAML`; when `PyYAML` is unavailable, the runner can fall back to a Ruby YAML bridge in the current implementation.
-- The current eval shared case inventory covers deterministic command-source eval output for:
-  - final rendered expression results
-  - direct `stdout` output
-  - direct `stderr` output
-  - combined `stdout`/`stderr` output separation
-  - stdin-fed eval cases whose compared surface remains `stdout`, `stderr`, and `exit_code`
-  - direct Option rendering for deterministic final-result output (`some(...)`, `none(...)`)
-  - pipeline Option propagation for deterministic final-result output (`some(...)` lift and `none(...)` short-circuit)
-  - deterministic pattern matching output for currently implemented pattern families (first-match behavior, literals, wildcard/variable binding, list/tuple/map, option, guard, glob, and named reusable pattern forms)
-  - deterministic eval failures with exact `stderr` and `exit_code`, including Flow/value boundary errors: `each` given a list, `first` given a Flow, `reduce` given a non-Seq-compatible value (int, string)
-  - focused core stdlib list/absence helper behavior: `map` over lists (basic and empty), `filter` over lists (basic, no-match, and Option-element callbacks), `first` (some and empty-list), `last` (some and empty-list), `nth` (in-range and out-of-bounds)
-  - selected validation helper behavior: optional field present/absent/invalid outcomes, required field present success, and simple nested validation path success/missing diagnostics (Partial; Python reference host only)
-  - `collect_validated/1` behavior: empty source, all-clean, mixed `some`/`none`/`err`, `some` context ignored on clean path, bare `none`, `err` without context, and Flow-compatible source (Experimental; initial coverage only)
-  - selected `validate_each/2` behavior: empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation (Experimental; initial coverage only)
-  - `validate_each/2` output feeding `collect_validated` directly: shared eval coverage proves mixed Outcome results from validation helpers aggregate into clean values plus skipped/error diagnostics. Experimental; initial coverage only.
-- Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
-- Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
-- Error normalization is limited to the same line-ending normalization used for eval `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
-- Error comparison is otherwise exact in this phase: `stdout` must be `""`, `stderr` must match exactly after that line-ending normalization, and `exit_code` must be `1`.
-- The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
-- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, malformed-glob, named-pattern error cases, and selected `validate_each/2` misuse diagnostics: non-list/non-Flow source, non-callable validator, and non-Outcome validator result) and does not machine-assert structured phase/category/message fields.
-- The current shared spec runner executes Parse cases (`spec/parse/`) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
-- The current shared spec runner accepts `-v` / `--verbose`, printing each spec name before execution starts and then a single timing line (`<name>\t<elapsed>s`) after each spec completes.
-- Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms, and now includes named pattern declaration (`pattern Name(value) = body`) and named pattern use in case arms (`Name(inner_pattern)`), including error cases for invalid declaration and use arity. Parse spec coverage expands only when new forms are explicitly added and tested.
+- Error cases (`spec/error/`) run through the eval execution path and require `stdout: ""`, exact `stderr`, and `exit_code: 1`; informational `notes`
+  are not machine-asserted. Error coverage is initial: pattern miss, guard-all-fail, malformed-glob, named-pattern errors, and selected `validate_each/2`
+  misuse; structured phase/category fields are not machine-asserted.
+- CLI cases (`spec/cli/`) prove deterministic non-interactive file mode, `-c` command mode, `-p` pipe mode, `main(argv())` dispatch, trailing `argv()`,
+  explicit `stdin`/`run` rejection, pipe-mode guidance diagnostics, selected native `--test` outcomes, and three `requires: [repl]` REPL cases; every
+  other REPL scenario is uncovered. The observable CLI and error contracts are limited to `stdout`, `stderr`, and `exit_code`.
+- Parse cases (`spec/parse/`) call the Python host parse adapter directly (exact AST for `kind: ok`; error type exact and message substring for
+  `kind: error`); IR cases (`spec/ir/`) compare normalized portable Core IR before host-local optimization (host-local nodes such as
+  `IrListTraversalLoop` are excluded).
+
+- Normalization is limited to line endings for `stdout` and `stderr` (`\r\n` and `\r` become `\n`); comparison is otherwise exact (error cases:
+  `stdout` must be `""`, `exit_code` must be `1`). YAML loading prefers `PyYAML` and can fall back to a Ruby YAML bridge. The runner accepts
+  `-v`/`--verbose` (spec name before execution, then `<name>\t<elapsed>s`).
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
-**Summary:**
-- `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` are active for executable shared spec files.
-- `GENIA_STATE.md` is the final authority for implemented behavior. All other docs/specs must align with this contract.
-
-**Host implementation location:**
-- The working Python implementation lives in `src/genia/`, `tests/`, and `src/genia/std/prelude/`.
-- `hosts/python/` is the active host adapter layer; it is not the core runtime source location (that remains `src/genia/`).
-- `hosts/python/adapter.py::run_case(spec: LoadedSpec) -> ActualResult` is the canonical adapter entrypoint, wired to the shared spec runner via `tools/spec_runner/executor.py::execute_spec`. All spec categories route through `run_case`.
-
-**Planned/Scaffolded:**
-- Node.js, Java, Rust, Go: planned only, not implemented; C++ is the bounded R27 production host in `m0smith/genia-cpp`
-- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7; see §0 above), with pinned evidence for the bounded C++ R24 host
-
-**Limitations:**
-- Only Python is implemented; all other hosts are planned or scaffolded only.
-- No browser runtime or playground is implemented; browser artifacts are documentation only.
-- Shared semantic-spec case files exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
-- Parse shared semantic-spec coverage is initial only; coverage expands only when new forms are explicitly added and tested.
+**Host implementation location:** the working Python implementation lives in `src/genia/`, `tests/`, and `src/genia/std/prelude/`; `hosts/python/` is the
+host adapter layer (not the core runtime). `hosts/python/adapter.py::run_case(spec: LoadedSpec) -> ActualResult` is the canonical adapter entrypoint,
+wired through `tools/spec_runner/executor.py::execute_spec`; all spec categories route through it.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
 
 ---
 
-## 0.2) Repository documentation publishing workflow
-Implemented today:
+## 0.2) Repository documentation tooling (pointer)
 
-- repository docs are staged into a temporary MkDocs input tree by `tools/stage_docs_for_mkdocs.py`
-- the published docs site uses MkDocs with the Material theme
-- published sections include:
-  - `README.md` as the homepage
-  - `GENIA_STATE.md`
-  - `GENIA_RULES.md`
-  - `GENIA_REPL_README.md`
-  - `docs/cheatsheet/*`
-  - public-facing host interop docs under `docs/host-interop/`
-  - per-release runnable examples under `docs/releases/` (see `docs/releases/README.md`)
-  - `docs/strategy/release-roadmap.md`, staged individually as `strategy/release-roadmap.md` with a top-level Roadmap navigation entry; it remains non-authoritative planning guidance and no other `docs/strategy/*` file is published
-- GitHub Actions docs workflow behavior is:
-  - on pull requests: stage, validate, and build docs without deployment
-  - on pushes to `main`: stage, validate, build, and deploy to GitHub Pages
-  - after a successful Pages deployment, publish the generated Function Reference mirror to the GitHub Wiki only when the optional `WIKI_TOKEN` repository secret is configured
-  - when `WIKI_TOKEN` is absent, skip all Wiki-specific setup and publishing steps without failing the Pages deployment
-- docs validation in this phase includes:
-  - strict MkDocs builds
-  - semantic doc sync tests for protected cross-doc semantic facts
-    - the protected facts surface is intentionally small and lives in `docs/contract/semantic_facts.json`
-    - validation covers both public docs and LLM-instruction surfaces
-  - cheatsheet validation tests
-  - core documentation truthfulness and synchronization tests
-
-Clarifications:
-
-- the staging tree is a build artifact only; source-of-truth docs remain in their existing repository locations
-- source annotations and the host documentation registry consumed by `tools/gen_function_docs.py` remain authoritative for both `docs/reference/**` and the generated Wiki mirror; generated pages must not be edited by hand
-- the docs workflow is repository tooling, not part of the Genia language/runtime semantics
-
-## 0.3) `@doc` linter (`tools/lint_doc.py`)
-
-Implemented today:
-
-- deterministic linter for `@doc` content strings
-- located at `tools/lint_doc.py`; tests at `tests/test_lint_doc.py`
-- accepts a raw `@doc` text string via the `lint_doc()` API or CLI
-- returns structured `LintFinding` values with `rule_id`, `severity`, `message`, and optional `line`
-- CLI modes:
-  - inline: `python tools/lint_doc.py "doc string"`
-  - file: `python tools/lint_doc.py --file path.genia`
-- directory scan: `python tools/lint_doc.py --scan-dir dir/`
-  - all modes support `--json` for machine-readable output
-- `--require-coverage` derives the public surface from registered prelude autoloads
-  plus the canonical non-internal Python-host builtin registry
-- DOC008 requires canonical documentation for every derived public binding;
-  DOC009 requires its category; registry entries with `stability: "internal"`
-  are excluded
-- file/scan modes extract binding names and include them in output
-- `--scan-dir` prints a summary (files scanned, doc count, error/warning counts) to stderr
-
-Implemented lint rules (phase 1):
-
-| Rule | ID | Severity | Description |
-|---|---|---|---|
-| Summary required | DOC001 | error | Every `@doc` must have a non-empty first line |
-| Summary shape | DOC002 | warning | Summary should end with `.`/`!`/`?` and avoid boilerplate prefixes |
-| Allowed sections | DOC003 | error | Only `## Arguments`, `## Returns`, `## Errors`, `## Notes`, `## Examples` |
-| No HTML | DOC004 | error | Raw HTML tags forbidden outside fences |
-| No tables | DOC005 | error | Pipe-table markdown forbidden outside fences |
-| Behavior mention | DOC006 | warning | `none(`, `flow`, `lazy` should appear in prose, not only in fences |
-| Fence sanity | DOC007 | error | Fences must be balanced; `## Examples` fences allow only `genia`, `text`, or empty lang |
-
-Not implemented yet:
-
-- semantic NLP scoring or readability metrics
-- public/private marker enforcement (no such marker exists in the language yet)
-- cross-reference validation between `@doc` content and function signatures
-
-## 0.4) `@doc` style synchronization tests (`tests/test_doc_style_sync.py`)
-
-Implemented today:
-
-- style guide structure test: validates `docs/style/doc-style.md` has required sections, good/bad examples, and well-formed genia fences
-- cheatsheet sync test: validates `docs/cheatsheet/core.md` and `docs/cheatsheet/quick-reference.md` have `@doc Quick Reference` sections with case markers linking back to the style guide
-- linter-style guide alignment test: validates that the linter's `ALLOWED_SECTION_HEADERS`, `DISCOURAGED_PREFIXES`, and disallowed Markdown match the style guide
-- prelude doc lint sweep: scans all `src/genia/std/prelude/*.genia` files for `@doc` strings and runs the linter over them
-
-Not implemented yet:
-
-- CI-gate enforcement (tests exist but are not yet wired into a required CI check)
-- runnable example execution within the style guide itself (cheatsheet sidecar tests cover runnable examples separately)
-
-Clarifications:
-
-- these are repository tooling tests, not part of the Genia language/runtime semantics
-- the linter is repository tooling, not part of the Genia language/runtime semantics
-- rules are intentionally conservative and deterministic
+Documentation tooling is repository process, not Genia language or runtime semantics. Docs are staged for MkDocs (Material theme) by
+`tools/stage_docs_for_mkdocs.py` and published by the GitHub Actions docs workflow (pull requests stage, validate, and build; pushes to
+`main` also deploy to GitHub Pages, and publish the generated Function Reference mirror to the Wiki only when the optional `WIKI_TOKEN`
+secret is configured). Source annotations and the host documentation registry consumed by `tools/gen_function_docs.py` remain authoritative
+for `docs/reference/**` and the Wiki mirror; generated pages are never edited by hand. `tools/lint_doc.py` is a deterministic `@doc` linter
+(rules DOC001-DOC009; `--require-coverage` requires canonical documentation and a category for every public binding) and
+`tests/test_doc_style_sync.py` keeps `docs/style/doc-style.md`, the cheatsheets, and the linter constants aligned. The governing style
+guide is `docs/style/doc-style.md`; the displaced detailed text is in `docs/state-record/tooling-and-examples.md`.
 
 ## 1) Execution model
 <!-- anchor: state:execution-model -->
@@ -479,11 +266,9 @@ Clarifications:
   - else if `main/0` exists, call `main()`
   - else keep existing result behavior (no implicit call)
   - pipe mode bypasses the `main` convention and runs the wrapped flow directly
-
 ## 2) Implemented runtime value categories
 
 This is the current runtime value model in `main`. It is intentionally descriptive, not a new static type system.
-
 ### Core values
 
 - Number
@@ -547,7 +332,6 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - does not create Sheets
   - does not change Outcome semantics or pipeline short-circuit behavior
   - does not change `keep_some` or existing validation helpers
-
 ### Function / module values
 
 - Function
@@ -559,7 +343,6 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - current Python host interop reuses this same module value model:
     - `import python`
     - `import python.json as pyjson`
-
 ### Callable values / callable behaviors
 
 - Function values are callable in the ordinary way
@@ -578,277 +361,90 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- Document chunking with exact provenance (Experimental, R12 E12-1, issue #643)
-  - `chunk(chunker, document)` is an ordinary portable call over existing values, callables, R9 representation, and Outcomes; it adds no capability, syntax, annotation, parser/AST/Core IR/lifecycle behavior, or second pipeline
-  - `document` is the exact closed map `{id: nonempty string, text: string, meta: json_represented_object}`; metadata is an ordinary existing R9 JSON-domain map beneath exactly one outer `json` representation
-  - `chunker` is invoked exactly once with `document.text` and must return a list of exact closed `{offset, length}` maps; offsets are nonnegative integers, lengths are positive integers, and booleans are not integers
-  - offsets and lengths count Unicode code points; each span must lie wholly within the original text, returned order is preserved, and overlapping/repeated spans are allowed
-  - `chunk/2` alone constructs exact closed chunks `{text, source, meta}` from the original document; source is `{doc_id, offset, length}`, text is the exact original slice, and every chunk retains the exact represented metadata value without merge, augmentation, unwrap, or rewrap
-  - valid empty span lists return `some([])`, including for nonempty documents; an empty document can produce only an empty valid span list
-  - the first malformed or out-of-bounds span returns `err("chunk-invalid", {stage: quote(span), index})`; malformed document/non-callable chunker and callback exception/non-list result are runtime misuse
-  - shared eval/error/Flow specs plus Python tests cover closed validation, exact construction, Unicode slicing, ordering/overlap/repetition, zero results, metadata identity, callback count, and misuse; existing parse/Core IR coverage confirms an ordinary call
-  - LANGUAGE CONTRACT: the closed values, one-call callback boundary, code-point slicing, exact provenance, metadata preservation, and Outcome/misuse behavior above are the implemented portable E12-1 boundary
-  - PYTHON REFERENCE HOST: the portable boundary is implemented locally with no host capability or provider attempt; shared/multi-host conformance remains Partial and no non-Python host is implemented
-  - indexing, retrieval, and provider-backed reranking are implemented separately by E12-3/E12-4/E12-5; grounding, model changes, and citation rendering remain later R12 work
+Current-state summary of the Experimental R10-R14 runtime capabilities (ticket-by-ticket text is preserved verbatim, as non-authoritative
+provenance, in `docs/state-record/capability-records.md`). Release pages: `docs/releases/R10.md` to `R14.md`; contracts:
+`docs/design/r10-configuration-protected-value-contract.md`, `r11-ai-composition-contract.md`, `r12-retrieval-grounding-contract.md`,
+`r13-configuration-resolution-contract.md`, `r14-composable-lifecycle-contract.md`. All are ordinary callables over ordinary values and
+Outcomes with no new syntax, annotation, parser/AST/Core IR node, or ambient capability; execution modes (eval, file, command, pipe, import,
+native-test, serve) inject no ambient provider, credential, or authority. LANGUAGE CONTRACT: the closed value shapes, validation ordering,
+one-attempt rule, and normalized Outcomes below are portable obligations. PYTHON REFERENCE HOST: implemented with explicit host-injected
+opaque capabilities and deterministic offline fixtures; shared/multi-host conformance remains Partial and Python is the only host.
 
-- Unified corpus/query embedding fixture (Experimental, R12 E12-2, issue #644)
-  - `embed(provider, config, credential, authority)` validates and captures one explicit opaque embed capability, exact closed `{id, space, timeout_ms}` config, one R10 protected credential, and one declassification authority, then returns an ordinary one-argument callable without declassification, audit, or provider attempt
-  - config `id` and `space` are nonempty strings; `timeout_ms` is an integer in `1..300000` excluding booleans; missing/extra keys are runtime misuse
-  - the callable accepts exactly `{kind: quote(chunk), chunk}` or `{kind: quote(query), text}`; query text is nonempty, a chunk is the exact E12-1 closed value, and protected ordinary input fields are runtime misuse
-  - malformed nested chunk input returns `err("chunk-invalid", {stage: quote(document)})` before declassification or attempt; other locally detectable invalid inputs are runtime misuse and likewise make no attempt
-  - a valid invocation declassifies the protected string credential just in time through the exact R10 `quote(embed_call)` authority and makes one synchronous deterministic fixture attempt under the configured finite timeout; there is no retry, fallback, batching contract, stream, cache, background work, clock, randomness, environment, filesystem, sleep, or network dependency
-  - success is exactly `some({chunk: exact_input_chunk, embedding})` or `some({text: exact_input_text, embedding})` according to the input variant; queries never fabricate provenance and provider output cannot replace application-owned chunk/text identity
-  - `embedding` is exactly `{vector, dims, space}`; vector is a nonempty list of finite numbers excluding booleans, dims is a positive integer excluding booleans equal to exact vector length, and space exactly equals the constructor config space
-  - invalid successful provider values normalize to `err("embed-response-invalid", {stage})` with stage `provider_response|vector|dims|space|input_identity`; approved timeout/rate-limit/rejection/transport errors retain the exact R12 contexts, and provider exceptions normalize once to non-sensitive `embed-transport-failure/{kind: quote(other)}`
-  - no result or diagnostic retains credentials, config id/space, provider identity, bodies, exception text, headers, or request identifiers; the fixture capability renders as `<embed-provider>` and is never ambient or source-constructible
-  - LANGUAGE CONTRACT: the exact ordinary input/output variants, identity, vector/dimension/space validation, Outcome normalization, local-validation ordering, and one-attempt/no-retry boundary are portable E12-2 obligations
-  - PYTHON REFERENCE HOST: one explicitly injected opaque deterministic offline fixture proves the boundary and attempt/audit instrumentation; shared/multi-host conformance remains Partial and no non-Python host or network embedding adapter is implemented
-  - indexing, explicit retrieval, and provider-backed reranking are implemented separately by E12-3/E12-4/E12-5; grounding/model invocation, persistence/vector databases, implicit query embedding, and provider registries remain unimplemented R12 work
+- **Release status.** R10 is release-complete. R11 E11-1 through E11-8 are complete. R12 is release-complete through E12-9. R13 is release-complete through E13-8.
+  R14 is complete (section 9.8). Their APIs remain Experimental, shared/multi-host conformance remains Partial, and Python is the only implemented host for them.
+- **R10 configuration and protected values.**
+  - `config_provider(sources)` builds an explicit opaque immutable snapshot and returns `some(provider)` or a normalized `err(...)`.
+    Descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`; the first source containing a key
+    wins (highest to lowest precedence); all descriptors and literal strings are validated before any host snapshot is acquired. Construction
+    copies every source once, so later mutation is invisible and lookup performs no host access. Providers display as `<config-provider>`,
+    compare by identity, and are not map keys. `{kind: quote(environment)}` snapshots `os.environ` on the Python host; a host may report it unavailable.
+  - `config_get(provider, key)` returns `some(exact_string)` (including `some("")`) or context-free `none("config-missing")`;
+    `config_get_or(provider, key, default)` invokes the zero-argument `default` exactly once, only for `none("config-missing")`: an ordinary
+    result is wrapped in `some(...)`, a default `some`/`none`/`err` is preserved unnested, and callability is checked only when the default is selected.
+    Valid keys are non-empty strings without NUL; normalized diagnostics never include the key, source content, raw value, or host detail.
+  - `secret_get(provider, key, purpose)` protects a found string (including empty) in one reserved outer `secret` carrier; `purpose` is a non-empty
+    symbol. `secret_get_or(...)` follows the same missing-only, exactly-once rule and protects ordinary/`some` successes once while preserving `none`/`err`.
+    `protected_match("secret", value)` returns `some(value)` holding the exact protected subject (otherwise `none("representation-mismatch")`);
+    generic `represent`, `representation_match`, and `strip_representation` reject the reserved `secret` facet.
+  - Protected equality observes carrier identity only: a carrier equals itself and its aliases, independently acquired carriers are unequal even with
+    equal payloads, and protected values are not map keys. Calls, returns, containers, pipelines, Seq, Flow, Sheet cells, refs, and process messages
+    transport protected leaves exactly, with no hidden taint. Diagnostic rendering recursively substitutes `<protected>`; Format replacements, output
+    sinks, JSON, Sheet CSV, resource writes, HTTP responses, and ordinary host conversion reject protected leaves before any effect
+    (`json_encode` returns `err("protected-value", {operation: "json-encode"})`; a rejected resource write writes zero payload bytes).
+  - `declassify(authority, protected_value)` is the sole payload-revealing operation. The authority is a host-injected opaque value that must match the exact
+    provider identity and allow the protected purpose (it displays as `<declassification-authority>`, cannot be copied or used as a map key, and is rejected by
+    every sink above); success removes exactly one protected layer, returns an ordinary value, and records a host-local non-sensitive audit event; a mismatch
+    reveals nothing and an audit failure fails closed. Serve-entry evaluation and any explicit provider snapshot complete before listener activation; requests do not refresh configuration.
+- **R13 configuration ergonomics.**
+  - `config_view(provider, prefix)` and `secret_view(provider, prefix, purpose)` return one-argument callables; construction validates and captures the provider,
+    prefix (empty allowed; NUL is misuse), and (secret) purpose, performing no lookup or host operation. Each call takes a non-empty NUL-free logical name,
+    forms the key by exact `prefix + name`, and performs one existing lookup, returning the exact `config_get`/`secret_get` Outcome. No caching, fallback, named access, or ambient lookup.
+  - `config_args(args)` takes an explicit list of strings (normally `argv()`). Before the first standalone `--` it parses exact long-option/value pairs (names are
+    letter-led ASCII alphanumeric segments joined by single hyphens; values are the next string, even if empty or option-looking); later strings are ignored. Names normalize
+    hyphen to underscore and uppercase; repeated or colliding keys fail atomically. Success is `some({kind: quote(values), values})`; malformed data is exactly
+    `err("config-source-invalid", {source_kind: quote(arguments), stage: quote(parse)})`; a non-list or non-string member is misuse. Short/grouped options, `--name=value`, and positionals before `--` are not accepted.
+  - A `{kind: quote(dotenv), path, required}` descriptor (non-empty NUL-free `path`, boolean `required`) is read at most once, in source order, during provider construction; lookup never re-reads.
+    Optional absence contributes an empty source at its index; required absence or read failure is `config-provider-failure`, an unavailable capability `config-source-unavailable`, bad UTF-8 or grammar
+    `config-source-invalid`, with context only `{source_index, source_kind: quote(dotenv), stage: quote(acquire|decode|parse)}`. Accepted grammar: one leading BOM, LF/CRLF, a final unterminated line,
+    blank and comment lines, ASCII space/tab around entries, ASCII identifier keys, exact-duplicate rejection, and unquoted/single-quoted/double-quoted values with only `\\`, `\"`, `\n`, `\r`, `\t` escapes;
+    no interpolation, `export`, multiline values, or refresh.
+  - `config_standard(overrides, args)` (optional `.env`) and `config_standard(overrides, args, dotenv_path)` (required exact path) normalize `args`, then build the fixed source list: overrides (index 0) > arguments (1) >
+    environment (2) > `.env` (3), keeping indices for empty or absent sources. Invalid explicit types are misuse before acquisition; malformed argument syntax returns its `config-source-invalid` Outcome before any host acquisition; the result is the exact provider Outcome, atomic and snapshotted once.
+- **R11 AI model invocation.**
+  - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable. `provider` is an opaque host-injected capability with no source constructor;
+    `config` is exactly `{id: nonempty string, timeout_ms: integer 1..300000}`; `credential` is one R10 protected string; construction validates only and performs no declassification, audit, or attempt.
+  - A request is the closed map `{messages, output}`: a non-empty list of closed text messages with role `system|user|assistant`, and `output` either `{kind: quote(text)}` or `{kind: quote(json), schema, template}` where
+    `schema` carries exactly one outer R9 `json` representation accepted by `json_schema` and `template` is a callable one-argument Outcome Template. Invocation validates the whole request before declassifying; a valid invocation
+    declassifies the credential at the authorized boundary, records the R10 audit, and makes exactly one synchronous provider attempt (no implicit retry, fallback, repair, reprompt, streaming, or tool loop).
+  - Success is `some({message, finish_reason, usage})`: assistant text, `finish_reason` in `stop|length|filtered|other`, and `usage` of exact non-negative token counts or `none("model-usage-unavailable")`. Structured success decodes the
+    one assistant text with `json_decode`, calls the Template once on the decoded value (its success payload is ignored), and returns content `{kind: quote(json), value}` retaining one outer `json` facet; a decode or Template
+    `none`/`err` becomes `err("model-structured-output-invalid", {stage: quote(json_decode)|quote(template), outcome})` and a non-Outcome Template result is runtime misuse.
+  - Absence is `none("model-no-response")`; normalized failures are `model-timeout`, `model-rate-limited`, `model-rejected`, `model-transport-failure`, and `model-response-invalid` (malformed observations use
+    `{stage: quote(provider_response)}` or the precise stage), with contexts defined in `GENIA_RULES.md`; no raw bodies, headers, request ids, exception text, keys, or credentials are retained.
+  - The Python host provides an offline deterministic fixture (shared specs opt in with `fixtures: [r11_model]`) and one explicit Google Gemini Developer API adapter over `v1beta models.generateContent` REST: `config.id` is the
+    percent-encoded model path, `timeout_ms` the single standard-library HTTPS attempt, the declassified credential goes only to `x-goog-api-key`, redirects are refused, there is no SDK, general HTTP API, or provider factory visible to source.
+  - Conversation is application-owned `scan(step, initial_state, source)` composition (`examples/r11_flow_conversation.genia`): input is `{kind: quote(message), message: {role: quote(user), content}}` or `{kind: quote(stop), reason}`;
+    state is `{messages, turn, status, last}` starting from `{messages: [], turn: 0, status: quote(active), last: none("conversation-not-started")}`. An active message calls an ordinary prompt over the full history and the model once,
+    increments `turn`, records the exact Outcome, and appends an assistant message only for `some(response)`; `none`/`err` sets failed status; a stop records `none("conversation-stopped", {reason})` with no call; stopped and failed states
+    return unchanged. A list source gives an eager list of states, a Flow source a lazy single-use Flow. `apply_raw` deliberately dispatches model Outcomes as data. The executable validated-pipeline proof is `examples/r11_validated_pipeline_proving_case.genia`.
+- **R12 retrieval and grounding (provenance substrate only).**
+  - `chunk(chunker, document)`: `document` is the closed map `{id: nonempty string, text, meta: json_represented_object}`; `chunker` is called exactly once with `document.text` and returns a list of closed `{offset, length}` maps (non-negative
+    integer offsets, positive integer lengths, booleans excluded) counted in Unicode code points, each wholly inside the text, order preserved, overlap and repetition allowed. Success is `some([chunk, ...])` with chunks `{text, source: {doc_id, offset, length}, meta}` (exact original slice, exact
+    represented metadata); an empty span list is `some([])`; the first bad span is `err("chunk-invalid", {stage: quote(span), index})`; a malformed document, non-callable chunker, callback exception, or non-list result is runtime misuse.
+  - `embed(provider, config, credential, authority)`, `index(...)`, `retrieve(...)`, and `rerank(...)` each validate and capture one opaque capability, a closed config (`embed`: `{id, space, timeout_ms}`; others `{id, timeout_ms}`), one protected credential, and one authority, and return an ordinary
+    callable without declassification, audit, or attempt. Each valid invocation validates locally first, declassifies just in time through its exact purpose (`quote(embed_call)`, `quote(index_call)`, `quote(retrieve_call)`, `quote(rerank_call)`), and makes one synchronous deterministic attempt (no retry, fallback, batching, stream, cache, clock, randomness, or network).
+    Provider exceptions normalize once to `<stage>-transport-failure/{kind: quote(other)}`; timeout, rate-limit, and rejection observations keep their exact R12 contexts; malformed observations are non-sensitive `<stage>-response-invalid` with a `stage` field. No result retains credentials, provider identity, bodies, or exception text; capabilities render as opaque `<...-provider>`.
+  - **Embed:** the callable takes `{kind: quote(chunk), chunk}` or `{kind: quote(query), text}` (non-empty query text) and returns `some({chunk, embedding})` or `some({text, embedding})` with `embedding = {vector, dims, space}` (non-empty finite numbers, `dims` equal to the vector length, `space` equal to the config space); a malformed nested chunk is
+    `err("chunk-invalid", {stage: quote(document)})` before declassification; response stages are `provider_response|vector|dims|space|input_identity`.
+  - **Index:** takes a non-empty list of embedded chunks with equal positive `dims` and non-empty `space`; mixed dimensions or spaces return `err("index-embedding-incompatible", {kind: quote(dimension)|quote(space)})` before any attempt. Success is only `some(index_handle)`, an opaque `<index-handle>` that retains private compatibility identity, space/dims, and indexed chunks
+    and cannot be constructed, inspected, compared, keyed, copied, serialized, or persisted from source.
+  - **Retrieve:** takes one index handle, one explicit query embedding (never implicit), and integer `k` in `1..1000`; compatibility checks run in the order capability identity, space, dimension and return `retrieve-capability-incompatible/{kind: quote(index_handle)}` or `retrieve-embedding-incompatible/{kind: quote(space)|quote(dimension)}` before declassification. Non-empty success is `some([retrieved_chunk, ...])` (at most `k`, finite backend-native
+    scores, provider best-first order, exact indexed provenance); an empty result is exactly `none("retrieval-no-results")`.
+  - **Rerank:** takes a non-empty query string and a list of retrieved chunks; empty evidence returns `some([])` with no declassification or attempt. Success may reorder and replace scores with finite reranker-native numbers only and must preserve the exact multiset of chunk values (repeats included); otherwise `err("rerank-response-invalid", {stage: quote(result)})`.
+  - **Grounded composition** is application-owned (`examples/r12_grounded_context_answer.genia`, ordinary functions, not builtins): a grounded context is the closed `{question, content, evidence}`, a grounded answer the closed `{answer, sources, evidence}` built only from an exact successful R11 `some(response)` (answer text from `response.message.content`), `sources` being the
+    first occurrence of each exact-equal `{doc_id, offset, length}` in evidence order; `none`/`err` model Outcomes propagate unchanged. Citation labels, numbering, prompt runtime, RAG framework objects, persistence, and provider registries are not implemented. Cross-mode proofs: `examples/r12_cross_mode_grounded_proving.genia`.
+- **R14 lifecycle and outbound HTTP** capabilities (`lifecycle_*`, `http_operation`, `web.http_send`, `web.send_annotated`) are summarized in section 9.8.
 
-- Indexing capability and opaque handle (Experimental, R12 E12-3, issue #645)
-  - `index(provider, config, credential, authority)` validates and captures one explicit opaque index capability, exact closed `{id, timeout_ms}` config, one R10 protected credential, and one authority, then returns an ordinary one-argument callable without declassification, audit, or attempt
-  - the callable requires a nonempty list of exact E12 embedded chunks; empty input is runtime misuse, malformed chunks/embeddings fail locally, and all vectors must have exact-equal positive `dims` and nonempty `space`
-  - mixed dimensions return `err("index-embedding-incompatible", {kind: quote(dimension)})`; mixed spaces return the same reason with `quote(space)`; validation and compatibility checks precede declassification and make zero attempts
-  - a valid invocation declassifies the protected string just in time through exact R10 `quote(index_call)` authority and makes one synchronous deterministic fixture attempt with no retry, fallback, stream, cache, background work, networking, or portable batching behavior
-  - success returns only `some(index_handle)`; the host-produced handle retains private compatibility identity plus corpus space/dims, renders exactly `<index-handle>`, and cannot be source-constructed, inspected, compared, hashed/keyed, copied, serialized, or persisted
-  - approved timeout/rate-limit/rejection/transport observations retain exact R12 contexts; malformed observations normalize to non-sensitive `index-response-invalid`, and provider exceptions normalize once to `index-transport-failure/{kind: quote(other)}`
-  - LANGUAGE CONTRACT: exact config/input validation, compatibility ordering, one-attempt Outcome normalization, fixed opacity/rendering, and private compatibility obligations are portable E12-3 behavior
-  - PYTHON REFERENCE HOST: one explicitly injected deterministic offline in-memory fixture proves the capability/handle boundary; shared/multi-host conformance remains Partial and no non-Python host, network index adapter, or public storage object is implemented
-  - retrieval and provider-backed reranking are implemented separately by E12-4/E12-5; grounding/model invocation, persistence/vector databases, public handle inspection, and provider registries remain unimplemented R12 work
-
-- Retrieval capability and compatibility guards (Experimental, R12 E12-4, issue #646)
-  - `retrieve(provider, config, credential, authority)` validates and captures one explicit opaque retrieval capability, exact closed `{id, timeout_ms}` config, one R10 protected credential, and one authority, then returns an ordinary three-argument callable without declassification, audit, or attempt
-  - the callable requires one host-produced E12-3 index handle, one exact explicit E12-2 query embedding, and non-boolean integer `k` in `1..1000`; malformed top-level values are runtime misuse and query embedding is never implicit
-  - local compatibility checks run in exact handle/capability identity, embedding space, then embedding dimension order; mismatches return `retrieve-capability-incompatible/{kind: quote(index_handle)}` or `retrieve-embedding-incompatible/{kind: quote(space)|quote(dimension)}` before declassification and make zero attempts
-  - a valid invocation declassifies the protected string just in time through exact R10 `quote(retrieve_call)` authority and makes one synchronous deterministic fixture attempt with no retry, fallback, stream, cache, background work, networking, or hidden query embedding
-  - nonempty success returns `some([retrieved_chunk, ...])` with at most `k` exact indexed chunks, finite opaque backend-native scores, and provider best-first order; valid empty success returns exact `none("retrieval-no-results")`
-  - result validation rejects malformed/over-limit/non-finite/untraceable observations with exact non-sensitive `retrieve-response-invalid` stages; approved timeout/rate-limit/rejection/transport observations retain exact R12 contexts and provider exceptions normalize once to `retrieve-transport-failure/{kind: quote(other)}`
-  - the paired index/retrieve capabilities share one private compatibility identity; the opaque handle privately retains corpus space/dims, backend reference, and exact indexed chunk occurrences needed for provenance validation, none of which becomes source-visible
-  - LANGUAGE CONTRACT: exact config/input/`k` validation, identity-space-dimension ordering, one-attempt Outcome normalization, ordered bounded evidence, exact indexed provenance, empty-result absence, and private compatibility obligations are portable E12-4 behavior
-  - PYTHON REFERENCE HOST: one explicitly paired deterministic offline in-memory fixture proves capability/handle compatibility, attempts, audits, and provenance; shared/multi-host conformance remains Partial and no non-Python host, network retrieval adapter, vector database, or public storage API is implemented
-  - provider-backed reranking is implemented separately by E12-5; grounding/model invocation, persistence/vector databases, implicit query embedding, provider registries, score normalization/thresholds, and citation rendering remain unimplemented R12 work
-
-- Provider reranking and provenance integrity (Experimental, R12 E12-5, issue #647)
-  - `rerank(provider, config, credential, authority)` validates and captures one explicit opaque rerank capability, exact closed `{id, timeout_ms}` config, one R10 protected credential, and one authority, then returns an ordinary two-argument callable without declassification, audit, or attempt
-  - the callable requires a nonempty query string and a list of exact E12 retrieved chunks; malformed/protected input is runtime misuse and local validation precedes declassification
-  - valid empty evidence returns `some([])` with zero declassification/audit/attempt; nonempty evidence declassifies just in time through exact `quote(rerank_call)` authority and makes one synchronous deterministic fixture attempt without retry, fallback, stream, cache, background work, or networking
-  - success may reorder occurrences and replace scores with finite reranker-native numbers only; it preserves the exact multiset of exact chunk values, including repeated occurrences, and therefore cannot add, drop, duplicate, replace, or mutate text/source/represented metadata provenance
-  - malformed/non-preserving success returns exact non-sensitive `rerank-response-invalid/{stage: quote(result)}`; malformed observations use `quote(provider_response)`, approved rerank timeout/rate-limit/rejection/transport contexts pass through, and provider exceptions normalize once to `rerank-transport-failure/{kind: quote(other)}`
-  - LANGUAGE CONTRACT: exact config/input validation, inert construction/empty short path, one-attempt Outcome normalization, finite-score replacement, authoritative output order, and exact evidence-multiset/provenance preservation are portable E12-5 obligations
-  - PYTHON REFERENCE HOST: one explicitly injected deterministic offline fixture proves attempts, audits, duplicate-aware integrity, and non-leakage; shared/multi-host conformance remains Partial and no non-Python host or network rerank adapter is implemented
-  - pure local rerankers remain ordinary application/library functions under other explicit names; score normalization/comparability, grounding/model invocation, citation rendering, persistence/vector databases, and provider registries remain unimplemented
-
-- Grounded context and answer composition (Experimental, R12 E12-6, issue #648)
-  - the importable `examples/r12_grounded_context_answer.genia` module defines application-owned `assemble_grounded_context/3`, `assemble_grounded_answer/2`, `grounded_request/1`, and `generate_grounded_answer/2`; these are ordinary composition functions, not new public builtins or provider boundaries
-  - grounded context is the exact closed `{question, content, evidence}` shape with a nonempty unprotected question, exact R11 text/JSON content, and a list of exact finite-scored E12 retrieved chunks; assembly validates locally and makes zero provider/model attempts
-  - grounded answer is the exact closed `{answer, sources, evidence}` shape; it is assembled only from an exact successful R11 `some(response)`, retains the exact context evidence list/order, and takes answer content only from `response.message.content`
-  - `sources` traverses evidence in order and retains the first occurrence of each exact-equal closed `{doc_id, offset, length}` source; later exact duplicates are removed, while different spans from the same document remain distinct
-  - `none(...)` and `err(...)` model Outcomes propagate unchanged and produce no grounded answer; the application-owned generation wrapper validates the exact context, constructs one existing R11 text request, and invokes its supplied unchanged model callable once
-  - LANGUAGE CONTRACT: exact closed shapes, local validation, zero-attempt assembly, exact evidence preservation, ordered first-occurrence source deduplication, successful-Outcome-only answer assembly, and unchanged R11 `model/4` composition are portable E12-6 obligations
-  - PYTHON REFERENCE HOST: private validation bridges and deterministic tests prove the ordinary application module; shared/multi-host conformance remains Partial and no non-Python host grounding proof is implemented
-  - R12 standardizes provenance/evidence substrate only; citation labels, numbering, generated-prose citation spans/validation/rendering, prompt runtime, RAG framework objects, agents/tools/memory, and retry remain unimplemented
-
-- R12 cross-mode hardening and grounded proving case (Experimental, R12 E12-7, issue #649)
-  - existing E12-1 through E12-6 and unchanged R11 `model/4` boundaries are proved through explicit deterministic shared eval/Flow/error/CLI fixtures plus existing parse/Core IR forms; E12-7 adds no public function, provider semantic, syntax, or Core IR node
-  - `embed_call`, `index_call`, `retrieve_call`, `rerank_call`, and `model_call` use distinct protected credentials and exact matching R10 authorities; constructors remain inert, local checks precede just-in-time declassification, and each consumed valid stage makes at most one synchronous attempt without retry, fallback, sleep, queue, race, or background work
-  - bounded downstream Flow consumption is demand-driven and makes no attempt for unconsumed items; deterministic fixtures use no network, clock, randomness, environment, filesystem, or sleep
-  - paired in-memory index/retrieve compatibility remains private; compatible injected capabilities keep the same ordinary call/value contracts without promising identical vectors, scores, evidence order, or answers
-  - recursive tests scan results, Outcomes, rendering, audits, provider observations, buffers, resources, stdout/stderr, and test output for credential/payload sentinels
-  - `examples/r12_cross_mode_grounded_proving.genia` explicitly composes validation/diagnostics, chunking, corpus/query embedding, indexing, retrieval, provider reranking, grounded context, one unchanged R11 model call, and grounded answer while retaining exact provenance
-  - LANGUAGE CONTRACT: E12-7 adds cross-mode conformance evidence and an ordinary composition proof for existing R10/R11/R12 obligations only; it adds no new behavior
-  - PYTHON REFERENCE HOST: the explicit offline fixture runner and instrumentation are host proof mechanics, not portable APIs; shared/multi-host conformance remains Partial and no non-Python host is implemented
-
-- R12 release examples and implemented-truth synchronization (Experimental, R12 E12-8, issue #650)
-  - E12-8 adds no runtime behavior: `docs/releases/R12.md` and focused documentation tests synchronize runnable chunking and complete grounded-composition examples with the implemented E12-1 through E12-7 boundary
-  - the synchronized public account keeps ordinary values/callables/Outcomes, exact provenance, explicit query embedding, opaque index/retrieval compatibility, backend-native scores, unchanged R11 `model/4`, Python-host-only proof mechanics, and excluded citation rendering distinct
-  - LANGUAGE CONTRACT: E12-8 is documentation and executable-example verification only; the implemented portable behavior remains exactly E12-1 through E12-6, while E12-7 remains conformance/proving evidence without new semantics
-  - E12-9 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, protected-provider exclusions, and canonical release status
-  - R12 is release-complete through E12-9 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
-
-- AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
-  - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
-  - E11-3 adds one explicit Python-host-only Google Gemini Developer API adapter using direct `v1beta models.generateContent` REST; the deterministic fixture remains the portable-observation test path
-  - `provider` is an opaque host-injected model-provider capability; ordinary source has no constructor and execution modes inject no ambient provider, credential, or authority
-  - `config` is the closed map `{id: nonempty string, timeout_ms: integer 1..300000}`
-  - a request is the closed map `{messages, output}` with a nonempty message list, closed text messages using `system|user|assistant` roles, and `{kind: quote(text)}` output
-  - E11-2 also accepts the closed output requirement `{kind: quote(json), schema, template}`: `schema` has exactly one outer R9 `json` representation and must be accepted by existing `json_schema`; `template` is an explicit callable one-argument Outcome Template
-  - construction validates its inputs without declassification, audit, or provider attempt; invocation validates the complete request before declassification or attempt
-  - a valid invocation declassifies the R10 protected string credential at the authorized boundary, records the existing R10 audit, and makes exactly one synchronous provider attempt; there is no implicit retry
-  - the Gemini host adapter maps `config.id` to the percent-encoded model path, `config.timeout_ms` to the one standard-library HTTPS attempt, and the declassified credential only to `x-goog-api-key`; it refuses redirects and exposes no provider factory to source, ambient binding, SDK dependency, general HTTP API, discovery, retry, or fallback
-  - Gemini user/assistant messages map to `user`/`model` contents, system text maps in relative order to `systemInstruction.parts`, and structured output sends the existing represented schema as `responseJsonSchema` with `application/json`
-  - success is `some({message, finish_reason, usage})`; the response is closed, its message is assistant text, finish reason is `stop|length|filtered|other`, and usage is exact nonnegative token counts or `none("model-usage-unavailable")`
-  - structured success processes the single provider assistant text through existing `json_decode`, invokes the explicit Template once on the decoded carried ordinary value, ignores the Template success payload, and returns assistant content `{kind: quote(json), value: represented_value}` retaining exactly one outer `json` facet
-  - decode or Template `none(...)`/`err(...)` becomes exactly `err("model-structured-output-invalid", {stage: quote(json_decode)|quote(template), outcome: original_outcome})`; a non-Outcome Template result is runtime callback misuse
-  - there is no repair, trimming, prose/fence extraction, coercion, second parse, reprompt, partial acceptance, or retry
-  - absence is exactly `none("model-no-response")`; normalized failures use `model-timeout`, `model-rate-limited`, `model-rejected`, `model-transport-failure`, or `model-response-invalid` with the closed contexts defined in `GENIA_RULES.md`
-  - malformed provider observations become `err("model-response-invalid", {stage: quote(provider_response)})` (or the precise response stage); Gemini HTTP/transport failures normalize to the existing timeout/rate-limit/rejected/transport Outcomes without retaining raw bodies, headers other than parsed retry delay, request IDs, exception text, keys, or credentials
-  - shared eval/error/Flow/CLI specs opt into the Python fixture explicitly with `fixtures: [r11_model]`; CLI fixture routing is private shared-spec harness behavior for command/file/pipe observations, while ordinary eval, file, command, pipe, import, native-test, and serve execution gain no fixture bindings
-  - parse and Core IR shared specs retain the existing ordinary `Call`/`IrCall` shapes; E11-4 adds no syntax, node, execution mode, flag, annotation, lifecycle consumer, ambient capability, or retry/tool/streaming surface
-  - E11-5 implements conversation as application-owned ordinary state evolution through existing `scan(step, initial_state, source)`: input is exactly `{kind: quote(message), message: {role: quote(user), content}}` or `{kind: quote(stop), reason: string}`; initial state is exactly `{messages: [], turn: 0, status: quote(active), last: none("conversation-not-started")}`
-  - the application-defined step returns `[next_state, next_state]`; an active message appends the user message, calls an ordinary prompt over the full ordered history, calls the model once, increments `turn`, records the exact Outcome, and appends one assistant message only for `some(response)`; `none`/`err` sets failed status without an assistant append
-  - active stop preserves history/turn, records stopped status plus `none("conversation-stopped", {reason})`, and makes no model call; stopped/failed states return unchanged for later input with no call
-  - list input returns an eager state list and Flow input returns a lazy single-use Flow with equivalent consumed states; `scan` emits no initial state, and source completion or existing downstream bounds terminate consumption without a new Flow helper
-  - `examples/r11_flow_conversation.genia` is the executable application composition proof; it uses existing `apply_raw` only to deliberately dispatch model Outcomes as data rather than triggering ordinary Option short-circuiting
-  - conversation owns neither input acquisition nor model/provider configuration and adds no runtime object, hidden memory, retry/reprompt/tool loop, streaming, cancellation, `take_while`, syntax, annotation, or Core IR node
-  - `examples/r11_validated_pipeline_proving_case.genia` is the executable E11-6 proof: mixed JSONL uses existing parsing and record validation before an ordinary structured model stage; R9 `json_schema`/represented output, explicit R10 protected credentials, and existing `validate_each`/`collect_validated` produce clean represented values plus ordered diagnostics
-  - the deterministic proof attempts the model only for parse/validation successes, at most once per invocation; no-response, normalized provider failures, invalid structured output, Template mismatch, and protected-boundary failure use existing Outcomes/errors without retry, repair, reprompt, fallback, or sensitive leakage
-  - E11-6 adds no helper, schema/validation system, provider behavior, syntax, annotation, or Core IR node; its shared CLI/eval/Flow/error cases and native/Python tests are conformance/proving artifacts over existing behavior
-  - E11-7 adds no runtime behavior: `docs/releases/R11.md` and focused documentation tests synchronize runnable text, structured-output, Flow-conversation, and validated-pipeline examples with the implemented boundary and keep maturity, portability, and exclusions explicit
-  - E11-8 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, sensitive-data exclusions, and canonical release status; R11 is release-complete while its APIs remain Experimental, Python remains the only implemented host, and shared/multi-host conformance remains Partial
-  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, R9 structured composition, normalized Outcomes, explicit cross-mode boundary, application-owned list/Flow `scan` composition, and Outcome-aware validated-pipeline composition are the implemented R11 E11-1 through E11-8 portable boundary; E11-7 is documentation/executable-example verification and E11-8 is audit/distillation only
-  - PYTHON REFERENCE HOST: the offline deterministic fixture and one explicitly constructed Gemini REST capability are implemented; automated adapter tests inject a fake transport and perform no network access; shared/multi-host conformance remains Partial
-
-- Configuration provider, protected acquisition/sinks, explicit declassification, cross-mode hardening, and composed validated-pipeline proving case (Experimental, issues #589-#595)
-  - R10 E10-1 through E10-8 are release-complete; completion records the delivered and audited scope, while the APIs remain Experimental and shared/multi-host conformance remains Partial
-  - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`
-  - supported descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`
-  - source order is highest to lowest precedence; the first source containing a key wins
-  - all descriptors and literal string keys/values are validated before any host-backed snapshot is acquired
-  - `config_get(provider, key)` returns `some(exact_string)`, including `some("")`, or context-free `none("config-missing")`
-  - `config_get_or(provider, key, default)` preserves found values including empty; only `none("config-missing")` invokes the zero-argument default, exactly once
-  - an ordinary default result is wrapped in `some(...)`; a default `some(...)`, `none(...)`, or `err(...)` is preserved without nesting
-  - default callability/arity is checked only if missing selects the default branch; other lookup Outcomes bypass the default unchanged
-  - conversion remains an explicit ordinary Outcome-returning callable, and validation reuses existing callable Templates through ordinary Outcome-aware pipelines
-  - `secret_get(provider, key, purpose)` protects found exact strings, including empty, in one reserved outer `secret` carrier; purpose is a non-empty symbol
-  - `secret_get_or(provider, key, purpose, default)` uses the same missing-only, exactly-once default rule; ordinary/`some` successes are protected once and `none`/`err` are preserved
-  - `protected_match("secret", value)` returns `some(value)` containing the exact protected subject; ordinary/non-secret values return `none("representation-mismatch")`
-  - generic `represent`, `representation_match`, and `strip_representation` reject the reserved `secret` facet
-  - protected equality observes carrier identity only (R18 E18-3): a carrier equals itself and any alias of the same carrier, while independently acquired carriers are unequal even when they share a provider and purpose and carry equal payloads. Ordinary equality never compares protected payloads, so it cannot be used to test whether two secrets match; payload comparison requires explicit authorized declassification first. Protected values are not map keys
-  - calls, returns, containers, pipelines, Seq, Flow, Sheet cells, refs, and process messages transport exact protected leaves; containers gain no hidden taint and unsupported ordinary derivation returns existing type failure
-  - diagnostic rendering recursively substitutes `<protected>`; Format replacements, output sinks, JSON, Sheet CSV, resource writes, HTTP responses, and ordinary host conversion reject protected leaves before effects
-  - `json_encode` returns `err("protected-value", {operation: "json-encode"})`; resource rejection writes zero payload bytes
-  - `declassify(authority, protected_value)` is the sole payload-revealing operation; a host-injected opaque authority must match the exact provider identity and allow the protected purpose
-  - successful declassification removes exactly one protected layer, returns an ordinary untainted value, and records a host-local non-sensitive audit event; mismatches reveal nothing and audit failure fails closed
-  - authority displays as `<declassification-authority>`, cannot be copied or used as a map key, and is rejected by output/format/serialization/Sheet/resource/HTTP/process/ordinary-host boundaries
-  - valid keys are non-empty strings without NUL; normalized diagnostics never include the key, source contents, raw value, or host exception detail
-  - providers display/debug as `<config-provider>`, compare by identity, are not map keys, and are rejected by ordinary host conversion and JSON serialization
-  - construction copies every source once; later literal/environment mutation is invisible and lookup performs no host access
-  - ordinary eval, file, command, pipe, import, native-test, and serve-entry evaluation preserve these explicit provider/protection semantics; modes create no ambient provider or authority
-  - imports acquire only when evaluated module code explicitly constructs and uses a provider; existing annotations do not acquire or inject configuration
-  - the Python native-test harness accepts explicit fixture bindings and environment-capability/output test seams; it constructs no fixture provider or authority implicitly
-  - serve entry evaluation and any explicit provider snapshot complete before listener activation; requests do not refresh configuration automatically
-  - `examples/r10_validated_pipeline_proving_case.genia` is the executable E10-7 composition proof: explicit ordinary configuration flows through `parse_int` and callable Templates, protected acquisition/matching remains opaque, and existing `validate_each`/`collect_validated` produce clean records plus diagnostics
-  - shared CLI and native Genia coverage prove the source-visible composition; Python reference-host tests inject the matching authority and fixture host callable, prove declassification immediately at that boundary, and cover mismatch, protected-sink, provider-failure, audit, and sentinel non-leak behavior
-  - no ambient provider, implicit environment fallback, refresh, implicit conversion/coercion, new validation system, annotation injection, parser, or Core IR change is implemented
-  - LANGUAGE CONTRACT: explicit ordering, immutable snapshot semantics, literal sources, lookup Outcomes, opacity, and normalized failures are portable
-  - PYTHON REFERENCE HOST: `{kind: quote(environment)}` snapshots `os.environ` during construction; a host may report the capability unavailable rather than substitute another source
-
-- Qualified configuration and secret views (Experimental, issue #671)
-  - R13 E13-1 adds `config_view(provider, prefix)` and `secret_view(provider, prefix, purpose)` as ordinary constructors returning one-argument callables
-  - construction validates and captures the existing R10 provider and exact string prefix; secret views also validate and capture one existing non-empty R10 purpose symbol
-  - an empty prefix is valid; a prefix containing NUL is runtime misuse; construction performs no lookup, source acquisition, refresh, conversion, validation, protection, declassification, audit, or host operation
-  - each returned callable requires one non-empty logical-name string without NUL, forms the physical key by exact `prefix + logical_name` concatenation, and performs exactly one existing R10 lookup
-  - `config_view` returns the exact `config_get` Outcome; `secret_view` returns the exact `secret_get` Outcome and preserves provider identity, purpose, protected carrier, sinks, authority, audit, and declassification behavior
-  - views add no caching, fallback, precedence, defaulting, conversion, Template validation, ambient lookup, named access, syntax, annotation, parser/AST/Core IR node, lifecycle binding, or host capability
-  - normalized misuse does not include the prefix, logical name, physical key, provider identity, purpose, source content/value, or protected payload
-  - E13-1 itself adds no conventional provider composition; E13-4 supplies that composition, E13-5 verifies the complete implemented boundary across relevant modes, and E13-6 proves its validated-pipeline composition; release-completion slices remain unimplemented
-  - LANGUAGE CONTRACT: construction/callability, validation, exact concatenation, and exact one-call R10 delegation are portable ordinary-call behavior
-  - PYTHON REFERENCE HOST: the two constructors use the existing callable and R10 provider implementation; no new host capability is introduced and shared/multi-host conformance remains Partial
-
-- Explicit CLI configuration source (Experimental, issue #672)
-  - R13 E13-2 adds `config_args(args)` as an ordinary one-argument callable over an explicit plain list of strings, normally `argv()`; it never reads process arguments or interpreter mode flags itself
-  - before the first standalone `--`, input is exact long-option/value pairs; names use ASCII letter-led alphanumeric segments separated by single hyphens, and values are the next exact strings, including empty or option-looking strings
-  - standalone `--` terminates configuration parsing and every later string is ignored; empty and terminator-only input produce an empty values map
-  - names normalize by replacing hyphens with underscores and uppercasing ASCII letters; unknown valid names are accepted, while repeated or normalization-colliding keys fail atomically
-  - success is `some({kind: quote(values), values: normalized_map})`, using the existing R10 literal source descriptor shape and fresh snapshot data
-  - malformed string-list data returns exactly `err("config-source-invalid", {source_kind: quote(arguments), stage: quote(parse)})`; no option spelling, argument index, value, or partial map is exposed
-  - a non-list input or any non-string list member is runtime misuse; short/grouped options, flags without values, `--name=value`, underscores, non-ASCII names, and positionals before `--` are not accepted
-  - E13-2 adds no schema, boolean encoding, conversion, provider construction, host acquisition capability, syntax, annotation, parser/AST/Core IR node, named access, lifecycle binding, or ambient lookup
-  - LANGUAGE CONTRACT: explicit-input grammar, normalization, collision handling, descriptor/Outcome shapes, atomic failure, and snapshot behavior are portable pure ordinary-call behavior
-  - PYTHON REFERENCE HOST: the ordinary callable is registered over existing runtime values; raw process arguments remain available only through the unchanged explicit `argv()` boundary and shared/multi-host conformance remains Partial
-
-- Narrow `.env` configuration source (Experimental, issue #673)
-  - R13 E13-3 adds `{kind: quote(dotenv), path, required}` as an R10-compatible descriptor; `path` is a non-empty NUL-free string and `required` is boolean, with descriptor misuse rejected before any host acquisition
-  - provider construction validates every descriptor first, then reads each `.env` path at most once in source-list order and copies parsed exact strings into the existing immutable provider snapshot; lookup never reads or refreshes the file
-  - optional absence contributes an empty source at its fixed index; required absence and host read failure return `config-provider-failure`, unavailable capability returns `config-source-unavailable`, and invalid UTF-8/grammar returns `config-source-invalid`
-  - `.env` failure context contains only `source_index`, `source_kind: quote(dotenv)`, and `stage: quote(acquire|decode|parse)`; paths, keys, values, content, partial providers, and raw host details do not escape
-  - UTF-8 accepts one leading BOM, LF/CRLF, a final unterminated line, blank/full-comment lines, ASCII space/tab around entries, ASCII identifier keys, exact duplicate rejection, and unquoted/single-quoted/double-quoted values with only `\\`, `\"`, `\n`, `\r`, and `\t` double-quote escapes
-  - empty values are present exact strings; interpolation, expansion, command substitution, multiline values, `export`, continuation, discovery, profiles/cascades, other formats, and watch/refresh are not implemented
-  - existing source precedence and R10 `config_get`/`secret_get` Outcomes, protected carriers, sinks, authority, audit, and declassification remain unchanged
-  - E13-3 adds no `config_standard`, conventional precedence helper, public parser, syntax, annotation, parser/AST/Core IR node, named access, lifecycle binding, or ambient lookup
-  - LANGUAGE CONTRACT: descriptor validation, grammar, normalized Outcomes, fixed indices, acquisition ordering, and immutable snapshot behavior are portable
-  - PYTHON REFERENCE HOST: `config.dotenv-snapshot` reads bytes from exactly the supplied path during provider construction; future hosts may report capability unavailable, and shared/multi-host conformance remains Partial
-
-- Conventional configuration provider composition (Experimental, issue #674)
-  - R13 E13-4 adds ordinary `config_standard(overrides, args)` and `config_standard(overrides, args, dotenv_path)` calls
-  - the two-argument form selects optional `.env`; the three-argument form requires the exact supplied non-empty NUL-free path
-  - construction normalizes explicit arguments, then delegates to the existing provider with fixed sources: overrides at index 0, arguments at 1, environment at 2, and `.env` at 3
-  - fixed precedence is overrides > arguments > environment > `.env`; empty or optionally absent sources retain their indices
-  - invalid explicit types/values are runtime misuse before acquisition; malformed argument syntax returns its exact non-sensitive `config-source-invalid` Outcome before environment or filesystem acquisition
-  - the result is the exact existing provider Outcome; construction is atomic, snapshots once, and preserves unchanged ordinary/secret views and every R10 protected boundary
-  - E13-4 adds no provider model, capability, ambient lookup/refresh, defaults source, schema/conversion, syntax, annotation, parser/AST/Core IR node, named access, or lifecycle binding
-  - LANGUAGE CONTRACT: arities, validation ordering, fixed source order/indices, precedence, optional/required path policy, exact Outcomes, atomicity, and snapshot behavior are portable
-  - PYTHON REFERENCE HOST: composition reuses the existing environment and `.env` snapshot capabilities; Python remains the only implemented host and shared/multi-host conformance remains Partial
-
-- R13 cross-mode, diagnostic, and protected-boundary hardening (Experimental, issue #675)
-  - E13-5 adds conformance proof only; it adds no public helper, value, error shape, source, capability, syntax, annotation, parser/AST/Core IR node, or execution-mode behavior
-  - shared eval/error/CLI cases verify explicit standard-provider construction, exact existing Outcomes, non-sensitive malformed-argument failure, command-mode behavior, and existing ordinary parse/Core IR call forms
-  - Python reference-host tests verify standard sources snapshot once before view use, imports acquire only through explicit module construction, serve snapshots precede activation and requests do not refresh, and malformed explicit data prevents later host acquisition
-  - credentials acquired through standard composition and `secret_view` retain exact R10 provider identity, purpose, carrier, matching authority, audit-before-return, redaction, and protected-sink behavior; successful host-local audits retain their existing non-sensitive purpose field but no protected payload or raw host detail
-  - focused sentinel scans cover normalized Outcomes, misuse diagnostics, protected rendering, and host audit observations; the existing R10 recursive sink/report/resource/HTTP/ordinary-host suites remain the protection authority and pass unchanged
-  - file, command, pipe, import, native-test, and serve-entry behavior remains explicit and non-ambient; the E13-5 additions do not create a provider or authority fixture visible to ordinary source
-  - Python remains the only implemented host and shared/multi-host conformance remains Partial; E13-7/E13-8 release-close slices add no runtime behavior
-
-- R13 Outcome-aware validated-pipeline proving case (Experimental, issue #676)
-  - `examples/r13_validated_pipeline_proving_case.genia` is the executable E13-6 application composition proof: one conventional provider feeds distinct server, database, and metrics qualified `PORT` views through explicit `parse_int` conversion and a callable Template, while existing `validate_each`/`collect_validated` produce clean records plus ordered structured diagnostics
-  - deterministic overrides, explicit arguments, environment acquisition, and one explicit `.env` snapshot exercise the existing fixed standard-provider boundary; provider construction remains atomic and snapshot-based, identically named logical settings remain unambiguous through prefixes, and missing/malformed/Template-mismatched configuration preserves existing Outcomes
-  - one protected credential remains opaque in public results and is declassified at most once only as an argument to an injected authorized outbound fixture; a matching authority produces one audit event and one outbound attempt, while provider/purpose mismatch, direct protected submission, and provider failure produce no outbound attempt and leak no key, payload, source value, or raw host detail
-  - shared CLI/eval/Flow/error cases, one native Genia test, and focused Python reference-host tests prove the source-visible composition, normalized failure, sentinel non-leakage, and exact protected boundary offline
-  - E13-6 adds no public helper, provider/source model, validation or diagnostic behavior, protected/declassification rule, network behavior, retry/fallback, syntax, annotation, parser/AST/Core IR node, ambient lookup, or lifecycle injection
-  - LANGUAGE CONTRACT: explicit qualified lookup, Outcome propagation, callable Template validation, record collection, and protected transport compose using the already implemented R10/R13 portable ordinary-call boundary
-  - PYTHON REFERENCE HOST: tests inject deterministic snapshot capabilities, one matching or mismatching authority, a non-sensitive audit observer, and an outbound fixture; Python remains the only implemented host and shared/multi-host conformance remains Partial
-
-- R13 release examples, implemented-truth synchronization, and release audit (Experimental, R13 E13-7/E13-8, issues #677/#678)
-  - E13-7 adds no runtime behavior: `docs/releases/R13.md` and focused documentation tests synchronize runnable qualified-view and complete validated-pipeline examples with the implemented E13-1 through E13-6 boundary
-  - the synchronized public account keeps ordinary explicit providers, callables, Outcomes, immutable snapshots, fixed source precedence, explicit conversion/callable Template validation, R10 protected transport, and Python-host-only acquisition/test mechanics distinct
-  - LANGUAGE CONTRACT: E13-7 is documentation and executable-example verification only; implemented portable behavior remains exactly E13-1 through E13-4, while E13-5/E13-6 remain conformance and application-composition proof without new semantics
-  - E13-8 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, protected-value exclusions, and canonical release status
-  - R13 is release-complete through E13-8 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
-
-- R14 lifecycle instance, parent/child execution scopes, peer attachment breadth, repeated element scopes, and configuration provider binding (Experimental, issues #621, #692, #693, #694)
-  - R14 E14-1 adds `lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`, and `lifecycle_context(scope_handle, name)` as the first implemented slice of the approved E14-0 composable-lifecycle contract (`docs/design/r14-composable-lifecycle-contract.md`)
-  - a peer is an ordinary closed map `{name: symbol, enter: callable/1, exit: callable/2}`; peers on one scope operation enter in list order and unwind in strict reverse order, every entered peer's `exit` runs exactly once regardless of earlier exit failures, and the first non-cleanup failure is always the scope's one `primary_failure` while every later exit failure is preserved in `cleanup_failures`
-  - `work`'s return value is carried into the closed `LifecycleResult` verbatim and is never inspected for `some`/`none`/`err`; the only way `work` produces a lifecycle failure is by raising, normalized exactly like R8 lifecycle exceptions
-  - `lifecycle_child` may be called only synchronously from an active parent scope's own `work`; a child's result/failure is ordinary data returned to the parent and never implicitly raised into it, and a child's peers/resources are entirely separate from the parent's
-  - `lifecycle_context` is inward-only and read-only: it checks the calling scope's own entered-peer context, then each ancestor scope in turn, and never exposes a later-attached peer's context to an earlier one; a peer name colliding with any name already exposed by an ancestor scope is rejected before any `enter` runs
-  - a scope handle is valid only while its scope is `entering`/`active`/`exiting`; any later use (or `lifecycle_child` on a handle that is not `active`) raises a runtime-misuse `RuntimeError`, the same family as an already-consumed Flow
-  - R14 E14-2 (issue #692) proves the same entry/work/unwind algorithm at three-or-more-peer breadth: deterministic enter/reverse-unwind order, entry failure at any position unwinding only the already-entered prefix, multiple exit failures promoting the first encountered and appending the rest in exit-call order, later-only context visibility, an `exit` `primary_summary` that never carries another peer's context, and attachment order proven independent of ancestor depth — see section 9.9. E14-2 adds no new public function or runtime behavior; `src/genia/lifecycle_runtime.py` is unchanged from E14-1
-  - R14 E14-3 (issue #693) adds `lifecycle_repeat(peers, source, element_work)`: a fresh "element" scope per consumed `list` (eager, exhaustive) or `Flow` (lazy, single-use, no-over-pull) element, running the same unchanged entry/work/unwind algorithm with two reserved context names — `quote(element)` (the consumed value) and `quote(index)`, its 1-based pull ordinal — populated before any attached peer's own `enter` runs. A peer literally named `element` or `index` is rejected before any `enter`, by the same non-shadowing mechanism as ancestor context. Early Flow termination reduces to the existing Flow/source `close_on_early_termination` finalization rule — no new finalization mechanism — because each yielded `LifecycleResult` reflects an element scope already fully entered and unwound before it is yielded. See section 9.10
-  - R14 E14-4 (issue #694) adds `lifecycle_config(provider) -> LifecycleDefinition`: a pure factory validating `provider` is an already-constructed `GeniaConfigProvider` and returning one ordinary peer reserved under `name: quote(config)`, whose `enter` always returns `some(provider)` (capture, no acquisition) and whose `exit` always returns `some("nil")` (nothing to release). The bound provider is read inward-only via the unchanged `lifecycle_context(handle, quote(config))`, then used exactly as an explicitly hand-threaded provider would be — `config_view`/`secret_view`/`config_get`/`secret_get`, Outcomes, protected carriers, sinks, authority, and declassification are entirely unchanged. At most one `lifecycle_config` peer may exist anywhere in one root/child/element ancestry chain — enforced entirely by the *existing*, unmodified duplicate-peer-name and ancestor-non-shadowing checks, since `lifecycle_config` always hardcodes the reserved name; sibling scope trees may each bind their own. `src/genia/lifecycle_runtime.py` and `src/genia/configuration.py` are unchanged. See section 9.11
-  - E14-1/E14-2/E14-3/E14-4 add no HTTP operation/client, peer-attachment ordering syntax, parser/AST/Core IR change, or ambient/global current-scope state; those remain later R14 tickets (#622-#630)
-  - LANGUAGE CONTRACT: the six required default invariants (no global mutable current-scope switch; contained child failure; explicit child result/failure propagation; child-owned resource finalization inside one synchronous call; untouched parent-owned resources; inward-only non-shadowed context) are implemented exactly as locked by the E14-0 contract
-  - PYTHON REFERENCE HOST: implemented in `src/genia/lifecycle_runtime.py` as ordinary calls over `values.py` types with no new host capability; validated by `tests/unit/test_lifecycle_runtime.py` (53 tests), `tests/unit/test_lifecycle_repeat.py` (15 tests), and `tests/unit/test_lifecycle_config.py` (4 tests), Python reference host only; shared/multi-host conformance remains Partial
-
-- R14 common HTTP operation representation (Experimental, issue #622)
-  - `http_operation(method, base_url, path, headers, query, body) -> some(HttpOperation) | err("http-operation-invalid", {stage})` validates all six fields in declared order with zero network IO; the first invalid field stops validation and reports its own `stage` symbol
-  - `method` is one of the five approved symbols; `base_url` is exactly `scheme://host[:port]`; `path` starts with `/` and passes through byte-for-byte; `headers` keys are lowercased with case-insensitive collision as construction-time misuse and values a plain string or one `GeniaProtected`; `query` accepts plain string keys/values only, rejecting any protected value; `body` is `none(...)` (normalized to `none("http-no-body")`), `{kind: quote(text), text}`, or `{kind: quote(json), value}` (validated via the existing `json_encode` capability, purely to fail fast)
-  - an implicit `content-type` header is added only when `body` validates and `headers` doesn't already set one; an explicit header always wins
-  - `HttpOperation` is an ordinary closed `GeniaMap` with no `response` field; it composes with `display`/diagnostics/any container operation exactly like any other map holding a possibly-protected leaf, per R10's existing recursive sink-scan rules — no special-casing needed
-  - this is the first R14-HTTP ticket and adds no host capability at all — `web.http_send`, the outbound transport, and protected credential sinks remain later tickets (#623-#628)
-  - LANGUAGE CONTRACT and PYTHON REFERENCE HOST: see section 9.12
-
-- R14 outbound HTTP client, protected sinks, annotations, and composition (Experimental, issues #623, #624, #625, #626, #627)
-  - R14 E14-6 (issue #623) adds one narrow Python-host outbound HTTP transport capability (one synchronous `urllib.request` attempt, closed `{timeout, connect, tls, dns, other}` failure kind) with no Genia-visible surface of its own — no builtin, no `import` entry; see section 9.13
-  - R14 E14-7 (issue #624) adds `web.http_send(operation, authority, timeout_ms) -> some(HttpResponse) | err(reason, context)`, composing the unchanged E14-1 lifecycle core, E14-5's `HttpOperation`, and E14-6's transport into the first outbound HTTP call reachable from Genia source; any received status is an ordinary successful response, never a raised error; see section 9.14
-  - R14 E14-8 (issue #625, zero runtime-code change) proves the protected-HTTP-credential-sink contract already implemented by E14-5/E14-7 at comprehensive regression breadth: a protected header value stays opaque through construction/storage/`display`/`debug_repr`/`json_encode`/generic representation operations, and is declassified only immediately before the one transport attempt via the existing `declassify`; see section 9.15
-  - R14 E14-9 (issue #626) adds `@get {path}`/`@post {path}` inert declarative annotations plus `web.send_annotated(fn, base_url, authority, timeout_ms)`, the sole function binding them to the unchanged `http_operation`/`web.http_send` surface — annotating a function never changes how it is called; this contract left the exact shape unspecified, so #626 designed it itself following `@route`'s established precedent; see section 9.16
-  - R14 E14-10 (issue #627, zero runtime-code change) proves an R8 route handler (an ordinary function) can call `web.http_send`/`web.send_annotated` any number of times per request while the server stays active — `server_lifecycle.py` and `lifecycle_runtime.py` remain architecturally separate, confirmed by direct code reading; see section 9.17
-  - E14-6/E14-7/E14-8/E14-9/E14-10 add no new lifecycle primitive, protected-value mechanism, second server/routing/CORS mechanism, or parser/AST/Core IR node
-
-- R14 repeated record lifecycle and YouVersion Bible proxy proving cases, and combined cross-mode hardening (Experimental, issues #695, #628, #696)
-  - R14 E14-11 (issue #695, zero runtime-code change) proves that `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context` already compose into a repeated record-processing pipeline: an outer pipeline/session scope, two peer `LifecycleDefinition`s per element, `record`/`fields`/`nr`/`nf`-style values derived from the reserved `element`/`index` context as ordinary data (no AWK syntax), no cross-element leakage, and correct cleanup on both a data-level `err(...)` record and a genuine element work-phase exception; see section 9.18
-  - R14 E14-12 (issue #628, zero runtime-code change) proves `config_view`/`secret_view` (R13/R10), `http_operation`/`web.http_send`, the protected HTTP header sink, and `web.serve_http`/`web.route_request` (R8) already compose into a complete YouVersion Bible proxy proving application, with no real network/credential dependency in automated tests; minting a declassification authority remains a privileged host-side operation never reachable from pure Genia source; see section 9.19
-  - R14 E14-13 (issue #696, zero runtime-code change) proves the combined cross-cutting hardening gate over all of E14-1 through E14-12: import/native-test-discovery inertness, serve-mode annotation non-self-execution, sentinel-free rendering across protected values and lifecycle context together, a combined multi-peer/multi-exit-failure matrix, bounded Flow termination with no leak, Python-exception normalization at the transport boundary, combined server/request/outbound-client resilience, and a parse-only regression confirming no new parser/AST/Core IR node; see section 9.20
-  - E14-11/E14-12/E14-13 add no new public helper, syntax, annotation, transport mechanism, or lifecycle primitive; each is proof over already-implemented E14-1 through E14-10 mechanism
-
-- R14 release examples, implemented-truth synchronization, and release audit (Experimental, R14 E14-14/E14-15, issues #629/#630)
-  - E14-14 adds no runtime behavior: it reconciled `GENIA_STATE.md`, `GENIA_RULES.md`, `README.md`, `GENIA_REPL_README.md`, `docs/host-interop/capabilities.md`, `docs/cheatsheet/quick-reference.md`, `docs/releases/R14.md`, `docs/design/composability-matrix.md`, and `docs/strategy/release-roadmap.md` with the fully-landed E14-1 through E14-13 boundary, correcting stale claims found in `docs/host-interop/capabilities.md` ("genia serve...remain unavailable") and filling gaps in `GENIA_RULES.md` (no `@get`/`@post` entries) and `README.md`/`GENIA_REPL_README.md` (no R14 mention beyond E14-1)
-  - E14-15 adds no runtime behavior: its release-wide skeptical audit re-verified the approved E14-0 contract against every implemented slice, re-ran the full R7/R8/R10/R13 regression suites plus the complete non-loopback suite (3800 passed, the same 2 pre-existing unrelated root-sandbox `chmod(0)` failures present since before R14 began), `python -m tools.spec_runner` (587/587), `mkdocs build --strict` (clean), and both proving examples live against their exact CLI spec fixtures byte-for-byte, confirming zero regression and zero drift beyond documentation gaps already fixed by E14-14/this audit's own distillation
-  - R14 is release-complete through E14-15 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
-
-- Stdout / Stderr
-  - `stdout` and `stderr` are first-class host-backed output sink values
-  - they are opaque runtime capability values (`<stdout>`, `<stderr>`)
 - MetaEnv
   - `empty_env()` returns a host-backed metacircular environment value (`<meta-env>`)
   - metacircular environments support lexical lookup/definition/rebinding for the phase-1 evaluator layer
@@ -875,7 +471,6 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Python host handles
   - `python.open` returns opaque Python file-handle values (`<python file>`)
   - these are capability-style values intended only for passing back to allowlisted Python host exports
-
 ### Current consistency notes
 
 - Maybe/absence behavior is now unified around one explicit family:
@@ -985,7 +580,6 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - Flow remains an explicit runtime value family rather than an implicit pipeline mode
   - host interop is a narrow capability bridge layered onto the same call/pipeline semantics
 - This is still not a full static type/protocol system; the coherence is semantic rather than nominal.
-
 ### Sheet values (Experimental)
 
 **LANGUAGE CONTRACT:**
@@ -1019,7 +613,6 @@ Implemented as `GeniaSheet` — a frozen dataclass with tuple-backed column stor
 - `where` predicates must return a boolean; non-boolean predicate results fail clearly.
 - Construction requires lists as column values; other Seq-compatible values are not accepted in this phase.
 - Sheets are not Seq-compatible sources in this phase.
-
 ## 3) Implemented syntax and expression forms
 <!-- anchor: state:syntax-forms -->
 
@@ -1099,7 +692,6 @@ Pipeline (Phase 2) evaluation model:
 - Flow remains explicit:
   - Flow values still come only from explicit bridge/stage functions such as `lines`
   - Value↔Flow conversion is not implicit
-
 ### Shell pipeline stage (`$(...)`, Python-host-only, implemented)
 
 - `$(command)` is a pipeline stage that executes `command` via the host shell
@@ -1117,7 +709,6 @@ Pipeline (Phase 2) evaluation model:
   execution (an exact argv, no shell, no PATH search) under a portable
   contract currently implemented by Python. Neither wraps or replaces the
   other.
-
 ## 4) Functions and dispatch
 
 - named functions are first-class values
@@ -1186,7 +777,6 @@ Pipeline (Phase 2) evaluation model:
   - module missing export => clear error
   - non-identifier RHS (for example `lhs/(1 + 2)`) raises a clear `TypeError`
   - this does not add general member/index access
-
 ## 4.1) Python host interop layer (implemented, allowlisted)
 
 - Genia currently exposes a minimal Python-only host interop layer through the existing module system.
@@ -1236,7 +826,6 @@ Pipeline (Phase 2) evaluation model:
     - `"key"(m, default)` returns stored value when key exists, otherwise `default`
     - first argument must be map-like (runtime map value); non-map targets raise clear `TypeError`
     - arity other than 1 or 2 raises `TypeError`
-
 ## 4.1) Symbols and quote
 
 - Symbol is a real runtime value family
@@ -1273,7 +862,6 @@ Pipeline (Phase 2) evaluation model:
    - match/case -> `(match (clause <pattern> <result>) ...)` or `(match (clause <pattern> <guard> <result>) ...)`
    - application -> `(app <operator> <operand1> <operand2> ...)`
  - ordinary quoted list/pair data remain plain pair/list data and are distinct from tagged quoted applications
-
 ## 4.2) Pairs
 
 - Pair is a real immutable runtime value family
@@ -1285,7 +873,6 @@ Pipeline (Phase 2) evaluation model:
 - pair equality is structural
 - lists can be represented as pair chains ending in `nil`
 - ordinary list literals remain separate List values in this phase
-
 ## 4.3) Promises
 
 - Promise is a real runtime value family
@@ -1296,7 +883,6 @@ Pipeline (Phase 2) evaluation model:
   - if forcing raises, the promise remains unforced and a later `force(...)` retries evaluation
   - promises are ordinary delayed values and are separate from Flow
   - promises are reusable and memoized; flows are source-bound, single-use, and pipeline-oriented
-
 ## 4.4) Streams (stdlib)
 
 - Streams are implemented as a stdlib/prelude layer, not as a runtime value family
@@ -1314,7 +900,6 @@ Pipeline (Phase 2) evaluation model:
 - streams are distinct from Flow:
   - streams are pure data built from Pair + Promise
   - Flow is the runtime pipeline/IO model and remains separate
-
 ## 4.5) Programs-as-data helper layer (stdlib)
 
 - Genia now ships a minimal metacircular expression helper layer in `src/genia/std/prelude/syntax.genia`
@@ -1364,7 +949,6 @@ Pipeline (Phase 2) evaluation model:
 - `operands(expr)` returns the operand tail of `(app ...)` as a pair-chain sequence of operand expressions
 - `match_branches(expr)` returns the branch tail of `(match ...)` as a pair-chain sequence of quoted branches
 - `branch_guard(branch)` raises a clear `TypeError` when used on an unguarded branch
-
 ## 4.6) Metacircular evaluator (stdlib)
 
 - Genia now ships a minimal metacircular evaluator layer in `src/genia/std/prelude/eval.genia`
@@ -1402,8 +986,7 @@ Pipeline (Phase 2) evaluation model:
 - current evaluator limitations:
   - `eval` is only defined for the supported expression families above
   - unsupported quoted forms raise a clear runtime error instead of silently expanding evaluator coverage
-
-## 4.7) R20 open functions and extensible pattern dispatch (Experimental, R20 complete through E20-8)
+## 4.7) R20 open functions and extensible pattern dispatch (Experimental, R20 complete)
 <!-- anchor: state:open-functions -->
 
 R20 adds one concept: an **open function interface** is an identity-bearing
@@ -1538,7 +1121,6 @@ Core IR).
     `multi_file_eval` transport capability, independently of R20 semantics;
   - debug-hook wiring (`debug_hooks`/`debug_mode` propagation used by the
     Python debug adapter) is not threaded through open-function dispatch.
-
 ## 5) Case expressions and pattern matching
 <!-- anchor: state:pattern-matching -->
 
@@ -1567,7 +1149,6 @@ Implemented pattern types:
 Resolution order: arms of a case expression and clauses of a function are tried in source order, and the first matching arm or clause is selected.
 
 Map pattern semantics:
-
 - key forms:
   - explicit: `{ name: n }`, `{ "name": n }`
   - shorthand binding: `{ name }` (identifier keys only; sugar for `{ name: name }`)
@@ -1631,7 +1212,7 @@ Template semantics (Experimental):
 - refinement/open/exact helpers compose through existing direct calls, `Name(inner_pattern)`, `@?`, `@!`, and `&`; they add no syntax, nominal identity, or runtime shape category
 - positional/labeled shapes and nominal Structs are not implemented by the Template/shape slices; the separate Experimental JSON Schema boundary below compiles only its locked structural subset
 
-Inert inspectable Template descriptions (Experimental, R15 E15-1, issue #728):
+Inert inspectable Template descriptions (Experimental):
 
 - `refinement(predicate)` returns a curried one-argument Template whose behavior is identical to `refinement_match(predicate, value)`; `open_shape(fields)` and `exact_shape(fields)` are the curried equivalents of `open_shape_match`/`exact_shape_match`. Each builder validates its argument eagerly at construction time, using the same validation as its two-argument counterpart, and requires zero additional matching logic — the returned Template simply delegates to the existing two-argument helper.
 - `template_description(template)` requires a callable Template and returns `some(description)` when `template` was produced by `refinement`, `open_shape`, `exact_shape`, or `json_schema`; every other callable Template — arbitrary one-argument callables and named patterns declared with `pattern Name(value) = ...`, even when the body directly calls `refinement_match`/`open_shape_match`/`exact_shape_match` — remains fully valid but opaque and returns `none("opaque-template")`. A non-callable argument raises a clear `TypeError`.
@@ -1642,9 +1223,8 @@ Inert inspectable Template descriptions (Experimental, R15 E15-1, issue #728):
 - descriptions are immutable and inert: they do not participate in equality, hashing, callable identity, pattern identity, matching, dispatch, or original-subject semantics (`@?`, `@!`, `&`, and `Name(inner)` behave identically whether or not a Template has a description). Two Templates built from equal specifications are two distinct callables with equal-shaped descriptions, never the same Template.
 - construction and inspection are effect-free: no user-data validation runs, no predicate/refinement callable is executed, and no config/lifecycle lookup, filesystem/network IO, or import-time activation occurs.
 - no protected or represented payload can appear inside a description; nested field/property entries contribute only their own description shape or the `quote(opaque)` marker, never a captured closure or field value.
-- example: `Person = exact_shape({name: refinement((x) -> x != ""), age: refinement((x) -> x >= 0)})`; `template_description(Person)` is `some({kind: quote(exact_shape), fields: {name: {kind: quote(refinement)}, age: {kind: quote(refinement)}}})`; `Person({name: "Ada", age: 3})` is unchanged from `exact_shape_match`'s own behavior: `some({name: "Ada", age: 3})`.
 
-Explicit missing-only field defaults (Experimental, R15 E15-2, issue #729):
+Explicit missing-only field defaults (Experimental):
 
 - `default_field(default, template)` wraps a field Template with an explicit default for use as a field entry inside `open_shape(fields)` / `exact_shape(fields)` (the E15-1 curried builders); `template` must be Template-callable or it raises `TypeError("default_field expected Template function, received <type>")`.
 - when the wrapped field's key is present in the candidate map, `default_field` has no effect: the present value is validated by `template` exactly as an ordinary field entry, and a present invalid value fails normally — it never falls back to the default.
@@ -1656,7 +1236,7 @@ Explicit missing-only field defaults (Experimental, R15 E15-2, issue #729):
 - explicit normalization needs no new builtin: `record |> normalize_fn |> Shape` is already ordinary explicit pipeline composition, where `normalize_fn` is any ordinary one-argument function and `Shape` validates its result exactly as any other value; Template matching itself performs no coercion.
 - construction and matching remain effect-free; no ambient config/lifecycle/IO occurs.
 
-Accumulated path-aware validation diagnostics (Experimental, R15 E15-3, issue #730):
+Accumulated path-aware validation diagnostics (Experimental):
 
 - `accumulate(template, value)` validates `value` against an inspectable Template, collecting every independent field/index failure in one call instead of short-circuiting on the first mismatch; `template` must be Template-callable, and (after unwrapping one outer `default_field`, if present) must carry a `template_description` or it raises `TypeError("accumulate expected inspectable Template, received opaque Template")`.
 - deep recursion is supported only for the `open_shape`/`exact_shape` family (including nested shapes and `default_field`-wrapped fields, which reuse their exact real default-insertion semantics); a bare `refinement` Template, or any other inspectable-but-non-shape Template such as a `json_schema`-compiled one, is treated as one leaf check rather than recursed into.
@@ -1665,9 +1245,7 @@ Accumulated path-aware validation diagnostics (Experimental, R15 E15-3, issue #7
 - zero diagnostics: `accumulate` returns the exact result of directly invoking `template(value)` — it never reimplements or diverges from the real success path (including default insertion). One or more diagnostics: `err(quote(accumulated-validation-failed), {diagnostics: [...]})` in the deterministic order above.
 - `accumulate` never touches Flow or Seq itself; it operates on one already-materialized value, so composing it inside an ordinary `map` stage over a lazy Flow preserves existing bounded-demand, no-over-pull, single-use Flow semantics with zero new Flow-specific code.
 - `accumulate` does not change `open_shape_match`/`exact_shape_match`/`refinement_match`/`open_shape`/`exact_shape`/`refinement`/`default_field`/`json_schema` direct-call behavior, named-pattern dispatch, `@?`/`@!`/`&`, or case-arm/first-match semantics; it is a separate, explicitly-invoked operation that only reads their existing private structural attributes.
-- example: `Person = exact_shape({name: refinement((x) -> x != ""), age: refinement((x) -> x >= 0)})`; `accumulate(Person, {name: "", age: -1})` is `err(quote(accumulated-validation-failed), {diagnostics: [{path: ["name"], kind: quote(mismatch), reason: "refinement-mismatch"}, {path: ["age"], kind: quote(mismatch), reason: "refinement-mismatch"}]})`.
-
-Faithful Template to JSON Schema generation (Experimental, R15 E15-4, issue #731):
+Faithful Template to JSON Schema generation (Experimental):
 
 - `template_schema(template)` generates a JSON Schema for `template` through pure inspection over its own `template_description` data; it never invokes `template`, never invokes any nested field Template, never executes a callable refinement predicate, and touches no runtime value at all. `template` must be Template-callable or it raises `TypeError("template_schema expected callable Template, received <type>")`.
 - faithfully convertible: a `json_schema`-compiled Template's own description converts back to the equivalent schema map directly (it already is schema-shaped); `open_shape`/`exact_shape` convert to `{type: "object", properties: {...}, required: [every field name, specification order], additionalProperties: <true for open_shape, false for exact_shape>}` only when every field recursively converts.
@@ -1675,9 +1253,8 @@ Faithful Template to JSON Schema generation (Experimental, R15 E15-4, issue #731
 - failure is `err(quote(unsupported-template), {path: [field_name_or_index, ...], kind: quote(opaque)|quote(refinement)|quote(default_field)|quote(unsupported_kind)})`, `path` pointing at the exact unsupported node; success is `some(represent("json", schema_map), {kind: quote(template_schema), operation: quote(generate), status: quote(generated), reason: quote(generated)})`.
 - round-trip claim is limited to the tested subset: compiling a schema with `json_schema`, reversing it with `template_schema`, and recompiling the result with `json_schema` produces a Template with identical accept/reject behavior over the tested representative values — not object identity, not preservation of non-schema metadata.
 - `template_schema` does not change `json_schema`/`open_shape`/`exact_shape`/`refinement`/`default_field`/`accumulate`/`template_description` direct-call behavior; it is a separate, explicitly-invoked, pure-inspection operation.
-- example: `Person = exact_shape({name: NameTemplate})` where `NameTemplate` is `json_schema`-derived from `{type: "string"}`; `template_schema(Person)` is `some(represent("json", {type: "object", properties: {name: {type: "string"}}, required: ["name"], additionalProperties: false}), context)`. `Person = exact_shape({name: refinement((x) -> x != "")})`; `template_schema(Person)` is `err(quote(unsupported-template), {path: ["name"], kind: quote(refinement)})`.
 
-Structural discriminated alternatives (Experimental, R15 E15-5, issue #732):
+Structural discriminated alternatives (Experimental):
 
 - `alternatives(discriminator_field, branches)` is a curried Template builder (same family as `refinement`/`open_shape`/`exact_shape`) selecting exactly one branch by reading an explicit string discriminator field, then validating only that branch against the full original value; ordinary map/value payloads only, no nominal variant object is ever constructed. `discriminator_field` must be a non-empty ordinary string; `branches` must be a map whose keys are non-empty ordinary strings and whose values are Template-callable, or construction raises a clear `TypeError`.
 - direct-call resolution order: a non-map subject returns `none("alternative-mismatch")`; a subject missing `discriminator_field` returns `none("alternative-missing-discriminator", {field: discriminator_field})`; a present discriminator value that is not an ordinary string (a symbol counts as not-a-string here) returns `none("alternative-invalid-discriminator", {field: discriminator_field})`; a string not present among `branches`' keys returns `none("alternative-unknown-discriminator", {field: discriminator_field, value: <the discriminator string>})`; otherwise the resolved branch Template is invoked on the full unmodified subject and its Outcome is returned unchanged.
@@ -1688,9 +1265,8 @@ Structural discriminated alternatives (Experimental, R15 E15-5, issue #732):
 - `template_schema` returns `err(quote(unsupported-template), {path: [...], kind: quote(alternatives)})` for every `alternatives` Template — E15-4's closed schema-keyword subset has no discriminated-union primitive, and this slice does not extend it.
 - composes with named patterns, `@?`, `@!`, `&`, and `Name(inner)` exactly like any other Template, since `alternatives` produces an ordinary Template built the same way as `refinement`/`open_shape`/`exact_shape`; no pattern-dispatch code was added or changed.
 - issue #92 disposition: only structural discriminator-directed validation is absorbed here. Nominal variant identity, constructor objects/syntax, sealed/closed nominal hierarchies, and exhaustiveness checking remain explicitly deferred beyond R15 and are not implemented.
-- example: `Circle = open_shape({radius: refinement((x) -> x > 0)})`; `Shape = alternatives("kind", {circle: Circle})`; `Shape({kind: "circle", radius: 5})` is `some({kind: "circle", radius: 5})`; `Shape({kind: "triangle"})` is `none("alternative-unknown-discriminator", {field: "kind", value: "triangle"})`.
 
-Bounded named recursive Template references (Experimental, R15 E15-6, issue #733):
+Bounded named recursive Template references (Experimental):
 
 - `recursive_template(name, build_fn, max_depth)` builds a self-recursive Template through one explicit named reference; `name` must be a non-empty ordinary string, `build_fn` must be Template-callable, and `max_depth` must be a positive integer no greater than 100, or construction raises a clear `TypeError`. Validation of a self-reference reachable through `alternatives`/`open_shape`/`exact_shape` composition (the documented idiom, and the only shape every example uses) runs on an explicit Python-list stack rather than the Python call stack: `alternatives` dispatch is a pure tail substitution and each shape field's descent pushes one frame that is popped again before the next field is considered, so frames never accumulate along the self-reference spine. This keeps the explicit depth bound's own Python stack usage independent of `max_depth` and of how deep a validated value actually is — the bound fires correctly at any documented `max_depth` (verified to a logical depth of 10,000, ten times Python's own default recursion limit) and `RecursionError` never crosses the boundary for this idiom. A self-reference invoked from behind a fully opaque (non-inspectable) wrapper Template still falls back to ordinary Python recursion for that unusual case only, remaining correctly bounded but without the O(1)-stack guarantee.
 - construction calls `build_fn(ref)` exactly once with an ordinary one-argument callable `ref`: `ref(name)` (matching the declared `name`) returns a self-reference Template; `ref(other_name)` returns a Template that always fails with `err("recursive-template-unresolved-reference", {name: other_name})` without inspecting its argument. `ref`'s own argument must be an ordinary string, and `build_fn`'s return value must itself be Template-callable, or construction raises a clear `TypeError`.
@@ -1718,7 +1294,6 @@ Case placement rules (enforced):
 - allowed in function body
 - allowed as final expression in block
 - rejected in ordinary subexpressions / call args / non-final block positions
-
 ### Conditionals
 <!-- anchor: state:control-flow -->
 
@@ -1728,9 +1303,7 @@ Case placement rules (enforced):
 - no dedicated loop syntax (`while`, `for`) exists
 - repetition is expressed by recursion; tail calls are optimized in tail position (see tail-call behavior)
 - `decide` has been removed from the language
-
 ## 6) Builtins (runtime)
-
 ### Configuration acquisition (Experimental)
 
 - `config_args(args)` — pure normalization of explicit raw program strings into an existing R10 literal values-source descriptor Outcome
@@ -1747,14 +1320,12 @@ Case placement rules (enforced):
 - generic carrier construction, matching, and stripping reject the reserved `secret` facet; protected values compare without exposing payloads, are not map keys, and transport as exact leaves without container taint
 - `declassify(authority, protected_value)` reveals only with an exact host-injected provider/purpose-scoped authority and records a non-sensitive audit event
 - this E10-1/E10-7 surface adds ordinary calls, enforcement, cross-mode conformance, and an executable composition proof at existing boundaries only; annotation injection and syntax/Core IR changes are not implemented
-
 ### Lifecycle (Experimental)
 
 - `lifecycle_scope(peers, work)` — runs a fresh root execution scope through the entry/work/unwind algorithm; `peers` is an ordered list of `{name: symbol, enter: callable/1, exit: callable/2}` closed maps
 - `lifecycle_child(scope_handle, peers, work)` — runs a child execution scope nested under an active parent handle; callable only synchronously from that parent's own `work`
 - `lifecycle_context(scope_handle, name)` — inward-only, read-only lookup of context exposed by an entered peer on the calling scope or any ancestor scope; `some(value)` or `none("lifecycle-context-absent")`
 - see GENIA_STATE.md section 9.8 for the full entry/work/unwind algorithm, scope lifetime state machine, and failure-matrix contract
-
 ### Core I/O and utilities
 
 - direct runtime names: `log`, `print`, `display`, `debug_repr`, `input`, `stdin`, `stdin_keys`, `stdout`, `stderr`, `help`
@@ -1817,8 +1388,7 @@ Output sink semantics:
     - `body` (string, bytes, or `none`)
   - invalid handler return values or response-shape errors produce a `500 internal server error` response in this phase
   - the ants browser viewer uses this same HTTP surface with static HTML/CSS/JS responses, JSON state snapshots, and POST endpoints for reset/step; it does not add WebSockets, SSE, or a richer server runtime
-
-### Response header composition (**Partial**, issue #526)
+### Response header composition (**Partial**)
 
 Implemented and verified in the Python reference host:
 
@@ -1846,8 +1416,7 @@ Implemented and verified in the Python reference host:
 - `status`, `body`, and additional response entries are preserved without validation or coercion; transport response-shape validation remains the responsibility of the existing HTTP bridge
 - this adds no `json`/`text` overload, CORS policy, automatic preflight handling, `OPTIONS` route, middleware framework, parser syntax, Core IR node, shared-spec category, or cross-host portability claim
 - the existing `serve_http`, routing, response-constructor, `json`, and `text` behavior is otherwise unchanged
-
-### CORS handler wrapper (**Partial**, issue #527)
+### CORS handler wrapper (**Partial**)
 
 Implemented and verified in the Python reference host:
 
@@ -1919,7 +1488,7 @@ Representation System entry points (#185, implemented):
     - `,` — comma-group numeric output (integer portion only, ASCII commas, no localization)
   - `bool` values are not numeric for spec purposes; numeric specs (`0N`, `,`) applied to bools fail deterministically
   - combined specs, bare width specs (e.g. `{n:10}`), debug spec combinations (e.g. `{x:?>10}`), and any spec not listed above are unsupported and fail with a `format-error:` prefixed error
-- Field-path placeholder resolution (#290): a missing top-level or nested segment fails with `format missing field: <path>`; a non-map intermediate fails with `format expected a map while resolving placeholder path: <path>`; invalid path syntax (empty segment, leading/trailing/double dot, slash-separated paths, brackets, calls) fails with `format invalid placeholder`; slash (`/`) is not a field-path separator and must not be used in field-path placeholders.
+- Field-path placeholder resolution: a missing top-level or nested segment fails with `format missing field: <path>`; a non-map intermediate fails with `format expected a map while resolving placeholder path: <path>`; invalid path syntax (empty segment, leading/trailing/double dot, slash-separated paths, brackets, calls) fails with `format invalid placeholder`; slash (`/`) is not a field-path separator and must not be used in field-path placeholders.
 - Placeholder replacements use the same user-facing display representation as `display(value)`, except where the exact debug spec `?` or another listed field spec applies.
 - Missing fields and invalid placeholders raise deterministic errors.
 - `format` does not support interpolation string syntax, localization, tag-based format selection, custom formatter protocols, list indexing in field paths, optional chaining, filters, or spec combinations beyond the listed subset.
@@ -1996,26 +1565,7 @@ Representation System entry points (#185, implemented):
   - maps: both return brace map syntax and recursively represent keys and values
   - pairs / quoted syntax data: both preserve the existing pair-shaped representation syntax
 - Wrong arity fails through the ordinary callable arity/type-error path.
-- Examples:
-  - `display("hello")` evaluates to the string `hello`
-  - `debug_repr("hello")` evaluates to the string `"hello"`
-  - `format("display={x} debug={x:?}", {x: "hello"})` evaluates to the string `display=hello debug="hello"`
-  - `display(none("missing-key", {key: "name"}))` evaluates to the string `none("missing-key", {key: name})`
-  - `debug_repr([some("x"), false])` evaluates to the string `[some("x"), false]`
-  - `format_template(Format("{a} {b}"))` evaluates to the string `{a} {b}`
-  - `format_template(Format("{{escaped}}"))` evaluates to the string `{{escaped}}`
-  - `format_tag(Format("{name}", "person-card"))` evaluates to `some("person-card")`
-  - `format_tag(Format("{name}"))` evaluates to `none("missing-format-tag")`
-  - `format(Format("{name}", "person-card"), {name: "Ada"})` evaluates to the string `Ada`
-  - `format(format_compose(["Hello, ", Format("{name}"), "!"]), {name: "Matt"})` evaluates to the string `Hello, Matt!`
-  - `format(format_compose([]), {})` evaluates to the string `""`
-  - `format(format_compose(["{x}", " / ", "{x}"]), {x: "go"})` evaluates to the string `go / go`
 - Runtime capability values and function-like values may have host-specific opaque debug/display text in this phase unless a later contract explicitly stabilizes them.
-- #185 does not define the full Representation System.
-- #166 owns the broader representation model, including naming boundaries beyond `display` and `debug_repr`, extension points, user-defined representations, registry/strategy behavior, and cross-host treatment of opaque runtime values.
-- #185 must not introduce alternate public representation terms such as `render`, `view`, or `repr`.
-- If #166 later changes the canonical public names, #185 behavior must migrate through the alias-safe rename process: introduce alias, migrate usage incrementally, update tests, then remove the old name in a later phase.
-
 ### Sheet builtins (Experimental)
 
 Sheet public helpers are registered directly as arity-specific `GeniaFunctionGroup` builtins in the global environment (not autoloaded). This allows coexistence with user-defined functions at other arities (for example, user-defined `rows/0` may coexist with `rows(sheet)`).
@@ -2029,13 +1579,13 @@ Public helpers:
 - `where(predicate, sheet)` — return a new Sheet of rows where predicate returns `true`; predicate receives each row as a list of `[name, value]` pairs; predicate must return boolean
 - `derive(name, function, sheet)` — return a new Sheet with a new column appended; row function receives each row as a list of `[name, value]` pairs; rejects existing column names
 - `rows(sheet)` — return a list of rows, each row as a list of `[name, value]` pairs
-- `row_get(row, column_name)` — return the value paired with `column_name` in a row (**Experimental**, issue #363); see below
-- `collect_sheet(records)` — terminal, explicit conversion of a finite Seq-compatible source (list or Flow) of homogeneous map records into an immutable Sheet (**Experimental**, issue #395); see below
-- `render_csv(sheet)` — return deterministic CSV report text for a Sheet (**Experimental**, issue #396); see below
+- `row_get(row, column_name)` — return the value paired with `column_name` in a row (**Experimental**); see below
+- `collect_sheet(records)` — terminal, explicit conversion of a finite Seq-compatible source (list or Flow) of homogeneous map records into an immutable Sheet (**Experimental**); see below
+- `render_csv(sheet)` — return deterministic CSV report text for a Sheet (**Experimental**); see below
 
 All Sheet operations return new Sheet values. Existing Sheet values are never mutated.
 
-`row_get(row, column_name)` (**Experimental**, issue #363):
+`row_get(row, column_name)` (**Experimental**):
 
 - takes any row value shaped like the existing `where`/`derive`/`rows` row contract: a `list` of two-item `[name, value]` pairs
 - does not take a Sheet; it reads a single already-extracted row, which is why `where` and `derive` row functions can call it directly on the row argument they receive
@@ -2048,7 +1598,7 @@ All Sheet operations return new Sheet values. Existing Sheet values are never mu
   - `column_name` absent from the row: `"row_get could not find column <name>"`
 - introduces no new syntax; `row_get(row, quote(age))` is an ordinary function call using the existing pair-list row representation, not a new access form
 
-`collect_sheet(records)` (**Experimental**, issue #395):
+`collect_sheet(records)` (**Experimental**):
 
 - consumes a finite `list` or `GeniaFlow` of `GeniaMap` records, the same Seq-compatible source types accepted by `collect` and `collect_validated`
 - empty input returns the same zero-row/zero-column Sheet as `sheet([])`
@@ -2062,7 +1612,7 @@ All Sheet operations return new Sheet values. Existing Sheet values are never mu
   - later record with an extra column: `"collect_sheet expected only column(s) from the first record; found unexpected column <name> at row <n>"`
 - no column union, padding, default values, dropped fields, schema parameter, or type coercion
 
-`render_csv(sheet)` (**Experimental**, issue #396):
+`render_csv(sheet)` (**Experimental**):
 
 - accepts only a Sheet and performs no I/O; compose the returned string with existing `write` or `writeln` when output is required
 - emits headers in Sheet column order and data records in Sheet row order
@@ -2087,7 +1637,6 @@ shape(people)
 ```
 
 Returns `[[rows, 3], [columns, 2]]`.
-
 Error behavior:
 
 - non-Sheet value passed to a Sheet-only operation: `TypeError`
@@ -2102,7 +1651,6 @@ Implementation files:
 - `src/genia/sheet.py` — `GeniaSheet` runtime value and pure helper functions
 - `src/genia/builtins.py` — builtin registration
 - `src/genia/utf8.py` — deterministic Sheet rendering
-
 ### Flow runtime (Phase 1)
 
 - `stdin` is a lazy source value when used in pipelines (`stdin |> lines`)
@@ -2191,7 +1739,6 @@ Implementation files:
   - `step_ctx(ctx)`
   - `step_halt()`
   - `step_step(record, ctx, out)`
-
 Flow semantics:
 
 - lazy, pull-based, source-bound, single-use
@@ -2275,7 +1822,6 @@ Flow semantics:
   - `collect_validated` record-pipeline aggregate results have a targeted diagnostic that names the original stage expression and suggests `-c/--command` mode or explicit print-with-empty-Flow as alternatives (Python reference host)
   - if a pipe-mode stage helper receives the whole Flow when it expected per-item values, pipe mode reports clear guidance to use Flow stages such as `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or to switch to `-c` / `--command` for reducers such as `sum`
   - common `some(...)` pipeline mismatches in pipe mode keep the original type error but use Genia-facing stage rendering (for example `some(1)`) instead of leaking internal IR node names
-
 ### CLI argument helpers (prelude-backed over raw argv + tiny host validation primitives)
 
 - `cli_parse(args) -> [opts, positionals]`
@@ -2307,7 +1853,6 @@ Behavior:
   - token-to-char decomposition
   - deterministic CLI-specific error raising
 - the actual option-parsing walk now lives in prelude/Genia code
-
 ### Program entrypoint convention (runtime, no syntax)
 
 - `main` is a runtime convention, not parser syntax
@@ -2315,7 +1860,6 @@ Behavior:
 - arity coercion is not performed by the entrypoint selector:
   - only exact `main/1` or exact `main/0` are auto-invoked
   - if neither exists, no entrypoint call is attempted
-
 ### Refs
 
 R25 portability status: the observable Ref behavior in this section is the
@@ -2343,7 +1887,6 @@ Behavior:
 - `ref_update` holds the internal lock while calling the updater function, so the updater should be fast and must not re-enter the same ref
 - `ref_set` wakes all blocked `ref_get` / `ref_update` waiters
 - reads and writes are serialized through a single condition variable per ref
-
 ### Host-backed concurrency
 
 R25 portability status: the local Process/mailbox observations in this section
@@ -2375,7 +1918,6 @@ Behavior:
   - `process_error` returns `some(error_string)`
 - there is no restart mechanism for processes (use cells/actors for restartable workers)
 - there is no graceful shutdown — the daemon thread runs until it fails or the program exits
-
 ### Cell helpers (Phase 1, runtime-backed fail-stop)
 
 R25 portability status: the Cell observations in this section are the approved
@@ -2424,7 +1966,6 @@ Behavior:
   - `cell_get` still returns the last state
   - calling `cell_stop` on a stopped or failed cell is a no-op
   - `cell_alive?` returns `false` after the worker exits
-
 ### Actor helpers (Phase 1, prelude-backed over cells)
 
 - public prelude helpers in `src/genia/std/prelude/actor.genia`:
@@ -2441,7 +1982,6 @@ Behavior:
 - host-backed helpers:
   - `_actor_validate_effect` validates the handler effect shape for fire-and-forget sends
   - `_actor_call_update` handles handler invocation, effect validation, reply delivery, and error recovery for synchronous calls
-
 Behavior:
 
 - `actor(initial_state, handler)` creates an actor backed by a cell
@@ -2504,8 +2044,7 @@ Not implemented yet:
 - deterministic scheduling
 - supervision / links / monitors
 - actor-specific syntax
-
-### Integer arithmetic portability (Experimental, R17 complete through E17-3)
+### Integer arithmetic portability (Experimental, R17 complete)
 
 - Genia integers exclude booleans and have arbitrary-precision integer semantics.
 - For two integer operands, `+`, `-`, `*`, `%`, `<`, `<=`, `>`, and `>=`
@@ -2519,8 +2058,7 @@ Not implemented yet:
   9007199254740991]` at `json_encode`/`json_decode`; it does not bound ordinary
   Genia integer arithmetic.
 - `/` and float-producing numeric behavior are outside R17 and are unchanged.
-
-### Portable value equality (Experimental, R18 complete through E18-7)
+### Portable value equality (Experimental, R18 complete)
 
 Genia has one semantic equality relation. `==` denotes it, `!=` is exactly its
 logical negation, and it is not user-overloadable: no Genia function, Template,
@@ -2534,7 +2072,6 @@ semantic kinds; it does not fall back to host-language equality for unrecognized
 objects, so a host default cannot define Genia behavior.
 
 Landed by E18-1:
-
 - Values of different semantic kinds are unequal, and kind difference produces
   `false` rather than an error. The integer/float bridge below is the only
   cross-kind exception.
@@ -2613,7 +2150,6 @@ Landed by E18-3 (the three families that are never compared by contents):
   open to domain extension, so a future built-in or user-defined token domain can
   participate without making `==` overloadable. Opaque tokens are not legal map
   keys.
-
 These three families are terminal: structural comparison stops when it reaches
 one, and none of them are legal map keys.
 
@@ -2645,7 +2181,6 @@ legal Pairs, Lists, and represented values. Names that are not Genia-equal are
 distinct columns, so `true` and `1` are two columns rather than a duplicate.
 Values outside that family — including maps and Outcomes — are rejected at Sheet
 construction, and protected values remain rejected with their existing message.
-
 R18 ships 24 shared cases under `spec/eval/` and `spec/error/` covering every
 equality family reachable from Genia source, verified both in-process and through
 the R16 generic host protocol with zero cases reported `unsupported`.
@@ -2674,8 +2209,7 @@ called "Portable Value Equality", so each is stated explicitly:
 
 See `docs/releases/R18.md` for the release summary and
 `docs/design/r18-portable-value-equality-contract.md` for the approved contract.
-
-### Unicode and diagnostic portability (Experimental, R19 complete — E19-1 through E19-6)
+### Unicode and diagnostic portability (Experimental, R19 complete)
 
 - **U1 — code-point semantics.** Genia strings are sequences of Unicode
   scalar values. `src/genia/utf8.py`'s internal `utf8_codepoints` iterates
@@ -2710,94 +2244,16 @@ See `docs/releases/R18.md` for the release summary and
   `format_display` on a string remains the raw character content with no
   surrounding quotes. Neither rule depends on host terminal behavior,
   locale, or a Unicode printability table.
-- What R19 E19-1 did not do: no grapheme-cluster model, no
-  normalization/collation, no locale-aware formatting, no Decimal/Rational/
-  Float64 numeric-model change, no new public string API, no Core IR change.
-- **E19-2 diagnostic inventory.** A complete mechanical inventory of all 146
-  `spec/error` exact-stderr cases and the 4 genuine `spec/parse` failure
-  cases now exists (`docs/analysis/r19-diagnostic-mechanical-inventory.md`),
-  classifying each by semantic family, construction site, and A/B/C
-  portability class. Analysis only — no behavior changed by E19-2 itself.
-- **E19-3 diagnostic normalization.** The one confirmed host-`repr()` leak
-  the inventory found is fixed: a "No matching case" runtime-dispatch
-  failure (`src/genia/evaluator.py`) now renders its call arguments with
-  Genia's own `format_debug` (joined as `"[" + ", ".join(...) + "]"`, Genia's
-  list debug syntax) instead of Python `repr()` of the argument tuple. For
-  example, calling an unmatched function with a string argument now reports
-  `with arguments ["hello"]` (Genia double-quote debug escaping) rather than
-  Python's `with arguments ('hello',)` (Python single-quote tuple repr). All
-  other diagnostic families the inventory reviewed were already portable
-  (in particular, the large "expected X, received Y" family already renders
-  via `_runtime_type_name`, a Genia-authored type-name table, not Python
-  `type()`/`repr`); a lower-severity `repr()`-based quoting of closed-grammar
-  source tokens (format-spec strings, lexer/parser token text) was reviewed
-  and deliberately left unchanged for this slice — see the inventory
-  document Section 7 for that recorded decision.
 
-- **E19-4 cross-surface leak audit.** A deliberate sweep of `src/genia/*.py`
-  beyond E19-1/E19-3's fixes found no further in-scope-fixable-now host-
-  wording leak: `configuration.py`'s dotenv UTF-8 decode boundary and
-  `gemini_rest.py`'s decode fallback were already fully compliant; two items
-  (shell-pipeline subprocess stdout's `errors="replace"`, and the explicit
-  `python.*` host-module bridge's exception wrapper) were reviewed and
-  recorded as deliberate follow-up candidates rather than fixed, since both
-  are host-interop-by-design surfaces outside R19's minimal-change scope;
-  `str(exc)` values in a handful of `builtins.py` Outcome context maps
-  (`read_file`, `write_file`, `zip_read`/`zip_write`, config-resource
-  backends) were confirmed to be incidental class-C debugging detail never
-  asserted by any shared spec, not part of the portable diagnostic contract.
-  See `docs/analysis/r19-host-default-leak-audit.md` for the full sweep.
-- **E19-6 skeptical release truth audit — PASS.** Re-derived every slice's
-  claims from `main` as merged, re-ran full regression (4247 passed, the
-  same 2 pre-existing unrelated root-environment `chmod(0)` failures) and
-  `python -m tools.spec_runner` (674/674), verified the independent-host
-  acceptance criterion by direct reproduction attempt from the contract and
-  release doc alone, and confirmed no R17/R18/R9/R10/R16 regression and no
-  exact-numeric-model behavior smuggled into R19. See
-  `docs/analysis/r19-release-truth-audit.md`.
+- **Diagnostic portability (E19-2 through E19-4).** A mechanical inventory of the exact-stderr `spec/error` and `spec/parse` failure cases (`docs/analysis/r19-diagnostic-mechanical-inventory.md`) classified each by semantic
+  family and portability class. The one confirmed host-`repr()` leak was fixed: a "No matching case" runtime-dispatch failure renders its call arguments with Genia's own `format_debug` as a list, for example
+  `with arguments ["hello"]` rather than a Python tuple repr. The large "expected X, received Y" family already renders through `_runtime_type_name`, a Genia-authored type-name table. A cross-surface leak audit
+  (`docs/analysis/r19-host-default-leak-audit.md`) found no further fixable leak; recorded, deliberately unchanged items are shell-pipeline stdout decoding with `errors="replace"`, the explicit `python.*` bridge's exception
+  wrapper, and incidental `str(exc)` detail in some `builtins.py` Outcome contexts (`read_file`, `write_file`, `zip_read`/`zip_write`, config-resource backends), which is never part of the portable diagnostic contract.
+- R19 adds no grapheme-cluster model, normalization or collation, locale-aware formatting, numeric-model change, new public string API, or Core IR change. R19 is **complete**
+  (`docs/design/r19-unicode-diagnostic-portability-contract.md`, `docs/analysis/r19-release-truth-audit.md`, `docs/releases/R19.md`).
 
-R19 is **complete**. See `docs/design/r19-unicode-diagnostic-portability-contract.md`
-for the approved contract; `docs/analysis/r19-diagnostic-mechanical-inventory.md`
-for the full diagnostic inventory; `docs/analysis/r19-host-default-leak-audit.md`
-for the cross-surface leak audit; `docs/analysis/r19-release-truth-audit.md`
-for the closing skeptical audit; `docs/releases/R19.md` for the release
-summary.
-
-**R20 — Open Functions and Extensible Pattern Dispatch is complete
-(E20-1 through E20-8).** Its approved contract
-(`docs/design/r20-open-functions-contract.md`) and syntax/Core IR design
-(`docs/design/r20-open-functions-syntax-ir-design.md`) are implemented as
-described in section 4.7 above, with the E20-8 skeptical release audit
-(`docs/analysis/r20-release-truth-audit.md`) verdict and full evidence
-recorded there and in `docs/releases/R20.md`. See section 4.7 for the
-implemented boundary. R21 (numeric source classification), R22 (exact
-numeric runtime), and R23 (numeric representation and interchange) have
-since completed; the C++ host is now numbered R24 and its pre-flight gate
-(`docs/design/r24-cpp-host-preflight.md`) records a GO decision. E24-1
-(`m0smith/genia-2026#955`) completed toolchain bootstrap: a real,
-compiled C++ E16-1 adapter honestly declaring every capability
-unsupported, with no Genia language behavior implemented. **E24-2 through
-E24-8 are now complete.** The host genuinely parses source, lowers only to
-approved portable Core IR, evaluates its deliberately bounded grammar, and
-provides `-c`/file-mode CLI. The floor includes R17 integers/ordered maps,
-R18 equality/key identity, R19-normalized adapter diagnostics, local R20 open
-functions, and the selected R21-R23 Decimal/Rational/Float64 arithmetic,
-comparison, rendering, format, and strict numeric JSON evidence.
-
-The final capability declaration is: `parser`, `ast_lowering`,
-`cli_command_mode`, `cli_file_mode`, and `open_functions` `supported`;
-`core_ir_eval`, `prelude_autoload`, and `shared_spec_runner` `partial`; every
-other capability at the pinned revision `unsupported`. The latter two partial
-claims describe the bounded source-level prelude and deterministic external-host
-runner participation actually evidenced by R24; they do not claim the full
-Python prelude or feature parity. `core_ir_eval` intentionally remains partial.
-Pinned evidence against Genia revision
-`a2229cb9b079a379a5eeae76a618fe69a2bd6daa` is `total=755 passed=141
-unsupported=614 failed=0 protocol_error=0 crash=0 timeout=0 invalid=0`.
-Unsupported behavior is expected and explicitly deferred to R25+; see
-`docs/releases/R24.md` and `docs/analysis/r24-release-truth-audit.md`.
-
-### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
+### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete)
 
 - public map helpers are exposed from `src/genia/std/prelude/map.genia`
   - `map_new()`
@@ -2861,7 +2317,6 @@ Behavior:
 - invalid map arguments and unsupported key types raise clear `TypeError`
 - the legal public key families and the key relation itself are defined by R18
   E18-2; see "Portable value equality" above
-
 ### Record validation helpers (Phase 1 minimal Outcome-aware data pipeline surface)
 
 - public validation helpers are exposed from `src/genia/std/prelude/validation.genia`
@@ -2905,8 +2360,7 @@ Behavior:
 - `validate_optional` keeps its currently documented Outcome shapes, but issue #405 does not establish one shared stable context schema across its absence, success, nested-validator error, and validator-returned-`none(...)` branches; fields beyond each branch's existing behavior remain branch-specific
 - shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, non-callable-predicate misuse cases, selected `validate_each/2` behavior (empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation), and selected `validate_each/2` misuse diagnostics (non-list/non-Flow source, non-callable validator, and non-Outcome validator result)
 - multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
-
-### Field/index validation diagnostic helpers (**Experimental**, issue #393 contract)
+### Field/index validation diagnostic helpers (**Experimental** contract)
 
 Implemented in the Python reference host:
 
@@ -2929,8 +2383,7 @@ PYTHON REFERENCE HOST:
 - two narrow option-aware constructor primitives in `src/genia/builtins.py` preserve `none(...)` arguments instead of applying ordinary none-propagation
 - accessors reuse existing `map_get` behavior
 - shared eval/error specs cover exact constructor/accessor output, missing keys, non-map misuse, and public arities; Genia-native validation tests cover constructor value preservation and accessor behavior
-
-### validate_record helper (**Experimental**, issue #391)
+### validate_record helper (**Experimental**)
 
 - public names: `validate_record/2` and `validate_record/3`
 - exposed as prelude-backed wrappers over host-backed `_validate_record` in `src/genia/builtins.py`; public surface lives in `src/genia/std/prelude/validation.genia`
@@ -2955,8 +2408,7 @@ PYTHON REFERENCE HOST:
 - optional third argument `context` is preserved in the record-level Outcome for both success and failure
 - on failure, `diagnostics` is the stable record-level key added to the supplied record context (or to a new context map); other caller-supplied context keys are preserved and are not validation-defined fields
 - does not mutate the input record; does not add a schema DSL, Sheet behavior, Flow collector, value-template integration, or new path syntax
-
-### collect_validated helper (**Experimental**, issue #383)
+### collect_validated helper (**Experimental**)
 
 - public name: `collect_validated/1`
 - registered as a host-backed builtin in `src/genia/builtins.py`
@@ -2974,13 +2426,12 @@ PYTHON REFERENCE HOST:
   - `context` is `some(ctx)` when the Outcome carried a context, or `none("nil")` when absent
 - the stable aggregate-diagnostic keys are `index`, `kind`, `reason`, and `context`; there is no guarantee that nested `context` maps share one schema across producers
 - result shape: `{clean: [...], diagnostics: [...]}`
-- does not create Sheets itself; pass `clean` to `collect_sheet(records)` (Experimental, issue #395) for an explicit, separate conversion to Sheet — `collect_validated` and `collect_sheet` remain two distinct terminal steps, not merged
+- does not create Sheets itself; pass `clean` to `collect_sheet(records)` (Experimental) for an explicit, separate conversion to Sheet — `collect_validated` and `collect_sheet` remain two distinct terminal steps, not merged
 - does not change Outcome semantics, pipeline short-circuit behavior, `keep_some`, or existing validation helpers
 - `collect_validated` is terminal: it consumes the entire finite source to produce complete output; infinite Flow sources must be bounded before calling `collect_validated`
 - error shared specs cover wrong arity (0 args, 2 args), non-Seq source, and non-Outcome item cases
 - eval shared specs cover empty source, all clean, mixed `some`/`none`/`err`, `some` context ignored, bare `none`, `err` without context, and Flow-compatible source
-
-### validate_each helper (**Experimental**, issue #392, issue #415, issue #416)
+### validate_each helper (**Experimental**)
 
 - public name: `validate_each/2`
 - exposed as a prelude-backed wrapper over host-backed `_validate_each` in `src/genia/builtins.py`; public surface lives in `src/genia/std/prelude/validation.genia`
@@ -3005,7 +2456,6 @@ PYTHON REFERENCE HOST:
 - list items are validated using the existing raw callable invocation path
 - Flow items are validated lazily during Flow consumption using the existing Flow stage pattern
 - Outcome detection uses a local `_is_validation_outcome` helper; `collect_validated` applies equivalent inline Outcome checks
-
 ### Primitive Option model (Phase 3 canonical access surface on runtime-backed values)
 
 - option values:
@@ -3044,7 +2494,6 @@ PYTHON REFERENCE HOST:
   - `nth_opt(index, list)` (compatibility alias)
   - `parse_int(string)`
   - `parse_int(string, base)`
-
 Absence semantics:
 
 - `some(value)` means present.
@@ -3072,7 +2521,6 @@ Absence semantics:
 - `get?(key, map) -> some(value)` when key exists (including `value = none("nil")`)
 - `get?(key, map) -> none("missing-key", { key: key })` when key is missing
 - unsupported target types raise clear `TypeError`
-
 Maybe-flow helper semantics:
 
 - they remain useful for:
@@ -3162,7 +2610,6 @@ Absence migration status:
 | string projector lookup `"key"(m)` | compatibility surface | raw value | `none("missing-key", { key: key })` | use `get` in new code |
 | map dot access `m.name` | canonical narrow named access | raw value | `none("missing-key", { key: key })` | narrow map/module access only; prefer `get("name", m)` for maybe-aware lookup |
 | `cli_option` | canonical CLI lookup | raw value | `none("missing-key", { key: name })` | use `cli_option_or` for defaults |
-
 Compatibility note:
 
 - legacy `nil` surface syntax remains accepted, but it normalizes immediately to `none("nil")`
@@ -3196,7 +2643,6 @@ Pattern matching note:
 - `some(pattern)` destructures option values in function clauses and case arms
 - `some(...)` pattern form requires exactly one inner pattern
 - in `none(reason)` and `none(reason, context)` patterns, the reason slot matches the quoted/literal reason value
-
 ### String helpers
 
 - `byte_length`, `is_empty`, `concat`
@@ -3221,7 +2667,6 @@ Pattern matching note:
 - non-string input raises clear `TypeError`
 - invalid base type raises clear `TypeError`
 - out-of-range base raises clear `ValueError`
-
 ### Bytes / JSON / ZIP bridge builtins (Phase 1, host-backed)
 
 - `utf8_decode(bytes) -> string`
@@ -3251,7 +2696,6 @@ Pattern matching note:
 - `set_entry_bytes(entry, new_bytes) -> entry`
 - `update_entry_bytes(entry, f) -> entry`
 - `entry_json(entry) -> bool`
-
 Behavior:
 
 - bytes are opaque runtime wrappers (`<bytes N>`)
@@ -3263,7 +2707,7 @@ Behavior:
 - `json_decode` and `json_encode` are the Experimental portable R9 JSON representation boundary; legacy `json_parse`, `json_stringify`, `json_pretty`, and `parse_jsonl_record` retain their compatibility behavior
 - successful `json_decode` returns `some(represent("json", root), context)`, where `root` is an ordinary map/list/string/number/boolean/`nil` value and nested values have no implicit representation facets; string input and strict UTF-8 bytes input are accepted, while any other input type is runtime misuse
 - successful `json_encode` returns deterministic two-space-indented JSON with sorted object member names and preserved list order; it accepts one outer `json`-represented supported value or a supported ordinary value, consuming only that optional outer layer
-- portable JSON-domain limits are: string object names, no duplicate object names, safe integers in `[-9007199254740991, 9007199254740991]` (Integer), fraction/exponent numbers accepted as exact Decimal only when `stable_json_decimal` holds (R23 E23-3, issue #915 -- section 9.34; parsed/emitted lexically, never through a host float), a Rational encodable only when its exact value has a finite base-10 Decimal equivalent that itself satisfies `stable_json_decimal` (never rounded, never decoded back to Rational -- R23 E23-4, issue #921 -- section 9.35), a finite Float64 encodable using its canonical shortest-roundtrip decimal spelling as a bare JSON number (NaN/infinity rejected; decode never produces Float64 -- same section), Unicode scalar strings/names, and at most 128 nested object/array containers
+- portable JSON-domain limits are: string object names, no duplicate object names, safe integers in `[-9007199254740991, 9007199254740991]` (Integer), fraction/exponent numbers accepted as exact Decimal only when `stable_json_decimal` holds (R23 E23-3 -- section 9.34; parsed/emitted lexically, never through a host float), a Rational encodable only when its exact value has a finite base-10 Decimal equivalent that itself satisfies `stable_json_decimal` (never rounded, never decoded back to Rational -- R23 E23-4 -- section 9.35), a finite Float64 encodable using its canonical shortest-roundtrip decimal spelling as a bare JSON number (NaN/infinity rejected; decode never produces Float64 -- same section), Unicode scalar strings/names, and at most 128 nested object/array containers
 - `json_decode` rejects malformed/trailing JSON, invalid UTF-8, duplicate names, nonstandard/non-finite or out-of-range numbers, invalid Unicode scalars, and excessive nesting as `err(...)`; `json_encode` rejects unsupported values/keys/facets and the same number/Unicode/nesting violations as `err(...)`
 - boundary Outcome contexts contain `kind: quote(json)`, `operation: quote(decode|encode)`, `status: quote(decoded|encoded|error)`, and `reason`; malformed syntax adds 1-based `line`/`column`, duplicates add `key`, and unsupported encoding adds `value_type`
 - portable error reasons are `invalid_json`, `invalid_json_utf8`, `duplicate_json_key`, `json_number_out_of_range`, `invalid_json_unicode`, `json_nesting_too_deep`, and `unsupported_json_value`; host exception text is not portable
@@ -3276,7 +2720,7 @@ Behavior:
 - a compiled Template returns `some(original_subject)` on success; type, missing-required-property, and forbidden-additional-property mismatches return `none("json-schema-type-mismatch"|"json-schema-required-property"|"json-schema-additional-property", context)` at the first deterministic subject path
 - object matching checks type, required names in `required` order, forbidden extras in candidate insertion order, then present properties in specification order; array matching checks items by increasing index; nested success payloads never transform the subject
 - JSON Schema `number` accepts finite integers/floats except booleans, `integer` accepts integers except booleans, `string` excludes symbols, and `null` matches Genia `nil`; compilation/matching adds no syntax, Core IR node, schema-specific runtime hierarchy, coercion, defaults, references, recursion, acquisition, or standards-completeness claim
-- (R15 E15-1, issue #728) a compiled Template carries an inert `template_description(...)` description mirroring its compiled schema exactly; see the "Inert inspectable Template descriptions" subsection above
+- (R15 E15-1) a compiled Template carries an inert `template_description(...)` description mirroring its compiled schema exactly; see the "Inert inspectable Template descriptions" subsection above
 - the executable R9 composed proving case is `examples/r9_composed_json_template_pipeline.genia`: it decodes a JSON Schema-derived exact `Person` Template, decodes represented JSON records, consumes the outer `json` facet through an existing named Template, validates the carried ordinary value with `Person`, and aggregates valid records plus mismatch/boundary diagnostics with `validate_each` and `collect_validated`; this composition adds no behavior beyond the independently specified boundaries above
 - `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string line and returns an Outcome with stable context metadata:
   - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
@@ -3287,7 +2731,7 @@ Behavior:
   - non-string input is a runtime/type misuse error, not a recoverable Outcome
   - `parse_jsonl_record` does not change `json_parse` behavior; it is an additive helper
   - shared semantic spec coverage is active for this helper (see `spec/eval/parse-jsonl-record-*.yaml` and `spec/error/parse-jsonl-record-non-string-error.yaml`)
-- `parse_csv_row` (**Experimental**, issue #390) parses one CSV row string and returns an Outcome with stable context metadata:
+- `parse_csv_row` (**Experimental**) parses one CSV row string and returns an Outcome with stable context metadata:
   - supported row subset: comma delimiter, double-quote quoting, quoted commas, doubled quotes inside quoted fields, empty fields, no automatic trimming
   - unsupported: multiline quoted fields, alternate delimiters, alternate quote characters, escape options, comments, dialect options, automatic type inference, file-level CSV reading, and Sheet conversion
   - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
@@ -3302,7 +2746,6 @@ Behavior:
 - `zip_write` consumes a Flow (or list) of `[filename, bytes|string]` items
 - file/zip parse/write/read failures return structured `none(...)` metadata for the new prelude API surface
 - this is a minimal host-backed bridge and is **not** the full flow system
-
 ### Resource IO bridge (Phase 1, host-backed)
 
 Maturity: **Experimental** — `fs` backend only; no object store, no streaming, no browser-native backend.
@@ -3340,7 +2783,6 @@ Behavior notes:
 - None propagation: if any argument to a resource function is `none(...)`, Genia's standard none-propagation short-circuits before the bridge runs
 - `discover` on a non-existent root returns `none("resource-not-found")` eagerly (not a lazy error inside the Flow)
 - Does not deprecate `read_file`/`write_file`: those remain Python-host-only bare-name helpers
-
 ### Simulation primitives (Phase 2)
 
 - public prelude-backed randomness helpers:
@@ -3368,7 +2810,6 @@ Behavior:
 - both `rand_flow` and `rand_int_flow` are pure Genia prelude wrappers composed from `evolve`, `drop`, `map`, and existing seeded RNG helpers; no new Python kernel primitives
 - LANGUAGE CONTRACT: `rand_flow` and `rand_int_flow` expose a deterministic bounded lazy sequence contract; cross-host output reproducibility is not guaranteed in this phase
 - PYTHON REFERENCE HOST: determinism is provided by the existing 32-bit LCG via `rng`/`rand`/`rand_int`; internal RNG state is not exposed as a Genia-visible value during Flow consumption
-
 ## 7) Autoloaded stdlib
 
 Autoload is keyed by `(name, arity)` and currently registers functions from bundled stdlib sources:
@@ -3431,7 +2872,6 @@ Notable autoloaded functions include:
 - cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`, `cell_stop`
 - actor: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`, `actor_state`, `actor_failed?`, `actor_error`, `actor_status`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
-
 ## 8) Tail calls and optimization behavior
 <!-- anchor: state:tail-calls -->
 
@@ -3461,7 +2901,6 @@ Core IR shape currently includes:
 - function docstrings are carried as metadata on named-function definitions (not runtime expressions)
 - Python may add specialized optimized execution nodes after lowering for narrow cases such as `IrListTraversalLoop`
   - these optimized nodes are not the minimal Core IR portability contract
-
 ## 9) Debug/runtime tooling
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
@@ -3486,7 +2925,6 @@ Core IR shape currently includes:
   prelude autoloads and registered public Python-host callables; generated pages
   are outputs rather than a second documentation source
 - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
-
 ### Native test layer boundaries (Python reference host, Experimental)
 
 The current native test stack uses four layers:
@@ -3504,7 +2942,6 @@ Current native test behavior distinguishes:
 - discovery error: the test unit has an invalid name or non-callable body (phase `"discovery"`).
 
 Current native test support is not a complete test framework; lifecycle hooks, `@setup`/`@teardown` annotations, setup/teardown, fixtures, parameterized tests, broad directory discovery, and multi-host conformance are out of scope in this phase.
-
 ### Native test / pytest / shared-spec placement boundary (Python reference host, Experimental)
 
 Native test support remains Experimental and backed by the Python reference host in this phase. Native tests complement pytest and shared semantic specs. Native tests do not replace pytest or shared semantic specs.
@@ -3529,245 +2966,121 @@ Unsupported native-test features remain unsupported in this phase:
 
 ## 9.1) Native test kernel core (Python reference host, Experimental)
 
+Pre-condensation text of sections 9.1-9.6 is preserved verbatim, as non-authoritative provenance, in
+`docs/state-record/native-test-and-lifecycle-shape-records.md`.
+
 LANGUAGE CONTRACT:
-- Native test kernel core provides normalized pass/fail/error result dictionaries and suite dictionaries.
-- It normalizes `TestUnit` execution into one of three stable result kinds: `pass`, `fail`, or `error`.
-- It aggregates suite results and maps suite results to kernel-level exit codes.
-- `TestResult` is distinct from Outcome (`some`/`none`/`err`); there is no automatic mapping between them.
-- Exit code `0` means all executed tests passed or the suite was empty; exit code `1` means at least one test failed or errored.
-- Native test metadata keys and values must be strings. Non-string metadata is reported as a deterministic discovery error before test body execution. Diagnostics use deterministic Genia runtime type names and include existing `TestUnit.location` when available.
+- The kernel normalizes `TestUnit` execution into one of three stable result kinds, `pass`, `fail`, or `error`, aggregates suite results, and maps them to
+  kernel exit codes. `TestResult` is distinct from Outcome (`some`/`none`/`err`); there is no automatic mapping.
+- Exit code `0` means all executed tests passed or the suite was empty; `1` means at least one test failed or errored.
+- Native test metadata keys and values must be strings; non-string metadata is a deterministic discovery error reported before the test body runs, using Genia
+  runtime type names and the existing `TestUnit.location` when available.
 
 PYTHON REFERENCE HOST:
-- Implemented as `src/genia/test_kernel.py` in the Python reference host.
-- Provides: `NativeTestFailure`, `TestUnit`, `run_test_unit`, `run_test_suite`, `aggregate_results`, `suite_exit_code`.
-- `TestUnit` is a frozen dataclass with `name` (required non-empty string), `body` (required callable), and optional `location` and `metadata`. When `metadata` is present, all keys and values must be strings; non-string metadata is a discovery error.
-- `run_test_unit(test_unit)` validates metadata before executing the body, catches `NativeTestFailure` as a `fail` result, and catches other exceptions as `error` results. Non-string metadata keys are reported as discovery errors with reason `invalid native test metadata key: expected string, received <type>`; non-string metadata values are reported as discovery errors with reason `invalid native test metadata value for key '<key>': expected string, received <type>`. Diagnostics use Genia runtime type names; existing `TestUnit.location` is appended when available. Invalid metadata must not cause the test body to execute.
-- `run_test_suite(test_units)` runs each unit in given order and aggregates results via `aggregate_results`.
-- Normalized `TestResult` dictionaries contain stable keys: `kind`, `name`, `phase`, `reason`, `expected`, `actual`, `stdout`, `stderr`, `diagnostics`.
-- `stdout` and `stderr` are stable empty strings in this phase; capture is not implemented.
-- `TestSuiteResult` dictionaries contain: `total`, `passed`, `failed`, `errored`, `results`.
-- `results` preserves input order exactly.
-- Validated by `tests/unit/test_native_test_kernel.py` (10 tests, Python reference host only).
+- `src/genia/test_kernel.py` provides `NativeTestFailure`, `TestUnit` (frozen: required non-empty `name`, required callable `body`, optional `location` and string-only
+  `metadata`), `run_test_unit`, `run_test_suite`, `aggregate_results`, and `suite_exit_code`. `run_test_unit` validates metadata first, maps `NativeTestFailure` to `fail`
+  and any other exception to `error`; discovery errors read `invalid native test metadata key: expected string, received <type>` or `invalid native test metadata value for key '<key>': expected string, received <type>`.
+- A normalized `TestResult` has the stable keys `kind`, `name`, `phase`, `reason`, `expected`, `actual`, `stdout`, `stderr`, `diagnostics` (`stdout`/`stderr` are always empty strings; capture is not
+  implemented). A `TestSuiteResult` has `total`, `passed`, `failed`, `errored`, and `results` in input order.
 
-Not implemented in this phase:
-- `skip` result kind
-- `duration` field
-- shared spec-runner integration
-- host adapter for Genia runtime callables
-- parser/lexer/evaluator/Core IR changes
-- broad assertion framework, lifecycle hooks, lifecycle annotations (such as `@setup`/`@teardown`), or fixtures; only the minimal helpers `assert_true` and `assert_eq` are implemented; `@test` annotation discovery is handled by the CLI/test-mode layer, not the kernel
-- stdout/stderr capture (fields are present but always empty strings)
-- multi-host test execution
+Not implemented: a `skip` result kind, a `duration` field, shared spec-runner integration, a host adapter for Genia callables, a broad assertion framework, lifecycle hooks or `@setup`/`@teardown`, fixtures,
+stdout/stderr capture, and multi-host test execution. `@test` discovery belongs to the CLI/test-mode layer, not the kernel.
 
 ## 9.1.1) Native test assertion helpers (Python reference host, Experimental)
 
-PYTHON REFERENCE HOST:
-- The Python reference host provides minimal native-test assertion helpers: `assert_true(value)` and `assert_eq(actual, expected)`.
-- Implemented as builtins registered directly in the global environment via `src/genia/builtins.py`.
-- This is not a full assertion framework. This is the minimal native-test helper surface.
+PYTHON REFERENCE HOST: the minimal helper surface is two builtins, `assert_true(value)` and `assert_eq(actual, expected)`.
+- `assert_true` passes when `value` is truthy under current runtime truthiness; `assert_eq` passes exactly when `actual == expected` under the one Genia equality relation (R18; Outcome values compare directly,
+  including `none(...)`). Both return `none` and print nothing on success, and raise `NativeTestFailure` (with useful actual/expected diagnostics for `assert_eq`) on failure.
+- In native test mode a failing helper is a test `FAIL`, not an `ERROR`; wrong arity remains an evaluation `ERROR`; later tests in the suite still run.
+- Selected current behavior is covered by Genia-native fixtures under `tests/native/` (validated pipeline, Outcome rendering and absence inspection, validation helpers, Flow/Seq) and by the runnable example
+  `examples/r3_validated_pipeline_native_tests.genia`; these add no semantics.
 
-`assert_true(value)`:
-- passes when `value` is truthy according to current runtime truthiness
-- returns `none` on success
-- prints nothing on success
-- raises `NativeTestFailure` on assertion failure
-- inside native test mode, a failing `assert_true` is reported as a test `FAIL` outcome, not an `ERROR` outcome
-
-`assert_eq(actual, expected)`:
-- passes exactly when `actual == expected` under the one Genia equality relation (R18 E18-4); see "Portable value equality" above
-- compares Outcome values directly, including `none(...)`
-- returns `none` on success
-- prints nothing on success
-- preserves useful actual/expected diagnostics on failure
-- raises `NativeTestFailure` on assertion failure
-- inside native test mode, a failing `assert_eq` is reported as a test `FAIL` outcome, not an `ERROR` outcome
-
-Assertion failure behavior:
-- Inside native test mode, failing helpers are reported as test FAIL outcomes rather than evaluation ERROR outcomes.
-- Incorrect helper arity remains an evaluation ERROR.
-- Later tests in the same suite continue running after an assertion failure.
-
-Not implemented in this phase:
-- `assert_false`, `assert_ne`, `assert_raises`, custom assertion messages, snapshot testing, property testing, soft assertions, or matcher DSLs
-- broader cross-host implementation beyond the bounded C++ R24 host
-- assertion lifecycle hooks, grouping, or count tracking
-
-A Genia-native fixture now covers the R1 validated pipeline path. Validated by `tests/unit/test_r1_validated_pipeline_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r1_validated_pipeline.genia`. Validated pipeline behavior is covered by a native test fixture using `parse_jsonl_record`, `validate_each`, `validate_record`, `collect_validated`, and `assert_eq`.
-
-A Genia-native fixture now covers selected Outcome constructor, representation, predicate, and structured absence inspection behavior. Validated by `tests/unit/test_outcome_native_tests.py` (7 tests, Python reference host only); the fixture is `tests/native/outcome_rendering.genia`. The fixture uses `@test` annotated zero-argument functions and `assert_eq` to cover selected current behavior for `some(...)`, `none(...)`, `err(...)`, `display(...)`, `debug_repr(...)`, `some?`, `none?`, `absence_reason`, `absence_context`, and `absence_meta`. This is selected native coverage only; it does not change Outcome semantics or native-test report semantics.
-
-A Genia-native fixture covers selected validation-helper behavior for the R3 validated-pipeline surface, including required/field/optional/record validation, `validate_each` Outcome-boundary behavior, and `collect_validated` aggregation. Validated by `tests/unit/test_r3_validation_helpers_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r3_validation_helpers.genia`. This is selected native coverage only and does not change validation, Outcome, Flow, or native-test semantics.
-
-A Genia-native fixture covers selected Flow/Seq visible behavior, including direct Flow `map`, `filter`, and `scan` results, list-side `collect` reuse, and list-side `run` terminal behavior returning `none`. Validated by `tests/unit/test_flow_seq_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/flow_seq_behavior.genia`. This is selected native coverage only and does not change Flow, Seq, assertion, or native-test semantics.
-
-A runnable native-test example file is now available for the R3 validated-pipeline surface. The example is `examples/r3_validated_pipeline_native_tests.genia`, validated by `tests/unit/test_r3_validated_pipeline_native_test_examples.py` (1 test, Python reference host only). It covers Outcome-boundary preservation through `validate_each` (upstream `some(...)`, `none(...)`, and `err(...)` items pass through without invoking the validator), direct `validate_each(...) |> collect_validated(...)` composition, and a JSONL-style pipeline demonstrating clean/diagnostic observability. The example uses existing `test(name, body)` native-test authoring, existing validation helpers, and existing Outcome semantics only. This is selected native coverage only; it does not imply complete validated-pipeline coverage, advanced Flow behavior beyond what is already stated above, or new language/runtime/CLI/lifecycle behavior.
+Not implemented: `assert_false`, `assert_ne`, `assert_raises`, custom assertion messages, snapshot or property testing, soft assertions, matcher DSLs, assertion lifecycle hooks, grouping or count tracking, and
+cross-host assertion support beyond the bounded C++ host.
 
 ## 9.2) Native test CLI (Python reference host, Experimental)
 
-Status: Experimental, Python reference host.
+`genia --test <file>` and `genia test <file>` (`src/genia/test_cli.py::run_native_tests_from_file`) validate and parse the file, discover test units, run them through the native test kernel, and report. Discovery
+uses the test-mode-only `test(name, body)` helper and `@test "description"` annotated zero-argument functions discovered after evaluation (after legacy registrations). The annotation carries the human-readable
+description, the function name is the identifier, `@test` only marks functions for discovery (it does not execute them), discovery happens only in native test mode, and annotated tests use the same kernel.
+Duplicate names across explicit and annotated tests are discovery errors; malformed units are normalized discovery errors. `@test "description"` annotation-driven native test discovery is implemented; setup/teardown lifecycle hooks,
+`@setup`/`@teardown`, filtering, parallel execution, JSON/JUnit/TAP output, and multi-host test execution are not.
 
-`genia --test <file>` runs native test units registered through the test-mode-only `test(name, body)` helper and `@test` annotated zero-argument functions discovered after evaluation, and reports the existing normalized native test runner outcomes. The CLI prints suite counts before and after per-result lines, reports `PASS`, `FAIL`, and `ERROR` results, and exits `0` when no failures/errors occur, `1` when failures or normalized test errors occur, and `2` for invalid CLI invocation.
-
-`genia test <file>` routes through `src/genia/test_cli.py::run_native_tests_from_file`, sharing the same report format as `genia --test <file>`. It validates and parses the file, discovers test units through the existing test-mode-only `test(name, body)` registration path and appends `@test` annotated zero-argument functions discovered after evaluation, runs the discovered units through the native test kernel, prints a summary line (`total=<t> passed=<p> failed=<f> errored=<e>`) before and after per-result lines, and exits `0` when all discovered tests pass, `1` when any test fails/errors, and `2` for invalid CLI invocation.
-
-Native tests may be authored with the legacy `test(name, body)` call form. Native tests may also be authored as `@test "description"` annotated zero-argument functions. The `@test "description"` annotation carries the human-readable description; the function name is the test identifier. Annotated native tests are discovered only in native test mode. `@test` marks functions for discovery; it does not execute by itself. Annotated tests use the same native test kernel as legacy tests. Assertion failures are `FAIL`; unexpected runtime exceptions are `ERROR`; malformed annotated declarations are discovery `ERROR`: empty `@test` description, `@test` on a non-function binding, and `@test` on a parameterized function are each reported with distinct discovery error reasons; a malformed annotated declaration keeps its own discovery error reason and is not overridden by duplicate-name detection. Duplicate native-test names among valid annotated and explicit units are discovery errors; the discovery reason begins with `duplicate native test name: <name>` followed by deterministic `occurrence N: <location>` lines for each conflicting definition, where location is derived from existing `TestUnit.location` metadata when available or `<unknown>` when not. Lifecycle hooks are not implemented. Setup/teardown, fixtures, parameterized tests, filtering, parallel native tests, and broad lifecycle semantics are not implemented.
-
-PYTHON REFERENCE HOST:
-- Implemented as `src/genia/test_cli.py` in the Python reference host.
-- The `genia test <file>` entry point is implemented as `src/genia/test_cli.py::run_native_tests_from_file` and routed by `src/genia/interpreter.py`.
-- Test mode registers a test-mode-only `test(name, body)` helper that appends `TestUnit` values to a private list; malformed units are normalized as discovery errors by the existing kernel.
-- `--test` is mutually exclusive with `-c`/`--command`, `-p`/`--pipe`, and `--debug-stdio`.
-- Invalid combinations such as `--debug-stdio --test` are rejected with exit code `2`.
-- Report format: a summary line `total=<t> passed=<p> failed=<f> errored=<e>` appears both before and after per-result lines.
-- Per-result lines: `PASS <name>`, `FAIL <name> phase=<phase> reason=<reason>` (with `expected=<expected> actual=<actual>` when present), `ERROR <name-or-unnamed> phase=<phase> reason=<reason>`.
-- Validated by `tests/unit/test_native_test_cli.py` (17 tests) and `tests/unit/test_interpreter_test_mode.py` (20 tests), Python reference host only.
-
-`@test "description"` annotation-driven native test discovery is implemented; annotated zero-argument functions are discovered after legacy `test(name, body)` registrations and run through the same native test kernel. Duplicate test names across explicit and annotated tests are discovery errors. This does not add setup/teardown lifecycle hooks, `@setup` or `@teardown` annotations, filtering, parallel execution, JSON/JUnit/TAP output, or multi-host test execution.
+- The report prints a summary line `total=<t> passed=<p> failed=<f> errored=<e>` before and after the per-result lines `PASS <name>`, `FAIL <name> phase=<phase> reason=<reason>` (with `expected=<expected>
+  actual=<actual>` when present), and `ERROR <name-or-unnamed> phase=<phase> reason=<reason>`.
+- Exit code `0` when no failures or errors occur, `1` for failures or normalized test errors, `2` for invalid CLI invocation. `--test` is mutually exclusive with `-c`/`--command`, `-p`/`--pipe`, and `--debug-stdio`
+  (for example `--debug-stdio --test` exits `2`).
 
 ## 9.3) Lifecycle plan data-shape support (Python reference host, Experimental)
 
-Status: Experimental, Python reference host only. Implemented in issue #449; root policy validation extended in issue #451.
+Python reference host only; inert data validation, no lifecycle execution.
 
 LANGUAGE CONTRACT:
-- A lifecycle plan is ordinary data: a map with a required `name` identifier and a required `phases` list of phase maps.
-- A lifecycle phase is a map with a required `name` identifier and a required `action` identifier. Optional fields are `scope` (portable scope label), `always` (boolean), `description` (string), and `metadata` (map).
-- Phase order is list order; no implicit ordering or reordering is added.
-- `action` is a portable identifier (a quoted symbol), not a callable or host hook; it does not execute by existing in a plan.
-- `always`, if present, must be a boolean; it normalizes to `false` when absent.
-- Optional root policy maps are supported for portable data validation only: `cleanup`, `failure_policy`, and `result_policy`.
-- Root policy maps normalize contract-safe defaults and reject unsupported, unsafe, or nonportable policy values. Cleanup validation preserves cleanup eligibility for entered scopes, rejects cleanup for unentered scopes, keeps cleanup failures observable, and permits only supported cleanup ordering labels. Failure policy validation preserves primary failures and cleanup failures and rejects policies that overwrite or swallow cleanup failures. Result policy validation fixes `failure_order` to the deterministic `observed_order` label and validates the observability include flags (`include_phase`, `include_scope`, `include_role`, `include_source_location`) as booleans, preserving each explicit accepted value in the normalized output and defaulting omitted flags to `true`.
-- A valid plan must not contain duplicate phase `name` values within one plan.
-- Lifecycle plans are inert data: constructing, importing, or validating a plan does not execute lifecycle behavior.
+- A lifecycle plan is ordinary data: a map with a required `name` identifier and a required `phases` list of phase maps. A phase is a map with required `name` and `action` identifiers and optional `scope` (portable
+  scope label), `always` (boolean, normalized to `false` when absent), `description` (string), and `metadata` (map). Phase order is list order; duplicate phase names in one plan are invalid.
+- `action` is a portable identifier (a quoted symbol), not a callable or host hook, and does not execute by existing in a plan.
+- Optional root policy maps `cleanup`, `failure_policy`, and `result_policy` are validated as portable data: defaults normalize contract-safely and unsupported, unsafe, or nonportable values are rejected (cleanup keeps
+  eligibility for entered scopes and rejects unentered ones, keeps cleanup failures observable, and permits only supported ordering labels; failure policy preserves primary and cleanup failures and rejects overwrite or
+  swallow; result policy fixes `failure_order`).
+- Constructing, importing, or validating a plan never executes lifecycle behavior.
 
-PYTHON REFERENCE HOST:
-- `validate_lifecycle_plan(value) -> None` validates the shape without executing lifecycle behavior; raises `ValueError` with a deterministic path-based diagnostic on invalid input.
-- `normalize_lifecycle_plan(value) -> GeniaMap` validates and returns a normalized plan map with `always` defaulted to `false` on phases where absent; raises `ValueError` on invalid input.
-- Identifier fields (`name`, `action`, `scope`) must be `GeniaSymbol` values (produced by `quote(...)` in Genia surface code).
-- Callable values as `action` fields are rejected as nonportable behavior.
-- Implemented in `src/genia/lifecycle_plan.py`.
-- Validated by `tests/unit/test_lifecycle_plan.py` (35 tests), Python reference host only.
+PYTHON REFERENCE HOST: `src/genia/lifecycle_plan.py` provides `validate_lifecycle_plan` (raises `ValueError` with a deterministic path-based diagnostic) and `normalize_lifecycle_plan`; identifier fields must be
+`GeniaSymbol` values (`quote(...)`) and callable `action` values are rejected. It is internal utility code with no public prelude API.
 
-Explicit limitations:
-- No lifecycle runner behavior is implemented.
-- No phase execution is implemented.
-- No cleanup execution behavior is implemented.
-- No action resolution or registry is implemented.
-- No execution-mode lifecycle dispatch is implemented.
-- No annotation-driven phase discovery (`@setup`, `@teardown`) is implemented.
-- No module, server, actor, notebook, or browser lifecycle support is implemented.
-- No portable multi-host lifecycle runner behavior is implemented.
-- This is Python reference-host internal utility code; no public Genia prelude API was added in this phase.
+No lifecycle runner behavior is implemented. Also not implemented: phase or cleanup execution, action resolution or registry, execution-mode dispatch, annotation-driven phase discovery, and module/server/actor/notebook/browser lifecycle support.
 
 ## 9.4) Lifecycle scope tree data-shape support (Python reference host, Experimental)
 
-Status: Experimental, Python reference host only. Implemented in issue #450.
+Python reference host only; inert data validation, no lifecycle execution.
 
 LANGUAGE CONTRACT:
-- A lifecycle scope tree is ordinary data: a map with a required `scopes` list of scope maps.
-- Each scope is a map with a required `name` identifier, a required `parent` (either `none` for the root scope or `some(identifier)` for non-root scopes), and a required `children` list of identifiers.
-- The first-pass R4 scope vocabulary is exactly four names: `execution`, `suite`, `module`, `test`.
-- The canonical first-pass hierarchy is `execution -> suite -> module -> test`.
-- Canonical parent/child relationships are deterministic:
-  - `execution`: parent `none`, children `[suite]`
-  - `suite`: parent `some(execution)`, children `[module]`
-  - `module`: parent `some(suite)`, children `[test]`
-  - `test`: parent `some(module)`, children `[]`
-- Duplicate scope names are rejected.
-- Unsupported scope names (including server, actor, plugin, request, browser, notebook) are rejected.
-- Optional `description` (string) and `metadata` (map) fields are preserved as inert data and are not executed.
-- Lifecycle scope tree data is inert: constructing, importing, or validating a scope tree does not execute lifecycle behavior.
+- A lifecycle scope tree is ordinary data: a map with a required `scopes` list of scope maps, each with a required `name` identifier, a required `parent` (`none` for the root, otherwise `some(identifier)`), and a
+  required `children` list of identifiers. Optional `description` (string) and `metadata` (map) are preserved as inert data.
+- The scope vocabulary is exactly `execution`, `suite`, `module`, `test`, with the canonical hierarchy `execution -> suite -> module -> test`: `execution` has parent `none` and children `[suite]`; `suite`
+  `some(execution)` and `[module]`; `module` `some(suite)` and `[test]`; `test` `some(module)` and `[]`. Duplicate scope names and unsupported names (server, actor, plugin, request, browser, notebook) are rejected.
+- Constructing, importing, or validating a scope tree never executes lifecycle behavior.
 
-PYTHON REFERENCE HOST:
-- `validate_lifecycle_scope_tree(value) -> None` validates the shape without executing lifecycle behavior; raises `ValueError` with a deterministic path-based diagnostic on invalid input.
-- `normalize_lifecycle_scope_tree(value) -> GeniaMap` validates and returns a normalized scope tree map; raises `ValueError` on invalid input.
-- Identifier fields (`name`, `parent` inner value, and `children` entries) must be `GeniaSymbol` values (produced by `quote(...)` in Genia surface code).
-- Input order of scope records is preserved by normalization; no implicit reordering occurs.
-- Callable values stored in optional `metadata` fields are not invoked during validation or normalization.
-- Implemented in `src/genia/lifecycle_scope.py`.
-- Validated by `tests/unit/test_lifecycle_scope.py` (13 tests), Python reference host only.
+PYTHON REFERENCE HOST: `src/genia/lifecycle_scope.py` provides `validate_lifecycle_scope_tree` and `normalize_lifecycle_scope_tree` (input order preserved; identifier fields must be `GeniaSymbol`; callables in
+`metadata` are never invoked); invalid input raises `ValueError` with a deterministic path-based diagnostic. Internal utility code, no public prelude API.
 
-Explicit limitations:
-- No lifecycle runner behavior is implemented.
-- No lifecycle phase execution is implemented.
-- No setup/teardown behavior is implemented.
-- No annotation discovery or annotation execution is implemented.
-- No cleanup execution behavior is implemented.
-- No execution-mode lifecycle dispatch is implemented.
-- No server, actor, plugin, browser, notebook, HTTP, command, file, pipe, REPL, source, or flow lifecycle scopes are implemented.
-- No changes were made to parser, lexer, Core IR, evaluator, prelude, CLI, native test runner, runtime execution paths, or shared semantic specs.
-- This is Python reference-host internal utility code; no public Genia prelude API was added in this phase.
+No lifecycle runner behavior is implemented. No setup/teardown behavior is implemented. Also not implemented: phase execution, annotation discovery or execution, cleanup execution, execution-mode dispatch, and non-test scopes (server, actor, plugin, browser, notebook,
+HTTP, command, file, pipe, REPL, source, flow).
 
 ## 9.5) Lifecycle annotation binding helper (Python reference host, Experimental)
 
-Status: Experimental, Python reference host only. Implemented in issue #452; ordering-rule contract hardened in issue #453.
+Python reference host only; discovery data only, no execution.
 
 LANGUAGE CONTRACT:
-- Lifecycle annotation binding treats annotations as candidate markers for lifecycle phases; annotations do not execute themselves.
-- A lifecycle annotation binding selects candidates by annotation name, exact metadata filters, participant kind, and deterministic ordering.
-- Supported first-pass ordering labels are `source_order`, `reverse_source_order`, and `stable_name_order`.
-- Omitted annotation binding ordering defaults to `source_order`.
-- Ordering metadata is normalized and preserved in the binding result data. Ordering metadata is inert: it does not execute annotated declarations, introduce lifecycle phase execution, introduce setup/teardown behavior, or introduce dependency or priority ordering.
-- Invalid ordering values fail validation with a deterministic diagnostic. Unsupported ordering labels and non-string ordering values are both rejected; the diagnostic names the `binding.ordering` field, and for non-string values it names the runtime type. Ordering validation does not invoke participant or ordering values.
-- Required bindings report a deterministic diagnostic when no participants match; optional bindings may produce an empty participant list without diagnostics.
-- Selecting the same declaration more than once for one binding produces a deterministic diagnostic and includes that declaration at most once.
-- Binding results are discovery data only. Selecting a participant does not invoke it, activate a phase, execute setup/teardown behavior, or change ordinary evaluation.
+- Annotations are candidate markers for lifecycle phases and never execute themselves. A binding selects candidates by annotation name, exact metadata filters, participant kind, and deterministic ordering;
+  results are discovery data only (selecting a participant does not invoke it, activate a phase, or change evaluation).
+- Ordering labels are `source_order` (the default when omitted), `reverse_source_order`, and `stable_name_order`; the value is normalized and preserved in the result and is inert (no dependency or priority
+  ordering). A non-string or unsupported ordering fails with a deterministic diagnostic naming `binding.ordering` (and, for non-strings, the runtime type); validation never invokes participants or ordering values.
+- A required binding with no matching participants reports a deterministic diagnostic; an optional one yields an empty list. Selecting the same declaration more than once is a deterministic diagnostic and the
+  declaration is included at most once.
 
-PYTHON REFERENCE HOST:
-- Implemented as `src/genia/lifecycle_binding.py`.
-- Provides internal dataclasses and `discover_lifecycle_participants(...)` for phase-owned annotation binding discovery.
-- The helper supports annotation-name matching, exact metadata filtering, callable participant validation, deterministic ordering, duplicate diagnostics, required-binding diagnostics, and binding results without executing participant values.
-- `LifecycleAnnotationBinding.ordering` defaults to `source_order` when omitted. Ordering values are validated through a centralized `_validate_ordering(...)` check that rejects non-string values and unsupported labels with deterministic `binding.ordering` diagnostics; the ordering value is preserved in the normalized binding result data.
-- Validated by `tests/unit/test_lifecycle_binding.py` (17 tests), Python reference host only.
+PYTHON REFERENCE HOST: `src/genia/lifecycle_binding.py` provides internal dataclasses and `discover_lifecycle_participants(...)` (name matching, metadata filtering, callable participant validation, ordering via a centralized
+`_validate_ordering(...)`, duplicate and required-binding diagnostics). No public Genia API was added; native test discovery does not use it.
 
-Explicit limitations:
-- No lifecycle runner behavior is implemented.
-- No lifecycle phase execution is implemented.
-- No setup/teardown behavior is implemented.
-- No `@setup` or `@teardown` annotations are implemented.
-- No parser, lexer, Core IR, evaluator, CLI, native test behavior, prelude, public builtin, runtime execution path, or shared semantic spec behavior changed.
-- No public Genia lifecycle annotation binding API was added.
-- Native test discovery remains owned by the existing native test CLI/test-mode layer; it was not refactored to use this helper in this phase.
+Not implemented: lifecycle runner, phase, setup, or teardown execution, `@setup`/`@teardown`, and any public binding API.
 
 ## 9.6) Native test lifecycle contract consumer (Python reference host, Experimental)
 
-Status: Experimental, Python reference host only, internal/inert lifecycle contract consumer. Implemented in issue #454.
-
-The Python reference host native test path is the first implemented consumer of the inert R4 lifecycle contract. It describes and validates the existing native test lifecycle shape as inert lifecycle plan/scope data. Observable native-test behavior is unchanged.
+Python reference host only; internal and inert. The native test path is the first consumer of the inert lifecycle contract: it is described and validated as inert lifecycle plan and scope data, and observable native-test behavior
+(CLI output and exit codes) is unchanged.
 
 LANGUAGE CONTRACT:
-- The native test path is described as an inert lifecycle plan with the phase shape `discover -> run -> report`.
-- The native test path is described as an inert lifecycle scope tree with the canonical hierarchy `execution -> suite -> module -> test`.
-- The descriptor is internal/inert data: constructing or validating it does not execute lifecycle behavior and does not change native-test behavior.
-- Descriptor validation is silent during native test execution; it produces no user-visible output unless the static internal descriptor is malformed.
+- The native test path is described as the inert lifecycle plan with phase shape `discover -> run -> report` and the inert scope tree `execution -> suite -> module -> test`. The descriptor is internal data: constructing or
+  validating it executes nothing and changes no native-test behavior; validation is silent during native test execution unless the static descriptor is malformed.
 
-PYTHON REFERENCE HOST:
-- Implemented in `src/genia/native_test_lifecycle.py` with:
-  - `native_test_lifecycle_plan()` — returns inert lifecycle plan data for the native test path.
-  - `native_test_lifecycle_scope_tree()` — returns inert lifecycle scope-tree data for the native test path.
-  - `validate_native_test_lifecycle()` — validates and returns normalized plan/scope data using the existing lifecycle helpers (`normalize_lifecycle_plan`, `normalize_lifecycle_scope_tree`).
-- The descriptor reuses the existing inert lifecycle plan/scope validators (sections 9.3 and 9.4); it does not duplicate or loosen validation logic.
-- Dependency direction is `native_test_lifecycle.py -> lifecycle_plan.py / lifecycle_scope.py`; the lifecycle helpers do not depend on native-test modules.
-- `validate_native_test_lifecycle()` is integrated into `src/genia/test_cli.py` on the native test file execution path as a silent, behavior-neutral validation call.
-- Validated by `tests/unit/test_native_test_lifecycle_consumer.py` (9 tests), Python reference host only.
+PYTHON REFERENCE HOST: `src/genia/native_test_lifecycle.py` provides `native_test_lifecycle_plan()`, `native_test_lifecycle_scope_tree()`, and `validate_native_test_lifecycle()`, reusing the existing plan and scope
+validators of sections 9.3 and 9.4 (dependency direction `native_test_lifecycle.py -> lifecycle_plan.py / lifecycle_scope.py`); `validate_native_test_lifecycle()` is called silently from `src/genia/test_cli.py`.
 
-Explicit limitations:
-- No lifecycle runner is implemented.
-- No lifecycle phase execution is implemented.
-- No setup execution is implemented.
-- No teardown execution is implemented.
-- No `@setup` or `@teardown` annotations are implemented.
-- No generalized annotation execution is implemented.
-- No lifecycle action registry or action resolution is implemented.
-- No public Genia prelude lifecycle API was added.
-- No parser, lexer, Core IR, or evaluator semantic changes were made.
-- Native-test discovery is not routed through lifecycle binding; `@test` discovery is unchanged and `discover_lifecycle_participants(...)` is not used.
-- No execution-mode lifecycle dispatch is implemented.
-- The native-test consumer adds no server, actor, plugin, YAML, browser, notebook, or data-workflow lifecycle. The separate focused R8 server lifecycle core is described in section 9.7; no multi-host lifecycle is implemented.
-- No changes to native-test CLI output or native-test exit codes were made.
+Not implemented: lifecycle runner, phase, setup, or teardown execution, `@setup`/`@teardown`, generalized annotation execution, an action registry, a public lifecycle prelude API, execution-mode dispatch, routing
+`@test` discovery through lifecycle binding, and multi-host lifecycle. The separate focused R8 server lifecycle core is described in section 9.7; the executable R14 lifecycle runtime is section 9.8.
 
 ## 9.7) R8 server execution contract
 
-Status: Implemented. The independently callable lifecycle core (issue #534), inert route/server/CORS annotation bindings (issues #535-#537), and explicit CLI/live HTTP integration (issue #533) are implemented as Experimental Python-reference-host-only behavior. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
+Status: Implemented. The independently callable lifecycle core, inert route/server/CORS annotation bindings (issues #535-#537), and explicit CLI/live HTTP integration are implemented as Experimental Python-reference-host-only behavior. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
 
 LANGUAGE CONTRACT (PARTIALLY IMPLEMENTED):
 
@@ -3795,2791 +3108,389 @@ LANGUAGE CONTRACT (PARTIALLY IMPLEMENTED):
 
 PYTHON REFERENCE HOST (IMPLEMENTED LIFECYCLE CORE):
 
-- `src/genia/server_lifecycle.py` implements the dedicated, independently callable lifecycle core. `server_lifecycle_plan()` returns inert plan data for the exact `startup -> request -> shutdown` phases and `server` / `request` scopes; `validate_server_lifecycle()` validates that static descriptor through the existing lifecycle-plan normalizer without executing lifecycle work.
-- `run_server_lifecycle(application, requests, activate=..., request=..., close=...)` is the only implemented #534 activation seam. It accepts already validated/discovered application data, a finite ordered request source, and injected Python operations, so it is callable without CLI parsing or live sockets.
-- Successful activation establishes listener ownership; requests run in order without retry; request failure skips later requests; an owned listener receives exactly one close opportunity. Activation failure creates no ownership and performs no close. The first non-cleanup failure remains primary, and close failures are preserved in `cleanup_failures` without replacing it.
-- The core returns the seven-key lifecycle result map defined above. Injected-operation exceptions are normalized to failure maps containing `mode`, `phase`, `scope`, `reason`, and `source_location` when the exception provides one.
-- This is one fixed lifecycle consumer, not a lifecycle-plan runner: phase action identifiers remain inert and there is no action registry or resolver.
-- Validated by `tests/unit/test_server_lifecycle.py` (9 tests), Python reference host only.
+- `src/genia/server_lifecycle.py` is the dedicated, independently callable lifecycle core: `server_lifecycle_plan()` returns inert plan data for `startup -> request -> shutdown` over `server`/`request` scopes,
+  `validate_server_lifecycle()` validates it through the lifecycle-plan normalizer without executing work, and `run_server_lifecycle(application, requests, activate=..., request=..., close=...)` is the only activation seam
+  (validated descriptor data, a finite ordered request source, injected operations; no CLI parsing or live socket needed). Successful activation establishes ownership; requests run in order without retry; a request
+  failure skips later requests; an owned listener gets exactly one close; an activation failure creates no ownership and no close. Injected-operation exceptions normalize to failure maps with `mode`, `phase`, `scope`,
+  `reason`, and `source_location` when available. It is one fixed consumer, not a lifecycle-plan runner (action identifiers stay inert; no registry or resolver).
 
 PYTHON REFERENCE HOST (IMPLEMENTED ROUTE ANNOTATION BINDING):
 
-- The evaluator accepts `@route {method: ..., path: ...}` only on a top-level named function, validates the exact closed descriptor map, and stores it as inert `route` binding metadata. The parser, AST grammar, and Core IR are unchanged.
-- Repeated `@route` on one declaration and annotated replacement of existing canonical `route` metadata fail deterministically. An initial `@meta` entry named `route` remains ordinary metadata and is not a canonical route candidate; existing merge behavior for other annotations remains unchanged.
-- `src/genia/server_route_binding.py` discovers only annotated `IrFuncDef` declarations from the supplied evaluated entry-file IR list and environment. It preserves source order with declaration name as tie-breaker, requires exactly one fixed one-argument function arm, aggregates descriptor diagnostics before exact `(method, path)` conflict diagnostics, and rejects every conflict member.
-- A diagnostic-free result assembles existing generic R7 route values in source order and passes them once to the existing `route_request` operation through injected call boundaries. Discovery and assembly do not start a listener or execute a route handler.
-- Validated by `tests/unit/test_server_route_binding.py` and focused annotation metadata tests. This is Experimental Python-reference-host internal support; there is no public route-discovery prelude API.
+- The evaluator accepts `@route {method: ..., path: ...}` only on a top-level named function, validates the closed descriptor, and stores it as inert `route` metadata; parser, AST, and Core IR are unchanged. Repeated `@route`
+  and annotated replacement of existing canonical `route` metadata fail deterministically; an initial `@meta` entry named `route` stays ordinary metadata.
+- `src/genia/server_route_binding.py` discovers annotated `IrFuncDef` declarations of the evaluated entry file (source order, name as tie-breaker), requires exactly one fixed one-argument arm, aggregates descriptor diagnostics
+  before exact `(method, path)` conflict diagnostics (rejecting every conflicting member), and, when diagnostic-free, assembles generic R7 route values in source order and passes them once to `route_request` without starting a
+  listener or running a handler. No public route-discovery prelude API.
 
 PYTHON REFERENCE HOST (IMPLEMENTED SERVER-CONFIG ANNOTATION BINDING):
 
-- The evaluator accepts `@server {host: ..., port: ..., max_requests: ...}` only on a top-level assignment, validates and normalizes the closed descriptor, and stores it as inert `server` binding metadata. The parser, AST grammar, and Core IR are unchanged.
-- Omitted `host` and `port` normalize to the existing `serve_http` defaults `"127.0.0.1"` and `8000`. `port` must be an integer in `[0, 65535]`; optional `max_requests` must be a positive integer when present, while explicit runtime absence is treated as omitted. Input maps are not mutated.
-- Repeated `@server` on one declaration and annotated replacement of existing `server` metadata fail deterministically. An initial `@meta` entry named `server` remains ordinary metadata and is not a canonical server candidate; existing merge behavior for other annotations remains unchanged.
-- `src/genia/server_config_binding.py` discovers only annotated `IrAssign` declarations from the supplied evaluated entry-file IR list and environment. It preserves source order with declaration name as tie-breaker, requires exactly one valid entry-file descriptor, ignores imported declarations, and returns deterministic descriptor/cardinality diagnostics without starting a listener.
-- A diagnostic-free result passes the normalized configuration and unchanged handler once to an injected operation with the existing `serve_http(config, handler)` shape. Diagnostics prevent that operation from being called. This bind-down is independently testable and does not implement CLI dispatch or live lifecycle-to-HTTP composition.
-- Validated by `tests/unit/test_server_config_binding.py`. This is Experimental Python-reference-host internal support; there is no public server-config discovery or binding prelude API.
+- `@server {host: ..., port: ..., max_requests: ...}` is accepted only on a top-level assignment and stored as inert `server` metadata after normalization: `host` defaults to `"127.0.0.1"`, `port` to `8000` (an integer in `[0, 65535]`),
+  optional `max_requests` is a positive integer (explicit runtime absence is treated as omitted); input maps are not mutated. Repeated `@server` and annotated replacement of `server` metadata fail deterministically; `@meta`-named
+  `server` stays ordinary.
+- `src/genia/server_config_binding.py` discovers annotated `IrAssign` declarations of the entry file, requires exactly one valid descriptor, ignores imported declarations, and returns descriptor/cardinality diagnostics without
+  starting a listener; a diagnostic-free result passes the normalized configuration and the unchanged handler once to an injected `serve_http(config, handler)`-shaped operation. No public server-config binding API.
 
 PYTHON REFERENCE HOST (IMPLEMENTED CORS ANNOTATION BINDING):
 
-- The evaluator accepts `@cors {origin: ..., methods: ..., headers: ...}` only on a top-level assignment, validates the closed descriptor through the same policy validator used by R7 `cors`, and stores the original validated map as inert `cors` binding metadata. The parser, AST grammar, and Core IR are unchanged.
-- Repeated `@cors` on one declaration and annotated replacement of existing `cors` metadata fail deterministically. An initial `@meta` entry named `cors` remains ordinary metadata and is not a canonical CORS candidate; existing merge behavior for other annotations remains unchanged.
-- `src/genia/server_cors_binding.py` discovers only annotated `IrAssign` declarations from the supplied evaluated entry-file IR list and environment. It preserves source order with declaration name as tie-breaker, accepts descriptor absence, requires any descriptor to share the selected `@server` owner, ignores imported declarations, and returns deterministic payload/cardinality/ownership diagnostics without starting a listener.
-- A diagnostic-free result with no CORS descriptor returns the unchanged assembled handler without calling a wrapper. One accepted descriptor passes its policy and the unchanged handler exactly once to an injected operation with the existing `cors(policy, handler)` shape. Diagnostics prevent that operation from being called. R7 `cors` and `with_headers` remain the sole owners of preflight and response-header behavior.
-- The shared internal policy validator in `src/genia/cors_policy.py` preserves the existing R7 validation order, defaults, and messages; it prevents a duplicate annotation-specific policy contract.
-- Validated by `tests/unit/test_server_cors_binding.py` plus existing R7 CORS tests. This is Experimental Python-reference-host internal support; there is no public CORS-discovery or server-binding prelude API.
+- `@cors {origin: ..., methods: ..., headers: ...}` is accepted only on a top-level assignment, validated by the same policy validator as R7 `cors` (`src/genia/cors_policy.py`, preserving order, defaults, and messages), and
+  stored as inert `cors` metadata; repeated `@cors` and annotated replacement fail deterministically; `@meta`-named `cors` stays ordinary.
+- `src/genia/server_cors_binding.py` discovers annotated `IrAssign` declarations (source order), accepts absence, requires any descriptor to share the selected `@server` owner, ignores imported declarations, and returns
+  payload/cardinality/ownership diagnostics. With no descriptor the assembled handler is returned unchanged; one descriptor passes its policy and the unchanged handler once to a `cors(policy, handler)`-shaped operation. R7
+  `cors` and `with_headers` remain the sole owners of preflight and response-header behavior. No public CORS-discovery API.
 
 PYTHON REFERENCE HOST (IMPLEMENTED CLI INTEGRATION):
 
 - Python remains the only R8 server execution host because `serve_http`, `route_request`, `cors`, and `with_headers` are Python-reference-host capabilities.
-- `genia serve <file>` accepts exactly one existing entry-file path, evaluates it once without `main` dispatch, performs entry-file descriptor discovery, and prevents activation when diagnostics exist.
-- A valid application assembles source-ordered routes through `route_request`, applies optional application CORS once through `cors`, and activates `serve_http` through the dedicated lifecycle coordinator. Finite `max_requests` completion exits `0` without printing the lifecycle result; startup or lifecycle failure emits a Genia-facing `serve <phase>/<scope>` diagnostic and exits `1`.
-- Missing files, extra operands, and conflicting serve command shapes are CLI usage errors and exit `2` before evaluation or activation.
-- Future hosts may consume the host-independent inert descriptor and lifecycle-result shapes, but R8 adds no shared host-adapter capability and makes no multi-host server guarantee.
+- `genia serve <file>` accepts exactly one existing entry-file path, evaluates it once without `main` dispatch, discovers entry-file descriptors, and prevents activation when diagnostics exist. A valid application assembles
+  source-ordered routes through `route_request`, applies optional application CORS once through `cors`, and activates `serve_http` through the lifecycle coordinator. Finite `max_requests` completion exits `0` without printing the
+  lifecycle result; a startup or lifecycle failure prints a `serve <phase>/<scope>` diagnostic and exits `1`; missing files, extra operands, and conflicting serve command shapes exit `2` before evaluation or activation.
+- Future hosts may consume the host-independent descriptor and lifecycle-result shapes, but R8 adds no shared host-adapter capability and no multi-host server guarantee.
 
 Explicit limitations:
 
 - `@route`, `@server`, and `@cors` metadata remain inert outside explicit `genia serve <file>` activation.
 - No generalized lifecycle runner, middleware system, plugin system, dependency injection, path parameters, concurrent serving, streaming, WebSockets, authentication, authorization, credential policy, per-route CORS, graceful signal protocol, parser/Core IR change, or second web mechanism is defined.
 
-## 9.8) R14 E14-1 lifecycle instance and parent/child execution scopes
+## 9.8) R14 lifecycle and outbound HTTP (digest; Experimental, Python reference host only)
 
-Status: Implemented. The vertical-composition instance/scope core (issue #621) is implemented as Experimental, portable, Python-reference-host-only behavior. It is the first implemented slice of the approved R14 contract (`docs/design/r14-composable-lifecycle-contract.md`, approved by issue #620). Horizontal peer-attachment breadth is proven by issue #692 over this same core — see section 9.9. `lifecycle_repeat`/element scopes are implemented by issue #693 — see section 9.10. Provider binding is implemented by issue #694 — see section 9.11. HTTP remains #622-#628 — not implemented yet.
+Current-state digest of former sections 9.8-9.20 (ticket-by-ticket text is preserved verbatim, as non-authoritative
+provenance, in `docs/state-record/r14-lifecycle-http-records.md`). Approved contract:
+`docs/design/r14-composable-lifecycle-contract.md`; release page: `docs/releases/R14.md`. R14 is complete. All behavior
+below is ordinary functions over ordinary values: no new syntax, parser, AST, or Core IR node, and no ambient or global
+"current lifecycle". Shared/multi-host conformance for this surface is Partial; no C++ implementation exists.
+
+LANGUAGE CONTRACT (Experimental; portable behavior, implemented on the Python reference host only):
+
+- **Lifecycle scopes.** `lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`, and
+  `lifecycle_context(scope_handle, name)` run entry/work/unwind.
+  - A peer is a closed map `{name: symbol, enter: callable/1, exit: callable/2}`. Any other shape, a non-symbol or empty
+    `name`, or a duplicate name in one peer list is construction-time misuse (`TypeError`) raised before any `enter`.
+  - `enter(scope_handle)` returns `some(context_value)` or `err(reason, context)`; any other return is misuse. A
+    successful `enter` exposes its context under the peer's name to later peers and to `work`, never to earlier peers.
+  - Peers enter in list order and unwind in strict reverse order, and only already-entered peers unwind.
+    `exit(scope_handle, primary_summary)` receives only `{status: quote(ok)|quote(error), phase, peer}` and returns
+    `some("nil")` or `err(...)`.
+  - `work(scope_handle)` runs only if every peer entered. Its return value is carried verbatim in `result` and is never
+    inspected for `some`/`none`/`err`; `work` fails a scope only by raising.
+  - Every scope returns exactly one closed `LifecycleResult` (`status`, `state`, `scope`, `phase`, `peer`, `result`,
+    `primary_failure`, `cleanup_failures`). Exactly one failure is primary: the first entry, work, or exit failure; later
+    exit failures are appended to `cleanup_failures` in exit-call order, and every entered peer's `exit` still runs.
+    `result` is `none("lifecycle-no-result")` only when `work` never ran or raised.
+  - A scope handle is valid only while its scope is entering/active/exiting; later use raises
+    `RuntimeError("lifecycle-scope-expired")`. `lifecycle_child` requires an `active` parent and runs as a plain nested
+    call from the parent's `work`.
+  - `lifecycle_context` is inward-only and read-only: own scope first, then each ancestor to the root, returning
+    `some(value)` or `none("lifecycle-context-absent")`. A peer name that collides with a name exposed by an ancestor is
+    construction-time misuse. Attachment order is independent of parent/child ownership.
+- **Repeated element scopes.** `lifecycle_repeat(peers, source, element_work)` takes a list (eager, never short-circuits)
+  or a Flow (lazy, single-use, no over-pull, one source item per pulled result) and returns a list of `LifecycleResult` or
+  a Flow of them; any other source raises the Seq-compatibility `TypeError`. Each element gets a fresh scope
+  (`scope: quote(element)`, no parent) whose reserved context `quote(element)` and `quote(index)` (1-based pull order) is
+  readable through `lifecycle_context` before any peer's `enter`. Peers named `element` or `index` are misuse. Early Flow
+  termination never leaves an element scope partially entered; cleanup is the existing Flow finalization rule. There is no
+  AWK syntax and no cross-element leakage; `none(...)`/`err(...)` from `element_work` is ordinary `result` data.
+- **Configuration binding.** `lifecycle_config(provider)` accepts an already-constructed R10/R13 provider (the unwrapped
+  result of `config_provider`/`config_standard`; a plain map, `some(provider)`, `none`, or `err` raises `TypeError`) and
+  returns one peer named `quote(config)`. `enter` captures the exact provider reference (no lookup, acquisition, or refresh)
+  and `exit` returns `some("nil")`. At most one `quote(config)` peer may exist along one root/child/element chain; element
+  scopes do not inherit an outer binding automatically. A missing binding yields the generic
+  `none("lifecycle-context-absent")`.
+- **HTTP operation.** `http_operation(method, base_url, path, headers, query, body)` returns `some(HttpOperation)` or
+  `err("http-operation-invalid", {stage})` for the first invalid field in declared order, with zero network IO.
+  - `method` is `quote(get|post|put|patch|delete)`; `base_url` is exactly `scheme://host[:port]` with `http`/`https`;
+    `path` starts with `/` and contains no `?` or `#`, passed through unmodified.
+  - Header keys lowercase; a lowercase-name collision is misuse. A header value is a plain string or one R10 protected
+    value. `query` takes plain string keys and values only (a protected value is rejected; keys keep their case).
+  - `body` is `none(...)` (normalized to `none("http-no-body")`), `{kind: quote(text), text}`, or `{kind: quote(json),
+    value}`; a JSON body that `json_encode` rejects (including a protected leaf) is `err(..., {stage: quote(body)})`.
+    An implicit `content-type` is added only for a valid body when the caller set none; an explicit one always wins.
+  - An `HttpOperation` is an ordinary closed map `{method, base_url, path, headers, query, body}` with no response field.
+- **Outbound call.** `web.http_send(operation, authority, timeout_ms)` returns `some({status, headers, body})` or
+  `err(reason, context)`.
+  - `authority` is `none(...)` when no header is protected, otherwise `some(<opaque R10 declassification authority>)`;
+    `timeout_ms` is an integer in 1..300000. Malformed arguments, or a protected header with a missing or mismatched
+    authority, raise before any transport attempt.
+  - Exactly one synchronous attempt: no retry, redirect, pooling, or streaming. Any received status (100..599) is an ordinary
+    `some(...)`; response header keys are lowercase and `body` is opaque bytes, never auto-decoded.
+  - Failures are exactly `err("http-timeout", {timeout_ms})` and `err("http-transport-failure", {kind})` with `kind` in
+    `connect|tls|dns|other`. `http-response-invalid` is reserved vocabulary that is never constructed.
+  - The query string is sorted by key, percent-encodes every byte outside `ALPHA/DIGIT/-._~` (space is `%20`), joined with `&`
+    and prefixed with `?` only when non-empty. Text bodies are UTF-8; JSON bodies use `json_encode`.
+  - Each call runs one complete internal entry/work/unwind cycle with no caller-visible parent; the declassified header value
+    is revealed only immediately before the transport attempt, through `declassify` with purpose `quote(http_send)`.
+- **Protected credentials.** A protected header stays opaque through construction, storage in an `HttpOperation`, `display`,
+  `debug_repr`, and `json_encode` (which fails closed with `err("protected-value", {operation: "json-encode"})`); generic
+  representation operations reject it. Responses are always ordinary values. A declassification authority is host-injected and
+  cannot be constructed from Genia source.
+- **Declarative annotations.** `@get {path: string}` and `@post {path: string}` are inert descriptors valid only on a
+  top-level named function with a fixed zero-argument arm; `path` is a non-empty string starting with `/`. They share one
+  cardinality slot per declaration, and rebinding that would replace existing metadata is a deterministic diagnostic. Calling,
+  loading, or importing an annotated function never performs IO. `web.send_annotated(fn, base_url, authority, timeout_ms)`
+  calls `fn` with no arguments for its `{headers, query, body}` map, builds the operation with `http_operation`, and calls
+  `web.http_send`; construction failures propagate as `err("http-operation-invalid", {stage})`. Only `get` and `post` exist.
+- **Composition.** An R8 route handler may call `web.http_send`/`web.send_annotated` any number of times; each call is
+  independent of the request scope, a failed outbound call is ordinary `err(...)` data, and the server keeps serving. The R8
+  server lifecycle and the R14 lifecycle runtime remain separate. A repeated-record pipeline composes
+  `lifecycle_scope` + `lifecycle_repeat` + `lifecycle_context` with ordinary `filter`/`map`; the shipped proving examples
+  are `examples/r14_repeated_record_lifecycle_proving_case.genia` and the YouVersion Bible proxy case.
+
+PYTHON REFERENCE HOST:
+
+- Implemented in `src/genia/lifecycle_runtime.py`, `http_operation.py`, `http_transport.py`, `http_client.py`, and
+  `http_annotation_binding.py`; `web.http_send` and `web.send_annotated` are prelude wrappers over private builtins. The
+  transport capability is private (no builtin or import entry) and classifies every failure to a closed `kind` without
+  retaining raw exception text.
+- Import, native-test discovery, and serve-mode annotation registration never perform lifecycle or network activation.
+
+Explicit limitations: no retries, circuit breakers, redirects, pooling, streaming client, cookies/OAuth, dependency
+injection, scheduler, concurrent peer or element execution, HTTP methods beyond the five above, annotation verbs beyond
+`get`/`post`, AWK syntax, or C++ implementation.
+
+## 9.21) R21/R22 exact numeric model (digest; Experimental)
+
+Current-state digest of former sections 9.21-9.31 (ticket-by-ticket text is preserved verbatim, as non-authoritative
+provenance, in `docs/state-record/numeric-r21-r23-records.md`). Contracts: `docs/design/r21-numeric-source-portable-representation-contract.md`
+and `docs/design/r22-exact-numeric-runtime-contract.md`; release pages `docs/releases/R21.md` and `R22.md`. Python reference
+host only; no C++ implementation. Rendering and JSON of these values are in section 9.32.
 
 LANGUAGE CONTRACT:
 
-- Three ordinary functions are implemented: `lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`, and `lifecycle_context(scope_handle, name)`. `lifecycle_repeat`, `lifecycle_config`, and `web.http_send` are not implemented by this issue.
-- A peer (`LifecycleDefinition`) is an ordinary closed map `{name: symbol, enter: callable/1, exit: callable/2}`. Any other shape, a non-symbol or empty-string `name`, or a duplicate name within one peer list is construction-time misuse (`TypeError`) raised before any `enter` call.
-- `enter(scope_handle)` must return `some(context_value)` or `err(reason, context)`; any other return is misuse. A successful `enter` makes its peer "entered" and exposes `context_value` through `lifecycle_context` under that peer's name, readable by later peers in the same list and by `work`, but never by an earlier peer in the same list.
-- Peers on one scope operation enter in list (attachment) order and unwind (`exit`) in strict reverse order. `exit(scope_handle, primary_summary)` receives only the narrow `{status: quote(ok)|quote(error), phase, peer}` summary — never another peer's context or resources — and must return `some("nil")` or `err(reason, context)`.
-- `work(scope_handle)` runs only if every peer entered. Its return value is carried into the result's `result` field verbatim and is never inspected for `some`/`none`/`err`; the only way `work` produces a lifecycle failure is by raising, normalized the same way R8 normalizes lifecycle exceptions (`reason` from `str(exception)`, non-sensitive empty `context`).
-- Every scope operation returns exactly one closed `LifecycleResult`: `{status: quote(ok)|quote(error), state: quote(completed)|quote(failed), scope: quote(root)|quote(child), phase: quote(enter)|quote(work)|quote(exit), peer: some(symbol)|none("lifecycle-no-peer"), result: some(value)|none("lifecycle-no-result"), primary_failure: none("lifecycle-no-failure")|failure_value, cleanup_failures: [failure_value, ...]}`, where `failure_value` is `{peer, phase, reason: string, context: map}`.
-- Exactly one failure is primary per `LifecycleResult`: the first entry, work, or unwind failure encountered. The first exit failure encountered with no primary failure yet is promoted to `primary_failure`; every later exit failure in the same unwind is appended to `cleanup_failures` in exit-call order. Every entered peer's `exit` is attempted exactly once regardless of earlier exit failures.
-- `result` carries `work`'s return value whenever `work` executed without raising, independent of any later exit failure; it is `none("lifecycle-no-result")` only when `work` never ran (an entry failure) or `work` raised.
-- Scope lifetime is `created -> entering -> active -> exiting -> completed` on success, `created -> entering -> failed` when the very first peer's `enter` fails (nothing yet entered, so no unwind), `created -> entering -> exiting -> failed` when a later peer's `enter` fails (unwinds only the already-entered peers), and `created -> entering -> active -> exiting -> failed` on a work or exit failure.
-- A scope handle is valid only while its scope is `entering`/`active`/`exiting`. Any later use by `lifecycle_context` or `lifecycle_child` raises `RuntimeError("lifecycle-scope-expired")` — the same single-valid-lifetime family as an already-consumed Flow. This is the entire cancellation/shutdown surface: there is no external cancel/abort/signal API.
-- `lifecycle_child(scope_handle, peers, work)` runs a new scope as a plain nested function call from inside the parent's own `work`; it requires the parent handle to be `active` (not merely alive) and raises a distinct `RuntimeError` (not the scope-expired identifier) otherwise, since a handle mid-`entering`/`exiting` is alive but in the wrong phase for child creation. A child's `LifecycleResult` is ordinary data returned to the parent's `work` — it is never implicitly raised into the parent, so a failed child never implicitly fails the parent. A child's peers/resources are entirely separate from the parent's; child entry and unwind complete synchronously inside the one `lifecycle_child` call, so a child can never outlive it, and a parent's own resources are untouched by a child's unwind.
-- `lifecycle_context(scope_handle, name)` is inward-only and read-only: it checks the calling scope's own entered-peer context first, then walks each ancestor scope up to the root, returning the first match as `some(value)` or `none("lifecycle-context-absent")` if none expose that name. There is no write accessor and no way to mutate an ancestor's or peer's exposed context through this call.
-- Non-shadowing is enforced at peer-list construction, before any `enter` runs: a peer name colliding with any name already exposed by an ancestor scope in the same chain is `TypeError` misuse. (This is the same mechanism later reserved names such as `quote(config)`/`quote(element)`/`quote(index)` will reuse in #693/#694; no reserved names exist yet in this issue.)
-- No global mutable "current lifecycle" or "current scope" exists anywhere in this surface. No annotation, parser, AST, or Core IR change was made; every operation is an ordinary call over ordinary closed map/callable values, registered exactly like `config_view`/`secret_view`.
+- **Numeric source classification (R21).** Source literals classify lexically with no host binary float: `DIGIT+` is Integer;
+  `DIGIT+ "." DIGIT+`, `DIGIT+` with an exponent (`e`/`E`, optional sign, `DIGIT+`), and the dotted-exponent form are Decimal.
+  `.5` and `5.` are rejected; a malformed exponent (`1e`, `1e+`) is a deterministic `SyntaxError`. A Decimal literal is
+  canonicalized as `(coefficient, exponent)` with value = coefficient x 10^exponent (zero is `(0, 0)`, trailing base-10 zeros
+  stripped). The `Number` AST node carries `source_kind`, `digits` or `coefficient`/`exponent`.
+- **Portable literal payload (R21).** Expression-position numeric source lowers through the existing `IrLiteral` with a tagged
+  payload: `{"kind": "integer", "digits": "<canonical text>"}` or `{"kind": "decimal", "coefficient": "<text>", "exponent":
+  "<text>"}` (all strings; equivalent spellings such as `1.0`, `1.00`, `100e-2` give the identical payload). Source sign stays
+  outside the payload (`-1.25` is `IrUnary(MINUS, ...)`); `/` stays ordinary `IrBinary(op=SLASH)`; `IrPatLiteral` is unchanged;
+  no new Core IR node.
+- **Value kinds (R22).** Integer is a Python `int` (unbounded, R17). **Decimal** (`GeniaDecimal`) is an exact
+  coefficient x 10^exponent over arbitrary-precision integers, canonicalized as above with no negative-zero identity; Decimal kind
+  is retained even for an integral value (`1.0` stays Decimal). **Rational** (`GeniaRational`) is an exact reduced ratio of
+  Integers; `rational(n, d)` requires Integer arguments and a nonzero denominator (otherwise deterministic misuse), reduces by
+  gcd, carries sign on the numerator, and collapses a denominator of 1 to Integer (`rational(2, 2)` is Integer `1`). There is no
+  Rational literal syntax. **Float64** is the host IEEE-754 binary64 value; there is no public NaN/infinity/raw-bit constructor.
+- **Exact family arithmetic.** `+`, `-`, `*`, unary `-` use the promotion lattice Integer < Decimal < Rational, computed exactly
+  (never via host float). A Decimal operand keeps Decimal kind; any Rational operand gives Rational (collapsing to Integer when
+  the denominator is 1). `/`: Integer/Integer is Integer when evenly divisible, otherwise **Rational** (never Decimal: `1 / 2` is
+  `1/2`); with a Decimal operand and no Rational it is Decimal when the reduced quotient terminates in base 10, otherwise
+  Rational; any Rational operand gives Rational. `%` is floor remainder (`left - floor(left/right) * right`) with the `+ - *`
+  result-kind rule. Division or remainder by exact zero raises `ZeroDivisionError` with the host-independent text
+  `"exact division by zero"` / `"exact remainder by zero"`.
+- **Float64 and conversions.** `float64(value)` accepts Integer/Decimal/Rational (correctly rounded, ties-to-even) or Float64
+  (unchanged); exact magnitude beyond the largest finite binary64 raises `OverflowError`; exact zero gives positive zero.
+  `exact(value)` leaves exact kinds unchanged and converts a finite Float64 to the Decimal of its exact binary value
+  (`exact(float64(0.1))` is `0.1000000000000000055511151231257827021181583404541015625`); `+0.0`/`-0.0` give Decimal zero; NaN and
+  infinities fail with `ValueError`. Float64-with-Float64 arithmetic is native binary64; division or remainder by Float64 zero
+  raises `ZeroDivisionError` (`"float64 division by zero"` / `"float64 remainder by zero"`).
+- **Mixed-domain rejection.** Arithmetic mixing an exact kind (including plain Integer) with Float64 is rejected in both operand
+  orders for all five binary operators, returning the existing `none("type-error", ...)`; the caller picks a domain with
+  `float64(...)` or `exact(...)` first. Comparison is unaffected.
+- **Comparison, equality, map keys.** One uniform exact relation (R18): `1 == 1.0`, `1.0 == 1.00`, `1 == rational(2, 2)` hold, and
+  `< <= > >=` order exact kinds mathematically. A finite Float64 compares by its exact represented value (the exact operand is
+  never rounded); `+0.0`/`-0.0` equal exact zero; NaN is unequal to everything including itself and every ordered comparison with
+  it is `false`; infinities order as extended reals. Map keys: any non-integral Decimal, Rational, or float collides with an equal
+  value of any of those kinds in one `("num-fraction", n, d)` bucket (lowest terms), integral values of any kind share the integer
+  bucket, NaN is an illegal key, and infinities keep distinct-by-sign buckets.
+- **Misuse and limits.** Every numeric misuse family (zero division, invalid `rational`/`float64`/`exact` arguments, mixed-domain
+  arithmetic, illegal NaN key) fails with deterministic, host-independent diagnostics and no raw host exception text. A
+  Decimal coefficient/exponent or Rational numerator/denominator beyond a private bound (default 14,000 bits) raises the
+  deterministic `numeric-resource-limit` error before any expensive work; the bound does not apply to plain Integer arithmetic,
+  which stays unbounded, and its value is a host/test detail, not Genia semantics.
+- **Cross-surface recognition.** Quoted and quasiquoted numeric literals materialize the same runtime kind as ordinary evaluation;
+  `self_evaluating?`/metacircular `eval` treats Decimal and Rational as self-evaluating; Sheets CSV rendering, format-spec
+  numerics, shell-stage stdin materialization, JSON Schema `"number"` matching, and R12 finite-score validation recognize Decimal
+  and Rational.
 
-PYTHON REFERENCE HOST:
+Explicit limitations: no Rational literal syntax, Float64 suffix or raw-bit syntax, public NaN construction, arbitrary-precision
+JSON transport, locale-sensitive formatting, or C++ implementation.
 
-- `src/genia/lifecycle_runtime.py` implements the algorithm above. `GeniaLifecycleScope` is an internal, non-source-constructible handle (`kind`, `parent`, `lifetime`, `context`); it is never a public value category and is only ever the argument passed into one scope operation's own `enter`/`exit`/`work` callables.
-- `run_lifecycle_scope(peers, work, invoke)`, `run_lifecycle_child(parent_handle, peers, work, invoke)`, and `lookup_lifecycle_context(handle, name)` take an injected `invoke: Callable[[Any, list], Any]` for calling caller-supplied Genia callables, mirroring `server_lifecycle.run_server_lifecycle`'s injected-operation style; `src/genia/builtins.py` wires this to the existing `_invoke_raw_from_builtin` evaluator path (the same one already used for `where`/`derive`/`config_get_or`'s default).
-- Registered as `lifecycle_scope`/`lifecycle_child`/`lifecycle_context` in `src/genia/builtins.py`; documented in `src/genia/host_builtin_docs.py`.
-- Validated by `tests/unit/test_lifecycle_runtime.py` (24 tests) exercising the module directly with a trivial injected invoker, Python reference host only. No host capability is introduced; shared/multi-host conformance remains Partial.
+## 9.32) R23 numeric rendering and JSON interchange (digest; Experimental)
 
-Explicit limitations:
-
-- No `lifecycle_repeat`, `lifecycle_config`, HTTP operation/client, element scopes, reserved element/index/config context names, or provider binding is implemented. Peer-attachment breadth (multiple `LifecycleDefinition`s on one scope) is now proven at three-or-more peers by issue #692 — see section 9.9.
-- No generalized lifecycle-plan/action-identifier runner, dependency injection, scheduler, actor supervision, or concurrent peer/child execution is defined.
-
-## 9.9) R14 E14-2 peer lifecycle attachment and deterministic unwind
-
-Status: Proven. Issue #692 adds no new public function, value shape, or runtime behavior. It extends `tests/unit/test_lifecycle_runtime.py` with nine focused tests proving the E14-1 entry/work/unwind algorithm (section 9.8, `src/genia/lifecycle_runtime.py`) at three-or-more-peer breadth, exactly matching the horizontal-composition contract approved by issue #620 (`docs/design/r14-composable-lifecycle-contract.md`). `src/genia/lifecycle_runtime.py`, `src/genia/builtins.py`, and `src/genia/host_builtin_docs.py` are unchanged from E14-1: `_run_scope`'s enter/work/unwind loops already iterate a plain Python list of arbitrary length with no hardcoded peer count.
-
-LANGUAGE CONTRACT (already true of `lifecycle_scope`/`lifecycle_child` as documented in section 9.8; this section records what #692 additionally proves at breadth):
-
-- The peer list is not limited to one or two entries: any number of `LifecycleDefinition` peers enter in list order and unwind, in strict reverse, only the peers that actually entered.
-- Entry failure at any position in a longer peer list unwinds exactly the already-entered prefix in reverse, and never attempts a peer positioned after the one that failed.
-- Exactly one `primary_failure` is recorded across an arbitrarily long unwind: the first exit failure encountered in reverse-call order is promoted, every later exit failure (including one that occurs after a peer whose own exit succeeded) is appended to `cleanup_failures` in exit-call order, and every entered peer's `exit` still runs exactly once.
-- Context visibility stays inward/later-only at any peer-list length: a peer's exposed context is invisible to every earlier peer in the same list and visible to every later peer and to `work`.
-- `exit`'s `primary_summary` argument carries only `{status, phase, peer}` for every peer regardless of list length — no peer's `exit` callable ever receives another peer's exposed context or resources.
-- A peer that reads another peer's exposed context and derives a locally modified value (via `GeniaMap.put`, which is persistent and returns a new map rather than mutating in place) cannot cause that derived value to appear under the original peer's own name — peer isolation holds structurally, not merely by the absence of a write API.
-- Attachment order and parent/child ownership remain independent relationships at any peer-list length: a multi-peer child scope's own attachment/unwind order is unaffected by how many ancestor scopes or ancestor peers exist above it.
-
-PYTHON REFERENCE HOST:
-
-- No change to `src/genia/lifecycle_runtime.py`, `src/genia/builtins.py`, or `src/genia/host_builtin_docs.py`.
-- Validated by nine additional tests in `tests/unit/test_lifecycle_runtime.py` (34 tests total in that file, at the time of E14-2; 43 after E14-3's own additions — see section 9.10), Python reference host only. No host capability is introduced; shared/multi-host conformance remains Partial.
-
-Explicit limitations:
-
-- No HTTP operation/client is implemented (see issues #622-#628). `lifecycle_repeat` and element scopes are implemented by issue #693 — see section 9.10. `lifecycle_config`/provider binding is implemented by issue #694 — see section 9.11.
-- No generalized lifecycle-plan/action-identifier runner, dependency injection, scheduler, actor supervision, or concurrent peer/child execution is defined.
-
-## 9.10) R14 E14-3 repeated element-scoped lifecycle execution
-
-Status: Implemented. Issue #693 adds one new ordinary function,
-`lifecycle_repeat(peers, source, element_work)`, composing the unchanged
-E14-1/E14-2 entry/work/unwind algorithm (sections 9.8-9.9) with the
-existing Flow/Seq lazy-pull/finalization machinery, per the approved R14
-contract's "Repeated element-scoped execution" section
-(`docs/design/r14-composable-lifecycle-contract.md`).
-
-LANGUAGE CONTRACT:
-
-- `lifecycle_repeat(peers, source, element_work)` accepts `source` as
-  either an ordinary `list` (eager) or a `Flow` (lazy), and returns
-  `[LifecycleResult, ...]` or `Flow<LifecycleResult>` respectively; any
-  other `source` shape raises the existing "expected a Seq-compatible
-  value (list or Flow)" `TypeError` before any element scope is touched.
-- Each consumed element gets one fresh **element scope**
-  (`scope: quote(element)`) running the exact same entry/work/unwind
-  algorithm as `lifecycle_scope`/`lifecycle_child`, with no R14 parent —
-  `lifecycle_repeat` itself has no lifecycle scope of its own.
-- Two reserved context names are populated in every element scope before
-  any attached peer's own `enter` runs, readable through the existing
-  `lifecycle_context(scope_handle, name)` accessor by any peer or by
-  `element_work`: `quote(element)` (the consumed element value) and
-  `quote(index)` (its 1-based ordinal among elements actually pulled from
-  `source` so far — the pull order, not source position).
-- A peer literally named `element` or `index` is construction-time misuse,
-  rejected with a `TypeError` before any `enter` runs — the same
-  non-shadowing mechanism `lifecycle_scope`/`lifecycle_child` already use
-  for ancestor context, now also checking a scope's own pre-seeded
-  reserved context.
-- **Eager (`list`) source:** every element is processed, in order,
-  regardless of any individual element's `LifecycleResult` status —
-  `lifecycle_repeat` never short-circuits a `list` source, exactly like
-  `map` processing every item.
-- **Lazy (`Flow`) source:** `lifecycle_repeat` over a `Flow` returns a
-  lazy, single-use `Flow<LifecycleResult>` and performs no work until
-  pulled. Pulling one item from the returned Flow pulls exactly one item
-  from `source` (no over-pull, no read-ahead), runs that element's
-  complete entry/work/unwind algorithm synchronously, and yields its
-  `LifecycleResult`. Because each element scope is fully entered and
-  unwound *before* its result is yielded, bounded early termination
-  (`take`, a manual break, downstream short-circuit) never leaves an
-  element scope partially entered — the most recently yielded element's
-  cleanup already ran. Early-close cleanup is exactly the existing Flow
-  `close_on_early_termination` + upstream-`close()` finalization rule
-  already used by `map`/`filter`/`take`; no new finalization mechanism is
-  introduced.
-- `element_work` returning `none(...)`/`err(...)` as ordinary data is not
-  treated specially: per the general work-return rule (section 9.8), it is
-  exactly `result: some(none(...))`/`result: some(err(...))` on an
-  otherwise `completed` `LifecycleResult`. There is no dedicated filtering
-  primitive.
-- An element scope's handle becomes invalid (raising the existing
-  `RuntimeError("lifecycle-scope-expired")` on later `lifecycle_context`/
-  `lifecycle_child` use) the instant its own `LifecycleResult` is produced
-  — the same single-valid-lifetime mechanism sections 9.8-9.9 already
-  document, with no new expiry concept.
-- Any scope `element_work` creates via `lifecycle_child` is a shorter
-  nested lifetime under that element scope, exactly like existing vertical
-  composition — this required no change, since `lifecycle_child` only
-  checks that its parent handle's scope is `active`, not its `kind`.
-- No cross-element context leakage: each element scope is an independent
-  `_run_scope` call with no parent, so nothing exposed in one element's
-  scope is ever visible from another element's scope.
-
-PYTHON REFERENCE HOST:
-
-- `src/genia/lifecycle_runtime.py`: `run_lifecycle_element(peers, element,
-  index, work, invoke)` runs one element scope via the existing `_run_scope`,
-  now taking an optional `preset_context` keyword that seeds `scope.context`
-  before peer validation/entry (used only by this function; root/child
-  scopes never pass it, so their behavior is unchanged — confirmed by the
-  existing 34 E14-1/E14-2 tests staying green). This module still has zero
-  `list`/`Flow`/iteration knowledge.
-- `src/genia/builtins.py`: `lifecycle_repeat_fn` dispatches `isinstance(source,
-  list)` (eager, a plain list comprehension over `enumerate(source, start=1)`)
-  vs. `isinstance(source, GeniaFlow)` (lazy, a generator wrapped in
-  `GeniaFlow`, reusing the exact `try/finally` + `_finalize_iterable(items,
-  primary_error=...)` idiom already used by `map`/`filter`/`take`).
-  Registered as `lifecycle_repeat`, documented in `host_builtin_docs.py`.
-- Validated by 9 additional tests in `tests/unit/test_lifecycle_runtime.py`
-  (43 tests total in that file, Flow-free, exercising
-  `run_lifecycle_element` directly) and 15 tests in the new
-  `tests/unit/test_lifecycle_repeat.py` (through real Genia source via
-  `run_source`, covering eager/lazy dispatch, no-over-pull, close-once-on-
-  early-stop, and deterministic two-peer-per-element ordering for both
-  source kinds), Python reference host only. No host capability is
-  introduced; shared/multi-host conformance remains Partial.
-
-Explicit limitations:
-
-- No HTTP operation/client is implemented (see issues #622-#628).
-  `lifecycle_config`/provider binding is implemented by issue #694 — see
-  section 9.11.
-- No AWK syntax, `$0`/`$1`/`NR`/`NF` binding, or record-shape derivation —
-  `quote(element)`/`quote(index)` are read through the ordinary
-  `lifecycle_context` accessor only; a future record-oriented lifecycle
-  derives `record`/`fields`/`nr`/`nf` as ordinary values from these, not as
-  new syntax (see issue #695).
-- No generalized lifecycle-plan/action-identifier runner, dependency
-  injection, scheduler, actor supervision, or concurrent element
-  processing is defined.
-
-## 9.11) R14 E14-4 lifecycle-owned configuration provider binding
-
-Status: Implemented. Issue #694 adds one new ordinary function,
-`lifecycle_config(provider) -> LifecycleDefinition`, a pure factory
-composing the *unmodified* E14-1/E14-2/E14-3 peer machinery (sections
-9.8-9.10) with the existing R10/R13 `GeniaConfigProvider` type, per the
-approved R14 contract's "Lifecycle-owned configuration binding" section
-(`docs/design/r14-composable-lifecycle-contract.md`). This promotes
-candidate C-1 from `docs/parking-lot/post-r13-configuration-followups.md`
-(the R13 lifecycle/provider-binding gap deliberately deferred at the time).
+Current-state digest of former sections 9.32-9.37 (ticket-by-ticket text is preserved verbatim, as non-authoritative
+provenance, in `docs/state-record/numeric-r21-r23-records.md`). Contract:
+`docs/design/r23-numeric-representation-interchange-contract.md`; audit: `docs/analysis/r23-release-truth-audit.md`; release
+page `docs/releases/R23.md`. R23 is complete. Python reference host only; no C++ implementation. It changes no R22
+arithmetic, equality, or comparison.
 
 LANGUAGE CONTRACT:
 
-- `lifecycle_config(provider)` validates that `provider` is an existing,
-  already-constructed `GeniaConfigProvider` value — the unwrapped result
-  of a successful `config_provider`/`config_standard` call — and returns
-  exactly one closed peer map `{name: quote(config), enter: callable/1,
-  exit: callable/2}`. Any other argument shape (a plain map, a string,
-  `none`, an un-unwrapped `some(provider)`, an `err(...)`) raises
-  `TypeError` before any scope/peer machinery runs.
-- `enter(scope_handle)` always returns `some(provider)`: it captures the
-  exact provider reference and performs no lookup, no source acquisition,
-  no host capability call, and no provider refresh — binding is
-  attachment, not acquisition.
-- `exit(scope_handle, primary_summary)` always returns `some("nil")`:
-  there is nothing to release.
-- The bound provider is read, inward-only, by any peer or `work`/
-  `element_work` in the same scope or any descendant scope, through the
-  unchanged `lifecycle_context(handle, quote(config))` accessor — no new
-  accessor is introduced. The value returned is the exact provider object
-  (not a copy), so `config_view`/`secret_view` construction,
-  `config_get`/`secret_get`, existing Outcomes, protected carriers, sinks,
-  authority, and declassification behave exactly as an explicitly
-  hand-threaded provider would.
-- `quote(config)` is a reserved, non-shadowable peer name: at most one
-  `lifecycle_config` peer may exist anywhere in one root/child/element
-  ancestry chain. A second attempt anywhere in that chain is
-  construction-time misuse. This is enforced entirely by the *already-
-  implemented, unmodified* `_validate_peers` duplicate-peer-name-in-one-list
-  check and ancestor-non-shadowing check (sections 9.8-9.9) — because
-  `lifecycle_config` always hardcodes `name: quote(config)`, no new
-  reserved-name mechanism was needed. Sibling scope trees (not
-  ancestor-related) may each bind their own provider independently.
-  Element scopes have no R14 parent (section 9.10), so a provider bound at
-  an outer scope is not automatically inherited into `lifecycle_repeat`'s
-  per-element scopes; an application wanting every element to see a
-  provider attaches `lifecycle_config(provider)` inside the same `peers`
-  list passed to `lifecycle_repeat`.
-- A missing binding (`lifecycle_context` on `quote(config)` with no
-  `lifecycle_config` peer anywhere in the chain) returns the existing
-  generic `none("lifecycle-context-absent")` — no new failure reason.
-- No bare configuration name, ambient lookup, or `server.PORT`-style named
-  access is introduced. This is R14's entire configuration surface: one
-  explicit, immutable, non-refreshable binding — not dependency injection,
-  not a service container, and not a second provider implementation.
-
-PYTHON REFERENCE HOST:
-
-- `src/genia/builtins.py`: `lifecycle_config_fn` validates
-  `isinstance(provider, GeniaConfigProvider)` and constructs the peer map
-  with trivial Python-closure `enter`/`exit` (no genia source involved in
-  their construction). Registered as `lifecycle_config`, documented in
-  `host_builtin_docs.py`. **No change to `src/genia/lifecycle_runtime.py`
-  or `src/genia/configuration.py`.**
-- Validated by 9 additional tests in `tests/unit/test_lifecycle_runtime.py`
-  (53 tests total in that file — peer shape, non-provider rejection, exact-
-  object context identity, grandchild visibility, duplicate/shadowing
-  rejection in both a shared list and across parent/child, sibling
-  scope-tree independence, element-scope binding, missing-binding absence,
-  and N-peer composition, all via the trivial injected invoker) and 4 tests
-  in the new `tests/unit/test_lifecycle_config.py` (through real Genia
-  source via `run_source`: `config_view`/`secret_view` parity with a
-  hand-threaded provider, protected-secret redaction under `display`/
-  `debug_repr`, an end-to-end bind-then-read-from-child-scope proof, and
-  rejection of an unwrapped `some(provider)` argument), Python reference
-  host only. No host capability is introduced; shared/multi-host
-  conformance remains Partial.
-
-Explicit limitations:
-
-- No HTTP client/transport is implemented (see issues #623-#628). The
-  common `HttpOperation` representation is implemented by issue #622 —
-  see section 9.12.
-- No provider refresh, mutation, service container, or dependency-injection
-  framework is defined — `lifecycle_config` is one explicit, immutable
-  binding, nothing more.
-- No change to `config_view`, `secret_view`, `config_standard`,
-  `config_provider`, or any R10/R13 lookup/protection semantic.
-
-## 9.12) R14 E14-5 common HTTP operation representation
-
-Status: Implemented. Issue #622 adds one new ordinary function,
-`http_operation(method, base_url, path, headers, query, body) ->
-some(HttpOperation) | err("http-operation-invalid", {stage})`, per the
-approved R14 contract's "HTTP operation representation" section
-(`docs/design/r14-composable-lifecycle-contract.md`). Construction
-performs **zero network IO** of any kind — this is the first R14-HTTP
-ticket, and it adds no host capability at all (that arrives in #623).
-
-LANGUAGE CONTRACT:
-
-- `method`, `base_url`, `path`, `headers`, `query`, and `body` are
-  validated in that declared order; the first invalid field stops
-  validation immediately and produces
-  `err("http-operation-invalid", {stage: quote(<field>)})` — no partial or
-  multi-error result is ever returned.
-- `method` must be exactly one of `quote(get)`, `quote(post)`,
-  `quote(put)`, `quote(patch)`, or `quote(delete)`. `HEAD`, `OPTIONS`,
-  `CONNECT`, and `TRACE` are not in the approved R14 method set.
-- `base_url` must match `scheme://host[:port]` exactly, `scheme` in
-  `{http, https}`, `host` one-or-more ASCII letters/digits/`-`/`.`, `port`
-  (if present) one-or-more ASCII digits; any userinfo, path, query, or
-  fragment, or an unsupported scheme, is invalid.
-- `path` must start with `/` and must not contain `?` or `#`. Path bytes
-  pass through exactly as supplied — no percent-encoding, normalization,
-  or trailing-slash handling.
-- `headers` keys are normalized to lowercase ASCII; two entries whose
-  lowercased names collide is construction-time misuse (not last-wins). A
-  header value is a plain string or exactly one R10 `GeniaProtected`
-  value — any other shape is invalid. (Purpose restriction to
-  `quote(http_send)` is #625's declassification-time concern, not
-  construction.)
-- `query` accepts plain string keys and values only — a `GeniaProtected`
-  value in `query` is rejected at construction; a credential must be
-  carried in `headers`. Query keys are **not** lowercased.
-- `body` is `none(...)` (any reason; normalized to
-  `none("http-no-body")` in the result), `{kind: quote(text), text:
-  string}`, or `{kind: quote(json), value}`. A `json`-kind body's `value`
-  is passed through the existing `json_encode` capability purely to fail
-  fast — a `json_encode` failure (including a protected leaf inside
-  `value`, which `json_encode` already rejects) surfaces as this
-  function's own `err(..., {stage: quote(body)})`, before any later
-  ticket's child scope or transport exists. The constructed `body` field
-  keeps its original `{kind, text|value}` descriptor shape — `http_operation`
-  does not store pre-encoded bytes; actual wire encoding is `web.http_send`'s
-  job (#624).
-- An implicit `content-type` header (`text/plain; charset=utf-8` for
-  `text`, `application/json` for `json`) is added to the result's
-  `headers` only when `body` validates successfully and `headers` does
-  not already set `content-type` (case-insensitively) — an explicit
-  caller-supplied header always wins; R14 never silently discards it.
-  A `none` body adds no implicit content-type.
-- The constructed `HttpOperation` is an ordinary closed `GeniaMap` with
-  keys `method, base_url, path, headers, query, body` — no new value
-  class. It composes with `display`, diagnostics, and any container
-  operation exactly like any other map holding a possibly-protected leaf,
-  per R10's existing recursive sink-scan rules — no special-casing was
-  needed. `HttpOperation` carries no `response` field.
-
-PYTHON REFERENCE HOST:
-
-- `src/genia/http_operation.py` (new): `construct_http_operation(method,
-  base_url, path, headers, query, body, json_encode)` implements the
-  algorithm above. `json_encode` is an injected dependency (the same
-  style `run_lifecycle_scope` already uses for `invoke`), so this module
-  has no closure dependency on `builtins.py` and no `list`/`Flow`/
-  lifecycle knowledge.
-- `src/genia/builtins.py`: `http_operation_fn` delegates to
-  `construct_http_operation(..., json_encode_fn)`. Registered as
-  `http_operation`, documented in `host_builtin_docs.py` under a new
-  "HTTP" category. Set `__genia_handles_none__ = True` (the same opt-out
-  `json_encode`/`json_decode`/`display` already use) so that passing
-  `none(...)` as the `body` argument reaches the function body instead of
-  short-circuiting the whole call via Genia's general none-propagation
-  convention — required precisely because the contract's own `body`
-  shape includes `none("http-no-body")`.
-- Validated by 55 tests in the new `tests/unit/test_http_operation.py`:
-  every method; every `base_url`/`path` validation rule; header
-  lowercasing/collision/protected-value handling; query shape and
-  protected-value rejection; every `body` shape and implicit-vs-explicit
-  content-type precedence; a `json`-body-with-protected-leaf rejection;
-  declared-order first-failure determinism; and one R10 redaction
-  regression proof (a protected header built from a real `secret_get`
-  call never appears in `display`/`debug_repr` output), Python reference
-  host only. No host capability is introduced; shared/multi-host
-  conformance remains Partial.
-
-Explicit limitations:
-
-- No host transport, outbound client lifecycle, protected HTTP credential
-  sink purpose, or declarative HTTP annotations are implemented (see
-  issues #623-#628).
-- No percent-encoding or URL serialization of `query` is performed by
-  `http_operation` itself — the query percent-encoding table is portable
-  contract text for `web.http_send` (#624) to obey when it builds the
-  real URL.
-- No new schema/Template/validation framework — reuses existing Outcome,
-  `GeniaMap`, `GeniaProtected`, and `json_encode` conventions verbatim.
-
-## 9.13) R14 E14-6 outbound HTTP transport capability
-
-Status: Implemented. Issue #623 adds one narrow Python-host outbound HTTP
-transport capability per the approved R14 contract's "Portability
-boundary" section (`docs/design/r14-composable-lifecycle-contract.md`).
-This ticket adds **no Genia-visible surface**: the capability is not a
-builtin, has no `import` entry, and is consumed privately by a later
-ticket (`web.http_send`, E14-7, #624), exactly like
-`create_gemini_rest_model_provider`/`_default_transport` in
-`src/genia/gemini_rest.py` have no `builtins.py` registration of their
-own. This section therefore has no LANGUAGE CONTRACT block.
-
-PYTHON REFERENCE HOST:
-
-- `src/genia/http_transport.py` (new): `send_http_request(request,
-  transport=None) -> HttpTransportResponse | HttpTransportFailure` makes
-  exactly one synchronous transport attempt via an injectable
-  `HttpTransport = Callable[[HttpTransportRequest], HttpTransportResponse]`,
-  defaulting to `_default_transport` (a `urllib.request`-based opener
-  built with a no-redirect handler, mirroring `gemini_rest.py`'s own
-  `_NoRedirect`/`_default_transport` pattern but generic over method/URL
-  instead of one fixed Gemini endpoint).
-- `HttpTransportRequest` is a private frozen dataclass:
-  `method, url, headers, body: bytes, timeout_seconds`. `HttpTransportResponse`
-  is `status, headers, body: bytes`. `HttpTransportFailure` is a single
-  closed field `kind: str`, one of `timeout`, `connect`, `tls`, `dns`, or
-  `other`. No Genia value (`GeniaMap`, `GeniaOptionErr`, `GeniaProtected`,
-  etc.) appears anywhere in this module.
-- Any status the wrapped server actually returns (including 4xx/5xx)
-  normalizes to an ordinary `HttpTransportResponse` via `urllib.error.HTTPError`
-  treated as a received response, not a failure — matching `http_operation`'s
-  own contract framing that transport-layer success is independent of
-  status code. No redirect is ever followed.
-- Every other exception raised by the selected transport is caught once at
-  `send_http_request`'s own boundary and classified by `_classify`, which
-  never re-raises and never retains the original exception's message,
-  type name, or traceback: `TimeoutError`/`socket.timeout` maps to
-  `timeout`; `ssl.SSLError` (including `SSLCertVerificationError`) maps to
-  `tls`; `socket.gaierror` maps to `dns`; `ConnectionRefusedError` and any
-  other `OSError` map to `connect`; anything else maps to `other`; a
-  `urllib.error.URLError` is classified recursively from its own
-  `.reason`.
-- Validated by 13 tests in the new `tests/unit/test_http_transport.py`: 5
-  real-loopback tests (a Python `http.server` fixture as the server, this
-  capability as the client, marked `@pytest.mark.loopback`) proving exact
-  method/URL/header/body round-trip, an HTTP-error-status response
-  returned as ordinary (not failure), redirect non-following, real
-  connect-refused classification, and a real short-timeout classification
-  against a server that accepts but never responds; 8 injected-fake-
-  transport tests (no real socket) proving dns/tls/timeout/connect/other
-  classification including the recursive `URLError.reason` unwrap, and
-  byte-exact non-UTF-8/empty body pass-through. The five new loopback test
-  IDs are registered in `tests/doc/test_loopback_pytest_partition.py`'s
-  exact inventory. No host capability existed for generic outbound
-  HTTP before this ticket (only the fixed-endpoint Gemini adapter and the
-  inbound R7/R8 server existed); shared/multi-host conformance remains
-  Partial.
-
-Explicit limitations:
-
-- No `web.http_send`, outbound client lifecycle composition, or Genia
-  builtin/prelude surface (see #624).
-- No retries, redirect following, connection pooling, streaming API,
-  OAuth, cookies, or async IO — one synchronous attempt only, per the
-  approved contract's non-goals.
-- No portable failure-reason vocabulary (`http-timeout`/
-  `http-transport-failure`/`http-response-invalid`) is constructed by this
-  ticket — this capability returns only a closed `kind`; mapping that into
-  R14's `err(...)` shapes is #624's composition, not owned here.
-
-## 9.14) R14 E14-7 outbound HTTP client lifecycle
-
-Status: Implemented. Issue #624 adds `web.http_send(operation, authority,
-timeout_ms) -> some(HttpResponse) | err(reason, context)` per the approved
-R14 contract's "Outbound HTTP client lifecycle" section
-(`docs/design/r14-composable-lifecycle-contract.md`). It composes four
-already-implemented, unchanged mechanisms — the E14-1 lifecycle core, the
-`HttpOperation` representation (#622), the host transport capability
-(#623), and R10's `declassify` boundary — adding no new lifecycle
-primitive, protected-value mechanism, or host transport mechanics.
-
-LANGUAGE CONTRACT:
-
-- `web.http_send(operation, authority, timeout_ms)` executes one
-  `LifecycleInstance` internally per call: *prepare* (the already-inert
-  `operation` value), *authorize* (declassifying any protected header via
-  the existing `declassify(authority, protected_value)`, immediately
-  before the one transport attempt), *send*/*receive* (exactly one
-  synchronous host transport attempt), *decode* (left entirely to the
-  caller's own explicit `utf8_decode`/`json_decode` over `response.body`
-  — never automatic), and *finalize* (the internal scope's own `exit`,
-  plus the transport's own already-guaranteed resource release).
-- `authority` is `none(...)` when `operation.headers` carries no
-  protected value, or `some(authority)` — an opaque R10
-  `GeniaDeclassificationAuthority` — when it does; a `GeniaProtected`
-  header value with a missing (`none`) or identity/purpose-mismatched
-  authority is runtime misuse (a raised error), exactly as `declassify`
-  itself already enforces — `web.http_send` adds no new matching logic,
-  it only calls the existing `declassify` once per protected header. A
-  malformed `operation`/`authority`/`timeout_ms` argument is likewise
-  runtime misuse, raised before any transport attempt is made.
-- `timeout_ms` is a required plain integer in `1..300000`, mirroring
-  R11's model-call `timeout_ms` contract exactly.
-- Any status the transport actually receives (100..599) normalizes to an
-  ordinary `some({status, headers, body})` — never a failure; only a
-  failure to obtain any response at all is `err(...)`. `headers` keys are
-  lowercased; `body` is always an opaque `GeniaBytes` value, never
-  auto-decoded or auto-parsed.
-- Recoverable failures are exactly `err("http-timeout", {timeout_ms})`
-  (from `HttpTransportFailure(kind="timeout")`) and
-  `err("http-transport-failure", {kind: quote(connect)|quote(tls)|
-  quote(dns)|quote(other)})` (from every other `HttpTransportFailure`
-  kind). `err("http-response-invalid", {stage})` is contract-reserved
-  vocabulary this ticket never constructs: #623's transport response is
-  always structurally well-formed by construction (an `int` status, a
-  `dict[str,str]` headers map, `bytes` body), and #624 performs no
-  automatic decode/validation of `response.body` that could discover an
-  "invalid" observation — decode is explicitly the caller's own later
-  step.
-- The query string is assembled deterministically from `operation.query`:
-  entries sorted by key, each `key=value` pair with every byte outside
-  `ALPHA/DIGIT/-._~` percent-encoded from its UTF-8 bytes (space becomes
-  `%20`), pairs joined by `&`, the whole thing prefixed with `?` only
-  when `query` is non-empty — the exact table the E14-0 contract reserved
-  for this ticket. `operation.body`'s `{kind: quote(text), text}` encodes
-  as UTF-8 bytes; `{kind: quote(json), value}` encodes through the same
-  `json_encode` capability #622 already used once to fail fast at
-  construction time (called again here to obtain the actual bytes, since
-  `http_operation` does not persist pre-encoded bytes); `none(...)`
-  encodes as zero bytes. `operation.headers`' implicit-vs-explicit
-  content-type precedence was already resolved by `http_operation` (#622)
-  and is not revisited here.
-- `web.http_send` has no scope-handle argument and creates no
-  ambient/global lifecycle: its internal `LifecycleInstance` has no
-  caller-visible parent (there is nothing in the fixed 3-argument
-  signature to attach to as a literal parent-linked child); "one HTTP
-  operation executes as one child lifecycle instance" is satisfied by
-  running exactly one complete entry/work/unwind cycle per call, with
-  containment of any resulting failure coming from the ordinary
-  Outcome-returning-value composition already used when `web.http_send`
-  is called from inside another scope's `work` (the shape #627 proves) —
-  R14 adds no second pipeline state machine or HTTP-specific scope kind.
-
-PYTHON REFERENCE HOST:
-
-- `src/genia/http_client.py` (new): `perform_http_send(operation,
-  authority, timeout_ms, json_encode, invoke, transport=None)` implements
-  the algorithm above. `json_encode`/`invoke` are injected dependencies
-  (the same style `construct_http_operation`/`run_lifecycle_scope`
-  already use); `declassify` and `send_http_request` are imported
-  directly, since both are standalone functions with no `builtins.py`
-  closure dependency. All misuse validation (operation/authority/
-  timeout_ms shape, protected-header declassification) runs *before* any
-  internal lifecycle scope opens, so a raised `TypeError` propagates
-  directly to the caller rather than being silently normalized into an
-  ordinary `LifecycleResult` by the scope machinery's own
-  exception-to-`primary_failure` handling — only the one transport
-  attempt (a genuinely recoverable failure mode) runs inside the internal
-  `run_lifecycle_scope` call, in a single reserved peer whose `enter`
-  performs the send/receive and whose `work` reads the captured result
-  back via the existing `lifecycle_context` accessor.
-- `src/genia/builtins.py`: `http_send_fn` delegates to `perform_http_send`
-  and is registered as the private `_http_send` (mirroring
-  `_serve_http`/`_with_headers`/`_cors`'s existing
-  underscore-prefixed-builtin pattern; no `host_builtin_docs.py`
-  `_PUBLIC_DOCS` entry, matching those three). Set
-  `__genia_handles_none__ = True` — required because a legitimate
-  `none("nil")` `authority` argument is the *common* case (any call with
-  no protected header), not an edge case, so without this marker Genia's
-  general none-propagation convention would silently short-circuit every
-  such call into `none("nil")` instead of performing the request (the
-  same bug class #622 caught with `json_encode`/`http_operation`).
-  `src/genia/std/prelude/web.genia` adds the public
-  `http_send(operation, authority, timeout_ms) = _http_send(...)` wrapper
-  with its own `@doc` block, exactly mirroring `serve_http`/
-  `with_headers`/`cors`.
-- Validated by 26 tests in the new `tests/unit/test_http_send.py`: any
-  received status returns an ordinary response (never a failure); exactly
-  one transport call per `http_send` invocation; all 5
-  `HttpTransportFailure` kinds mapped to the correct reason; malformed
-  `operation`/`authority`/`timeout_ms` raise (not normalized); a
-  protected header with a missing or mismatched authority raises via the
-  existing `declassify`; a protected header with a matching authority is
-  declassified, reaches the fake transport as its plain string, and never
-  appears in the returned response or any string rendering of it; exact
-  query percent-encoding (reserved characters, space, `/`, `&`); exact
-  `text`/`json`/`none` body encoding; response header keys lowercased;
-  response body is `GeniaBytes` not a plain string; and one real
-  `run_source` + real-loopback-server end-to-end test (registered in
-  `tests/doc/test_loopback_pytest_partition.py`'s exact inventory). No
-  change to `lifecycle_runtime.py`, `http_operation.py`,
-  `http_transport.py`, or `configuration.py`. No new host capability is
-  introduced (#624 only consumes #623's existing one); shared/multi-host
-  conformance remains Partial.
-
-Explicit limitations:
-
-- No `@get`/`@post` verb annotations, inbound server/request integration,
-  or YouVersion-specific behavior (see #625-#628).
-- No retries, circuit breakers, redirect-following beyond "none",
-  connection pooling, or streaming client API — one synchronous attempt
-  only, per the approved contract's non-goals.
-- Constructing a `GeniaDeclassificationAuthority` from ordinary Genia
-  source is not possible — exactly like R11's `model` credential/
-  authority, it is always an opaque, externally host-injected value; this
-  is unchanged by #624 and is not a gap this ticket needs to close.
-
-## 9.15) R14 E14-8 protected HTTP credential sinks
-
-Status: Implemented, with **zero runtime-code change**. Issue #625
-proves, at comprehensive regression breadth, the contract-approved
-"Protected HTTP sinks" section (`docs/design/r14-composable-lifecycle-contract.md`)
-that #622 and #624 already implement correctly. This is the same
-"already-correct mechanism, proven not built" shape as E14-2 (#692) and
-E14-4 (#694).
-
-LANGUAGE CONTRACT (proven, not newly introduced):
-
-- A protected header value placed in `http_operation`'s `headers` field
-  stays protected through construction, storage inside the resulting
-  `HttpOperation` map, and any later `display`, `debug_repr`, or
-  `json_encode` attempt (which fails closed with
-  `err("protected-value", {operation: "json-encode"})`, recursively
-  detecting the nested protected leaf) — R10's existing recursive
-  sink-scan rules apply exactly as to any other map holding a protected
-  leaf, with no special case for `HttpOperation`.
-- Generic representation-family operations — `represent`,
-  `representation_match`, `strip_representation` — reject the reserved
-  `secret` facet identically whether the protected value under test is a
-  bare one or one specifically carried inside an `HttpOperation`'s
-  `headers` field; the raised diagnostic text contains no trace of the
-  protected value's identity, purpose, or payload.
-- The only place a protected header's carried string is ever read is
-  inside `web.http_send`'s private host implementation
-  (`_resolve_headers` in `src/genia/http_client.py`), immediately before
-  the one transport attempt, through the existing `declassify(authority,
-  protected_value)`; this is `web.http_send`'s new sink family and the
-  new `quote(http_send)` declassification purpose convention, exactly the
-  extension shape R11 used for `quote(model_call)` — R10 gains no new
-  protected-value mechanism.
-- A missing (`none`) authority, a mismatched-identity authority, or a
-  mismatched-purpose authority, each with a protected header present,
-  fails deterministically (a raised `TypeError`, matching `declassify`'s
-  own existing behavior) with no protected payload, key, or purpose
-  appearing in the raised diagnostic text — proven for all three cases,
-  not just the one #624 already exercised.
-- `HttpResponse` values are always ordinary: response status/headers/body
-  are built entirely from primitive `str`/`int`/`bytes` values returned
-  by the host transport, so they structurally cannot carry R10/R14
-  protection — this reuses R10's existing "a boundary that produces a
-  value from external bytes never manufactures protection" rule, proven
-  directly rather than only reasoned about.
-
-PYTHON REFERENCE HOST:
-
-- No change to `src/genia/http_client.py`, `http_transport.py`,
-  `http_operation.py`, `configuration.py`, or `values.py` — confirmed via
-  `git diff origin/main..HEAD` showing only a new test file.
-- Validated by 7 tests in the new `tests/unit/test_http_protected_sinks.py`:
-  display/debug_repr/failed-json_encode sentinel-free survival of a
-  real-`secret_get`-constructed protected header inside an
-  `HttpOperation`; generic representation-family rejection of the same
-  header-carried protected value; one full real round trip (`secret_get`
-  → `http_operation` → `perform_http_send` with a matching authority)
-  proving the plain credential reaches only the fake transport and
-  appears in no returned value, operation rendering, or audit event;
-  three parametrized unauthorized-placement failure cases (mismatched
-  purpose, mismatched provider, missing authority), each swept for
-  sentinel leakage in the raised diagnostic; and one structural
-  confirmation that an ordinary `HttpResponse` never carries a
-  `<protected>` marker. All sentinel constants follow this codebase's
-  established synthetic-naming convention (never realistic-looking
-  secret text), matching `tests/unit/test_declassification.py`'s and
-  `tests/unit/test_protected_configuration.py`'s existing discipline.
-- `GENIA_RULES.md`'s sink-invariant enumeration gains one new sentence
-  distinguishing this **authorized** outbound-HTTP-header sink (accepts a
-  protected value, reveals it only through `declassify` at one point)
-  from the pre-existing **rejecting** sinks already listed there (output,
-  JSON encoding, Sheet/CSV rendering, resource writes, the R7 server's
-  own inbound `http-response` guard) — the same authorized-sink shape
-  R11's `model` credential argument already uses.
-
-Explicit limitations:
-
-- No vault, key rotation, encryption-at-rest, OAuth, or cookie/session
-  policy — out of scope per the issue's own non-goals.
-- No broad information-flow/taint tracking; no change making all HTTP
-  headers secret-aware by default — only `headers` (never `query`, which
-  #622 already rejects protected values in outright).
-- No change to R10 protected semantics outside this narrow, already-landed
-  integration.
-
-## 9.16) R14 E14-9 declarative outbound HTTP annotations
-
-Status: Implemented. Issue #626 adds `@get {path}` and `@post {path}`
-inert descriptive annotations and `web.send_annotated(fn, base_url,
-authority, timeout_ms)`, the sole function that binds annotation metadata
-to the existing `HttpOperation`/`web.http_send` surface. Unlike every
-other R14 ticket, the approved E14-0 contract does not specify this
-feature's exact shape — it is explicitly listed under the contract's own
-"Non-goals" as "planned no earlier than roadmap #626... still inert
-descriptors, not self-executing IO" — so this section records design
-decisions #626 itself made, following the existing `@route` annotation's
-established shape as closely as possible, not a pre-locked contract.
-
-LANGUAGE CONTRACT:
-
-- `@get {path: string}` / `@post {path: string}` are valid only on a
-  top-level named function with a fixed zero-argument arm; any other
-  target (assignment, named pattern, wrong arity) is a deterministic
-  diagnostic. `path` must be a non-empty string starting with `/`; any
-  other descriptor shape (missing/extra keys, wrong type) is a
-  deterministic diagnostic. `method` is never a descriptor field — it is
-  implied by the annotation's own name, matching how `web.genia`'s
-  existing `get`/`post` prelude functions already derive method from
-  function name.
-- `@get` and `@post` share one cardinality slot per declaration: at most
-  one of either may appear, combined — a function cannot coherently be
-  both a GET and a POST operation. Repeating either, or annotating both
-  on one declaration, is a deterministic diagnostic. Annotated rebinding
-  that would replace existing `http_annotation` metadata is also a
-  deterministic diagnostic — mirrors `@route`'s exact
-  rebinding/replacement rules.
-- Annotating a function **never changes how it is called** — this is the
-  same invariant every existing annotation (`@route`, `@server`, `@cors`)
-  already upholds. Calling an annotated function with ordinary Genia call
-  syntax never performs network IO; only the separate, explicit
-  `web.send_annotated(fn, base_url, authority, timeout_ms)` call does.
-  Loading, importing, or evaluating a declaration carrying `@get`/`@post`
-  performs zero network IO, exactly like every other annotation.
-- `web.send_annotated` reads the annotated function's `{verb, path}`
-  descriptor, calls the function with no arguments to obtain its dynamic
-  `{headers, query, body}` map (any other return shape is deterministic
-  misuse), builds the operation via the unchanged
-  `http_operation(verb, base_url, path, headers, query, body)`, and calls
-  the unchanged `web.http_send(operation, authority, timeout_ms)` —
-  composing exactly these two already-implemented functions. No new
-  transport or lifecycle mechanism exists; `base_url`/`authority`/
-  `timeout_ms` are ordinary call-time arguments, never annotation-static,
-  matching how neither `@server`'s host/port nor R11's `model` config are
-  annotation-static either. Each call to `send_annotated` creates a
-  fresh, independent lifecycle instance (a fresh `send_http_request`
-  attempt every time — no caching, no shared state across calls). An
-  `http_operation` construction failure (a malformed dynamic `query`/
-  `body`) propagates unchanged as `err("http-operation-invalid",
-  {stage})`.
-
-PYTHON REFERENCE HOST:
-
-- `src/genia/evaluator.py`: two new dispatch branches in
-  `eval_annotations` (mirroring `@route`'s exact placement), a
-  duplicate-cardinality check treating `get`/`post` as one shared group,
-  two new rebinding/replacement guard methods
-  (`_reject_http_annotation_metadata_rebinding`/`_replacement`) called at
-  every declaration-processing site `@route`'s own guards are already
-  called at, and an updated unsupported-annotation whitelist message.
-  This is the first R14 ticket to touch this shared, sensitive dispatch
-  file; the full existing `@route`/`@server`/`@cors` test suites
-  (`test_server_route_binding.py`, `test_server_config_binding.py`,
-  `test_server_cors_binding.py`, 53 tests) were re-run and confirmed
-  unaffected.
-- `src/genia/http_annotation_binding.py` (new):
-  `validate_http_annotation_descriptor(verb_name, value)` (mirrors
-  `validate_route_descriptor`'s exact structure/error style),
-  `resolve_http_annotation(fn)` (reads the descriptor directly off the
-  `GeniaFunctionGroup` value's own `.metadata` attribute — confirmed via
-  `environment.py`'s `merge_binding_metadata` that a function group's
-  metadata is stored both in the environment's binding-metadata table
-  and directly on the function-group object itself, so no whole-file
-  discovery pass or name-based lookup is needed, unlike `@route`'s own
-  `server_route_binding.py` discovery module), and
-  `perform_send_annotated(fn, base_url, authority, timeout_ms,
-  json_encode, invoke, transport=None)` implementing the composition
-  above.
-- `src/genia/builtins.py`: `send_annotated_fn` delegates to
-  `perform_send_annotated`, registered as the private `_send_annotated`
-  (mirroring `_http_send`), with `__genia_handles_none__ = True` for the
-  same reason as `_http_send` (a legitimate `none("nil")` `authority`
-  argument is the common case). `src/genia/std/prelude/web.genia` adds
-  the public `send_annotated(fn, base_url, authority, timeout_ms)`
-  wrapper with its own `@doc` block.
-- Validated by 21 tests: 13 in the new `tests/unit/test_http_annotations.py`
-  (evaluator-level attachment/validation/rebinding, and structural proof
-  that mere evaluation and direct ordinary calling never perform IO) and
-  8 in the new `tests/unit/test_http_send_annotated.py`
-  (`perform_send_annotated`'s own composition behavior via an injected
-  fake transport, matching #624's own testing style). No change to
-  `http_operation.py`, `http_transport.py`, `http_client.py`'s
-  `perform_http_send`, or `configuration.py`. No new host capability.
-
-Explicit limitations:
-
-- No verb beyond `get`/`post` — the only two the contract's own
-  non-goals sentence names; put/patch/delete/head/options annotations
-  remain unimplemented.
-- No server `@route` replacement, middleware/auth/retry DSL, macro,
-  compile-time transform, or general annotation framework.
-- No change to R10 protected semantics, the E14-1 lifecycle core, or the
-  E14-5/E14-7 `HttpOperation`/`web.http_send` surface — this ticket only
-  adds a new way to construct calls into that unchanged surface.
-
-## 9.17) R14 E14-10 server/request/outbound-client composition
-
-Status: Implemented, with **zero runtime-code change**. Issue #627
-proves the central R14 record-pipeline-adjacent claim: an inbound R8
-server request can create one or more outbound HTTP client lifecycle
-instances while the server remains active and resource/failure ownership
-stays correct. Direct code reading confirms `src/genia/server_lifecycle.py`
-(R8) has zero dependency on `src/genia/lifecycle_runtime.py` (R14's E14-1
-core) — they are, and remain, architecturally separate. Composition is
-possible because an R8 route handler is an ordinary one-argument
-function and `web.http_send`/`web.send_annotated` (E14-7/E14-9) impose no
-caller-context precondition; this section records the proof, not a new
-mechanism, mirroring E14-2 (#692) and E14-8 (#625)'s own established
-"proven, not built" shape.
-
-LANGUAGE CONTRACT (proven, not newly introduced):
-
-- A route handler registered through the existing `web.route_request`
-  may call `web.http_send` or `web.send_annotated` any number of times
-  during its own invocation; each call independently runs its own
-  complete E14-1 entry/work/unwind cycle and finalizes its own
-  transport-level resources, entirely independent of the R8 request
-  scope's own lifetime.
-- A transport failure from an outbound call (e.g. connection refused)
-  normalizes to the existing `err("http-transport-failure", {kind})`
-  Outcome exactly as it would from any other caller; the handler
-  receives it as ordinary data and decides how to respond — it never
-  implicitly terminates the request or the server. The server continues
-  accepting and completing further requests afterward.
-- One request handler may make multiple sequential outbound calls; each
-  is entirely independent (no shared transport state, no caching).
-- The server's own listener remains owned exclusively by the existing
-  R8 server scope; an outbound call's own transport resources are never
-  visible to, and cannot affect, that ownership.
-- No second server, routing, or CORS mechanism is introduced; existing
-  R7/R8 `route_request`/`with_headers`/`cors`/`serve_http` behavior is
-  entirely unchanged.
-
-PYTHON REFERENCE HOST:
-
-- No change to `server_lifecycle.py`, `lifecycle_runtime.py`,
-  `http_client.py`, `http_transport.py`, `http_operation.py`,
-  `http_annotation_binding.py`, or any R7/R8 routing/CORS module —
-  confirmed via `git diff origin/main..HEAD` showing only a new test
-  file and documentation.
-- Validated by 4 real-loopback tests in the new
-  `tests/unit/test_http_server_client_composition.py` (a real R8 server
-  under test, driven by real inbound HTTP requests, whose route handler
-  calls out to a second real local downstream fixture server): a
-  successful outbound call with the server completing two successive
-  requests; a failing outbound call (real connect-refused) contained by
-  the handler with the server still completing both requests; one
-  handler making two sequential outbound calls in a single request; and
-  the same success shape composed through `web.send_annotated` instead
-  of direct `http_operation`/`web.http_send`. The existing R7/R8
-  regression suite (`test_server_lifecycle.py`,
-  `test_server_route_binding.py`, `test_server_config_binding.py`,
-  `test_server_cors_binding.py`, `test_http_web.py`, 82 tests) was
-  re-confirmed unaffected.
-
-Explicit limitations:
-
-- No concurrent-serving guarantee beyond R8's existing one; no
-  distributed tracing, request cancellation API beyond the approved
-  contract, retries, circuit breakers, or new inbound HTTP syntax.
-- No protected-credential-specific integration case is proven here
-  beyond what #625 already established generically — a credentialed
-  outbound call from a route handler composes the same way as any other
-  `web.http_send` call, with no additional server-specific behavior.
-- No domain-specific proving application (that is #628's job).
-
-## 9.18) R14 E14-11 repeated record lifecycle proving case
-
-Status: Implemented, with **zero runtime-code change**. Issue #695 proves
-the record-pipeline-adjacent claim from
-`docs/design/r14-composable-lifecycle-contract.md`'s "Repeated record proof
-(pressure test)" section: `lifecycle_scope` (E14-1), `lifecycle_repeat`
-(E14-3), and `lifecycle_context` (E14-1) already compose into a repeated
-record-processing pipeline with no new API, syntax, or lifecycle primitive.
-
-LANGUAGE CONTRACT (proven, not newly introduced):
-
-- One outer pipeline/session `lifecycle_scope` wraps a `lifecycle_repeat`
-  call; each consumed element gets its own fresh element scope with at
-  least two peer `LifecycleDefinition`s (a `record_context` peer and a
-  `diagnostics` peer), entered and reverse-unwound deterministically per
-  the existing E14-1/E14-3 algorithm.
-- `record`/`fields`/`nr`/`nf`-style values are derived by application code
-  reading the reserved `quote(element)`/`quote(index)` context through the
-  existing `lifecycle_context` accessor — no `$0`/`$1`/`NR`/`NF` syntax and
-  no new AWK-mode primitive is introduced (per this contract's explicit
-  non-goal).
-- An eager `List` source never short-circuits: a data-level malformed
-  record (a field-count mismatch, surfaced as ordinary `err(...)` data
-  returned by `element_work`, per the existing "not treated specially"
-  work-return rule) and a genuine element work-phase exception (a
-  non-string element) are each recovered from independently, with every
-  later element still processed and no cross-element context leakage.
-- A lazy `Flow` source composes with the existing `take` bound: each
-  yielded element's scope is fully entered and unwound before the next
-  pull (the existing close-before-next-pull guarantee), and bounded early
-  termination never leaves a scope partially entered.
-- Survived (successfully classified) records are captured as ordinary
-  values by filtering/mapping each element's `LifecycleResult.result`,
-  using only existing `filter`/`map` list operations — no dedicated
-  filtering primitive is introduced.
-
-PYTHON REFERENCE HOST:
-
-- No change to `lifecycle_runtime.py`, `builtins.py`, or any other runtime
-  module — confirmed via `git diff origin/main..HEAD --stat -- src/genia/`
-  showing no production-code changes.
-- New example `examples/r14_repeated_record_lifecycle_proving_case.genia`
-  runnable directly via `genia examples/r14_repeated_record_lifecycle_proving_case.genia`.
-- Validated by 10 tests in the new
-  `tests/unit/test_r14_repeated_record_lifecycle_proving_case_695.py`
-  (loading the example through real Genia source via `run_source`) and the
-  new `spec/cli/r14-repeated-record-lifecycle-proving-case.yaml` end-to-end
-  CLI fixture (confirmed via `python -m tools.spec_runner`, 586/586
-  passing). The existing `test_lifecycle_runtime.py`/`test_lifecycle_repeat.py`
-  regression suites remain unaffected.
-
-Explicit limitations:
-
-- No AWK language mode, `$0`/`$1`/`NR`/`NF` syntax, or record-shape
-  derivation beyond ordinary `lifecycle_context` reads.
-- No new `map`/`filter`/`scan`/`rules` API; the example composes only
-  existing list/Flow operations.
-- No HTTP behavior (that is #628's job).
-
-## 9.19) R14 E14-12 YouVersion Bible proxy proving application
-
-Status: Implemented, with **zero runtime-code change**. Issue #628 proves
-the contract's "HTTP vertical proving case" section: `config_view`/
-`secret_view` (R13), `http_operation`/`web.http_send` (R14 E14-5/E14-7,
-#622/#624), the protected HTTP header sink (E14-8, #625), and
-`web.serve_http`/`web.route_request` (R8) already compose into a
-complete end-to-end proving application with no new mechanism.
-
-LANGUAGE CONTRACT (proven, not newly introduced):
-
-- Base URL, Bible/version ID, and API credential resolve entirely through
-  the landed R13/R10 configuration model — `config_view(provider,
-  "YOUVERSION_")` for the ordinary values, `secret_view(provider,
-  "YOUVERSION_", quote(bible_proxy_outbound))` for the protected
-  credential — with no new configuration mechanism.
-- One `http_operation` per canonical passage reference carries the
-  credential in a protected header; the credential is declassified only
-  immediately inside `web.http_send`'s existing transport boundary,
-  exactly as E14-8 already proved generically.
-- An R8 `POST /passages` route handler is an ordinary function that
-  dispatches one `web.http_send` call per reference — outbound child
-  HTTP lifecycle instances created from an inbound request, exactly the
-  composition E14-10 (#627) already proved architecturally correct.
-- An upstream non-2xx response or transport failure (including
-  connect-refused) classifies to a deterministic per-reference
-  `{status: "error", reason, ...}` value in the structured JSON
-  response; it is ordinary data, never a lifecycle failure, and never
-  stops the server from completing further requests.
-- **Minting a declassification authority is a privileged host-side
-  operation, never a pure-Genia one** — no `make_global_env` parameter
-  or Genia builtin constructs one (confirmed by direct code reading, the
-  same boundary R13's own proving case already established; see
-  `docs/releases/R13.md`). A plain `genia` CLI run of the example
-  therefore only resolves configuration and shows the credential stays
-  protected; the full outbound round trip is exercised entirely by a
-  Python-host test that injects a real authority.
-
-PYTHON REFERENCE HOST:
-
-- No change to `src/genia/http_client.py`, `http_operation.py`,
-  `configuration.py`, `server_lifecycle.py`, or any other runtime module
-  — confirmed via `git diff origin/main..HEAD --stat -- src/genia/`
-  showing no production-code changes.
-- New example
-  `examples/r14_youversion_bible_proxy_proving_case.genia`, runnable
-  directly via `genia examples/r14_youversion_bible_proxy_proving_case.genia`.
-- Validated by 7 tests in the new
-  `tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py`: the
-  CLI-demo configuration path; a real R8 server plus a local mock-upstream
-  `ThreadingHTTPServer` fixture proving a multi-reference request
-  produces a structured response via real outbound calls, with the mock
-  upstream receiving the declassified credential header; an upstream
-  5xx and a connect-refused upstream each producing a deterministic
-  per-reference error without killing the server; the protected
-  credential never appearing in any response body or audit record; and
-  a structural check that no real credential or network dependency
-  exists in source. Four of these are `@pytest.mark.loopback`,
-  registered in `tests/doc/test_loopback_pytest_partition.py`'s
-  maintained inventory. The new
-  `spec/cli/r14-youversion-bible-proxy-proving-case.yaml` fixture is
-  confirmed via `python -m tools.spec_runner` (587/587 passing).
-
-Explicit limitations:
-
-- No human-language Bible-reference parsing; references are opaque
-  caller-supplied strings.
-- No Bible search, verse indexing, caching, theology/domain
-  abstractions, or YouVersion-specific language APIs.
-- No real YouVersion credential or public network dependency anywhere in
-  automated tests; the fake credential
-  (`FAKE_YOUVERSION_KEY_SENTINEL_628`) is an explicit synthetic
-  sentinel, never a value resembling a real API key.
-- No retries, auth framework, or capability beyond what R14 already
-  implements.
-
-## 9.20) R14 E14-13 cross-mode lifecycle and HTTP hardening
-
-Status: Implemented, with **zero runtime-code change**. Issue #696
-proves, at combined cross-cutting breadth, that E14-1 through E14-12
-already satisfy the contract's full combined boundary — the same
-"conformance proof only" shape as R13's E13-5 (#675).
-
-LANGUAGE CONTRACT (proven, not newly introduced):
-
-- Importing or discovering (native-test mode) a module that defines,
-  but never invokes, `http_operation`/`@get`/`@post`/lifecycle
-  functions performs zero outbound transport calls.
-- An `@get`/`@post` annotation's own registration at server startup
-  never self-executes; only an explicit `web.send_annotated` call
-  inside a request handler performs IO — proven against a real R8
-  server and a real local downstream fixture.
-- A protected credential and ordinary lifecycle-context data survive
-  `display`/`debug_repr` rendering together in one comprehensive value
-  with no sentinel leak.
-- A work-phase primary failure survives a combined multi-peer,
-  multi-exit-failure matrix (3 peers, 2 independent exit failures): the
-  primary failure stays the work failure, and both exit failures land
-  in `cleanup_failures` in exit-call (reverse-entry) order.
-- `take(n)` over `lifecycle_repeat` with a protected value threaded
-  through each element scope pulls exactly `n` elements, closing each
-  scope before the next pull, with no cross-element leak.
-- A raising transport's raw Python exception text never reaches the
-  normalized `err("http-transport-failure", {kind})` Outcome — only the
-  closed `{kind}` shape crosses the boundary.
-- One request making both a successful and a failed outbound call,
-  followed by a second successful request against the same server,
-  proves combined server/request/outbound-client resilience with no
-  external network.
-- Every R14 call form (`lifecycle_scope`/`child`/`repeat`/`context`/
-  `config`, `http_operation`, `web.http_send`/`send_annotated`,
-  `@get`/`@post`) still parses using only ordinary existing call/
-  annotation/map/list grammar — no new parser/AST/Core IR node.
-
-PYTHON REFERENCE HOST:
-
-- No change to any `src/genia/` module — confirmed via `git diff
-  origin/main..HEAD --stat -- src/genia/` showing no production-code
-  changes.
-- Validated by 10 tests in the new
-  `tests/unit/test_r14_cross_mode_hardening_696.py`, two of which are
-  `@pytest.mark.loopback` (registered in
-  `tests/doc/test_loopback_pytest_partition.py`'s maintained
-  inventory). The full non-loopback regression suite, the full
-  loopback suite, `python -m tools.spec_runner`, and `tests/doc`
-  (including R8/R10/R13/Flow/annotation coverage) all remain green.
-
-Explicit limitations:
-
-- No new public helper, syntax, annotation, or parser/AST/Core IR node.
-- No retries, resilience framework, async, concurrency, or scheduler
-  behavior.
-- No feature redesign; this is conformance proof only, matching R13's
-  E13-5 precedent.
-
-## 9.21) R21 E21-1 numeric source classification and lexical exactness (issue #853)
-
-Implements only the source-classification portion of
-`docs/design/r21-numeric-source-portable-representation-contract.md`
-(sections 2-3). Numeric source literals now classify as Integer or Decimal
-source purely lexically, with zero host binary-float construction during
-classification:
-
-- `DIGIT+` classifies as Integer source.
-- `DIGIT+ "." DIGIT+`, `DIGIT+` exponent (`e`/`E`, optional `+`/`-` sign,
-  `DIGIT+`), and `DIGIT+ "." DIGIT+` exponent all classify as Decimal
-  source. Exponent forms (`1e3`, `1E+3`, `1.25e-2`) are newly accepted as
-  numeric literals — the lexer previously had no exponent support at all,
-  so `1e3` mis-tokenized as `NUMBER "1"` followed by `IDENT "e3"` and could
-  not parse as a number.
-- `.5` (leading dot) and `5.` (trailing dot) remain rejected: neither is an
-  R21 numeric literal, and both already produced a deterministic
-  `SyntaxError` from the existing bare-`.` punctuation gap.
-- A malformed exponent (`1e`, `1e+`, with no digits after the marker) is
-  now a deterministic `SyntaxError("Malformed exponent in numeric literal
-  at <pos>")` raised by the lexer, instead of silently leaving a dangling
-  `e`/`E` for the next token.
-- New `src/genia/numeric_source.py`: `classify_numeric_literal(text)`
-  performs the lexical classification and, for Decimal source, canonical
-  base-10 `(coefficient, exponent)` normalization (value = coefficient ×
-  10^exponent; zero normalizes to `("0", "0")`; trailing base-10 zeros are
-  stripped from the magnitude with a matching exponent increase). This
-  function uses only string slicing and Python `int` arithmetic on
-  exponent offsets — it never calls `float(...)`.
-- The `Number` AST node gains `source_kind` (`"integer"`/`"decimal"`),
-  `digits` (Integer only), and `coefficient`/`exponent` (Decimal only)
-  fields carrying this classification. These are inert metadata in this
-  ticket, consumed by a later ticket when it changes the Core IR
-  `IrLiteral` payload shape; `Number.value` (the existing evaluator-facing
-  `int`/`float`) and all current evaluator/runtime numeric behavior are
-  unchanged.
-- No Core IR or `IrLiteral` payload change; the frozen minimal portable
-  Core IR node family in `docs/architecture/core-ir-portability.md` is
-  unchanged. No evaluator/runtime Decimal arithmetic, equality, or
-  map-key behavior is introduced.
-- Shared evidence: 11 new `spec/parse/*` cases (9 accept, 2 reject) covering
-  Integer classification, dotted/exponent-only/dotted-exponent Decimal
-  classification, equivalent Decimal spellings, malformed-exponent
-  rejection, and leading/trailing-dot rejection — proven identical through
-  both the in-process path and the R16 subprocess protocol adapter.
-
-Explicit limitations: no tagged `IrLiteral` payload (a later R21 ticket),
-no Decimal/Rational/Float64 runtime arithmetic or conversions, no
-equality/map-key change, and no rendering/formatting/JSON behavior (later
-releases own each of those).
-
-## 9.22) R21 E21-2 tagged portable numeric IrLiteral payloads (issue #854)
-
-Implements section 4 of `docs/design/r21-numeric-source-portable-representation-contract.md`, consuming the E21-1 (9.21) classification:
-
-- Integer and Decimal numeric source now lower through the existing
-  `IrLiteral` node with a canonical tagged payload instead of a bare host
-  number: `{"kind": "integer", "digits": "<canonical unsigned decimal
-  text>"}` or `{"kind": "decimal", "coefficient": "<canonical text>",
-  "exponent": "<canonical text>"}` (value = coefficient × 10^exponent).
-  Every payload field is a string; no host-native binary float appears in
-  the portable payload. Huge Integers preserve exact digits; equivalent
-  Decimal spellings (`1.0`, `1.00`, `100e-2`) normalize to the identical
-  tagged payload while remaining Decimal kind.
-- Source sign remains outside the payload: `-1.25` still lowers as
-  `IrUnary(MINUS, ...)` wrapping the positive tagged literal. `/` remains
-  ordinary `IrBinary(op=SLASH)`, unaffected by this change.
-- No new Core IR node family: `IrLiteral` is reused unchanged from the
-  frozen minimal portable node family. `IrPatLiteral` (numeric literals
-  in case-pattern position) is intentionally untouched by this ticket —
-  only expression-position `IrLiteral` gets the tagged payload, matching
-  contract section 4's scope.
-- Evaluator compatibility shim (not new runtime semantics): the
-  evaluator's existing `IrLiteral` handling unwraps the tagged payload
-  back into exactly the same `int`/`float` value it produced before this
-  ticket (`int(digits)` for Integer; `float(coefficient + "e" +
-  exponent)` for Decimal — the same mathematical value as the original
-  source spelling, so it rounds to the same binary64 result). All
-  existing arithmetic/display/evaluation behavior for numeric literals is
-  observably unchanged. This is compatibility strictly required by
-  E21-2's own payload-shape change, not R22 runtime Decimal/Rational/
-  Float64 materialization, arithmetic, or conversion semantics — none of
-  which is implemented.
-- Shared evidence: 7 new `spec/ir/*` cases (Integer/Decimal tagged
-  payload shape, huge Integer, equivalent Decimal spellings,
-  unary-negative lowering, slash staying ordinary binary) plus migration
-  of the pre-existing numeric-literal `spec/ir/*` fixtures to the tagged
-  shape, proven identical through both the in-process path and the R16
-  subprocess protocol adapter.
-
-Explicit limitations: no Decimal/Rational/Float64 runtime value, arithmetic,
-equality, or map-key change; no rendering/formatting/JSON behavior (R23);
-no C++ host implementation (R24).
-
-## 9.23) R22 E22-1 exact Decimal runtime materialization (issue #887)
-
-Implements section 2 of `docs/design/r22-exact-numeric-runtime-contract.md`,
-retiring the R21 E21-2 (9.22) evaluator compatibility shim for Decimal
-payloads and replacing it with a genuine exact runtime value:
-
-- Decimal-classified numeric source (R21 tagged `IrLiteral` payload)
-  now materializes to `GeniaDecimal` (`src/genia/numeric_runtime.py`):
-  an exact `coefficient × 10^exponent` value over two arbitrary-precision
-  Python ints. Materialization consumes the already-canonical R21 payload
-  strings directly and never transits host binary64.
-- Canonicalization: zero is `(0, 0)`; otherwise trailing base-10 zeros are
-  stripped from the coefficient's magnitude and the exponent increases by
-  the count removed; sign is carried by the coefficient; there is no
-  Decimal negative-zero identity. Decimal kind is retained even when the
-  mathematical value is integral (`1.0` stays Decimal, distinct from
-  Integer `1`, though the two compare equal — see below).
-- Integer source is unchanged: still a Python `int` (R17 unaffected).
-- Arithmetic: `GeniaDecimal` supports exact `+ - *` and unary negation,
-  both Decimal-with-Decimal and Decimal-with-Integer, computed via exact
-  rational cross-multiplication (never host float). This is the minimum
-  needed for the new value to participate in existing evaluator arithmetic
-  dispatch (`src/genia/evaluator.py` `eval_binary`, which calls the native
-  operators directly) without regressing prior Decimal-literal arithmetic;
-  it is not yet the full Integer/Decimal/Rational promotion lattice
-  (Rational does not exist until E22-2; the full lattice is E22-3/E22-4).
-  `/` and `%` are not yet implemented for `GeniaDecimal` (E22-4).
-- Equality/comparison (R18, `src/genia/equality.py`): `GeniaDecimal`
-  participates in the one existing R18 numeric cross-kind bridge —
-  `1 == 1.0`, `1.0 == 1.00` hold by exact mathematical value, matching
-  contract section 10.1. A bare host `float` does not bridge with
-  `GeniaDecimal` (R22's only exact/approximate bridge is the explicit
-  Float64 domain, not implemented until E22-5/E22-7). Map keys
-  (`canonical_map_key`): an equal-valued Decimal and Integer share one
-  key bucket; a non-integral Decimal keys on its exact reduced fraction.
-- Compatibility hardening required for this slice to be mergeable in
-  isolation (not new R22 policy, only recognizing the new value kind at
-  existing generic-numeric dispatch points): format-spec numeric
-  precision/grouping (`src/genia/_format_engine.py`), CSV cell rendering
-  (`src/genia/sheet.py`), shell-stage stdin materialization
-  (`src/genia/evaluator.py`), JSON Schema `"number"` type matching
-  (`src/genia/builtins.py`), and R12 retrieval/rerank finite-score
-  validation (`src/genia/retrieval.py`) all now recognize `GeniaDecimal`.
-  Display/debug text for `GeniaDecimal` (its Python `__repr__`) was a
-  placeholder at this slice's landing; R23 E23-1 (section 9.32) later made
-  it the canonical rendering contract.
-- R18 conformance test seam: three pre-existing R18 NaN-rejection
-  conformance cases (issue #792) previously reached a host float NaN as
-  an accidental byproduct of Decimal literals overflowing through the
-  retired float shim; exact Decimal arithmetic is arbitrary precision and
-  never overflows, closing that path. `src/genia/builtins.py` adds
-  `__r18_conformance_test_only_nan`, a private, non-public host test seam
-  used solely to keep that already-approved R18 evidence testable — it is
-  not part of the R22 numeric surface, which exposes no public NaN/
-  infinity/raw-bit constructor (contract section 4).
-
-Explicit limitations: no Rational (E22-2); no `/` or `%` on `GeniaDecimal`
-(E22-4); no explicit Float64 domain or `float64`/`exact` conversions
-(E22-5/E22-6); no cross-kind Float64 comparison bridge (E22-7); no
-`numeric-resource-limit` normalization (E22-8); no canonical Decimal
-display/JSON (R23); no C++ host implementation (R24).
-
-## 9.24) R22 E22-2 Rational runtime value and rational(...) (issue #888)
-
-Implements section 3 of `docs/design/r22-exact-numeric-runtime-contract.md`:
-
-- New `GeniaRational` runtime value (`src/genia/numeric_runtime.py`): an
-  exact reduced ratio of two arbitrary-precision Integers. Constructed only
-  through `rational_from_integers(numerator, denominator)`, which enforces
-  the canonical form: nonzero denominator (else `TypeError`), gcd
-  reduction, positive denominator (sign carried by the numerator), and a
-  reduced denominator of `1` collapses to a plain Integer rather than a
-  `GeniaRational` instance.
-- New builtin `rational(numerator, denominator)`: both arguments must be
-  Integer (Python `int`, never `bool`, `GeniaDecimal`, or float); a
-  non-Integer argument or zero denominator is deterministic numeric misuse
-  (`TypeError`, surfaced as `Error: ...` at the CLI). `rational(2, 4)` →
-  `1/2`; `rational(-2, -4)` → `1/2`; `rational(2, -4)` → `-1/2`;
-  `rational(2, 2)` → Integer `1`.
-- Deliberately not wired into R18 equality/map-key reconciliation in this
-  slice — `GeniaRational` is not yet a recognized R18 numeric kind, so
-  `rational(1,2) == rational(1,2)` currently falls to R18's identity-only
-  "unclassified terminal" fallback rather than comparing by mathematical
-  value. Nothing in existing code or specs produces a `GeniaRational` value
-  before this ticket, so this has no regression surface; full R18
-  numeric-kind reconciliation for Rational lands in E22-7. Rational
-  arithmetic (`+ - * / %`) is E22-3/E22-4, not this slice.
-- Shared evidence: 3 new `spec/*` cases (1 eval covering construction/
-  reduction, 2 error covering zero-denominator and non-Integer-argument
-  misuse), proven identical through both the in-process path and the R16
-  subprocess protocol adapter.
-
-Explicit limitations: no Rational arithmetic; no Rational participation in
-`==`/map keys (E22-7); no canonical Rational display/JSON (R23); no Rational
-literal syntax (non-goal, contract section 15).
-
-## 9.25) R22 E22-3 exact-family +, -, *, and unary negation (issue #889)
-
-Implements section 6 of `docs/design/r22-exact-numeric-runtime-contract.md`:
-the full `Integer < Decimal < Rational` promotion lattice for `+`, `-`, `*`,
-and unary negation.
-
-- Integer/Integer arithmetic is native Python `int` arithmetic (unchanged,
-  R17).
-- Integer/Decimal and Decimal/Decimal arithmetic (E22-1's `GeniaDecimal`
-  dunders) is unchanged: exact, and Decimal participation retains Decimal
-  kind even for a mathematically integral result (`1.5 + 0.5` is Decimal
-  `2`, not Integer `2`).
-- Any operand that is a `GeniaRational` produces a Rational result
-  (`src/genia/numeric_runtime.py` `_rational_binop`/`_rational_mul`,
-  reached via Python's binary-operator protocol: `GeniaDecimal`'s dunders
-  return `NotImplemented` for a `GeniaRational` operand so Python retries
-  through `GeniaRational`'s reflected method). Results are exact-fraction
-  cross-multiplication, then reduced and denominator-one-collapsed to
-  Integer through the same `rational_from_integers` E22-2 already
-  established (e.g. `rational(1,2) + rational(1,2)` is Integer `1`,
-  `1 + rational(1,2)` is Rational `3/2`).
-- Unary negation is defined for `GeniaDecimal` (E22-1) and now
-  `GeniaRational`, preserving each value's own domain.
-- Comparison/equality (`< <= > >= == !=`) between `GeniaRational` and any
-  other exact kind is not implemented in this slice (E22-7); `/` and `%`
-  are E22-4.
-- Shared evidence: 1 new `spec/eval/*` case covering the full lattice,
-  proven identical through both the in-process path and the R16 subprocess
-  protocol adapter.
-
-Explicit limitations: no `/` or `%` for Rational (E22-4); no Float64
-(E22-5/E22-6); no Rational comparison/equality/map-key integration (E22-7);
-no `numeric-resource-limit` normalization (E22-8); no canonical display/JSON
-(R23).
-
-## 9.26) R22 E22-4 exact division and floor remainder (issue #890)
-
-Implements sections 7 and 8 of
-`docs/design/r22-exact-numeric-runtime-contract.md`: exact `/` and floor
-`%` for the Integer/Decimal/Rational exact family.
-
-- `/` (`src/genia/numeric_runtime.py` `exact_divide`) follows the
-  division-result table precisely: pure Integer/Integer division is
-  Integer when evenly divisible, otherwise **Rational** -- never Decimal,
-  even when the reduced denominator would otherwise terminate in base 10
-  (`1 / 2` is Rational `1/2`, not Decimal `0.5`). A Decimal operand
-  participating (and no Rational) yields Decimal when the reduced quotient
-  terminates in base 10 (denominator has no prime factors other than 2 and
-  5) -- retaining Decimal kind even for an integral quotient, matching
-  E22-3's established `+`/`-`/`*` rule -- otherwise Rational. Any Rational
-  operand always yields Rational (subject to E22-2's existing
-  denominator-one collapse to Integer). The evaluator's `SLASH` case
-  (`eval_binary` in `src/genia/evaluator.py`) now dispatches to
-  `exact_divide` whenever both operands are exact-family
-  (`is_exact_numeric`); non-exact operand pairs are unchanged (native `/`,
-  `TypeError` → `none("type-error", ...)`).
-- `%` (`exact_remainder`) is floor remainder: `q = floor(left / right);
-  left % right = left - q * right`, computed via the exact rational
-  quotient's floor and then reusing E22-1/E22-3's already-established `-`
-  and `*` dunders across Integer/Decimal/Rational -- so its result kind
-  follows the same promotion rule as `+`/`-`/`*` (section 6), not the
-  division-domain-selection rule. The evaluator's `PERCENT` case dispatches
-  the same way.
-- Division/remainder by exact zero raises `ZeroDivisionError` with a
-  deterministic, host-independent message (`"exact division by zero"` /
-  `"exact remainder by zero"`) -- deliberately a different exception type
-  than the evaluator's generic mixed-type `TypeError` handling, so it is
-  not silently converted to a returned `none(...)` value: this preserves
-  already-established pre-R22 behavior where zero division terminates
-  evaluation (e.g. actor handler failure via `tests/unit/test_actors.py`).
-- Shared evidence: 4 new `spec/*` cases (2 eval -- the six required proof
-  examples from contract section 7, and positive/negative floor-remainder
-  combinations from section 8 -- and 2 error, division/remainder by zero),
-  proven identical through both the in-process path and the R16 subprocess
-  protocol adapter.
-
-Explicit limitations: no Float64 (E22-5/E22-6); no comparison/equality or
-R18 map-key integration for Rational (E22-7); no `numeric-resource-limit`
-normalization (E22-8); no canonical display/JSON (R23).
-
-## 9.27) R22 E22-5 explicit Float64 value and conversions (issue #891)
-
-Implements sections 4 and 5 of
-`docs/design/r22-exact-numeric-runtime-contract.md`: `float64(...)` and
-`exact(...)`.
-
-- Float64 has no dedicated wrapper class: a Python `float` already is
-  exactly one IEEE-754 binary64 bit pattern, which is precisely what the
-  contract defines Float64 to be, and R18 already treats host `float` as a
-  first-class Genia kind with correct NaN/signed-zero/infinity equality
-  semantics.
-- `float64(value)` (`src/genia/numeric_runtime.py` `to_float64`): accepts
-  Integer/Decimal/Rational or an existing Float64 (returned unchanged).
-  Exact input converts via Python's `numerator / denominator` true division
-  on the value's exact `(numerator, denominator)` fraction -- CPython
-  specifies and implements this as correctly rounded to the nearest
-  representable float, ties-to-even, which is exactly round-to-nearest
-  ties-to-even. Exact magnitude beyond the largest finite binary64 value
-  fails with `OverflowError` (Python's own big-int true division already
-  raises this) rather than silently producing infinity. Exact mathematical
-  zero converts to positive Float64 zero (no exact value is ever
-  negative-zero: Integer 0, canonical zero-identity-free `GeniaDecimal`,
-  and the fact that `GeniaRational` can never itself be zero together
-  guarantee this).
-- `exact(value)` (`exact`): Integer/Decimal/Rational unchanged. A finite
-  Float64 converts to the Decimal denoting the *exact* real value its
-  binary64 bits represent, via `float.as_integer_ratio()` (CPython
-  guarantees this is the exact, unrounded fraction; the denominator is
-  always a power of two) scaled by the matching power of five into an
-  exact power-of-ten denominator -- never through float repr/str text.
-  Float64 `+0.0`/`-0.0` both convert to canonical Decimal zero. NaN and
-  +/-infinity are deterministic conversion failures (`ValueError`).
-  Reproduces the contract's own worked example exactly:
-  `exact(float64(0.1))` denotes
-  `0.1000000000000000055511151231257827021181583404541015625`.
-- Both are registered as ordinary Genia builtins (`float64`, `exact`) via
-  `_host_function_group` in `src/genia/builtins.py`, documented in
-  `src/genia/host_builtin_docs.py`.
-- Shared evidence: 3 new `spec/*` cases (1 eval covering the round-trip
-  including the exact `0.1` proof, 2 error covering magnitude overflow and
-  NaN rejection -- the latter via the private R18 conformance test seam,
-  since R22 exposes no public NaN constructor), proven identical through
-  both the in-process path and the R16 subprocess protocol adapter.
-
-Explicit limitations: no Float64 arithmetic (E22-6); no mixed exact/Float64
-rejection enforcement yet (E22-6); no Float64 participation in R18
-comparison/equality bridge (E22-7); no `numeric-resource-limit`
-normalization (E22-8); no canonical display/JSON (R23).
-
-## 9.28) R22 E22-6 Float64 arithmetic and mixed-domain rejection (issue #892)
-
-Implements section 9 of
-`docs/design/r22-exact-numeric-runtime-contract.md`.
-
-- Float64-with-Float64 unary `-`, `+`, `-`, `*`, `/`, `%` needed no new
-  implementation: a Python `float` already is one IEEE-754 binary64 value,
-  and its native operators already are round-to-nearest-ties-to-even. `%`
-  is Python's native float floor remainder, which already matches the
-  contract's "floor remainder over represented operands, rounded to
-  binary64" definition.
-- Division/remainder by Float64 zero (`src/genia/evaluator.py`
-  `eval_binary`'s `SLASH`/`PERCENT` cases) now raises a deterministic,
-  explicitly-authored `ZeroDivisionError` (`"float64 division by zero"` /
-  `"float64 remainder by zero"`) before reaching Python's native operator
-  -- Python's native float division/remainder by zero already raises
-  `ZeroDivisionError` rather than silently producing infinity/NaN, so this
-  only replaces its message text with one this project authors, matching
-  E22-4's exact-family precedent.
-- Mixed exact/Float64 arithmetic is now explicitly rejected
-  (`src/genia/numeric_runtime.py` `is_mixed_exact_and_float64`, checked at
-  the top of every arithmetic case in `eval_binary`): Python's own numeric
-  tower otherwise lets a bare `int` freely interoperate with `float`
-  (e.g. `1 + 2.5` previously silently produced a host float), which is
-  exactly the R22 contract's mixed-domain violation for plain Integer;
-  `GeniaDecimal`/`GeniaRational` mixing with `float` already failed
-  correctly via the existing type-mismatch `TypeError` path (E22-1/E22-2),
-  so this closes the one remaining gap. Rejected in both operand orders
-  and for all five binary arithmetic operators, returning the same
-  `none("type-error", ...)` value the evaluator already returns for any
-  other type mismatch -- not a new diagnostic tag. The caller must
-  explicitly choose a domain with `float64(...)` or `exact(...)` first.
-  Comparison operators are unaffected (out of this slice's scope --
-  E22-7 owns the exact/Float64 comparison bridge).
-- Shared evidence: 4 new `spec/*` cases (2 eval -- Float64-with-Float64
-  arithmetic, and mixed-domain rejection across all five operators/both
-  orders/all three exact kinds -- and 2 error, division/remainder by
-  Float64 zero), proven identical through both the in-process path and the
-  R16 subprocess protocol adapter.
-
-Explicit limitations: no Float64 in R18 comparison/equality bridge (E22-7);
-no `numeric-resource-limit` normalization (E22-8); no canonical
-display/JSON (R23).
-
-## 9.29) R22 E22-7 mathematical comparison, equality, and R18 map-key reconciliation (issue #893)
-
-Implements section 10 of `docs/design/r22-exact-numeric-runtime-contract.md`,
-integrating Decimal/Rational/Float64 into R18's single equality/key
-relation (`docs/design/r18-portable-value-equality-contract.md`) rather
-than introducing a second relation.
-
-- **10.1 exact family**: `src/genia/equality.py` `_numeric_equal` is
-  rewritten around one uniform exact-fraction cross-multiplication
-  (`_exact_fraction`) covering Integer/Decimal/Rational (including plain
-  Integer/Integer), replacing the previous pairwise special-cased
-  functions. `1 == 1.0`, `1.0 == 1.00`, and `1 == rational(2, 2)` all hold.
-  Ordering (`< <= > >=`) is a new `numeric_order` function
-  (`src/genia/numeric_runtime.py`) reused by `GeniaDecimal`'s existing
-  comparison dunders (now generalized beyond Integer/Decimal) and new
-  `GeniaRational` comparison dunders -- Python's own operator-reflection
-  protocol (`NotImplemented` → the other operand's reflected method) makes
-  every Integer/Decimal/Rational pairing resolve correctly without new
-  evaluator dispatch.
-- **10.2 Float64 bridge**: the same `numeric_order`/`_numeric_equal`
-  machinery treats a finite Float64 by its own exact represented value
-  (`float.as_integer_ratio()`, CPython-guaranteed exact) cross-multiplied
-  against the exact operand's fraction -- the exact operand is never
-  rounded to Float64. `+0.0`/`-0.0` equal exact zero. NaN is unequal to
-  everything including itself and every ordered comparison involving it is
-  `false` (not raised). Infinities use extended-real ordering (below every
-  finite value when negative, above when positive). This bridge is
-  equality/comparison only; E22-6's mixed-domain arithmetic rejection is
-  unaffected and unchanged.
-- **10.3 map keys**: `canonical_map_key` now produces one unified
-  `("num-fraction", numerator, denominator)` bucket (always in lowest
-  terms) for any non-integral Decimal, Rational, or float, so an
-  equal-valued key of any of those three kinds collides into the same
-  entry; an integral value of any kind still collapses into the existing
-  `("num", int_value)` bucket. NaN remains an illegal key (no exact value
-  can ever be NaN, so this only constrains the Float64 side). Infinities
-  keep their own distinct-by-sign bucket and never collide with any finite
-  key.
-- Shared evidence: 3 new `spec/*` eval cases (exact-family equality,
-  exact-family-and-Float64 ordering, and cross-kind map-key collision
-  including through `float64(...)`), proven identical through both the
-  in-process path and the R16 subprocess protocol adapter. The full
-  pre-existing R18 spec/test suite (`tests/spec/test_r18_*.py`,
-  `tests/unit/test_r18_*.py`) was re-run and remains green with zero
-  changes required to its expectations.
-
-Explicit limitations: no `numeric-resource-limit` normalization (E22-8);
-no canonical display/JSON (R23).
-
-## 9.30) R22 E22-8 numeric misuse, resource limits, and diagnostic normalization (issue #894)
-
-Implements sections 11 and 13 of
-`docs/design/r22-exact-numeric-runtime-contract.md`. Primarily a
-verification slice: every deterministic numeric-misuse family introduced
-by E22-1 through E22-7 was audited directly through the CLI and confirmed
-already free of raw host exception text (exact/Float64 division and
-remainder by zero, invalid `rational(...)` arguments/zero denominator,
-invalid `float64`/`exact` conversion, mixed exact/Float64 arithmetic,
-illegal NaN map key) -- no changes were needed to any of those paths.
-
-- `numeric-resource-limit` (`src/genia/numeric_runtime.py`
-  `NumericResourceLimitError`, `_check_resource_limit`): a private,
-  non-public bound (default 14,000 bits) on a `GeniaDecimal` coefficient/
-  exponent or `GeniaRational` numerator/denominator's magnitude, checked
-  on raw input before any expensive canonicalization/gcd work. The bound
-  is deliberately kept below CPython's own int-to-decimal-text conversion
-  guard (`sys.get_int_max_str_digits()`, 4300 digits by default) --
-  auditing this slice's own construction paths surfaced a genuine
-  pre-existing gap: `GeniaDecimal`'s canonicalization converts the
-  coefficient to base-10 text to strip trailing zeros, and for an
-  astronomically large coefficient this previously hit Python's guard
-  directly, leaking a raw `ValueError` mentioning
-  `sys.set_int_max_str_digits` -- exactly the "raw host/library text
-  crosses the portable boundary" failure R22 forbids. The resource check
-  now runs first and pre-empts that leak with this project's own
-  deterministic `"numeric-resource-limit"` diagnostic.
-- A private, non-Genia-source-reachable test seam
-  (`_numeric_resource_limit_test_seam`, a context manager) temporarily
-  lowers the bound for deterministic test coverage, per contract section
-  11's own allowance that the threshold is a host/test detail, never
-  public Genia semantics; shared conformance never depends on its value.
-  `NumericResourceLimitError` propagates uncaught (like zero-division)
-  rather than being silently converted to a returned value, consistent
-  with the established precedent that numeric misuse terminates
-  evaluation rather than the caller continuing past it.
-- Explicitly not disguised as numeric overflow (`OverflowError`, reserved
-  for `float64`'s genuine binary64 magnitude overflow) or a type mismatch
-  (`TypeError`) -- it is its own exception kind.
-
-Explicit limitations: no canonical display/JSON (R23); the resource-limit
-bound applies only to `GeniaDecimal`/`GeniaRational` construction, not to
-R17 plain Integer arithmetic, which remains fully unbounded as before.
-
-## 9.31) R22 E22-9 cross-surface conformance and compatibility hardening (issue #895)
-
-Audits the whole merged R22 runtime model (E22-1..E22-8) across surfaces
-outside the evaluator's core arithmetic dispatch and repairs the
-compatibility defects genuinely caused by R22. Per
-`docs/design/r22-exact-numeric-runtime-contract.md`, no R23 rendering/JSON
-policy is introduced by this slice.
-
-Genuine defects found and fixed:
-
-- **Quoted/metacircular literal materialization**
-  (`src/genia/evaluator.py` `quote_node`, `quasiquote_node`'s internal
-  `qq`): both reconstructed a quoted `Number` AST node by returning its raw
-  `node.value` -- the pre-R21 evaluator-facing field, which for a
-  decimal-source literal is still a bare Python `float`. Ordinary
-  (non-quoted) evaluation instead lowers `Number` through the R21 tagged
-  `IrLiteral` payload into a genuine `GeniaDecimal` via
-  `numeric_literal_runtime_value`. `quote(1.5)` therefore silently produced
-  a Float64 instead of a Decimal, and any later `eval` of that quoted
-  structure carried the wrong runtime kind permanently. Both call sites now
-  route a `Number` node through
-  `numeric_literal_runtime_value(numeric_literal_payload(node))`, matching
-  ordinary evaluation exactly.
-- **Metacircular self-evaluating-literal predicate**
-  (`src/genia/builtins.py` `syntax_self_evaluating_fn`, backing
-  `self_evaluating?` in `std/prelude/eval.genia`): recognized only Python
-  `bool`/`int`/`float`/`str` as self-evaluating, so `eval(<GeniaDecimal>,
-  env)` or `eval(<GeniaRational>, env)` unconditionally raised
-  `"metacircular eval does not support expression"` even though the value
-  was already a legitimate self-evaluating literal. Now also recognizes
-  `GeniaDecimal`/`GeniaRational`.
-- **Sheets `render_csv` scalar rendering** (`src/genia/sheet.py`
-  `_csv_scalar_text`): accepted `GeniaDecimal` (fixed in E22-1) but not
-  `GeniaRational`, which is a separate dataclass, not a `GeniaDecimal`
-  subclass -- a Rational-valued cell crashed `render_csv`. Now accepts
-  both.
-- **Retrieval finite-score gating** (`src/genia/retrieval.py`
-  `_is_finite_score`): accepted `GeniaDecimal` (fixed in E22-1) but not
-  `GeniaRational`, silently treating a perfectly valid, always-finite
-  Rational evidence score as not finite. Now accepts both.
-
-Audited and confirmed already correct, no change needed: optimizer/
-constant-folding (`src/genia/optimizer.py` has no arithmetic constant
-folding at all; its only numeric-literal-aware logic already calls
-`numeric_literal_runtime_value` on the tagged payload rather than raw dict
-inspection); pattern matching (`src/genia/pattern_match.py` already
-dispatches literal-pattern comparison through the shared `genia_equal`
-relation, not raw `==`); `json_encode` (already produces a clean R19-style
-diagnostic for an unsupported-for-JSON `GeniaDecimal`/`GeniaRational`
-rather than crashing -- JSON policy itself remains R23); host subprocess
-protocol adapter (round-trips exact numeric kinds through the same
-`format_debug`/print machinery the evaluator's core dispatch already uses
-correctly, not a separate numeric-aware marshalling path); CLI/Flow
-execution (no numeric-type-specific logic of their own).
-
-Explicit limitations: no canonical display/JSON (R23); `json_stringify`'s
-existing (pre-R22, applies to every unsupported-for-JSON type, not
-Decimal/Rational-specific) diagnostic-message shape was not touched, since
-it is not a defect this slice's scope attributes to R22.
-
-## 9.32) R23 E23-1 canonical numeric rendering (issue #911)
-
-Implements sections 2-3 of
-`docs/design/r23-numeric-representation-interchange-contract.md`: canonical
-display/debug rendering for Integer, Decimal, Rational, and Float64.
-
-- **Decimal** (`src/genia/numeric_runtime.py` `GeniaDecimal.__repr__`/
-  `__str__`, via new shared `_canonical_decimal_text`): fixed notation when
-  `-6 <= adjusted_exponent <= 20` (`adjusted_exponent = len(digits) +
-  exponent - 1`), else scientific; no insignificant trailing fractional
-  zeros; `.0` suffix when mathematically integral (e.g. `500.0`, not the
-  prior placeholder's bare `500`); scientific form has exactly one digit
-  before `.`, lowercase `e`, explicit `+`/`-` exponent sign, no
-  unnecessary exponent leading zeros. Display and debug are identical.
-- **Rational** (`src/genia/numeric_runtime.py` `GeniaRational.__repr__`/
-  `__str__`): unchanged text (`<numerator>/<denominator>`, no spaces) --
-  it already matched the contract before this slice; only the "pending
-  R23" comment was retired.
-- **Float64** (`src/genia/numeric_runtime.py`, new `format_float64`):
-  `float64(<shortest-roundtrip-decimal>)`. The inner decimal is obtained
-  by parsing CPython's own correctly-rounded `repr(float)` (guaranteed
-  shortest text that round-trips to the identical binary64 bits under
-  round-to-nearest/ties-to-even) through `decimal.Decimal(...).as_tuple()`
-  into a coefficient/exponent pair, then rendered with the same
-  `_canonical_decimal_text` helper Decimal uses. Signed zero renders
-  `float64(0.0)`/`float64(-0.0)` (Float64, unlike Decimal, has a real
-  sign-of-zero distinction). Non-finite values render `float64(nan)`,
-  `float64(inf)`, `float64(-inf)`.
-- **Integer**: no change. Python's own `str(int)` already satisfied
-  contract section 2.1; confirmed by tests, not rewritten.
-- **Rendering-surface wiring** (`src/genia/utf8.py` `format_display`/
-  `format_debug` -- the one generic rendering dispatch every user-facing
-  and debug output surface already funnels through, including the REPL/
-  CLI final-value echo in `src/genia/interpreter.py` `_emit_result`):
-  gained an explicit `float` branch calling `format_float64` instead of
-  falling through to Python's own `str(float)`/`repr(float)`. Decimal and
-  Rational needed no dispatch change -- they already route through that
-  same fallback via their own (now canonical) `__str__`/`__repr__`.
-- Shared evidence: `tests/unit/test_r23_canonical_numeric_rendering.py`
-  (fixed/scientific boundary cases at `adjusted_exponent` exactly -6 and
-  20 and one past each side, trailing-zero stripping, Rational sign
-  normalization, Float64 signed zero/non-finite/shortest-round-trip
-  spelling, and a REPL/CLI-echo-path-level test running real Genia source
-  through the evaluator).
-
-Explicit limitations: no field-format-spec integration (existing
-`_format_engine.py` `.n`/`,`/width behavior is unchanged, E23-2); no JSON
-encode/decode changes, no `stable_json_decimal`, no compatibility JSON
-reconciliation (E23-3/E23-4/E23-5); no R19 diagnostic-normalization work
-beyond what already existed (no render path in scope raised for values in
-scope); R22 arithmetic/equality/comparison are unchanged -- this slice is
-rendering-only.
-
-## 9.33) R23 E23-2 field-format-spec integration (issue #913)
-
-Implements section 7 of
-`docs/design/r23-numeric-representation-interchange-contract.md`:
-`src/genia/_format_engine.py`'s existing `apply_format_spec` field-format
-system now works correctly against the E23-1 canonical Decimal/Rational/
-Float64 renderer (issue #911). No new formatting language; the existing
-template/placeholder system (`{field:spec}`) is unchanged. Presentation
-only -- no numeric kind or value is ever mutated by a format spec.
-
-- **Alignment/width** (`<n`/`>n`/`^n`): unchanged -- it already operated
-  on `format_display(value)`, i.e. the canonical text, so Decimal/
-  Rational/Float64 already padded/centered correctly with no code change
-  needed here.
-- **`.n` precision** (half-up, preserving the existing format-surface
-  rule): reworked to compute from each kind's exact value instead of a
-  Decimal-text round trip.
-  - `GeniaRational` is now a recognized numeric kind for format specs at
-    all (`_NUMERIC_TYPES` was missing it entirely before this slice, so
-    every numeric spec -- including `.n` -- raised `format-error: ...
-    requires numeric value` for a Rational operand). `.n` now rounds the
-    exact `numerator/denominator` ratio to `n` places via arbitrary-
-    precision integer `divmod` (never `decimal.Decimal` division, whose
-    bounded context precision cannot correctly round an arbitrary
-    repeating ratio like `1/3`, and never a `float(...)` cast).
-  - `GeniaDecimal` now rounds from its own `coefficient`/`exponent`
-    (via the existing `decimal_as_fraction` accessor) through the same
-    integer `divmod` routine, per the contract's literal "operates
-    directly on exact coefficient/exponent" wording.
-  - Float64 (`float`) now rounds from `value.as_integer_ratio()` --
-    the exact binary64 bit-pattern ratio -- instead of
-    `Decimal(repr(value))`. **Bug fix**: the prior `repr(value)`-based
-    path double-rounded (CPython's shortest-round-trip decimal text
-    is not the float's exact dyadic value), e.g. `2.675`'s exact bits
-    round to `2.67` at 2 places, but the old path rounded the text
-    `"2.675"` up to `2.68`. NaN/infinity now raise a normalized
-    `format-error: ... requires a finite numeric value` diagnostic
-    instead of `float.as_integer_ratio()`'s raw `OverflowError`/
-    `ValueError`.
-- **Zero-padding** (`0n`) and **grouping** (`,`): now gated to canonical
-  text that is a plain numeral (`-?\d+(\.\d+)?`) via a new
-  `_require_plain_numeral_text` helper, raising the existing
-  `format-error: ...` diagnostic pattern instead of applying digit-
-  position-counting presentation logic to a shape it doesn't fit.
-  Integer and GeniaDecimal-in-fixed-notation canonical text are plain
-  numerals and are unaffected (identical output to before this slice).
-  GeniaRational's `<numerator>/<denominator>` atom, Float64's
-  `float64(...)` atom, and GeniaDecimal-in-scientific-notation text are
-  not plain numerals and now raise instead of being reformatted.
-  **Bug fix**: before this slice, grouping a `float64(...)`-wrapped
-  value (e.g. `format("{n:,}", {n: float64(1234.5)})`) returned the
-  corrupted string `"flo,at6,4(1,234.5)"` -- grouping's thousands-
-  separator logic ran over the whole wrapper text introduced by E23-1's
-  canonical Float64 rendering. This is the one place this slice's fix
-  reaches past a pure `_format_engine.py`-local change: the wrapper text
-  itself (`format_float64` in `src/genia/numeric_runtime.py`) is
-  unmodified; only `_format_engine.py`'s own zero-pad/grouping gate
-  changed, so the mangling case now raises a normalized diagnostic.
-- Shared evidence:
-  `tests/unit/test_r23_format_spec_numeric_integration.py` (width/
-  alignment on Decimal/Rational/Float64 canonical text; zero-pad/
-  grouping acceptance on plain-numeral text and rejection on Rational/
-  Float64/scientific-Decimal text; `.n` half-up precision for Decimal,
-  Rational -- including a repeating-decimal case and a genuine decimal
-  tie from a terminating fraction -- and Float64 -- including the
-  `2.675` exact-dyadic-vs-shortest-repr case and NaN/infinity rejection;
-  `Format(...)` value parity for a Rational `.n` case).
-
-Explicit limitations: no JSON encode/decode changes, no
-`stable_json_decimal`, no compatibility JSON reconciliation (E23-3/
-E23-4/E23-5); no full diagnostics-normalization sweep (E23-6) --
-format-spec misuse continues to raise the same pre-existing
-`ValueError("format-error: ...")` pattern this file already used, not a
-new diagnostic mechanism; release audit not performed (E23-7); R22
-arithmetic/equality/comparison are unchanged; E23-1's own canonical
-rendering functions (`GeniaDecimal.__repr__`/`__str__`,
-`GeniaRational.__repr__`/`__str__`, `format_float64`,
-`_canonical_decimal_text`) are unmodified -- this slice only changes how
-`_format_engine.py` consumes their already-canonical output.
-
-## 9.34) R23 E23-3 strict generic JSON boundary for Integer and Decimal (issue #915)
-
-Implements sections 4.1, 4.2, 5, and 8 (this slice only) of
-`docs/design/r23-numeric-representation-interchange-contract.md` against
-the strict generic JSON boundary only (`json_decode`/`json_encode`, i.e.
-`_json_decode`/`_json_encode` in `src/genia/builtins.py`) -- the
-compatibility `json_parse`/`json_stringify`/`json_pretty`/
-`parse_jsonl_record` surface is a separately maintained code path
-(`_json_to_runtime`/`_json_from_runtime`, plain `json.loads`/`json.dumps`
-with no strict hooks, `none(...)` failure shape) and is untouched here
-(E23-5).
-
-- **Integer** (section 4.1): unchanged behavior, confirmed and reused --
-  `_strict_json_int` already bounded decode to the single existing
-  `_JSON_SAFE_INTEGER = 9_007_199_254_740_991` module constant; encode's
-  `_strict_json_from_runtime` already bounded the same interval. No new
-  literal was introduced.
-- **`stable_json_decimal(d)`** (section 4.2, new): added to
-  `src/genia/numeric_runtime.py`, next to `GeniaDecimal`. Converts `d`'s
-  exact `(numerator, denominator)` fraction (`GeniaDecimal._as_fraction()`)
-  to binary64 via native arbitrary-precision `int / int` true division
-  (the same correctly-rounded round-to-nearest/ties-to-even conversion
-  `to_float64` documents), returning `False` on overflow-to-infinity
-  (`OverflowError`) or on a nonzero value underflowing to `0.0`; otherwise
-  reuses E23-1's `_float_shortest_roundtrip_coefficient_exponent` to
-  recompute the shortest-roundtrip decimal for those binary64 bits and
-  compares its canonical `(coefficient, exponent)` directly against `d`'s
-  own already-canonical fields (valid because `GeniaDecimal.__init__`
-  already canonicalizes on construction, so canonical form is a unique
-  representative of mathematical value and tuple equality is exactly the
-  contract's "mathematically equal" check).
-- **Decode** (section 5): `json_decode`'s `parse_float` scanner hook
-  (`_strict_json_decimal`, replacing the former `_strict_json_float`)
-  parses the raw JSON fraction/exponent token text directly into an exact
-  `GeniaDecimal` coefficient/exponent via a lexical regex over the token's
-  sign/integer/fraction/exponent digit groups -- `float(...)` is never
-  called anywhere in this path. The resulting `GeniaDecimal` must satisfy
-  `stable_json_decimal`; otherwise decode raises the existing
-  `_JsonBoundaryFailure("json_number_out_of_range")`, normalized the same
-  way as every other JSON boundary rejection. Integer-form tokens are
-  unaffected (still `_strict_json_int` -> Integer). `NaN`/`Infinity`
-  spellings remain invalid JSON syntax, unchanged.
-- **Encode** (section 4.2): `_strict_json_from_runtime` gained a
-  `GeniaDecimal` branch: rejects (via the same `json_number_out_of_range`
-  reason) any Decimal failing `stable_json_decimal`, never rounding or
-  degrading it to a string. A stable Decimal is never itself JSON-
-  serializable as a raw token by `json.dumps` (it binds `float.__repr__`/
-  `int.__repr__` directly and has no `decimal.Decimal` support), so the
-  reference host emits a unique per-value ASCII sentinel string
-  (`uuid.uuid4().hex`-based) in the value's place and `json_encode_fn`
-  performs one final exact-text substitution of each quoted sentinel for
-  its raw canonical Decimal spelling (E23-1's `repr(GeniaDecimal)`) once
-  `json.dumps` has produced the full document text. This changes no
-  output for any other value kind and adds no new general-purpose JSON
-  serializer.
-- **Diagnostics** (section 8, this slice only): every new rejection above
-  raises through the existing `_JsonBoundaryFailure` ->
-  `_json_boundary_err` normalization already used by every other JSON
-  boundary failure, reusing the existing `json_number_out_of_range`
-  reason (no new diagnostic channel or reason string introduced).
-- Shared evidence: `tests/unit/test_r23_json_integer_decimal_boundary.py`
-  (R9 Integer-boundary accept/reject at encode and decode;
-  `stable_json_decimal` unit cases -- stable, excess-precision-unstable,
-  overflow, underflow; exact-canonical-text raw-number encode and
-  rejection of an unstable Decimal; lexical fraction/exponent decode,
-  including a case demonstrating decode does not go through
-  `Decimal(float(token))`; round-trip and nested-container cases);
-  `spec/eval/json-representation-number-boundaries.yaml` updated to
-  reflect that a JSON fraction token now decodes to the canonical Decimal
-  atom (`1.5`) rather than the prior placeholder Float64 atom
-  (`float64(1.5)`).
-
-Explicit limitations (left exactly as found, later R23 slices): Rational
-JSON policy is unaffected -- `_strict_json_from_runtime` still has no
-`GeniaRational` branch at all, so encoding a Rational still falls through
-to `unsupported_json_value` (Rational is not silently rounded, but is not
-yet accepted either); decode still never constructs a Rational. Float64
-(`float`) JSON handling in `_strict_json_to_runtime`/
-`_strict_json_from_runtime` is unmodified and, on the decode side, is now
-unreachable in practice (nothing manufactures a Python `float` there any
-more once fraction/exponent tokens decode to `GeniaDecimal`) but remains
-live for `float64(...)`-literal Genia values on encode; reconciling
-either is E23-4. Compatibility `json_parse`/`json_stringify` are entirely
-untouched (E23-5); a `GeniaDecimal` passed to `json_stringify` still
-raises `TypeError("json_stringify expected a JSON-compatible value...")`
-exactly as before. No full diagnostics-normalization sweep beyond this
-slice's own new rejections (E23-6); release audit not performed (E23-7).
-R22 arithmetic/equality/comparison are unchanged. E23-1's rendering
-functions and E23-2's format-spec code are called, never edited.
-
-## 9.35) R23 E23-4 strict generic JSON boundary for Rational and Float64 (issue #921)
-
-Implements sections 4.3, 4.4, the Rational/Float64 parts of section 5, and
-section 8 (this slice's new rejections) of
-`docs/design/r23-numeric-representation-interchange-contract.md` against
-the same strict generic JSON boundary E23-3 (section 9.34) established
-(`json_decode`/`json_encode`, i.e. `_json_decode`/`_json_encode` in
-`src/genia/builtins.py`). Compatibility `json_parse`/`json_stringify`/
-`json_pretty`/`parse_jsonl_record` remain untouched (E23-5).
-
-- **Rational** (section 4.3): `rational_terminating_decimal(value)`
-  (new, `src/genia/numeric_runtime.py`) computes a `GeniaRational`'s exact
-  equivalent `GeniaDecimal` using only integer arithmetic (no
-  `float(...)` cast) when its already-reduced denominator's only prime
-  factors are 2 and/or 5 (the standard base-10-termination test), else
-  returns `None` (e.g. `1/3`, `2/7`, and `1/6`/`5/12` -- both of which
-  still carry a non-2/5 factor of 3 despite also carrying a factor of 2).
-  `_strict_json_from_runtime` (encode) gained a `GeniaRational` branch:
-  a non-terminating Rational rejects with `unsupported_json_value`
-  (`value_type="rational"`) -- it cannot be represented as a JSON number
-  at all, the same reason any other non-numeric-JSON kind gets; a
-  terminating Rational whose exact Decimal equivalent fails the reused
-  (read-only) `stable_json_decimal` predicate rejects with
-  `json_number_out_of_range`, identical to Decimal's own rejection for
-  the same predicate failure; a terminating, stable Rational encodes its
-  exact Decimal equivalent's canonical text via the same sentinel-
-  substitution mechanism E23-3 built for Decimal. Decode is unaffected --
-  JSON never directly constructs a Rational (confirmed, not changed):
-  decoding an encoded Rational's JSON form yields a `GeniaDecimal`, which
-  R18 cross-kind equality (`genia_equal`) still compares mathematically
-  equal to the original Rational.
-- **Float64** (section 4.4): `float64_finite_canonical_text(value)` (new,
-  `numeric_runtime.py`) is `format_float64`'s finite-value digit
-  computation extracted into its own function, so display/debug rendering
-  and JSON encode share one computation instead of two -- `format_float64`
-  itself now calls it and its observable output is unchanged. The
-  previously-existing but contract-inconsistent Float64 encode branch
-  (which let `json.dumps` re-derive digits from `float.__repr__`, whose
-  fixed/scientific notation threshold does not match R23's own canonical
-  rule for every magnitude) is rewritten to inject
-  `float64_finite_canonical_text`'s exact text via the same sentinel-
-  substitution mechanism, so encoded JSON numbers always match
-  `format_float64`'s canonical spelling with the `float64(...)` wrapper
-  stripped. NaN/infinity are rejected with `json_number_out_of_range`
-  before `json.dumps(..., allow_nan=False)` ever sees them (that
-  `allow_nan=False` guard is defense-in-depth, not the primary
-  rejection).
-- **Decode never produces Float64** (section 5): confirmed, not a
-  behavior change. `_strict_json_to_runtime`'s pre-existing `float`
-  branch (flagged as dead in E23-3's own section 9.34 note) is genuinely
-  unreachable -- `json_decode`'s scanner hooks (`parse_float` ->
-  `GeniaDecimal`, `parse_constant` -> reject) intercept every JSON
-  number/constant token before `json.loads` could ever construct a raw
-  Python `float` for this function to see. Its body is now an explicit
-  `AssertionError`-guarded comment documenting exactly why, rather than a
-  silently inconsistent live-looking branch left in place.
-- **Diagnostics** (section 8, this slice's new rejections): both new
-  Rational failure modes and the corrected Float64 non-finite rejection
-  raise through the existing `_JsonBoundaryFailure` ->
-  `_json_boundary_err` normalization already used by every JSON boundary
-  failure, reusing two already-established reasons
-  (`unsupported_json_value` for "cannot be represented at all",
-  `json_number_out_of_range` for "right kind, failed the numeric
-  stability predicate") -- no new diagnostic channel or reason string.
-- Shared evidence: `tests/unit/test_r23_json_rational_float64_boundary.py`
-  (`rational_terminating_decimal` unit cases including negative
-  numerators, non-2/5-factor denominators that still carry a factor of 2,
-  and a large-prime-denominator case, plus an AST-based no-`float()`-cast
-  proof; encode of several terminating Rationals to exact decimal text;
-  encode rejection of non-terminating and terminating-but-unstable
-  Rationals with their respective distinct reasons; decode-never-
-  constructs-Rational and R18 cross-kind-equality round-trip cases;
-  Float64 encode of finite values -- including magnitudes needing
-  scientific notation and signed zero -- matching `format_float64`
-  exactly; Float64 NaN/Infinity encode rejection with a normalized
-  diagnostic, not a raw Python exception; confirmation every JSON
-  fraction/exponent decode token still produces `GeniaDecimal`, never
-  `float`; Genia-source-level `1 / 3` reject / `1 / 4` accept round
-  trips via exact division).
-
-Explicit limitations (left exactly as found, later R23 slices):
-compatibility `json_parse`/`json_stringify` were entirely untouched by
-this slice -- reconciled by E23-5 (section 9.36 below). No full
-diagnostics-normalization sweep beyond this slice's own new rejections
-(E23-6); release audit not performed (E23-7). R22 arithmetic/equality/
-comparison are unchanged. E23-1's rendering functions and E23-2's
-format-spec code are extended by one shared helper, never otherwise
-edited -- `format_float64`'s own output is unchanged.
-
-## 9.36) R23 E23-5 compatibility JSON reconciliation (issue #923)
-
-Implements section 6 ("Compatibility JSON surfaces") of
-`docs/design/r23-numeric-representation-interchange-contract.md` against
-the compatibility JSON surface only -- `json_parse`/`json_stringify`/
-`json_pretty` (`json_parse_fn`/`json_stringify_fn`, backed by
-`_json_to_runtime`/`_json_from_runtime` in `src/genia/builtins.py`) and
-`parse_jsonl_record` (`parse_jsonl_record_fn`). The strict generic JSON
-boundary (`json_decode`/`json_encode`, E23-3/E23-4, sections 9.34-9.35) is
-frozen and is only called into (reused functions), never modified, except
-for one pure internal delegation described below.
-
-- **Decode -- one shared lexical parser, two callers with different
-  strictness.** E23-3's `_strict_json_decimal` regex/coefficient/exponent
-  parsing was extracted into a shared `_parse_json_decimal_token(text)`
-  (byte-for-byte identical logic, `float(...)` never called). Strict
-  decode's `_strict_json_decimal` now calls it and still enforces
-  `stable_json_decimal` -- unchanged observable behavior. A new
-  `_compat_json_decimal(text)` calls the same shared parser but
-  deliberately does **not** enforce `stable_json_decimal`, and is
-  registered as the `parse_float` hook on both `json_parse`'s and
-  `parse_jsonl_record`'s `json.loads` calls. A JSON fraction/exponent
-  number token therefore always decodes to an exact `GeniaDecimal` through
-  both compatibility entry points, never a raw Python `float`, satisfying
-  contract section 6's "must not silently materialize fraction/exponent
-  numbers as host Float64" and its "reuse common lexical numeric
-  conversion machinery ... rather than duplicate competing parsers"
-  instruction with a single parser function, not two. `_json_to_runtime`
-  gained a `GeniaDecimal` passthrough branch so decoded values flow into
-  Genia runtime data unchanged; integer-form tokens are unaffected
-  (`json`'s default `int` parsing, unchanged).
-- **Decode permissiveness decision (deliberate):** compatibility decode
-  does not gate on `stable_json_decimal`. Before this slice,
-  `json_parse`/`parse_jsonl_record` never rejected any syntactically valid
-  JSON number regardless of precision; this preserves that documented
-  "legacy tolerance" character (`none(...)` only for outright parse/type
-  failures) rather than introducing a new strict-validation rejection mode
-  with no test or doc precedent. Contract section 6's own wording requires
-  only that decode not silently produce host Float64 -- it does not
-  require rejecting an unstable value -- so a `GeniaDecimal` that would
-  fail strict `json_decode`'s stability gate still decodes successfully
-  through `json_parse`/`parse_jsonl_record`.
-- **Encode -- `json_stringify` now accepts `GeniaDecimal`/terminating
-  `GeniaRational`/finite Float64,** reusing E23-3/E23-4's canonical-text
-  computations (`repr(GeniaDecimal)`, `rational_terminating_decimal`,
-  `float64_finite_canonical_text`) and the same sentinel-substitution
-  injection mechanism, factored into a shared `_json_number_sentinel`
-  helper. This closes an asymmetry this slice's own decode fix would
-  otherwise introduce: since `json_parse` now *produces* `GeniaDecimal`
-  for every fraction/exponent token, `json_stringify(json_parse(text))`
-  would otherwise immediately regress for any document containing a
-  decimal number. Matching the decode permissiveness decision above,
-  compatibility encode of `GeniaDecimal`/a terminating `GeniaRational`
-  does **not** enforce `stable_json_decimal` -- it always emits the exact
-  canonical decimal text, whatever its precision. Only values that cannot
-  be represented as a JSON number at all -- a non-terminating
-  `GeniaRational`, or a non-finite Float64 -- remain rejected, via this
-  surface's existing `none("json-stringify-error", ...)` failure shape
-  (unchanged from before this slice; still distinct from strict
-  `json_encode`'s `err(...)` shape, which this slice does not unify --
-  out of scope).
-- **Encode -- Float64 canonical-digit unification.** A bare Python `float`
-  handed to `json_stringify` previously serialized through `json.dumps`'s
-  own `float.__repr__`, whose fixed/scientific notation threshold does not
-  match R23's canonical rule (E23-1) for every magnitude -- the same
-  contract-inconsistency E23-4 fixed for strict encode. `_json_from_runtime`'s
-  `float` branch now renders through `float64_finite_canonical_text` via
-  the same sentinel mechanism, so a Float64's JSON number text is now
-  identical whether it reaches JSON through `json_encode` or
-  `json_stringify`, directly closing contract section 6's "must not
-  preserve a second contradictory host-float numeric model" for this
-  case. NaN/Infinity remain rejected (unchanged `math.isfinite` guard).
-- **`parse_jsonl_record`** shares the exact same `_compat_json_decimal`
-  hook as `json_parse` (confirmed it previously called `json.loads` with
-  no hook of its own, independently missing the same numeric fix); its
-  pre-existing `_jsonl_value_type` helper already classified `GeniaDecimal`
-  alongside `int`/`float` as `"number"`, now genuinely reachable.
-- Shared evidence:
-  `tests/unit/test_r23_compatibility_json_reconciliation.py` (fraction/
-  exponent tokens decoding to exact `GeniaDecimal` via `json_parse` and
-  `parse_jsonl_record`, including a precision case that fails strict
-  `json_decode`'s stability gate but still decodes here; a direct
-  source-level proof that `json_parse` and `json_decode` share the same
-  `_parse_json_decimal_token` function rather than duplicating parsing
-  logic; `json_stringify` encode of `GeniaDecimal`/terminating
-  `GeniaRational`/finite Float64, including an unstable-precision case;
-  rejection of a non-terminating `GeniaRational` and a non-finite float
-  with the existing `none(...)` shape; a `json_stringify(json_parse(...))`
-  round-trip case; a Float64 encode case proving `json_stringify`'s digits
-  now match `format_float64`/strict `json_encode`'s canonical spelling
-  rather than `float.__repr__`'s).
-
-Explicit limitations (left exactly as found): the `none(...)`-vs-`err(...)`
-failure-shape difference between compatibility and strict JSON is an
-approved pre-existing difference and is not unified by this slice. No
-full diagnostics-normalization sweep beyond this slice's own new
-rejections until E23-6 (section 9.37 below); release audit not performed
-until E23-7 completes across the whole release. R22 arithmetic/equality/
-comparison are unchanged. Strict `json_decode`/`json_encode`
-(`_strict_json_to_runtime`/`_strict_json_from_runtime`) are unmodified
-except for `_strict_json_decimal` delegating to the newly-shared
-`_parse_json_decimal_token`, with identical observable behavior.
-
-## 9.37) R23 E23-6 diagnostics normalization sweep + docs/release truth sync (issue #925)
-
-Implements section 8 ("Error and diagnostic boundary") of
-`docs/design/r23-numeric-representation-interchange-contract.md` as a full
-sweep across every failure path touched or introduced by E23-1 through
-E23-5 (sections 9.32-9.36), per
-`docs/analysis/issue-925-e23-6-diagnostics-sweep-docs-sync-preflight.md`.
-This is a diagnostics-cleanliness and documentation-truth slice, not a
-new-behavior slice.
-
-- **Format-spec (E23-2) diagnostics: confirmed already sound, no change.**
-  Every `format-error: ...` raise in `src/genia/_format_engine.py`
-  constructs its message from a fixed string plus the format spec text or
-  field name, never `str(exc)` of a caught Python exception, and surfaces
-  as an ordinary host `ValueError`/`TypeError` misuse diagnostic exactly
-  the way every pre-existing (pre-R23) format-spec error already did --
-  consistent with R19's diagnostic-portability convention.
-- **Strict JSON boundary (E23-3/E23-4) structure: confirmed already
-  sound, no change.** Every `_JsonBoundaryFailure` construction uses a
-  fixed reason string plus structured keyword context, never wrapped raw
-  exception text.
-- **`json_number_out_of_range` reason-reuse judgment call (deferred by
-  E23-3/E23-4): ratified as sufficient at the `reason` level, refined
-  additively.** Splitting the reason symbol itself (e.g. into separate
-  Integer-range/Decimal-instability/Float64-non-finite reasons) was
-  rejected as a genuine, unnecessary behavior change -- existing tests and
-  any downstream Genia code pattern-matching on `result.reason` depend on
-  the exact symbol `json_number_out_of_range`. Instead, every real
-  (non-defensive) `json_number_out_of_range` raise site -- strict encode
-  and decode, both integer-range and numeric-stability/non-finite
-  rejections -- now additionally carries a `cause` context field
-  (`integer_out_of_range`, `decimal_unstable`, `rational_unstable`,
-  `float_non_finite`, or `non_finite_constant` for a rejected
-  `NaN`/`Infinity`/`-Infinity` JSON literal), a purely additive context-map
-  key that breaks no existing `reason`-symbol assertion.
-- **The first of two genuine leaks found and fixed across this release:
-  compatibility `json_stringify`'s unsupported-value diagnostic.** (See
-  the second, `GeniaRational -> "rational"` leak, documented further
-  below and fixed by issue #933's E23-8 repair.) `_json_from_runtime`'s
-  final fallback
-  `TypeError` (extended in scope by E23-5's rewrite of this function, see
-  section 9.36) read a raw Python `type(value).__name__` instead of the
-  portable `_runtime_type_name` table every sibling "expected X, received
-  Y" diagnostic in `src/genia/builtins.py` already uses (including the
-  equivalent final raise in `_strict_json_from_runtime`) -- exactly the
-  class of leak E19-3 already normalized elsewhere (E19-3's note: "the
-  large 'expected X, received Y' family already renders via
-  `_runtime_type_name`"), missed here only because it predates R23 and
-  E23-5's rewrite left this one call unchanged. Fixed: now uses
-  `_runtime_type_name(value)`.
-- **A sibling `type(value).__name__` shape exists in three pure R22
-  arithmetic-misuse raises** (`numeric_runtime.py`'s `_as_decimal`, `exact`,
-  and `to_float64`; corrected from an earlier "two" count by issue #933's
-  E23-8 repair audit finding), confirmed by `git blame` to be E22-1/E22-5
-  code never touched by any E23 slice. Left unchanged -- out of this
-  ticket's R23-only scope (R22 arithmetic/equality is explicitly frozen);
-  noted as a candidate for a future, separately scoped ticket if one is
-  ever opened. This bullet is distinct from, and must not be conflated
-  with, the E23-8 fix documented immediately below: the three sites here
-  are deliberately-unfixed pre-existing R22 code, not a second instance of
-  the same leak E23-8 fixed.
-- **A second, distinct genuine leak, found by the E23-7 skeptical release
-  truth audit and fixed by issue #933's E23-8 repair: `json_stringify`'s
-  diagnostics raw-leaked the Python class name `"GeniaRational"` instead
-  of the portable type name `"rational"`.** `_runtime_type_name` in
-  `src/genia/values.py` had no branch for `GeniaRational`, so any
-  `_json_from_runtime`/`_strict_json_from_runtime` "expected X, received
-  Y" diagnostic over an unsupported rational value fell through to a raw
-  Python `type(value).__name__` string instead of the same portable
-  vocabulary (`"integer"`, `"decimal"`, `"float64"`, ...) every sibling
-  runtime type already renders through `_runtime_type_name`. Fixed by
-  adding a `GeniaRational -> "rational"` branch to `_runtime_type_name`
-  (implementation commit `feda3a7d`, failing-test commit `e03c76bf`, both
-  landed via the now-merged E23-8 branch/PR history). This is a second,
-  independent instance of the same "expected X, received Y" leak class
-  E23-6 fixed for compatibility `json_stringify` above -- not a
-  duplicate of that fix and not the same finding as the three deferred
-  R22 `numeric_runtime.py` sites in the bullet above.
-- **E23-4's `AssertionError` dead-code guard in
-  `_strict_json_to_runtime`'s `float` branch: confirmed genuinely
-  unreachable through every public JSON entry point** (`_json_parse`,
-  `_json_decode`, `_parse_jsonl_record`, `_json_stringify`, `_json_encode`;
-  `json_pretty` is prelude sugar over `json_stringify`). Only
-  `_json_decode` ever calls `_strict_json_to_runtime`, and its
-  `parse_float=_strict_json_decimal`/`parse_constant=
-  _reject_json_constant` scanner hooks guarantee no raw Python `float`
-  ever reaches the tree it walks. Proven by fuzzing `_json_decode` with a
-  broad adversarial set of fraction/exponent/large/small/negative/zero
-  numeric tokens plus explicit `NaN`/`Infinity`/`-Infinity` literals: no
-  call ever raises `AssertionError`. No bug found; no runtime-code change
-  to the guard.
-- **Bare `except Exception`/swallow-and-rethrow sweep: none found.** No
-  bare `except Exception` or `except:` clause exists in
-  `numeric_runtime.py` or `_format_engine.py` (neither performs I/O); every
-  JSON-boundary `except` clause is narrowly typed and converts to a
-  structured, reason-coded Outcome, never re-raising caught exception text
-  unmodified.
-- Shared evidence: `tests/unit/test_r23_e23_6_diagnostics_sweep.py`
-  (format-spec/strict-JSON diagnostic-cleanliness proofs that pass
-  immediately against unmodified code; the `cause` context-field value for
-  every `json_number_out_of_range` scenario, with `reason` unchanged;
-  compatibility `json_stringify`'s unsupported-value message now reporting
-  a portable type name; a broad `AssertionError`-unreachability fuzz
-  sweep across every public JSON entry point; a direct proof the guard
-  itself is live code, not dead from a typo).
-
-Explicit limitations: no new numeric semantics; no Outcome-shape change;
-no R22 arithmetic/equality change; R23 is not marked complete by this
-slice -- the E23-7 skeptical release truth audit is still pending.
-
-## 9.38) Provider Composition P8 — retrieve/4 alternate-provider substitution proof (issue #945)
-
-Implements the design in
-`docs/design/p8-alternate-provider-substitution-proof-design.md` (issue
-#943) as concrete runtime evidence. This is architecture-exploration work
-(`docs/analysis/provider-composition-stage0.md`, `docs/analysis/
-provider-composition-preflight.md`), **not** a new numbered release --
-`retrieve/4`'s public contract, error vocabulary, and Outcome shape
-(section 9's R12 entries above) are unchanged.
-
-- **No `src/genia/retrieval.py` change.** `GeniaRetrieveProvider`,
-  `GeniaRetriever`, and `create_fixture_retrieve_provider` are exactly as
-  R12 (E12-4) left them. Both realizations below are plain Python handler
-  closures installed through that unmodified factory.
-- **Realization A (existing pattern, reused unmodified).** The
-  fixed-order/fixed-score list-backed handler pattern already used by
-  `hosts/python/exec_r12_grounded_fixture.py` and
-  `tests/unit/test_r12_retrieval_fixture.py`.
-- **Realization B (new, issue #945): `hosts/python/
-  r12_retrieve_cosine_fixture.py`.** A genuinely distinct implementation
-  path: an id-keyed `dict` backend (not realization A's ordered `list`)
-  plus a real, deterministic cosine-similarity ranking computed with plain
-  Python arithmetic (`dot / (|q| * |s|)`), sorted descending with a
-  deterministic index-based tie-break. `score` is the computed similarity
-  itself, never a constant. It calls no code from realization A and adds
-  no new Genia-visible surface, builtin, or factory.
-- **Proof evidence:**
-  `tests/unit/test_r12_retrieve_alternate_realization.py` (50 tests,
-  parametrized over both realizations where applicable):
-  - the identical Genia-source `retrieve(...)`/`r(handle, query, k)` call
-    sequence produces a contract-conformant Outcome from either
-    realization, with the only difference being which Python handler was
-    passed to `create_fixture_retrieve_provider` at host-side bootstrap;
-  - binding is explicit only (an unset provider name fails to resolve at
-    all; two providers built side by side never cross-invoke each
-    other's handler/attempt counter);
-  - a retrieve provider paired, via the same unmodified
-    `create_fixture_retrieve_provider`, to the same already-built index
-    provider passes all three E12-4 compatibility guards
-    (identity/space/dims) for either realization;
-  - Outcome shape (cardinality bound, chunk provenance, finite score) is
-    identical between realizations for the same corpus/query while
-    *content* (order, score value) legitimately differs -- realization
-    A's constant `1.0` score vs. realization B's genuine computed cosine
-    similarity, and a query that lets B rank differently than A's fixed
-    insertion order;
-  - no provider-internal object (`_FixtureRetrieveResult`,
-    `_FixtureIndexResult`, `GeniaIndexHandle`, the compatibility-identity
-    `object()`, or a raw `dict`/`list` backend) is ever observable from a
-    returned Outcome's `display`/`debug_repr`/`repr`;
-  - a handler that raises normalizes to
-    `err("retrieve-transport-failure", {kind: other})` with no exception
-    text or type name, for both realizations;
-  - all four P3/P4 numeric score kinds (Integer, `GeniaDecimal`,
-    `GeniaRational`, Float64) and non-numeric chunk/meta evidence survive
-    exactly through both realizations' shared normalization path;
-  - R18 equality (`genia_equal`), R20 dispatch (`construct_retrieve`/
-    `create_fixture_retrieve_provider` are plain Python functions, no
-    open-function/dispatch mechanism referenced anywhere in
-    `retrieval.py`), R14 lifecycle (confirmed absent from
-    `retrieval.py`'s source -- `retrieve/4` never opens a lifecycle
-    scope), and Outcome semantics (`some`/`none`/`err`) are all confirmed
-    unchanged by this proof;
-  - negative scenarios: wrong interface revision (mismatched `dims`),
-    incompatible provider (mismatched `space`), incompatible index
-    identity, missing/wrong-type provider (fails closed with `TypeError`
-    before any handler), provider-internal object leakage, a Local-only
-    `GeniaIndexHandle` embedded inside `query`'s map (rejected as misuse
-    before any handler), a non-finite (`NaN`/`Infinity`/`-Infinity`)
-    score (rejected `retrieve-response-invalid`/`stage: score`), and a
-    normalized provider failure with no raw exception text -- each
-    proven for both realizations.
-  - "Ambiguous binding" is vacuously satisfied and documented as such,
-    not forced: `retrieve/4` has no registry or name-lookup a binding
-    could ever resolve ambiguously against, so no such scenario is
-    constructible; the test instead proves two providers can coexist in
-    one environment with zero cross-selection.
-- **P3/P4 Decimal/Rational non-finite case: does not exist.**
-  `GeniaDecimal`/`GeniaRational` (R22) are exact, arbitrary-precision, and
-  have no NaN/Infinity representation, so `_is_finite_score` always
-  accepts them; only Float64's `math.isfinite` boundary has a non-finite
-  case to reject. Documented rather than faked with an artificial test.
-- Per `docs/analysis/provider-composition-stage0.md`'s P8 row, this
-  resolves P8: "smallest proof of alternate provider realization with
-  unchanged application logic," per the row's own exit evidence (two
-  realizations with identical portable observations and no
-  provider-specific leakage), traced above.
-
-Explicit limitations: this is not a general provider-registry, P5
-"name + opaque revision" token, or P7 binding-plan proof -- it stays at
-the single explicit-argument scale P8's design fixed. It makes no claim
-about `embed/4`, `index/4`, or `rerank/4` needing a second realization.
-It is not a new release and adds no new Genia-visible syntax, builtin, or
-factory.
-
-## 9.39) Provider Composition P9 — Genia<->WIT interoperability proof (issues #947, #949, #951)
-
-Implements the design in
-`docs/design/p9-genia-wit-interoperability-mapping.md` (issue #947) as
-concrete runtime evidence, across two implementation slices
-(`docs/design/p9-wit-toolchain-build.md`, issue #949; this section, issue
-#951). Like section 9.38, this is architecture-exploration work
-(`docs/analysis/provider-composition-stage0.md`), **not** a new numbered
-release -- `retrieve/4`'s public contract, error vocabulary, and Outcome
-shape (section 9's R12 entries above) are unchanged, and no
-`src/genia/retrieval.py` change was required or made.
-
-- **Slice A (issue #949, infrastructure/build evidence): a real compiled,
-  validated WIT component.** `wit/genia-retrieve/world.wit` authors
-  package `genia:retrieve@0.1.0`: `genia-integer` (sign + base-2^32
-  little-endian magnitude limbs), `genia-decimal`
-  (`coefficient: genia-integer, exponent: s32`), `genia-rational`
-  (`numerator`/`denominator: genia-integer`) -- never a bare fixed-width
-  WIT integer or `f64` standing in for any of the three -- a four-case
-  `genia-score` numeric variant, a three-case `genia-outcome` variant
-  (`outcome-some`/`outcome-none`/`outcome-err`, never a two-case
-  `result<T, E>`, per the design doc's explicit rejection of folding
-  `none(...)` into either `ok` or `err`), a `genia-ordered-map` adapter
-  (`list<genia-map-entry>` over a narrow `map-value` variant of
-  Integer/String), and an `index-ref` record carrying E12-4's
-  `handle-id`/`space`/`dims` compatibility data (a record, not a WIT
-  `resource`, per that slice's documented decision). `wit/
-  genia-retrieve-component/` is a small `#![no_std]` Rust crate
-  (`wit-bindgen = "0.62.0"`) compiled for `wasm32-wasip2` into a real,
-  `wasm-tools validate`-clean Component-Model binary (file version
-  `0x1000d`, not a bare core module) whose embedded interface
-  (`wasm-tools component wit`) matches the authored `.wit` field for
-  field. Toolchain: `wasm-tools 1.259.0`, `wit-bindgen-cli 0.62.0`,
-  `wasmtime-cli 49.0.0-rc.1` (explicitly noted as a release candidate --
-  no stable release existed at build time), `rustc 1.98.1`.
-- **Slice B (issue #951): a real Python-host adapter and round-trip
-  proof, never a mock or simulation.** `hosts/python/
-  wit_retrieve_adapter.py` -- a Python-host-only module, never reachable
-  from Genia source and never registered in `genia.builtins`, matching
-  `hosts/python/r12_retrieve_cosine_fixture.py`'s convention.
-  - **Mechanism decision.** The `wasmtime` PyPI package (native Wasmtime
-    embedding) was checked per the issue's explicit instruction:
-    `uv pip install wasmtime` resolves and installs cleanly
-    (`wasmtime==48.0.0`), but its public API in that version exposes only
-    core-WebAssembly primitives (`Module`/`Instance`/`Linker`/`Store`) and
-    no Component-Model-aware type at all, so it cannot instantiate or call
-    a real `wasm32-wasip2` component. The adapter therefore shells out to
-    a real `wasmtime run --invoke <component>.wasm <function>(<args>)`
-    process (the same pinned `wasmtime-cli` binary slice A validated),
-    which does support real component calls, and parses its deterministic
-    `wasm-wave` textual output with a small hand-rolled recursive-descent
-    parser scoped to this proof's known grammar. The `wasmtime` PyPI
-    package is not added as a project dependency and is not used anywhere
-    in the adapter or its tests.
-  - **Component extension.** `retrieve`'s own slice-A fixture only ever
-    emits `score-float64` and never returns a Map, so it alone cannot
-    exercise Integer/Decimal/Rational or ordered-Map-as-output through a
-    real call. Three pure identity round-trip exports were added to the
-    same `.wit`/Rust crate for this reason alone --
-    `echo-score`/`echo-outcome`/`echo-map` -- adding no scoring,
-    validation, or new Genia semantics; `retrieve`'s own behavior,
-    signature, and fixture are byte-for-byte unchanged from slice A.
-  - **Conversions.** `GeniaDecimal`/`GeniaRational` (both plain
-    arbitrary-precision Python `int` fields, per `src/genia/
-    numeric_runtime.py`) convert to/from `genia-decimal`/`genia-rational`
-    through the shared `genia-integer` sign+limb encoding with no float
-    anywhere in the path; a `GeniaMap` converts to/from
-    `genia-ordered-map` by iterating `GeniaMap.items()` (already R17/R18
-    canonical-order- and identity-deduplicated by construction), rejecting
-    any key/value kind this narrow interface's `map-value` variant does
-    not admit (bool, and anything beyond Integer/String) as an L2
-    pre-call misuse; `GeniaOptionSome`/`GeniaOptionNone`/`GeniaOptionErr`
-    convert to/from the three-case `genia-outcome` variant, including
-    `context` fields restricted to this interface's narrow closed
-    Integer/Symbol leaf shapes per the design doc's §1.4 scoping.
-  - **Failure layering.** L1 (an ordinary `some`/`none`/`err` Outcome) is
-    always returned as a value, never raised. L2
-    (`WitAdapterMisuseError`) rejects a value this boundary forbids
-    crossing at all -- a protected carrier (`GeniaProtected`), a
-    non-finite float, an unsupported map-key kind -- entirely on the
-    Python side, before any `subprocess` call is made. L3
-    (`WitComponentFaultError`) normalizes a genuine nonzero-exit
-    `wasmtime` process failure (a missing export, a malformed invocation)
-    into one of a closed set of `kind` strings, discarding all raw
-    process stderr/backtrace/source-path text before the exception is
-    ever raised or observed.
-  - **Proof evidence:** `tests/unit/test_p9_wit_retrieve_roundtrip.py`
-    (18 tests, every one calling the real compiled component through a
-    real `wasmtime` subprocess, skipped rather than faked if the
-    toolchain/component is unavailable):
-    - a 37-digit `GeniaDecimal` and a full Integer/Decimal/Rational/
-      Float64 sweep (including exact `1/3` and an Integer beyond 64 bits)
-      round-trip through `echo-score` with zero precision loss;
-    - a `GeniaMap` with a non-string (Integer) key round-trips through
-      `echo-map` with R17 order and R18 replace-in-place key identity
-      intact (a `put` that replaces an existing key does not grow the
-      entry count or reorder it);
-    - all three Outcome cases round-trip through `echo-outcome`,
-      including `err`'s `context` map, and are confirmed pairwise
-      distinct constructor kinds, never coerced into one another;
-    - a real `retrieve` call (mirroring R12's `retrieve/4` handler shape,
-      minus the already-declassified credential and never-crossing
-      provider/authority values, per the design doc §1.7/§1.9) exercises
-      `some`/`none`/`err` together against the compiled component's own
-      fixed three-document fixture;
-    - a protected carrier and a non-finite float are rejected by
-      `WitAdapterMisuseError` with `subprocess.run` patched to fail the
-      test if ever called, proving the L2 rejection happens strictly
-      before any component call is attempted;
-    - an invalid invocation (a nonexistent export name) raises a
-      normalized `WitComponentFaultError` with `kind ==
-      "invocation-invalid"`, confirmed to contain no raw Wasmtime process
-      text (`wasmtime_internal_core`, `Stack backtrace`, `.rs:`,
-      `libc_start`), and is confirmed observably distinct from an
-      ordinary `retrieve` call returning `err("retrieve-rejected")` as a
-      plain Outcome value.
-- Per `docs/analysis/provider-composition-stage0.md`'s P9 row, this
-  resolves P9: "map one exact Genia interface/revision without making WIT
-  identity authoritative... preserve approved P3/P4 values and
-  Outcomes... distinguish operation, component/transport, and R36
-  failures... document mismatches rather than changing Genia," per the
-  row's own exit evidence, traced above. Every mismatch the design doc
-  documented as adapted/lossy by design (arbitrary-precision numerics as
-  structural records rather than a WIT primitive, the ordered-map
-  adapter's enforcement living entirely in adapter code, `borrow<T>`'s
-  narrower per-call scope versus R14's full escape-prohibition list,
-  protected carriers/authorities never crossing as WIT values) remains
-  exactly as documented; this proof introduces no *new* undocumented
-  lossy substitution -- Decimal/Rational never touch a host binary float
-  anywhere in this path.
-
-Explicit limitations: `index-ref` is a WIT `record`, not a `resource`/
-`borrow<T>` -- the design doc's own named feasibility test for a
-host-owned borrowed resource (§1.8) remains future, separately-scoped
-work, not performed here. The general `genia-ordered-map` adapter is
-exercised only against this interface's narrow `map-value` variant
-(Integer/String), not a fully recursive legal-key family. No R36 outer
-execution envelope is exercised or claimed (§1.10 L4) -- this is a
-same-process, same-machine `wasmtime` component call. This is the last
-row in the Stage 0 provider-composition work ledger; it is not a new
-release and adds no new Genia-visible syntax, builtin, or factory.
+- **Canonical rendering.** `display` and `debug_repr` render numbers identically:
+  - Integer: its decimal text.
+  - Decimal: fixed notation when the adjusted exponent (`digits + exponent - 1`) is in `-6..20`, otherwise scientific (one digit
+    before `.`, lowercase `e`, explicit `+`/`-` exponent sign, no needless exponent zeros); no insignificant trailing fractional
+    zeros; an integral value keeps a `.0` suffix (`500.0`).
+  - Rational: `<numerator>/<denominator>` with no spaces.
+  - Float64: `float64(<shortest-roundtrip-decimal>)`, rendered with the Decimal rule; signed zero is `float64(0.0)` /
+    `float64(-0.0)`; non-finite values are `float64(nan)`, `float64(inf)`, `float64(-inf)`. The REPL/CLI final-value echo uses
+    the same rendering.
+- **Field format specs.** Alignment and width (`<n`, `>n`, `^n`) operate on the canonical text. Precision `.n` rounds half-up
+  from each kind's exact value (Decimal coefficient/exponent, Rational numerator/denominator by integer division, Float64 exact
+  binary value via its integer ratio, so `2.675` rounds `2.67` at 2 places); NaN and infinity raise a normalized
+  `format-error` requiring a finite value. Zero-padding (`0n`) and grouping (`,`) apply only to canonical text that is a plain
+  numeral; a Rational atom, a `float64(...)` atom, or scientific Decimal text raises the existing `format-error` diagnostic.
+  Format specs never change a value's kind.
+- **Strict JSON (`json_decode`/`json_encode`).**
+  - Integer is bounded to the R9 safe interval (+/-(2^53-1)).
+  - A JSON fraction or exponent token decodes lexically to an exact Decimal (never through host float); it must satisfy
+    `stable_json_decimal` (the value survives conversion to binary64 and back to its shortest-roundtrip decimal as the same
+    canonical Decimal), otherwise decode fails with reason `json_number_out_of_range`. `NaN`/`Infinity` are invalid JSON.
+  - Encode emits a stable Decimal as its exact canonical spelling as a raw JSON number and rejects an unstable one with
+    `json_number_out_of_range`; it never rounds or degrades to a string.
+  - A Rational encodes only when its reduced denominator has no prime factors other than 2 and 5 and the equivalent Decimal is
+    stable: a non-terminating Rational fails with `unsupported_json_value`, an unstable terminating one with
+    `json_number_out_of_range`. Decode never constructs a Rational (a decoded Rational form is an equal Decimal under R18).
+  - A finite Float64 encodes using the same canonical digits as rendering with the `float64(...)` wrapper removed; NaN and
+    infinities fail with `json_number_out_of_range`. Decode never produces Float64.
+  - Every failure uses the existing structured boundary outcome with a fixed reason plus a structured `cause` context field; no
+    raw exception text and no new reason symbols.
+- **Compatibility JSON (`json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record`).** Fraction and exponent tokens
+  decode through the same lexical parser to exact Decimal, never host float, but without the `stable_json_decimal` gate
+  (legacy tolerance: failures stay `none(...)` only for outright parse or type failures). `json_stringify` accepts Decimal,
+  terminating Rational, and finite Float64 and always emits exact canonical decimal text without the stability gate; a
+  non-terminating Rational or a non-finite Float64 fails with the existing `none("json-stringify-error", ...)` shape.
+  `json_stringify(json_parse(text))` round-trips decimal numbers. The `none(...)` versus `err(...)` difference between the
+  compatibility and strict surfaces is an approved, unchanged difference.
+- **Diagnostics.** Numeric and JSON failure paths in these surfaces carry portable type names (for example `"rational"`,
+  `"decimal"`, `"float64"`) and no raw Python class or exception text.
+
+Explicit limitations: no arbitrary-precision JSON-number transport, no new JSON dialect, no locale-sensitive formatting, no new
+general formatting language, no Rational literal syntax, and no C++ implementation.
+
+## 9.38) Provider-composition proofs P8 and P9 (digest; evidence only)
+
+Current-state digest of former sections 9.38-9.39 (verbatim provenance text in
+`docs/state-record/provider-proof-records.md`). Designs: `docs/design/p8-alternate-provider-substitution-proof-design.md`,
+`docs/design/p9-genia-wit-interoperability-mapping.md`, `docs/design/p9-wit-toolchain-build.md`; ledger:
+`docs/analysis/provider-composition-stage0.md`. These are architecture-exploration proofs, not a numbered release. They add no
+Genia syntax, builtin, factory, or Core IR node and change no `src/genia/retrieval.py` behavior; `retrieve/4`'s public
+contract, error vocabulary, and Outcome shape (R12) are unchanged. Python reference host only.
+
+- **P8 (alternate-provider substitution).** Two independent realizations of the retrieve provider, both installed through the
+  unmodified `create_fixture_retrieve_provider`, give the same Genia-source `retrieve(...)` call a contract-conformant Outcome:
+  a fixed-order list-backed handler and `hosts/python/r12_retrieve_cosine_fixture.py` (id-keyed backend, deterministic cosine
+  ranking). Binding is explicit only; providers never cross-invoke; both pass the identity/space/dims compatibility guards;
+  Outcome shape is identical while content (order, score) may differ; provider-internal objects never appear in rendered
+  output; a raising handler normalizes to `err("retrieve-transport-failure", {kind: other})`; Integer, Decimal, Rational, and
+  Float64 scores survive exactly; a non-finite score is `retrieve-response-invalid` (`stage: score`).
+- **P9 (Genia <-> WIT mapping).** A real compiled, validated WIT component (`wit/genia-retrieve/world.wit`, package
+  `genia:retrieve@0.1.0`) maps Integer, Decimal, and Rational as structural records (never a fixed-width WIT integer or `f64`), a
+  three-case outcome variant (never `result<T, E>`), an ordered-map adapter, and an `index-ref` record. The Python-host-only
+  `hosts/python/wit_retrieve_adapter.py` (never reachable from Genia source) calls the component through a pinned `wasmtime`
+  command-line process and round-trips numerics with no precision loss, ordered maps with R17/R18 key identity, and all three
+  Outcome cases as distinct constructors. Protected carriers and non-finite floats are rejected before any component call; an
+  invalid invocation is a normalized `WitComponentFaultError`, distinct from an ordinary `err("retrieve-rejected")` Outcome.
+
+Explicit limitations: not a provider registry, binding-plan, or R36 execution-envelope proof; `index-ref` is a record, not a
+WIT resource or borrow; the ordered-map adapter is exercised only against a narrow Integer/String value variant; no claim is
+made for `embed/4`, `index/4`, or `rerank/4`; the `wasmtime` toolchain pin was a release candidate when built.
 
 ## 9.40) External direct process execution (`execution.process`)
 
-Status: Implemented (Python reference host). Implements the approved
-cross-cutting contract `execution.process(capability, request) ->
-some(ProcessResult) | err(reason, context)`
-(`docs/design/execution-process-contract.md`, PR #977) per the approved
-implementation design (`docs/design/execution-process-design.md`, PR #978).
-This capability has no release number (it specializes the existing
-host-capability taxonomy and R14 ownership/finalization patterns rather
-than opening a new numbered release) and is distinct from the unrelated,
-already-implemented `process.*` logical process/mailbox family (`spawn`,
-`send`, `process_alive?`): `execution.process` is external direct
-executable execution; `process.*` is Genia's own in-process concurrency
-primitive.
+Status: Implemented (Python reference host). Contract `docs/design/execution-process-contract.md`; design `docs/design/execution-process-design.md`; detailed pre-condensation text in
+`docs/state-record/server-and-process-records.md`. `execution.process(capability, request) -> some(ProcessResult) | err(reason, context)` has no release number (it specializes the host-capability taxonomy and R14
+ownership/finalization patterns) and is distinct from the in-process `process.*` mailbox family (`spawn`, `send`, `process_alive?`): this is external direct executable execution.
 
 LANGUAGE CONTRACT:
 
-- `import execution` then `execution.process(capability, request)` is an
-  ordinary two-argument call. `capability` must be an opaque, host-created
-  process-execution capability; pure Genia source cannot construct,
-  compare, serialize, or meaningfully render one, and there is no ambient
-  capability, global `host` object, or `host.supports(...)` operation —
-  the capability must be supplied explicitly, exactly as R11's model
-  provider or R14's outbound-HTTP transport already require.
-- `request` is exactly the closed map `{executable: symbol, args: [string,
-  ...], timeout_ms: integer}`. `executable` is a provider-bound symbolic
-  identity (e.g. `quote(candidate_host)`), never an OS path, command
-  string, or portable promise to search `PATH`. `args` elements become
-  exact, separate child argv elements after `executable` — no shell is
-  ever invoked, and no quoting, splitting, glob expansion, variable
-  interpolation, or command substitution occurs at any layer. `timeout_ms`
-  is a plain Integer in `1..300000`; a Python-style `bool` (or any other
-  non-Integer numeric domain, including Decimal/Rational) is rejected as
-  misuse, not silently accepted or coerced.
-- A malformed capability, request shape, `executable`, `args`, `timeout_ms`,
-  or any request value that recursively contains a protected leaf
-  (reusing the existing R10 `contains_protected`/`reject_protected`
-  machinery — no new taint mechanism) is runtime misuse, raised before any
-  resolution or provider effect. V1 defines no process declassification
-  sink and no authority argument: this differs from the R14 protected-HTTP-header
-  sink model, where a matching authority does authorize revealing a
-  protected value immediately before the one transport attempt.
-- A completed child attempt is always `some({exit_code, stdout, stderr})`
-  — including a nonzero `exit_code`. A program's nonzero exit status is
-  the program's own ordinary result data, never an `execution.process`
-  failure; nothing in this capability's normalization can turn a
-  completed nonzero exit into `err(...)`. `stdout`/`stderr` are opaque
-  `Bytes` values (never implicitly decoded to text, never line-ending
-  normalized); each channel has an independent fixed maximum of exactly
-  `1,048,576` bytes — a channel of exactly that size succeeds, one more
-  byte is overflow.
-- Recoverable failures are exactly the closed taxonomy:
-  `err("process-executable-unavailable", {executable})` (unbound symbol),
-  `err("process-unauthorized", {operation: quote(execute), executable})`
-  (bound symbol, capability policy denies it),
-  `err("process-launch-failure", {executable})` (resolution succeeded, the
-  bound target could not be started),
-  `err("process-timeout", {timeout_ms})` (the deadline elapsed; the owned
-  child is terminated and reaped before this is returned),
-  `err("process-output-limit", {limit_bytes: 1048576})` (either channel
-  exceeded its independent bound; all partial output is discarded, never
-  included), and `err("process-provider-failure", {operation:
-  quote(execute)})` (any other host condition, including an unexpected
-  exception from the capability's own launcher). No raw Python exception
-  text, exception type name, errno description, native executable path,
-  or process identifier ever crosses into a returned context, a
-  diagnostic, or a rendered value. `process-unsupported` is reserved
-  taxonomy this operation never emits itself — that reason belongs
-  entirely to the deferred, not-yet-implemented capability-provisioning
-  boundary (see Explicit limitations).
-- Adds no syntax, no `IrProcess`/`IrSpawnExternal`/`IrHostCall`/shell-AST
-  Core IR node, and no Flow/Seq change: `execution.process(...)` lowers
-  through the existing ordinary-call/map/list/quote node families exactly
-  like any other dotted module call.
+- `import execution` then `execution.process(capability, request)` is an ordinary two-argument call. `capability` is an opaque, host-created process-execution capability that pure Genia source cannot construct, compare,
+  serialize, or render; there is no ambient capability or `host.supports(...)`; it must be supplied explicitly (as for R11's model provider or R14's HTTP transport).
+- `request` is exactly the closed map `{executable: symbol, args: [string, ...], timeout_ms: integer}`. `executable` is a provider-bound symbolic identity (for example `quote(candidate_host)`), never an OS path, command
+  string, or promise to search `PATH`. Each `args` element becomes one exact child argv element: no shell is invoked and no quoting, splitting, glob expansion, interpolation, or command substitution occurs. `timeout_ms` is a
+  plain Integer in `1..300000`; a boolean or any other numeric domain is rejected as misuse.
+- A malformed capability or request, or any request value that recursively contains a protected leaf (existing R10 `contains_protected`/`reject_protected`), is runtime misuse raised before any resolution or provider effect. Version
+  1 has no process declassification sink and no authority argument (unlike the R14 protected-HTTP-header sink).
+- A completed child attempt is always `some({exit_code, stdout, stderr})`, including a nonzero `exit_code`: a program's nonzero exit is ordinary result data, never an `execution.process` failure. `stdout`/`stderr` are opaque
+  `Bytes` (never decoded or line-ending normalized); each channel has an independent maximum of exactly `1,048,576` bytes (exactly that size succeeds; one more byte overflows).
+- Recoverable failures are exactly: `err("process-executable-unavailable", {executable})` (unbound symbol), `err("process-unauthorized", {operation: quote(execute), executable})` (bound but denied),
+  `err("process-launch-failure", {executable})`, `err("process-timeout", {timeout_ms})` (the owned child is terminated and reaped first), `err("process-output-limit", {limit_bytes: 1048576})` (either channel; all partial
+  output discarded), and `err("process-provider-failure", {operation: quote(execute)})` (any other host condition). No raw exception text or type name, errno description, native path, or process id crosses into a context,
+  diagnostic, or rendering. `process-unsupported` is reserved taxonomy this operation never emits (it belongs to the deferred capability-provisioning boundary).
+- Adds no syntax, no new Core IR node, and no Flow/Seq change: it lowers as an ordinary dotted module call.
 
 PYTHON REFERENCE HOST:
 
-- `src/genia/process_capability.py` (new): `GeniaProcessCapability` is an
-  opaque `__slots__`-based value (symbol -> native-target bindings, an
-  authorization predicate, and a launcher callable), mirroring
-  `GeniaModelProvider`'s shape. The private factory
-  `create_process_capability(bindings, authorized, launcher)` is
-  consumed only by privileged host-side code — there is no Genia-callable
-  constructor, matching R11's model-provider/R14's declassification-authority
-  precedent of privileged-host-only minting.
-- `src/genia/process_transport.py` (new): `launch_process(executable, args,
-  timeout_ms, spawn_hook=None) -> ProcessTransportResult |
-  ProcessTransportFailure` is the narrow launcher:
-  `subprocess.Popen(argv, shell=False, ...)` with `stdin=DEVNULL`; two
-  dedicated reader threads drain `stdout`/`stderr` concurrently, each
-  incrementally counting bytes and stopping the instant the running total
-  exceeds `1,048,576` (never buffering past that bound plus one read
-  chunk); timeout uses a monotonic-clock deadline polled at a short fixed
-  interval, never `subprocess.run(..., timeout=...)`'s own raised
-  `TimeoutExpired`. Cleanup (`Popen.kill()`, which sends `SIGKILL` on
-  POSIX — unblockable, so a child that installs a `SIGTERM` handler still
-  dies) plus reap is unconditional and idempotent on every failure path
-  (launch failure, timeout, either channel's overflow, or an unexpected
-  host error), so no owned child survives the attempt. Nonzero exit
-  becomes `ProcessTransportResult` unconditionally; `subprocess.run(...,
-  check=True)`/`check_call`/`check_output` are not used anywhere in this
-  module, by design.
-- `src/genia/process_execution.py` (new): `perform_process_execution(capability,
-  request)` is the validation/normalization boundary — exact closed-request
-  validation in field order (`executable`, `args`, `timeout_ms`), the
-  existing `reject_protected(request, "execution.process")` call before
-  any resolution or launch, symbol resolution against the capability
-  (`is_bound`/`is_authorized`/`target_for`), and failure-taxonomy
-  normalization. No native target string or raw exception ever appears in
-  a value this function returns.
-- `src/genia/std/prelude/execution.genia` (new): `process(capability,
-  request) = _execution_process(capability, request)`, resolved through
-  the existing packaged-prelude-module import mechanism (`import
-  execution`) exactly like `import web`/`import resource` — no new
-  module-loading mechanism. `src/genia/builtins.py` registers the private
-  raw builtin `_execution_process`, mirroring `_http_send`.
-- Validated by 115 tests across 13 files under
-  `tests/unit/test_execution_process_*.py`: exact capability/request
-  misuse validation including boolean-as-`timeout_ms` rejection; recursive
-  protected-value rejection with sentinel-non-leak proof; unavailable vs.
-  unauthorized vs. launch-failure kept observably distinct; nonzero exit
-  (`1`, `2`, `17`, `127`, `255`) always `some(ProcessResult)`, with an
-  explicit guard against `subprocess.CalledProcessError`-style semantics;
-  byte-exact capture including non-UTF-8 payloads; concurrent stdout/stderr
-  draining sized past a 64 KiB OS pipe buffer so a naive sequential reader
-  would deadlock; exact-at-limit and one-byte-over independent output
-  bounds, plus an endless-writer fixture proving incremental (not
-  buffer-then-check) enforcement; timeout against a fixture that ignores
-  `SIGTERM`; PID-liveness-checked no-leaked-child proof across every
-  terminal path; failure-context non-leak proof using recognizable
-  sentinel strings; a real command-injection-style proof (a
-  shell-significant argv element that would create a marker file if any
-  shell ever evaluated it); and a Core IR regression confirming
-  `execution.process(...)` lowers to the same node-family shape as any
-  other dotted call.
+- `src/genia/process_capability.py`: `GeniaProcessCapability` (opaque; symbol-to-native-target bindings, an authorization predicate, a launcher), minted only by privileged host code through
+  `create_process_capability(bindings, authorized, launcher)`; there is no Genia-callable constructor.
+- `src/genia/process_transport.py`: `launch_process(...)` uses `subprocess.Popen(argv, shell=False)` with `stdin=DEVNULL`, two reader threads that drain stdout/stderr concurrently and stop incrementally once a channel exceeds
+  `1,048,576` bytes, a monotonic-clock deadline, and unconditional idempotent `kill()` plus reap on every failure path, so no owned child survives; a nonzero exit is always a result.
+- `src/genia/process_execution.py`: `perform_process_execution(capability, request)` validates the closed request in field order, calls `reject_protected(request, "execution.process")` before any launch, resolves the symbol,
+  and normalizes the failure taxonomy; `src/genia/std/prelude/execution.genia` exposes `process(...)` over the private builtin `_execution_process`.
 
-Explicit limitations (deferred, not implemented):
+Explicit limitations (deferred): no source-level capability provisioning (only privileged host code can call `create_process_capability`; no file, command, pipe, import, REPL, test, or server mode provisions one implicitly);
+no protected argv/environment sink, user environment, cwd, child stdin beyond EOF, streaming output, TTY, signals, process handles, supervision, retries, or remote execution; no new Core IR, R35 storage, or R36
+location-independent execution. The portable contract has a single-host implementation: `execution_process` is registered in `spec/manifest.json` `optional_capabilities` (the Python host self-declares `supported`), but
+no shared-spec case declares `requires: [execution_process]` yet (no host-neutral fixture mechanism exists), so that declaration is advertisement, not conformance evidence (`docs/host-interop/capabilities.md`).
 
-- No source-level capability provisioning/bootstrap API — the contract
-  intentionally defers this; only privileged host-side Python code (a
-  test harness, a future host bootstrap) can call
-  `create_process_capability`. No file, command, pipe, import, REPL, test,
-  or server mode provisions a usable capability implicitly.
-- No protected argv/environment sink, no user-specified environment, no
-  cwd, no child stdin beyond immediate EOF, no streaming output, no TTY,
-  no signals/general cancellation, no process handles, no supervision, no
-  retries, and no remote execution — all explicitly out of scope for this
-  slice.
-- **Portable contract, single-host implementation, no multi-host
-  conformance evidence yet.** `execution.process` has a portable semantic
-  contract that any future host must satisfy identically, and the Python
-  reference host currently implements that contract — this does **not**
-  mean another host currently implements it. `execution.process` is
-  registered as `execution_process` in `spec/manifest.json`'s
-  `optional_capabilities` (the Python host self-declares it `supported`,
-  matching the existing `shell_stage`/`debugger_stdio`/`process_primitives`
-  name-only-registration precedent), but no shared-spec case declares
-  `requires: [execution_process]` yet, because no host-neutral fixture/
-  provisioning mechanism exists to let a portable case inject a capability
-  into the sandboxed `eval` category — so that `supported` self-declaration
-  is not yet exercised or falsified by any actual conformance test. Runtime
-  implementation and R16 capability *advertisement* are not conformance
-  *evidence*; a natural future consumer of the missing fixture mechanism is
-  R37 Genia-native conformance tooling, which the roadmap already names as
-  a concrete future consumer of this primitive — see
-  `docs/host-interop/capabilities.md`.
-- No new Core IR, R35 portable storage/location semantics, or R36
-  location-independent execution behavior is implemented or implied by
-  this capability.
+## 9.41) R28 native Genia MCP server (digest; Experimental, Python reference host only)
 
-## 9.41) R28 E28-1 native Genia MCP server skeleton (`apps/mcp/mcp.genia`)
+Current-state digest of former sections 9.41-9.47 (phase history is preserved verbatim, as non-authoritative provenance, in
+`docs/state-record/r28-mcp-records.md`). Contract: `docs/design/r28-genia-mcp-contract-threat-model.md` (with amendments A1-A7);
+reference: `docs/mcp/reference.md`; conformance: `docs/mcp/conformance-matrix.md`; release page `docs/releases/R28.md`; the
+completion and acceptance record is section 9.49. LANGUAGE CONTRACT: none. The behavior below is the application contract of
+`apps/mcp/mcp.genia`, an ordinary Genia program with no new syntax, builtin, Core IR node, or language semantics. There is no C++
+MCP implementation and no cross-host parity claim.
 
-Status: Implemented (Python reference host), **Experimental, intermediate
-development surface of the then-incomplete R28 release** (R28, epic #700, is complete as of section 9.49);
-this section records only what E28-1 (issue #702) landed under the approved
-contract `docs/design/r28-genia-mcp-contract-threat-model.md` (including
-Clarification A1) and design `docs/design/r28-e28-1-native-mcp-skeleton-design.md`.
-It is not an availability claim for agents or editors: no checked-in MCP client
-configuration exists and no VS Code/Copilot acceptance has been demonstrated.
+APPLICATION BEHAVIOR (local stdio only; no HTTP transport):
 
-LANGUAGE CONTRACT:
-
-- E28-1 adds no syntax, parser rule, AST or Core IR node, builtin, prelude function,
-  evaluator behavior, or host capability claim to Genia. `apps/mcp/mcp.genia` is an
-  ordinary Genia program built only from existing behavior (`stdin |> lines`,
-  `json_decode`/`json_encode`, `json_schema` Templates, guard/tuple/list/map patterns,
-  Outcomes, `writeln(stdout, ...)`). The MCP wire behavior below is that program's
-  application contract, not Genia language semantics.
-
-APPLICATION BEHAVIOR (`apps/mcp/mcp.genia`, MCP `2026-07-28`, local stdio only):
-
-- The program takes exactly one argument, `contract_revision`, which must be exactly
-  40 lowercase hexadecimal characters. Any other argument list writes one fixed
-  diagnostic to stderr, writes nothing to stdout, and exits nonzero. The rejected
-  value is never echoed. Because Genia has no process-exit facility, the nonzero exit
-  is produced by a deliberate runtime error (ledger entry R28-H15).
-- It reads one JSON-RPC message per stdin line (split on `\n` only) and writes one
-  response per request, each on exactly one stdout line. Empty lines are ignored; a
-  message without `id` that is a well-formed notification (for example
-  `notifications/cancelled`) gets no response. It exits when stdin reaches EOF.
-- Implemented methods: `server/discover`, `tools/list`, and `tools/call`. For
-  `2026-07-28` there is no `initialize`, no session, and no state carried between
-  requests. (Amendment A5, section 9.47, adds the `2025-11-25` compatibility era:
-  `initialize`, `ping`, and one process-local state bit.)
-- The advertised tool set is exactly `["genia_capabilities"]`. `genia_parse` and
-  `genia_run` are not implemented and are not advertised; calling them is an
-  unknown-tool error (`-32602`).
-- `genia_capabilities` takes no arguments (arguments may be omitted or `{}`; anything
-  else is `-32602`) and returns a `CallToolResult` with `resultType: "complete"`,
-  `isError: false`, one text content item, and `structuredContent` equal to the
-  contract envelope `{schema_version: "genia.mcp.v1", status: "ok", result:
-  <capabilities>, error: null}`. The capabilities object has exactly the contract
-  fields (`server`, `mcp`, `genia`, `tools`, `execution_profile`); `tools` is
-  `["genia_capabilities"]` and `contract_revision` is the launch argument. The
-  `execution_profile` reports the governed policy only; nothing is executed or
-  enforced in E28-1.
-- Per-request `params._meta` must carry `io.modelcontextprotocol/protocolVersion` (a
-  string) and `io.modelcontextprotocol/clientCapabilities` (an object); results carry
-  `_meta["io.modelcontextprotocol/serverInfo"]` of `{name: "genia-mcp", version:
-  <contract_revision>}`. Discover and list results use `ttlMs: 0`,
-  `cacheScope: "public"`; `server/discover` capabilities are exactly `{tools: {}}`;
-  `tools/list` has no pagination (any `cursor` is `-32602`).
-- Protocol errors use fixed messages that never echo caller text: unparseable JSON
-  `-32700`; invalid JSON-RPC object (including an `id` that is not a string or
-  integer) `-32600`; unknown method (including `initialize`, resources, prompts)
-  `-32601` (an `initialize` carrying the `2026-07-28` `_meta` stays `-32601`; section 9.47);
-  missing/malformed `_meta`, bad `tools/call` params, unknown tool, or
-  non-empty arguments `-32602`; unsupported version `-32022` with
-  `data.supported = ["2026-07-28"]` and `data.requested`.
-- Native Genia owns decoding, shape/type validation, dispatch, result and error
-  construction, JSON encoding, single-line framing (`json_encode`, split on
-  newline, trim, join), and stdout. The program imports no module and references no
-  filesystem, network, process, configuration, or secret facility.
-
-PYTHON REFERENCE HOST:
-
-- `hosts/python/mcp_launch.py` is build/launch identity plumbing only: it resolves
-  `git rev-parse HEAD` for the repository (module-relative; ambient `GIT_*`
-  ignored; workspace modifications never described), validates 40 lowercase hex,
-  builds the command (`python -c "from genia.interpreter import _main; ..."`, the
-  same invocation as `hosts/python/exec_cli.py`), applies a fixed environment
-  allowlist, and starts `mcp.genia` with the revision as its only argument. It
-  imports no JSON module and contains no tool, envelope, or protocol logic. No MCP
-  SDK is used.
-- Validated by `tests/unit/test_r28_mcp_skeleton.py` (wire behavior, framing,
-  startup), `tests/unit/test_r28_mcp_launcher.py` (launch identity), and
-  `tests/unit/test_r28_mcp_architecture.py` (native ownership and Python-drift
-  guards, including a differential run proving the host controls only the revision).
-
-Explicit limitations (not implemented in E28-1):
-
-- No `genia_parse`, no `genia_run`, no worker process, no timeout/cancellation/size
-  enforcement, no MCP resources or prompts, no MCP client, no HTTP transport, no
-  checked-in `.mcp.json`/`.vscode/mcp.json`, no VS Code/Copilot acceptance, and no
-  C++ MCP support or parity claim. The `portable_mcp_implementation` field is
-  `false`.
-- Host dependencies and Genia gaps found while building it are recorded in the
-  living ledger `docs/analysis/r28-host-dependency-inventory.md`; recording a gap
-  adds no language feature.
-
-## 9.42) R28 E28-2 `genia_parse` over the native Genia MCP server
-
-Status: Implemented (Python reference host), **Experimental, intermediate development
-surface of the then-incomplete R28 release** (R28, epic #700, is complete as of section 9.49; E28-2 is issue #703).
-Governing documents: contract `docs/design/r28-genia-mcp-contract-threat-model.md`
-(Clarifications A2 and A3) and design `docs/design/r28-e28-2-parse-tool-design.md`.
-Section 9.41 still applies; this section records only what E28-2 adds.
-
-LANGUAGE CONTRACT:
-
-- E28-2 adds no syntax, parser rule, AST or Core IR node, builtin, prelude function,
-  integer type, JSON facility, or change to R9/R23 `json_decode`/`json_encode`. Genia
-  integer semantics and the R9 portable-JSON integer range
-  `[-9007199254740991, 9007199254740991]` are unchanged. The behavior below is
-  application and host-transport behavior of `apps/mcp/mcp.genia`.
-
-APPLICATION BEHAVIOR:
-
-- `genia_parse` is advertised and callable only when the host launcher provisions the
-  `parse` capability as an explicit argument to `serve(revision, host)`. Plain
-  `genia apps/mcp/mcp.genia <revision>` (CLI mode) provisions none and keeps the
-  section 9.41 surface (`genia_capabilities` only; `genia_parse` is an unknown tool).
-- Input is exactly one string `source`; missing, non-string, or extra properties are
-  `-32602`. A well-formed `source` over 262,144 UTF-8 bytes is an `input_limit`
-  envelope without parsing; invalid Unicode is `-32700` at the JSON-RPC boundary
-  (Clarification A2). Parsing never evaluates source.
-- Success is `{schema_version: "genia.mcp.v1", status: "ok", result: {kind: "parsed",
-  ast}, error: null}` where `ast` is the existing normalized parse surface
-  (`hosts/python/parse_adapter.parse_and_normalize`), unchanged. A Genia syntax
-  failure is a `parse_error` / phase `parse` envelope carrying only a character
-  offset (never source text or host error text); any other host failure is a fixed
-  `internal_error` envelope; a result over 3,276,800 bytes is `result_limit`.
-- Lossless AST transport (ledger R28-H22, Clarification A3): the host capability
-  serializes the normalized AST losslessly and `mcp.genia` inserts that text into the
-  result without decoding or re-encoding it through R9 JSON, so integer literals
-  outside the R9 range (for example `9007199254740992` or
-  `123456789012345678901234567890`) are returned as exact JSON integer tokens,
-  neither rounded nor stringified. `mcp.genia` still validates the capability header
-  and AST text shape, applies the source and result limits, and builds the envelope.
-  This is not a general Genia raw-JSON facility. A client whose JSON decoder is
-  IEEE-754-only may not preserve such integers as native numbers; that is outside
-  this contract.
-- The normalized AST is the existing minimal projection: most node kinds (including
-  unary negation, so a negative literal) appear as `{kind}` only (ledger R28-H23);
-  E28-2 does not change normalization.
-
-PYTHON REFERENCE HOST:
-
-- `hosts/python/mcp_parse_capability.py` (`parse_source`) wraps `parse_and_normalize`;
-  `hosts/python/mcp_host.py` is the in-process bootstrap that calls
-  `serve(revision, {parse: ...})` (the launcher starts it). No MCP SDK is used.
-- Validated by `tests/unit/test_r28_mcp_parse.py`,
-  `tests/unit/test_r28_mcp_parse_capability.py`, and the existing R28 tests.
-
-Explicit limitations: no `genia_run`, no worker/timeout/cancellation, no MCP resources
-or prompts, no C++ MCP support or parity claim, no checked-in client configuration.
-
-## 9.43) R28 E28-3 `genia_run` over the native Genia MCP server
-
-Status: Implemented (Python reference host), **Experimental, intermediate development
-surface of the then-incomplete R28 release** (R28, epic #700, is complete as of section 9.49; E28-3 is issue
-#704). Governing documents: contract `docs/design/r28-genia-mcp-contract-threat-model.md`
-(Clarifications A2, A3, A4) and design `docs/design/r28-e28-3-genia-run-design.md`.
-Sections 9.41 and 9.42 still apply; this section records only what E28-3 adds. It is not
-an availability claim for agents or editors and **not a security sandbox**.
-
-LANGUAGE CONTRACT:
-
-- E28-3 adds no syntax, parser rule, normalized parse change, AST or Core IR node, builtin,
-  prelude function, evaluator behavior, integer type, JSON facility, `execution.process`
-  change, or ordinary CLI behavior, and changes no R9/R23 JSON rule. The behavior below is
-  application and host behavior of `apps/mcp/mcp.genia` and its host modules.
-
-APPLICATION BEHAVIOR:
-
-- `genia_run` is advertised and callable only when the host launcher provisions the `run`
-  capability. The advertised order is `genia_capabilities`, `genia_parse`, `genia_run`;
-  launcher mode lists exactly these three, plain CLI mode (`genia apps/mcp/mcp.genia
-  <revision>`) still lists only `genia_capabilities` and treats `genia_run` as an unknown
-  tool. `genia_capabilities.tools` and `execution_profile` keep their closed shape; the
-  profile flags report governed policy (no such Genia authority is provisioned), not OS
-  mechanisms.
-- Input is exactly one string `source` (any other argument is `-32602`). A well-formed
-  `source` over 262,144 UTF-8 bytes is `input_limit` before any worker starts; invalid
-  Unicode is `-32700` at the JSON-RPC boundary (Clarification A2).
-- Success is `{schema_version, status: "ok", result: {kind: "completed", value:
-  {rendered}, stdout, stderr, exit_code: 0}, error: null}`. `value.rendered` is the
-  existing canonical debug rendering of the final value (`format_debug`); `stdout` and
-  `stderr` are the program's output-sink writes captured separately; none is scraped from
-  the others. A successful `none("nil")` is a present rendered value. Source is evaluated
-  with `run_source` (command-source evaluation); `main` is **not** dispatched (contract
-  section 2.5, ledger R28-H29), unlike ordinary `-c` mode.
-- Failure envelopes (no `result`, no partial value, stdout, or stderr; every message is a
-  fixed server-owned string): `parse_error` (phase `parse`, character offset only),
-  `policy_denied` (`policy`), `runtime_error` (`execution`, no Genia diagnostic text),
-  `timeout` (`execution`, 5,000 ms), `cancelled` (`execution`), `result_limit`
-  (`adapter`: a channel or the rendered value over 1,048,576 bytes, or the whole result
-  over 3,276,800 bytes), and `internal_error` (`adapter`).
-- Cancellation is honored: a `notifications/cancelled` message whose `params.requestId`
-  equals the active request id, queued with the request or arriving during the run,
-  terminates and reaps the worker and yields `cancelled`. The match is made in native
-  `mcp.genia`; a cancel for another id, or after completion, is ignored; other lines that
-  arrive during a run are answered in order afterwards.
-- Every response is flushed as soon as it is written (previously it could be held in the
-  stdout buffer until exit; ledger R28-H31).
-
-POLICY AND RUNTIME (each call, in a fresh worker):
-
-- Pre-execution policy runs in the worker over the **raw parser AST** (Clarification A4);
-  the shared normalized parse surface is unchanged. It rejects every `import`, shell stage
-  `$(...)`, and any reference to an authority-bearing name (file, zip, resource, HTTP,
-  server, external process, configuration, secret, declassification, model, retrieval,
-  `input`, `stdin_keys`). It is conservative: a user definition reusing such a name is
-  rejected too.
-- The Genia environment is pruned by an explicit default-deny classification
-  (`hosts/python/mcp_worker_profile.py`; a test fails if any binding or autoload is
-  unclassified), `import` loading is denied, and process creation and socket use are
-  stubbed at runtime (shell stages bypass bindings; ledger R28-H28). `argv()` is empty and
-  `stdin` is immediate EOF; no environment, dotenv, configuration, or secret source exists.
-- A protected-value carrier in the result is `policy_denied` with a fixed message.
-
-WORKER FLOOR (guaranteed on the Python reference host, POSIX):
-
-- fresh process per call in its own process group; fixed minimal environment (no `PATH`,
-  `HOME`, or user variable); private empty working directory removed after reap; only the
-  three standard pipes inherited; source sent over the worker's stdin pipe; reply is one
-  ASCII JSON line; process limits (`RLIMIT_FSIZE` 0, `CORE` 0, `CPU` 10 s, `NOFILE` 64,
-  `AS` 2 GiB); channel limits enforced incrementally inside the worker; monotonic
-  5,000 ms deadline that starts when the worker reports readiness (after its trusted
-  bootstrap: interpreter start, imports, limits; before any source is evaluated), with bootstrap
-  separately bounded at 30 s (a worker that never becomes ready is `internal_error`);
-  forceful kill of the process group and reap on timeout,
-  cancellation, overflow, or failure; worker stderr drained and discarded (only its one
-  readiness marker is recognized).
-- **Best effort, only if verified at runtime:** a user + network namespace
-  (`unshare --user --map-root-user --net`), verified once during host initialization
-  (before the server reads any request; bounded at 5 s and cached), so a request never runs
-  a capability probe. When the probe fails or times out, workers run without it and nothing
-  claims it; a hung `unshare` can only delay server startup by the probe bound. Some hosts
-  (observed: GitHub-hosted Linux CI) deny unprivileged namespaces; workers then run without
-  one, and the namespace-specific tests are skipped there.
-- **Not provided or claimed:** filesystem namespaces, seccomp, cgroup memory or CPU
-  limits, a PID namespace, protection against interpreter or kernel defects, or isolation
-  from other processes of the same user. This is a defense-in-depth profile, not a
-  security sandbox and not production multi-tenant isolation.
-
-PYTHON REFERENCE HOST (modules contain no MCP literals; enforced by tests):
-
-- `hosts/python/mcp_run_capability.py` (supervisor), `hosts/python/mcp_worker.py` (worker),
-  `hosts/python/mcp_worker_profile.py` (classification and policy), and
-  `hosts/python/mcp_stdin.py` (raw stdin line multiplexer: transport framing only, splits
-  on `\n`, back-pressure at 8 MiB). `hosts/python/mcp_host.py` provisions `parse` and
-  `run` and feeds the multiplexer to the existing `stdin_provider` hook; native Genia
-  still owns decoding, validation, dispatch, cancellation matching, limits, and envelopes.
-- Validated by `tests/unit/test_r28_mcp_run.py`, `tests/unit/test_r28_mcp_run_worker.py`,
-  `tests/unit/test_r28_mcp_run_supervisor.py`, and the existing R28 tests.
-
-Explicit limitations: the canonical debug renderer shows host representations for some
-values (for example a builtin renders as a Python function representation with an
-address; ledger R28-H32); while more than 8 MiB of client input is pending the server
-stops reading and cannot observe a cancellation; a closed transport may prevent any
-envelope; Windows is not supported; no resources or prompts, no C++ MCP support or parity
-claim, and no VS Code or Copilot acceptance (the client configuration is section 9.44).
-
-## 9.44) R28 E28-4 local stdio client configuration and lifecycle (issue #705)
-
-Implemented (Python reference host, POSIX only; verified on Linux only, R28-H43):
-
-- Repository-root `.mcp.json` (portable `mcpServers` format) registers one stdio server `genia`:
-  `uv run --no-project --no-python-downloads python hosts/python/mcp_launch.py`. No `env`, URL,
-  token, or absolute path. Run it with the repository root as working directory and `git` and `uv`
-  available. Guide: `docs/mcp/stdio-development.md`.
-- A mainstream client discovers exactly `genia_capabilities`, `genia_parse`, `genia_run` (no resources
-  or prompts) and enabling the configuration grants no authority beyond the E28-3 profile.
-- Lifecycle plumbing (host only, no MCP semantics): the launcher forwards SIGTERM/SIGINT/SIGHUP to
-  the host; the host unwinds on SIGTERM and SIGHUP (SIGINT unwinds as `KeyboardInterrupt`), reaping its
-  worker and temp directory (SIGHUP handling added by E28-5, ledger R28-H41); the worker has an 8 s
-  orphan backstop (`SIGALRM` armed after readiness; not a second deadline).
-- Executed acceptance: the official MCP TypeScript client SDK `@modelcontextprotocol/client` 2.2.0
-  (`tools/mcp_acceptance/`, CI job `mcp-client-acceptance`) with version negotiation `auto`.
-
-Explicit limitations: Streamable HTTP is deferred (no listener); a client that only speaks the legacy
-`initialize` handshake could not use the server when this section was written (R28-H36; superseded by
-amendment A5, section 9.47); no VS Code or GitHub Copilot run had succeeded (R28-H39); a SIGKILLed host may leave an empty private temp directory; R28 was not yet complete when this section was written (the
-E28-5 conformance evidence is section 9.45; the E28-6 demo and final audit are section 9.46; completion is section 9.49); no C++ MCP support or parity is claimed.
+- **Launch.** `genia apps/mcp/mcp.genia <contract_revision>` takes exactly one argument, 40 lowercase hexadecimal characters;
+  anything else writes one fixed diagnostic to stderr, nothing to stdout, and exits nonzero without echoing the value. The
+  checked-in `.mcp.json` registers one stdio server `genia` that runs `hosts/python/mcp_launch.py` (identity plumbing only:
+  resolves `git rev-parse HEAD`, fixes the environment allowlist, supplies host capabilities). Its guide is
+  `docs/mcp/stdio-development.md`; `scripts/genia-mcp` starts the same launcher.
+- **Framing.** One JSON-RPC message per stdin line (split on `\n` only), one response per request on exactly one stdout line;
+  empty lines are ignored; a well-formed notification gets no response; the server exits at stdin EOF. Native Genia owns
+  decoding, validation, dispatch, result and error construction, JSON encoding, framing, and stdout.
+- **Protocol eras.** Exactly two are served, selected per request: a request whose `params._meta` carries
+  `io.modelcontextprotocol/protocolVersion` is `2026-07-28` (stateless: no `initialize`, no session; `_meta` requires that
+  version string and a `clientCapabilities` object; results carry `_meta["io.modelcontextprotocol/serverInfo"]`
+  `{name: "genia-mcp", version: <contract_revision>}`, and discover/list results carry `ttlMs: 0`, `cacheScope: "public"`);
+  every other request is `2025-11-25` (amendment A5). In `2025-11-25`, `initialize` needs object params with string
+  `protocolVersion`, object `capabilities`, and object `clientInfo` (string `name` and `version`); only `2025-11-25` succeeds
+  (`{protocolVersion, capabilities: {tools: {}}, serverInfo}`), any other version is `-32602` with `data.supported` and
+  `data.requested` (never negotiated down), a second `initialize` is `-32600`. One process-local state bit (new/initialized)
+  gates `tools/list` and `tools/call` (`-32602` before `initialize`); `ping` is `{}` always; `notifications/initialized` is
+  accepted silently. Compat results omit `resultType`, `ttlMs`, `cacheScope`, and `_meta`; everything else is identical across
+  eras. Client capabilities (`roots`, `sampling`, `elicitation`, `tasks`, `extensions`) are shape-checked and discarded; the
+  server never sends a request or notification.
+- **Methods and protocol errors.** `server/discover` (capabilities exactly `{tools: {}}`), `tools/list` (no pagination; any
+  `cursor` is `-32602`), `tools/call`. Fixed messages never echo caller text: unparseable JSON `-32700` (invalid Unicode too);
+  invalid JSON-RPC object, including a non-string/non-integer `id` `-32600`; unknown method (resources, prompts, completion,
+  logging, tasks, roots, sampling, elicitation, an `initialize` carrying the `2026-07-28` `_meta`) `-32601`; missing or malformed
+  `_meta`, bad `tools/call` params, unknown tool, or unexpected arguments `-32602`; unsupported version `-32022` with
+  `data.supported = ["2026-07-28"]`.
+- **Tools.** Exactly four, in this order: `genia_capabilities`, `genia_parse`, `genia_run`, `genia_language_profile` (section
+  9.50). `genia_parse` and `genia_run` are advertised only when the launcher provisions them; plain file mode lists
+  `genia_capabilities` and `genia_language_profile`. Results are `CallToolResult` with one text item and `structuredContent` equal to
+  the envelope `{schema_version: "genia.mcp.v1", status, result, error}`; `genia_capabilities` takes no arguments and reports
+  `server`, `mcp`, `genia`, `tools`, and the governed `execution_profile` (`portable_mcp_implementation` is `false`).
+- **`genia_parse`.** Input exactly one string `source` (any other shape is `-32602`); over 262,144 UTF-8 bytes is an `input_limit`
+  envelope; parsing never evaluates. Success is `{kind: "parsed", ast}` with the existing normalized parse surface, transported
+  losslessly (integer literals outside the R9 range remain exact JSON number tokens; a client decoding JSON numbers as
+  IEEE-754 doubles can lose precision). A syntax failure is `parse_error` (phase `parse`, character offset only); other host
+  failures are a fixed `internal_error`; a result over 3,276,800 bytes is `result_limit`. The AST is intentionally coarse.
+- **`genia_run`.** Input exactly one string `source`, same input limit. Success is `{kind: "completed", value: {rendered},
+  stdout, stderr, exit_code: 0}` where `rendered` is the canonical debug rendering and stdout/stderr are captured separately;
+  the source is evaluated as command source (`run_source`) and `main` is **not** dispatched. Failures carry no partial data and
+  fixed messages: `parse_error`, `policy_denied`, `runtime_error` (no diagnostic text), `timeout` (5,000 ms), `cancelled`,
+  `result_limit` (a channel or rendered value over 1,048,576 bytes, or the whole result over 3,276,800 bytes), `internal_error`.
+  A `notifications/cancelled` whose `requestId` equals the active request terminates and reaps the worker (matched in native
+  Genia); a cancel for another id or after completion is ignored.
+- **Execution policy (defense in depth, not a security sandbox, not production multi-tenant isolation).** Each call runs in a
+  fresh worker process: static policy over the raw parser AST rejects every `import`, shell stage `$(...)`, and any reference to
+  an authority-bearing name (file, zip, resource, HTTP, server, process, configuration, secret, declassification, model,
+  retrieval, `input`, `stdin_keys`), conservatively including user definitions reusing those names; the environment is pruned by a
+  default-deny classification with runtime stubs for process creation and sockets; `argv()` is empty and `stdin` is immediate
+  EOF; a protected-value carrier in the result is `policy_denied`. The worker has its own process group, a minimal environment, a
+  private empty working directory, process limits (`FSIZE` 0, `CORE` 0, `CPU` 10 s, `NOFILE` 64, `AS` 2 GiB where the platform
+  allows), a monotonic 5,000 ms deadline that starts when the worker reports readiness, and forceful kill-and-reap on timeout,
+  cancellation, overflow, or failure. A user+network namespace is used only when verified once at host start and is never
+  claimed otherwise. Not provided: filesystem namespaces, seccomp, cgroup limits, a PID namespace, or protection against
+  interpreter or kernel defects. The host unwinds on SIGTERM/SIGHUP, reaping the worker and its directory.
+- **Clients and evidence.** The official TypeScript client SDK is exercised in CI (`tools/mcp_acceptance/`); the authentic VS Code +
+  GitHub Copilot acceptance record is section 9.49. Clients that send `initialize` work through the `2025-11-25` era. Streamable
+  HTTP is deferred. Known limitations are recorded in the living ledger `docs/analysis/r28-host-dependency-inventory.md`.
 
 ## 10) Explicitly not implemented (current)
 
@@ -6593,367 +3504,88 @@ E28-5 conformance evidence is section 9.45; the E28-6 demo and final audit are s
 
 ## 11) Example demos shipped in-repo
 
-Per-release curated runnable examples (one or more small examples per
-release for its headline behavior) are published at `docs/releases/` —
-see `docs/releases/README.md`.
+Curated runnable examples are published per release in `docs/releases/` (see `docs/releases/README.md`); the repository `examples/` directory
+holds the programs (for example `ants*.genia`, `tic-tac-toe.genia`, `validated_pipeline_demo.genia`, `ollama_chat.genia`, and the R10-R14
+proving cases and `examples/mcp/`). Examples describe only currently implemented behavior; the displaced catalogue text is in
+`docs/state-record/tooling-and-examples.md`.
 
-- `examples/tic-tac-toe.genia`: canonical Format + Seq-compatible style example — two-player console tic-tac-toe using `Format`/`format(...)` for board rendering and list-side sequence helpers for data-driven winner detection
-- `examples/ants.genia`: canonical pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
-- `examples/ants_terminal.genia`: blocking terminal developer UI over the same colony simulation with CLI-configurable seed, ant count, step count, delay, world size, and pure/actor mode selection
-- `examples/ants_actor.genia`: actor/coordinator version of the ants simulation — same colony rules, different execution structure
-- `examples/ants_web.genia`: browser visualization over the same ants simulation using the current blocking HTTP helper, JSON endpoints, and a Canvas renderer in plain browser JavaScript
-- `examples/validated_pipeline_demo.genia`: experimental first demo milestone for the Outcome-aware validated data pipeline direction — a file-mode demo covered by shared CLI spec `spec/cli/validated-data-pipeline-demo.yaml`; reads JSONL records from `examples/data/validated_pipeline_demo.jsonl`, validates each record using existing `parse_jsonl_record`, `validate_each`, `validate_record`, and `collect_validated` helpers, and emits clean records plus diagnostics; demonstrates the intended Outcome-aware validated data pipeline direction; does not add new helper/runtime semantics; Experimental
-- `examples/r3_validated_pipeline_native_tests.genia`: R3 native-test example for the validated-pipeline surface — runnable through the native test runner (`genia test examples/r3_validated_pipeline_native_tests.genia`); covers Outcome-boundary preservation through `validate_each`, direct `validate_each(...) |> collect_validated(...)` composition, and a JSONL-style pipeline with clean/diagnostic observability; uses existing `test(name, body)` native-test syntax and existing validation/Outcome helpers; validated by `tests/unit/test_r3_validated_pipeline_native_test_examples.py`; this is selected native coverage only, not complete validated-pipeline coverage; Experimental
-- `examples/mcp/validated_records.genia` and `examples/mcp/validated_records_broken.genia`: the R28 MCP demo — an Outcome-aware validated record pipeline (`validate_record`, `validate_each`, `collect_validated`) and the same program with one deliberate syntax error, used to show `genia_parse` diagnostics; both are ordinary Genia that runs unchanged through the Genia MCP server's `genia_run` (walkthrough `docs/mcp/demo.md`; R28 is not complete)
-- `examples/ollama_chat.genia`: Experimental application composition over existing R9/R10/R13/R14/R20 behavior — named `Ollama` and `Groq` Value Templates select independent open-function clauses for backend profile, inert request operation, and response-content extraction while generic code owns configuration precedence, immutable conversation state, HTTP status/JSON normalization, and complete Outcome continuation; local Ollama runs directly through `genia`, while Groq currently uses `hosts/python/exec_ollama_chat.py` to construct a provider-matched `chat_outbound` declassification authority for the existing protected HTTP sink; `GROQ_AUTHORIZATION` is the complete protected header value, including `Bearer `, because pure Genia cannot concatenate an ordinary prefix with a protected carrier; the launcher is Python reference-host realization, not portable language behavior or final launcher architecture; it does not add Ollama/Groq to R11 `model/4`, add language/Core IR semantics, weaken secret protection, or imply future-host networking; portable behavior and the Python protected-sink boundary are validated by `tests/native/ollama_chat_example.genia` and `tests/unit/test_ollama_chat_example.py`; Experimental
-
-`examples/ants.genia` intentionally uses only currently implemented features:
-
-- ordinary persistent maps/lists for explicit world, cell, and ant state
-- world-owned active food/pheromone position lists plus food/pheromone totals for compact evaporation and summary calculation
-- explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible weighted movement choice
-- world-owned RNG threading through `step(world) -> world2`
-- recursive stepping over ants and simulation ticks
-- `sleep` for blocking frame delay
-- text rendering via `print`
-
-Implemented colony behavior in this phase:
-
-- nest/home region tracking
-- food pickup with decremented food quantity
-- return-to-nest delivery with delivered-food counting
-- pheromone deposit on return paths
-- pheromone evaporation each evolve
-- direction-aware candidate moves with weighted seeded choice
-
-It is intentionally pure and explicit. It is **not** actor-based, does **not** add a scheduler, and does **not** introduce hidden mutable runtime state or new language syntax.
-This is the canonical simulation teaching pattern in this phase: ordinary world value, deterministic `step(world) -> world2`, seeded RNG threaded through the world, and rendering from snapshots in outer shells.
-
-`examples/ants_terminal.genia` intentionally stays within the same current runtime surface:
-
-- imports and renders the same pure colony simulation helpers from `examples/ants.genia`
-- sequential multi-ant stepping with the same nest/food/pheromone/weighted-movement semantics as the tested ants helpers
-- terminal rendering via `clear_screen()`, `move_cursor(x, y)`, and `render_grid(grid)`
-- CLI configuration via `main(argv())` plus `cli_parse`
-- explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible setup and movement
-- visible text UI for development/teaching:
-  - deterministic rendering priority: carrying ant `H`, ant `a`, nest `N`, food `*`, pheromone heat `#`/`+`/`:`, empty `.`
-  - stats panel with mode, seed, evolve, remaining steps, ant/carrying counts, delivered food, remaining food, pheromone total, active trail count, and delay
-  - CLI flags: `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`
-- pure mode steps the imported pure `ants.step(world)` model
-- actor mode uses a coordinator actor session from `examples/ants_actor.genia` so the same terminal UI can compare the actor/coordinator execution structure
-
-It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **not** introduce a real-time event loop, does **not** provide pause/step/quit key controls, and does **not** add new language/runtime features. Same seed plus same config gives the same progression for a given mode.
-
-`examples/ants_actor.genia` demonstrates actor-based concurrency using the same colony rules from `examples/ants.genia`:
-
-- coordinator actor owns the authoritative world state
-- ant workers request sense data via `actor_call` and submit move intents back to the coordinator
-- explicit coordinator-driven evolve loop for deterministic reproducibility
-- reusable actor session helpers for the terminal UI: `actor_session`, `actor_session_world`, `actor_session_step`, and `actor_session_stop`
-- imports and reuses the pure scoring/movement logic from `ants.genia` via `import ants`
-- per-ant RNG splitting via `rng(seed)` / `rand_int` for seeded randomness
-- string-tagged messages: `["sense", ant_id]`, `["move_intent", ant_id, move]`, `["evolve"]`, `["snapshot"]`, `["stop"]`
-
-It is a teaching architecture layer — same colony behavior, different execution structure. It does **not** add new language syntax, does **not** introduce a scheduler, and does **not** require selective receive or timeouts.
-
-`examples/ants_web.genia` is an application/demo layer over the existing HTTP surface:
-
-- serves `GET /`, `GET /app.js`, and `GET /style.css` as static browser assets
-- serves `GET /state` as a JSON-friendly snapshot with evolve, seed, mode, world size, ant positions/carrying status, nest cells, food cells, pheromone cells, delivered food, remaining food, and small stats
-- accepts `POST /reset` with JSON config (`seed`, `ants`, `size`, `delay`, `mode`) and `POST /step` to advance one evolve
-- keeps one explicit server-memory session in a `ref`
-- pure mode reuses `ants_terminal.start_session` over the pure `ants.step(world)` model
-- actor mode reuses the coordinator session from `examples/ants_actor.genia`
-- the browser uses Canvas drawing and client-side repeated `/step` calls for run/pause controls
-
-It is a viewer over the current simulation/session logic. It does **not** implement browser-native Genia execution, a browser playground runtime, WebSockets, SSE, a generalized event loop, or a new server framework. Terminal ants remains the developer UI.
-
-## 9.45) R28 E28-5 MCP conformance and parity matrix (issue #706)
-
-Evidence phase; it adds no Genia syntax, builtin, Core IR node, MCP tool, resource, prompt, or
-transport. The only behavior change is host lifecycle plumbing: the host now unwinds on SIGHUP like
-SIGTERM, so the worker is reaped and its private directory removed (ledger R28-H41).
-
-- **Matrix:** `docs/mcp/conformance-matrix.md` records, per behavior, the authority, direct Genia
-  behavior, MCP behavior, expected relationship, evidence test, host limitation, and a status of
-  PASS, KNOWN LIMITATION, or NOT APPLICABLE. `tests/unit/test_r28_mcp_conformance_matrix.py` fails if
-  a cited test does not exist. Design: `docs/design/r28-e28-5-conformance-matrix-design.md`.
-- **Adapter, not a second semantics path:** a 55-program corpus (literals, arithmetic, exact
-  numerics, collections, functions, Outcomes, pipelines and Flow, program output) yields rendered
-  value, stdout, and stderr identical to direct command-source evaluation (`run_source` with
-  `filename="<command>"` and the canonical debug renderer). Intentional differences are
-  classified, not hidden: `main` is not dispatched by MCP (contract 2.5; the CLI `-c` mode
-  dispatches it, R28-H29); an authority available to direct execution is a policy restriction
-  (`policy_denied`), not a semantic difference.
-- **Verified boundaries:** exactly the three tools (four since amendment A6, section 9.50) and closed schemas; no resources, prompts, or
-  other protocol surface; every failure class is the closed envelope with a fixed message and no
-  partial data; limits are UTF-8 byte sizes (one below, exact, one above, including multibyte and
-  the aggregate); 55 authority attempts plus every denied binding are rejected by static policy,
-  absent after pruning, and unbound at runtime; a protected carrier injected into the real worker
-  never appears in any response byte on any path; program output (JSON-RPC and cancellation
-  lookalikes, Unicode separators) is data, never framing; cancellation, timeout, and lifecycle edge
-  cases leave no worker; results are identical with the optional namespace granted or denied.
-- **Official client:** the E28-4 harness (SDK 2.2.0, negotiation `auto`) also covers schemas,
-  parse-repair-run, failing runs, authority denial, sequential calls, client-abort cancellation,
-  disconnect, and relaunch.
-
-Explicit limitations (unchanged or newly recorded): UTF-16 surrogate `\u` escapes in program
-strings do not cross the JSON boundary unchanged (a pair becomes the scalar value, a lone surrogate is
-`internal_error`; R28-H40); the debug renderer shows host text for callable values (R28-H32);
-Unicode identifiers are not accepted by the parser; SDK-default clients that send `initialize`
-could not connect when E28-5 was written (R28-H36; the VS Code run then showed an amendment was
-required; section 9.47); no successful VS Code or Copilot run is recorded (R28-H39); Streamable HTTP is deferred and C++ MCP is not
-supported; R28 was not yet complete when this section was written (E28-6 demo, publishing, and final audit: section 9.46; completion: section 9.49). Issue #1078 (the
-spec-runner adapter timeout) is separate infrastructure work.
-
-## 9.46) R28 E28-6 demo, publishing documentation, and release-candidate audit (issue #707)
-
-Documentation, example, and entrypoint phase. It adds no Genia syntax, builtin, Core IR node, MCP tool,
-resource, prompt, or transport. This section records the E28-6 release candidate as it stood then (R28 completed later: section 9.49).
-
-- **Demo:** `docs/mcp/demo.md` walks a first-time user from `git clone` to parse, diagnose, repair, and run of
-  an Outcome-aware validated record pipeline through the MCP server, using the ordinary Genia in
-  `examples/mcp/` (tested by `tests/unit/test_r28_mcp_demo.py`).
-- **Entrypoint:** `scripts/genia-mcp`, a POSIX shell script that takes no arguments, works from any
-  directory, and starts the launcher the checked-in `.mcp.json` starts (`uv` or Python 3.10+). The `genia`
-  CLI, `pyproject.toml`, and the wheel are unchanged; no package, registry, or container publication
-  exists.
-- **Reference and limits:** `docs/mcp/reference.md` (schemas, envelope, error kinds, limits),
-  `docs/mcp/security-and-deployment.md` (a defense-in-depth profile, not a security sandbox and not
-  production multi-tenant isolation), `docs/mcp/host-portability.md` (native Genia versus Python reference
-  host; no C++ MCP implementation and no cross-host parity).
-- **Clients:** the official TypeScript client is automated in CI; the official Inspector 2.9.0 CLI was run
-  manually (not in CI); both default to the legacy `initialize` handshake, which the server serves since
-  amendment A5 (section 9.47). VS Code with GitHub Copilot run 1 (2026-10-05) **failed at `initialize`**
-  (R28-H39); the rerun then pending passed later (section 9.49); the procedure is `docs/mcp/vscode-copilot-acceptance.md`
-  and the record is `docs/mcp/acceptance/vscode-copilot-evidence.md`.
-- **Release gate:** `tests/unit/test_r28_release_gate.py` fails any document that claims R28 complete
-  until the latest run in that record is executed, complete, and `PASS` with a negotiation path the amended
-  contract allows (`initialize` with `2025-11-25`, or `server/discover` with `2026-07-28`).
-- **Audit:** `docs/design/r28-e28-6-final-audit-plan.md` and the ledger disposition of every non-closed
-  entry; new findings R28-H42 (a failed run returns no diagnostic text) and R28-H43 (evidence is Linux only).
-- **Release page:** `docs/releases/R28.md` (Release Candidate at the time; Complete as of section 9.49). The R20 follow-up (#1067) remains scheduled
-  after R28 and before R29; #1078 remains separate infrastructure work.
-
-## 9.47) R28 E28-6 amendment A5: the `2025-11-25` compatibility era (issue #707)
-
-Trigger: the first authentic VS Code 1.138.0 + GitHub Copilot Chat 0.66.0 run (macOS, 2026-10-05) sent
-`initialize` with `protocolVersion: "2025-11-25"`; the then stateless-only server answered `-32601` and no
-tool was reached (ledger R28-H36, R28-H39). Contract amendment A5 (section 18 of
-`docs/design/r28-genia-mcp-contract-threat-model.md`; pre-flight
-`docs/design/r28-e28-6-protocol-compat-preflight.md`) adds one compatibility era. It adds no Genia syntax,
-builtin, Core IR node, host capability, MCP tool, resource, prompt, transport, limit, or authority, and no
-Python host code: it is entirely native Genia in `apps/mcp/mcp.genia`.
-
-- **Closed policy:** exactly `2026-07-28` and `2025-11-25` are served. Era is selected per request: a request
-  whose `params._meta` has `io.modelcontextprotocol/protocolVersion` is a `2026-07-28` request (unchanged);
-  every other request is a `2025-11-25` request.
-- **`initialize`:** params must be an object with string `protocolVersion`, object `capabilities`, and object
-  `clientInfo` with string `name` and `version`. `protocolVersion` `2025-11-25` succeeds with exactly
-  `{protocolVersion, capabilities: {tools: {}}, serverInfo: {name: "genia-mcp", version: <contract_revision>}}`;
-  any other string is `-32602 Unsupported protocol version` with `data: {supported: ["2025-11-25"],
-  requested}` (never negotiated down); malformed params are `-32602`; a second `initialize` is `-32600`; an
-  id-less `initialize` is ignored; a failed `initialize` changes nothing.
-- **State:** one process-local bit (a single `ref` cell; NEW then INITIALIZED), never persisted or shared.
-  `tools/list` and `tools/call` before `initialize` are `-32602` (as before the amendment); `ping` is `{}` in
-  every state; `notifications/initialized` is accepted silently and gates nothing; every other method
-  (resources, prompts, completion, logging, tasks, roots, sampling, elicitation) is `-32601`.
-- **Wire shape:** compat results omit `resultType`, `ttlMs`, `cacheScope`, and `_meta`; descriptors, order,
-  envelope, messages, limits, cancellation, and policy are identical in both eras; `genia_capabilities`
-  reports the serving revision in `mcp.protocol_version`.
-- **Client capabilities grant nothing:** `roots`, `sampling`, `elicitation`, `tasks`, `extensions`, or any
-  other value are shape-checked and discarded; the server never sends a request or a notification.
-- **Evidence:** `tests/unit/test_r28_mcp_compat.py` (protocol, replaying VS Code's exact message),
-  `tests/unit/test_r28_mcp_compat_conformance.py` (both-era conformance), matrix section K, and the official
-  client scenario on the default, `auto`, legacy, and `2026-07-28`-pin paths (`docs/mcp/conformance-matrix.md`).
-- **Not claimed:** VS Code's behavior after `initialize` (the `initialized` notification, when it lists tools,
-  `ping`) rests on the SDK reference and run 1's trace; run 2 (pending; `docs/mcp/vscode-copilot-acceptance.md`)
-  decided it (run 3 passed; section 9.49). When this section was written macOS evidence showed only that VS Code
-  discovered `.mcp.json`, started the launcher, and spoke stdio JSON-RPC (R28-H43).
-
-## 9.48) R28 E28-6 macOS portability of the governed `genia_run` profile (issue #707, ledger R28-H47)
+## 9.48) R28 macOS portability of the governed `genia_run` profile
 <!-- anchor: state:mcp-macos -->
 
-Trigger: authentic VS Code run 2 on macOS (Darwin x64 24.6.0, 2026-10-05, revision `66b50594`) proved amendment A5
-(negotiation, three tools, `genia_capabilities`, both `genia_parse` calls) but `genia_run` returned the sanitized
-`internal_error`; `tests/unit/test_r28_mcp_run.py` gave 53 failed, 17 passed, 3 skipped there. Pre-flight:
-`docs/design/r28-e28-6-macos-execution-preflight.md`. No Genia syntax, builtin, Core IR node, MCP tool, resource,
-prompt, protocol, authority, limit, parse behavior, or envelope changed.
+Current state (history in `docs/state-record/r28-mcp-records.md`; ledger R28-H47/H48; pre-flight `docs/design/r28-e28-6-macos-execution-preflight.md`). No Genia syntax, builtin, Core IR node, MCP tool, resource, prompt,
+protocol, authority, limit, parse behavior, or envelope changed.
 
-- **Worker limits are platform-aware.** `hosts/python/mcp_worker.py` `apply_limits()` applies `RLIMIT_FSIZE` 0,
-  `CORE` 0, `CPU` 10 s, `NOFILE` 64 on every platform, and `RLIMIT_AS` 2 GiB on every platform; any failure is
-  `internal_error` (the worker never runs without them). The single exception: on Darwin a rejected
-  `RLIMIT_AS` is tolerated (the kernel rejects an address-space bound below the process's current virtual size).
-  Linux behavior is unchanged. One execution model, same envelopes, on every platform.
-- **macOS has a weaker resource bound and no namespace.** There is no address-space bound on macOS, so memory is
-  bounded only by the 5,000 ms deadline and the 10 s CPU limit; there is no network namespace (Linux-only); the
-  network, file, process, and import denial rests on the static policy, the pruned environment, and the runtime
-  stubs. No namespace or sandbox is claimed on macOS.
-- **Root cause (confirmed on macOS):** Darwin rejects `setrlimit(RLIMIT_AS)` with `ValueError: current limit exceeds
-  maximum limit`; `tools/mcp_diagnostics/worker_probe.py` printed `VERDICT OK` and `genia_run` works there (64 of
-  73 `test_r28_mcp_run.py` tests pass; development-only worker diagnostic `GENIA_MCP_WORKER_DIAG=1`, on the worker's
-  own stderr, never forwarded, never on the wire). The 5 remaining failures were test-observation only (the `ps`
-  backend did not recognise the governed worker: macOS names the interpreter `Python`; `ps` needs `-ww`);
-  repaired and Mac-verified (`tools/mcp_diagnostics/process_probe.py` `VERDICT OK`; the 5 tests pass; the cause was
-  macOS's interpreter name `Python`; `-ww` was not needed here).
-- **Tests:** `tests/unit/test_r28_mcp_portability.py` (simulated Darwin rejection, fail-closed rules, wire
-  regression, diagnostic hygiene, probe, `ps`/`lsof` process backend); the lifecycle helpers use `/proc` on Linux
-  and `ps`/`lsof` where there is no `/proc`; Linux-only namespace tests are skipped elsewhere with a stated reason.
-- **Full macOS suite run (owner, `44ec62cd`): 1135 passed, 18 skipped, 3 failed**, all test assumptions or platform facts (ledger R28-H48): the namespace-probe test assumed Linux; macOS injects `__CF_USER_TEXT_ENCODING` into every process (the supervisor does not pass it); plain file mode (a development path) reads stdin through the locale-dependent interpreter decoder, which is `strict` on macOS (the launcher path decodes with `surrogateescape` itself and is unaffected). Repaired in tests; the full macOS R28/MCP suite then passed at `d0e4f2a4` (**1141 passed, 18 skipped, 0 failed**).
-- **Outcome:** macOS governed execution is Mac-verified (owner: full R28/MCP suite `1141 passed, 18 skipped, 0 failed`
-  at `d0e4f2a4`) and authentic VS Code run 3 passed (section 9.49). macOS still has no address-space bound and no network
-  namespace (Linux-only; Linux-only namespace tests skip on macOS). R28-H47 and R28-H48 are closed; R28-H36 was closed by run 2.
+- **Worker limits are platform-aware.** `hosts/python/mcp_worker.py` `apply_limits()` applies `RLIMIT_FSIZE` 0, `CORE` 0, `CPU` 10 s, `NOFILE` 64 on every platform, and `RLIMIT_AS` 2 GiB on every platform; any failure is
+  `internal_error` (the worker never runs without them). The one exception: on Darwin a rejected `RLIMIT_AS` is tolerated (the kernel rejects an address-space bound below the process's current virtual size). Linux is
+  unchanged; there is one execution model and the same envelopes on every platform.
+- **macOS has a weaker resource bound and no namespace.** There is no address-space bound on macOS, so memory is bounded only by the 5,000 ms deadline and the 10 s CPU limit; there is no network namespace (Linux-only);
+  network, file, process, and import denial rests on the static policy, the pruned environment, and the runtime stubs. No namespace or sandbox is claimed on macOS.
+- **Verification.** macOS governed execution is owner-verified (full R28/MCP suite and authentic VS Code run 3, section 9.49); `tests/unit/test_r28_mcp_portability.py` covers simulated Darwin rejection, fail-closed rules, and
+  diagnostic hygiene; lifecycle helpers use `/proc` on Linux and `ps`/`lsof` elsewhere; Linux-only namespace tests skip on macOS. A development-only worker diagnostic (`GENIA_MCP_WORKER_DIAG=1`) writes to the worker's own
+  stderr, is never forwarded, and never appears on the wire.
 
-## 9.49) R28 completion: authentic VS Code + GitHub Copilot acceptance (issue #707, epic #700)
+## 9.49) R28 completion: authentic VS Code + GitHub Copilot acceptance
 <!-- anchor: state:mcp-surface -->
 
-R28 (Genia MCP Server) is **Complete**: contract section 12.2 is satisfied by an authentic VS Code + GitHub Copilot
-run. The evidence record is `docs/mcp/acceptance/vscode-copilot-evidence.md`; the release page is `docs/releases/R28.md`.
-This section adds no Genia syntax, builtin, Core IR node, MCP tool, resource, prompt, transport, protocol, authority, limit,
-or envelope.
+R28 (Genia MCP Server) is **Complete**: contract section 12.2 is satisfied by an authentic VS Code + GitHub Copilot run. Evidence record: `docs/mcp/acceptance/vscode-copilot-evidence.md`; release page:
+`docs/releases/R28.md`. This section adds no Genia syntax, builtin, Core IR node, MCP tool, resource, prompt, transport, protocol, authority, limit, or envelope.
 
-- **Run 3 (PASS), revision `0ff058a28e488275f344ee24bbd12d072bd3e9cc`, macOS, VS Code 1.138.0, Copilot Chat 0.66.0:**
-  VS Code started the repository-configured `genia` server (`.mcp.json`, `initialize` for `2025-11-25`) and reported
-  `Discovered 3 tools`; `genia_capabilities` returned protocol `2025-11-25`, transport `stdio`, exactly `genia_capabilities`,
-  `genia_parse`, `genia_run`, profile `source-only-isolated-v1`, timeout 5000 ms, and every authority flag `false`; the
-  broken canonical demo through `genia_parse` gave `parse_error` (phase `parse`) at character offset 171; the corrected
-  demo parsed (`parsed`, AST returned); through Copilot Agent `genia_run` returned `ok`/`completed`, exit code 0, stdout
-  `"2\n"`, stderr `"record_validation_failed\nrecord_validation_failed\n"`, and a rendered value with the clean records Ada
-  and Edsger and the two structured validation diagnostics, with value, stdout, and stderr separate; after the server
-  stopped no `mcp_launch`, `mcp_host`, or `mcp_worker` process remained. `resources_or_prompts_visible: none` rests on the
-  server's advertised `capabilities: {tools: {}}`, automated `-32601` for resources and prompts, and VS Code's report of exactly
-  three discovered tools, not on a separately reported UI inspection (stated in the evidence file).
-- **History is preserved:** run 1 failed at `initialize` (fixed by contract amendment A5, section 9.47); run 2 failed at
-  `genia_run` on macOS (fixed by ledger R28-H47, section 9.48). The release gate (`tests/unit/test_r28_release_gate.py`) reads the
-  latest run: executed, complete, `PASS`, on a negotiation path the amended contract allows.
-- **Ledger:** R28-H36, H39, H45, H47, H48 and the accepted-limitation entries are closed; the post-R28 follow-up candidates
-  (H05-H09, H15, H24, H26) stay open in the ledger and the parking lot, not ticketed. R20 follow-up #1067 stays after R28 and
-  before R29; #1078 is separate infrastructure work.
-- **Agent guidance (contract 12.3):** `docs/ai/LLM_CONTRACT.md` and `.github/copilot-instructions.md` direct Genia development
-  agents to prefer the Genia MCP server for parsing and running Genia source where an MCP client is available; they add no
-  language semantics and do not make MCP a prerequisite.
-- **Supported platforms and limits:** Python reference host only; local stdio only; exactly four tools (the fourth, `genia_language_profile`, is section 9.50; acceptance runs saw three); no resources, prompts,
-  Streamable HTTP, or C++ MCP; Linux (CI) and macOS (owner-run, not in CI) verified, Windows unsupported; macOS has no address-space
-  bound and no network namespace; the execution profile is a defense-in-depth profile, not a security sandbox.
+- **Run 3 (PASS)**, macOS, VS Code 1.138.0, Copilot Chat 0.66.0: VS Code started the repository-configured `genia` server (`.mcp.json`, `initialize` for `2025-11-25`)
+  and reported `Discovered 3 tools`; `genia_capabilities` reported protocol `2025-11-25`, transport `stdio`, the three tools, profile `source-only-isolated-v1`, timeout 5000 ms, and every authority flag `false`;
+  the broken canonical demo gave `parse_error` at character offset 171 through `genia_parse`; the corrected demo parsed and, through Copilot Agent, `genia_run` returned `ok`/`completed`, exit code 0, with value, stdout, and
+  stderr separate; no `mcp_launch`, `mcp_host`, or `mcp_worker` process remained after the server stopped. That no resources or prompts were visible rests on the advertised `capabilities: {tools: {}}`, automated `-32601`
+  results, and VS Code's report of exactly three tools, not a separate UI inspection. History: run 1 failed at `initialize` (fixed by amendment A5), run 2 failed at `genia_run` on macOS (fixed by section 9.48); the release
+  gate (`tests/unit/test_r28_release_gate.py`) reads the latest run (executed, complete, `PASS`, on an allowed negotiation path).
+- **Agent guidance (contract 12.3):** `docs/ai/LLM_CONTRACT.md` and `.github/copilot-instructions.md` direct Genia development agents to prefer the Genia MCP server for parsing and running source where an MCP client is
+  available; they add no language semantics and do not make MCP a prerequisite. Post-R28 follow-up candidates stay open in the ledger (`docs/analysis/r28-host-dependency-inventory.md`) and the parking lot, not ticketed.
+- **Supported platforms and limits:** Python reference host only; local stdio only; exactly four tools (the fourth, `genia_language_profile`, is section 9.50; the acceptance runs saw three); no resources, prompts,
+  Streamable HTTP, or C++ MCP; Linux (CI) and macOS (owner-run, not in CI) verified, Windows unsupported; macOS has no address-space bound and no network namespace; the execution profile is a defense-in-depth profile,
+  not a security sandbox.
 
-## 9.50) R28 follow-up amendment A6: `genia_language_profile` (MCP adapter affordance)
+## 9.50) R28 `genia_language_profile` (MCP adapter affordance; amendments A6 and A7)
 <!-- anchor: state:mcp-language-profile -->
 
-Contract amendment A6 (section 19 of `docs/design/r28-genia-mcp-contract-threat-model.md`; pre-flight
-`docs/design/r28-a6-language-profile-preflight.md`) adds one MCP tool to the R28 server. It adds no Genia syntax, parser or
-evaluator behavior, builtin, Core IR node, host capability, resource, prompt, transport, limit, or authority, and no Python
-host code: the tool is entirely native Genia in `apps/mcp/mcp.genia`. It is an adapter affordance for assistants, not
-language behavior; this file and `GENIA_RULES.md` remain the language authority. Python reference host only; no C++ MCP.
+Contract: section 19 (A6) and section 20 (A7) of `docs/design/r28-genia-mcp-contract-threat-model.md`; pre-flights `docs/design/r28-a6-language-profile-preflight.md` and
+`r28-follow-up-1086-maturity-gap-preflight.md`. The tool adds no Genia syntax, parser or evaluator behavior, builtin, Core IR node, host capability, resource, prompt, transport, limit, or authority, and no Python host code: it is
+native Genia in `apps/mcp/mcp.genia`. It is an adapter affordance for assistants, not language behavior; this file and `GENIA_RULES.md` remain the language authority. Python reference host only; no C++ MCP.
 
 LANGUAGE CONTRACT: none. The MCP wire behavior below is the application contract of `apps/mcp/mcp.genia`.
 
 PYTHON REFERENCE HOST (MCP adapter):
 
-- The advertised surface is exactly four tools, in this order: `genia_capabilities`, `genia_parse`, `genia_run`,
-  `genia_language_profile`. `genia_language_profile` needs no host capability, so plain file mode (no host capability) advertises
-  `genia_capabilities` and `genia_language_profile`; the launcher advertises all four. `genia_capabilities.tools` reports the advertised
-  set. No resources, prompts, pagination, or other protocol surface is added.
-- It takes no arguments: `arguments` omitted or `{}` is accepted and any other value is `-32602`. The input schema is identical to
-  `genia_capabilities`. It returns the normal `CallToolResult` with `structuredContent` and one text item holding the same
-  `genia.mcp.v1` envelope (`result = {language: {...}}`).
-- `language` is a fixed constant except `contract_revision` (the launch revision `genia_capabilities` reports). It states:
-  `control_flow` (`conditionals: "pattern_matching"`, `if_expression: false`, `loops: false`, `recursion: true`,
-  `tail_call_optimization: true`), `supported_forms`, `absent_forms` (`if_expression`, `while_loop`, `for_loop`), `patterns`
-  (function-argument, literal, wildcard, tuple, list, map, and guard patterns; first-match resolution), `idioms`, and two `examples`
-  (`gcd`, `factorial`). Each claim restates implemented behavior of sections 5 and 8 and the open-function clause rules; the example
-  programs evaluate to `6` and `120` under direct command-source evaluation (verified by tests).
-- **Example spelling:** a function whose clauses start with a literal parameter pattern needs the first clause declared `open`
-  (`open gcd(a, 0) = a`); the same text without `open` is rejected (`Invalid function definition parameter token`). The profile therefore
-  carries the `open` form and states that rule in `idioms.clauses`.
-- Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the encoder's sorted order.
-- **Evidence:** `tests/unit/test_r28_mcp_language_profile.py` plus the updated four-tool discovery, descriptor, and architecture
-  tests; matrix rows D1, D5, D6, D9 in `docs/mcp/conformance-matrix.md`.
-- **Not claimed / not done:** no source-specific parse or run diagnostic hints; the VS Code + GitHub Copilot acceptance record
-  (runs 1-3) predates this tool and describes the three-tool surface, and no new authentic client run is recorded for the fourth.
+- The advertised surface is exactly four tools, in this order: `genia_capabilities`, `genia_parse`, `genia_run`, `genia_language_profile`. `genia_language_profile` needs no host capability, so plain file mode advertises
+  `genia_capabilities` and `genia_language_profile` and the launcher advertises all four; `genia_capabilities.tools` reports the advertised set. No resources, prompts, pagination, or other protocol surface is added.
+- It takes no arguments (`arguments` omitted or `{}`; any other value is `-32602`), has the same input schema as `genia_capabilities`, and returns the normal `CallToolResult` with `structuredContent` and one text item holding
+  the same `genia.mcp.v1` envelope (`result = {language: {...}}`).
+- `language` is a fixed constant except `contract_revision` (the launch revision `genia_capabilities` reports): `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`, `examples` (`gcd`, `factorial`; they
+  evaluate to `6` and `120` under direct command-source evaluation, verified by tests), and (A7) `discovery`. A literal-first-parameter multi-clause function needs its first clause declared `open`
+  (`open gcd(a, 0) = a`; the same text without `open` is rejected), and the profile states that rule in `idioms.clauses`. Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the
+  encoder's sorted order.
+- **Provenance.** Each claim restates implemented behavior documented in the language sections of this file (control flow in `state:control-flow`, patterns in `state:pattern-matching`, tail calls in `state:tail-calls`, open
+  clauses in `state:open-functions`). The governed members and the discovery catalogue are generated into a delimited block of `apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
+  `docs/contract/semantic_facts.json`, a guarded projection source: this file stays the authority, and each registry fact carries semantic anchors (`<!-- anchor: state:... -->` markers in this file) and evidence (STATE
+  text, executable probes, or manifest cross-checks). The server never reads the registry at runtime; `state_sections` values keep their legacy section numbers through the registry's anchor crosswalk.
+- **Discovery (A7).** `language.discovery` is exactly `{coverage, facts}`: `coverage` is `"curated_non_exhaustive"` and `facts` is a fixed ordered catalogue of 12 scoped facts, each exactly `{id, scope, status, maturity,
+  summary, state_sections}`. Status is `implemented|partial|planned|scaffolded|unsupported` within the row's scope; maturity copies an explicit STATE rating or is JSON null (null means unspecified, not Stable and not
+  unavailable). The facts are `pattern_branching`, `tail_calls`, `if_and_loops`, `flow_shared_coverage`, `core_ir_stability`, `cpp_language_floor`, `other_language_hosts`, `browser_runtime`, `mcp_surface`, `cpp_mcp`,
+  `windows_mcp`, and `macos_hardening`; their ids, scopes, statuses, maturity labels, summaries, and anchors are defined only in the registry (and projected into amendment A7, section 20). Partial C++ support is the bounded
+  R27 language floor, not C++ MCP; partial Flow shared coverage does not mean missing Python Flow behavior; browser scaffolding is documentation only; macOS hardening is bounded as in section 9.48 and no security sandbox
+  is claimed. The catalogue grants no execution authority, is not an exhaustive inventory, performs no live discovery, is at most 16,384 UTF-8 bytes with summaries at most 256 bytes (static output bounds, not runtime
+  limits), and is identical in plain file mode.
+- **Evidence:** `tests/unit/test_r28_mcp_language_profile.py`, `tests/unit/test_r28_mcp_language_registry.py`, `tests/doc/test_state_anchors_and_registry_sync.py`, and the golden wire snapshot
+  `tests/data/mcp_language_profile.golden.json`; matrix rows D1, D5, D6, D9, D10 in `docs/mcp/conformance-matrix.md`. The authentic client acceptance runs (1-3) predate A6 and A7 and describe the three-tool surface; no new
+  authentic client run is claimed. Not done: source-specific parse or run diagnostic hints.
 
-### R28 follow-up amendment A7: scoped maturity/gap facts (issue #1086)
+## 9.51) R28 MCP grounded-evidence example
 
-LANGUAGE CONTRACT: unchanged. This extends MCP adapter metadata only.
+LANGUAGE CONTRACT: unchanged. This is one checked-in example program and tests, not a new Genia feature.
 
-PYTHON REFERENCE HOST (MCP adapter): `genia_language_profile` now adds
-`language.discovery`, exactly `{coverage, facts}`. `coverage` is
-`"curated_non_exhaustive"`; `facts` is the fixed ordered 12-row catalogue below.
-Each row has exactly `{id, scope, status, maturity, summary, state_sections}`.
-Summaries and the closed value sets are specified in application contract
-amendment A7 (section 20); section identifiers are strings in ordered arrays
-referencing this file at the launch revision. No live discovery occurs.
+PYTHON REFERENCE HOST (MCP example): `examples/mcp/grounded_evidence.genia` runs through the existing `genia_run` tool. It validates client-supplied document literals, chunks valid documents with Experimental R12 `chunk/2`,
+and prints one strict JSON evidence package on stdout (the question, retained validated input documents, selected evidence with exact `chunk/2` source spans, first-occurrence sources, indexed diagnostics, and a selection
+descriptor whose claim is `ordinary_example_selection_not_r12_retrieve`). It uses only ordinary Genia plus existing public helpers and adds no MCP tool, resource, prompt, transport, authority, builtin, parser/evaluator
+behavior, Core IR node, provider, or host capability; no C++ MCP or cross-host parity is claimed.
 
-| ID | Scope | Status | Maturity | STATE sections |
-|---|---|---|---|---|
-| pattern_branching | language | implemented | null | 5 |
-| tail_calls | language | implemented | null | 8 |
-| if_and_loops | language | unsupported | null | 5, 9.50 |
-| flow_shared_coverage | shared_conformance | partial | Experimental | 0, 1 |
-| core_ir_stability | shared_conformance | partial | Partial | 0 |
-| cpp_language_floor | cpp_host | partial | null | 0 |
-| other_language_hosts | other_hosts | planned | null | 0 |
-| browser_runtime | browser | scaffolded | null | 0.1 |
-| mcp_surface | mcp | implemented | null | 9.49, 9.50 |
-| cpp_mcp | mcp | unsupported | null | 9.49, 9.50 |
-| windows_mcp | mcp_windows | unsupported | null | 9.49 |
-| macos_hardening | mcp_macos | partial | null | 9.48, 9.49 |
+The selection step is a deterministic example-local exact-term overlap over the checked-in source literals. It is not R12 `retrieve/4`, semantic retrieval, embedding, reranking, RAG, citation validation, answer generation,
+or evidence authenticity; answer generation remains outside Genia with the MCP client. Document ids and metadata are client-asserted labels; the example preserves supplied spans and diagnostics but does not verify
+origin or trust. Evidence: `tests/unit/test_r28_mcp_grounded_evidence_example.py`.
 
-Status describes support within the row's scope; maturity copies an explicit
-STATE rating or is JSON null for unspecified. Null does not mean Stable or
-unavailable. Partial C++ support is the bounded R27 language floor, not C++
-MCP; partial Flow shared coverage does not mean missing Python Flow behavior.
-Browser scaffolding is documentation only. macOS hardening is bounded as in
-9.48; no security sandbox is claimed. These facts grant no execution authority
-and are not an exhaustive language/host inventory.
-
-The profile constants (`control_flow`, `supported_forms`, `patterns`, `absent_forms`,
-`idioms`, and `discovery`) are generated into a delimited block of
-`apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
-`docs/contract/semantic_facts.json`, a guarded projection source: this file stays the
-authority, and each registry fact carries semantic anchors (`<!-- anchor: state:... -->`
-markers in this file) and evidence (STATE text, executable probes, or manifest
-cross-checks). `state_sections` values keep their legacy section numbers through the
-registry's anchor crosswalk, so the wire output is unchanged. The server never reads
-the registry at runtime. Its JSON is
-bounded to 16,384 UTF-8 bytes with summaries at most 256 bytes each; these are
-static output bounds, not new runtime limits. Output remains deterministic
-across calls, protocol eras, namespace modes, and plain file mode. Existing
-profile members/examples, launch revision, arguments, four-tool surface,
-`genia_capabilities`, envelopes, authority, and host behavior are unchanged.
-Evidence: `tests/unit/test_r28_mcp_language_profile.py`,
-`tests/unit/test_r28_mcp_language_registry.py`,
-`tests/doc/test_state_anchors_and_registry_sync.py`; matrix row D10. No
-new authentic client acceptance run is claimed; runs 1–3 predate A6 and A7.
-
-## 9.51) R28 follow-up: MCP grounded-evidence example (issue #1087)
-
-LANGUAGE CONTRACT: unchanged. This is one checked-in example program and tests,
-not a new Genia feature.
-
-PYTHON REFERENCE HOST (MCP example): `examples/mcp/grounded_evidence.genia`
-runs through the existing `genia_run` tool. It validates client-supplied
-document literals, chunks valid documents with Experimental R12 `chunk/2`, and
-prints one strict JSON evidence package on stdout. The package includes the
-question, retained validated input documents, selected evidence with exact
-`chunk/2` source spans, first-occurrence sources, indexed diagnostics, and a
-selection descriptor whose claim is
-`ordinary_example_selection_not_r12_retrieve`.
-
-The example uses only ordinary Genia plus existing public helpers. It adds no
-MCP tool, resource, prompt, transport, authority, builtin, parser/evaluator
-behavior, Core IR node, provider, or host capability. It is Python-reference-host
-MCP behavior only; no C++ MCP or cross-host parity is claimed.
-
-The selection step is a deterministic example-local exact-term overlap over the
-checked-in source literals. It is not R12 `retrieve/4`, semantic retrieval,
-embedding, reranking, RAG, citation validation, answer generation, or evidence
-authenticity. Answer generation remains outside Genia with the MCP client.
-Document ids and metadata are client-asserted labels; the example preserves
-supplied spans and diagnostics but does not verify origin or trust.
-
-Evidence: `tests/unit/test_r28_mcp_grounded_evidence_example.py` exercises the
-program through real MCP `genia_run`, direct CLI execution, deterministic stdout
-JSON, Unicode code-point provenance, invalid/duplicate/zero-chunk diagnostics,
-input limit behavior, prompt-like text as inert data, and static denial of
-imports, private underscore host functions, and denied names.

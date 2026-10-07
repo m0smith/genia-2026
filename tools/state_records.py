@@ -84,9 +84,56 @@ def build(ledger: dict, lines: list[str]) -> dict[str, str]:
     return {path: "\n".join(parts).rstrip("\n") + "\n" for path, parts in out.items()}
 
 
+def _crosswalk_target(number: str, live: set[str]) -> tuple[str, str | None]:
+    parts = [int(x) for x in number.split(".")]
+    if number in ("1", "4.1"):
+        return f"section {number} (retained; duplicate heading number, disambiguated by anchor)", None
+    if number in ("0.2", "0.3", "0.4"):
+        return "section 0.2 (pointer)", "tooling-and-examples.md"
+    if number == "11":
+        return "section 11 (pointer)", "tooling-and-examples.md"
+    if number in live:
+        return f"section {number} (retained)", None
+    if len(parts) == 2 and parts[0] == 9:
+        k = parts[1]
+        for lo, hi, where, rec in (
+            (8, 20, "section 9.8 (digest)", "r14-lifecycle-http-records.md"),
+            (21, 31, "section 9.21 (digest)", "numeric-r21-r23-records.md"),
+            (32, 37, "section 9.32 (digest)", "numeric-r21-r23-records.md"),
+            (38, 39, "section 9.38 (digest)", "provider-proof-records.md"),
+            (41, 47, "section 9.41 (digest)", "r28-mcp-records.md"),
+        ):
+            if lo <= k <= hi:
+                return where, rec
+    raise ValueError(f"no crosswalk target for baseline section {number}")
+
+
+def crosswalk(ledger: dict, state_text: str) -> str:
+    import re
+
+    live = set(re.findall(r"^#{2,3} (\d+(?:\.\d+)*)\)", state_text, re.M))
+    out = [
+        "# Legacy section crosswalk (non-authoritative)",
+        "",
+        "> Maps every numbered section heading of `GENIA_STATE.md` at the distillation baseline (`" + ledger["baseline"]["sha"] + "`) to where its content lives now.",
+        "> Section numbers are legacy identifiers; documents outside `GENIA_STATE.md` may still cite retired numbers, and this table resolves them. `GENIA_STATE.md`",
+        "> governs; verbatim displaced text is in the named record. Verified by `tests/doc/test_state_distillation_gates.py`.",
+        "",
+        "| Baseline section | Heading | Now | Verbatim record |",
+        "|---|---|---|---|",
+    ]
+    for h in ledger["headings"]:
+        if h["level"] == 2 and h["number"]:
+            where, rec = _crosswalk_target(h["number"], live)
+            title = h["heading"].replace("|", "\\|")
+            out.append(f"| {h['number']} | {title} | {where} | {('[`' + rec + '`](' + rec + ')') if rec else '—'} |")
+    return "\n".join(out) + "\n"
+
+
 def main(argv: list[str]) -> int:
     ledger = load_ledger()
     built = build(ledger, baseline_lines(ledger))
+    built["docs/state-record/crosswalk.md"] = crosswalk(ledger, (REPO / "GENIA_STATE.md").read_text(encoding="utf-8"))
     if "--write" in argv:
         for path, content in built.items():
             target = REPO / path

@@ -15,6 +15,8 @@ Rules:
   and verified by `tests/doc/test_state_records.py`. Do not edit them by hand.
 - Each block carries a provenance line naming the baseline commit, baseline line range, and ledger row.
 
+The [legacy section crosswalk](crosswalk.md) maps every retired `GENIA_STATE.md` section number to its current location.
+
 | Record | Scope | Reached first from |
 |---|---|---|
 | [hosts-and-conformance.md](hosts-and-conformance.md) | R16 protocol chronology, R26/R27 C++ host entries, conformance detail | `docs/releases/R16.md`, `R26.md`, `R27.md` |

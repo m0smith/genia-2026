@@ -62,6 +62,27 @@ Moved from GENIA_STATE.md@d401f322, lines 35-58 (ledger row B004, moved, sha256 
 
 ~~~~~
 
+## B005: baseline lines 59-72
+
+Moved from GENIA_STATE.md@d401f322, lines 59-72 (ledger row B005, retained-condensed, sha256 04f3d1fa101ca766)
+
+~~~~~markdown
+Scaffolded or planned, not implemented as hosts:
+
+- Node.js, Java, Rust, Go: planned only, not implemented.
+- C++: R25 is complete through its reviewed PR stack in `m0smith/genia-cpp`. In addition to the bounded R24 floor, it supports the independently gated portable `refs`, `cell_primitives`, and local `process_primitives` contracts. Final E25-5 evidence is `762 total / 149 pass / 613 unsupported`, with every failure-class count zero; the exact E25-5 contract revision and C++ evidence commit are recorded in `docs/releases/R25.md`. Actor remains unsupported and belongs to R38. C++ is a genuine second host, not Python feature parity.
+- `hosts/python/` is the adapter location, but the core runtime remains in `src/genia/`.
+- **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). No second production host implements the full language. `m0smith/genia-cpp` is the R25-complete second host for a deliberately bounded, evidence-backed subset; other external-host proofs remain either Python-reference-host evidence or non-semantic protocol fixtures.
+
+**Maturity:**
+
+- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in the Python reference host. Other hosts are not implemented.
+- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in this phase.
+- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, selected rule result defaulting/no-effect behavior, focused Flow `map` / `filter` / `scan` coverage, selected Seq-compatible `each` / `collect` / `run` / `reduce` terminal behavior, and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output. Advanced Flow behavior is not covered by shared semantic specs in this phase.
+- IR stability remains **Partial**: the minimal portable Core IR contract is documented with field-level lowering invariants (bare `none` reason=null, `none()` reason wrapped as `IrQuote`, canonical `lhs.name` -> `IrBinary(op=SLASH, named_access=true)` for narrow named access (ordinary slash/division lowers as `IrBinary(op=SLASH)` without `named_access`; legacy `lhs/name` compatibility removed); neither form is general field-path lookup, `IrAssign` placement in `IrBlock.exprs`, optional fields), the Python runtime guards that boundary, and shared semantic-spec case coverage now validates the full portable node family in the Python reference host, including `quasiquote` bodies with `unquote` and `unquote_splicing` in list context.
+
+~~~~~
+
 ## B006: baseline lines 73-107
 
 Moved from GENIA_STATE.md@d401f322, lines 73-107 (ledger row B006, retained-condensed, sha256 79609a3b25f7e2cc)
