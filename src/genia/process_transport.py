@@ -33,7 +33,11 @@ _CLEANUP_JOIN_SECONDS = 5.0
 
 @dataclass(frozen=True)
 class ProcessTransportResult:
-    """Private normalized successful direct-execution attempt."""
+    """Host result containing a normal exit code and bounded raw byte captures.
+
+    Nonzero normal exits are successful transport results, not failures.
+    Frozen fields carry no PID or native target; no text decoding is performed.
+    """
 
     exit_code: int
     stdout: bytes
@@ -64,12 +68,26 @@ class _StreamDrain:
     """
 
     def __init__(self, stream: object, limit: int = OUTPUT_LIMIT_BYTES):
+        """Capture one readable host stream and its independent byte limit.
+
+        Initialize an empty bounded capture; the caller owns thread scheduling,
+        stream closure, and child cleanup. Construction performs no reads.
+        """
+
         self._stream = stream
         self._limit = limit
         self.buffer = bytearray()
         self.overflowed = False
 
     def run(self) -> None:
+        """Read to EOF or overflow, retaining only chunks within the limit.
+
+        Set overflowed and discard the crossing chunk when total bytes exceed
+        the limit; exactly the limit succeeds. OSError/ValueError end the drain
+        quietly, including closure during cleanup. This reader neither closes
+        the stream nor kills the child; launch_process discards failure captures.
+        """
+
         total = 0
         try:
             while True:
@@ -92,6 +110,8 @@ class _StreamDrain:
 
 
 def _close_quietly(stream: object | None) -> None:
+    """Close an optional host stream, suppressing exceptions during cleanup."""
+
     if stream is None:
         return
     try:
@@ -101,11 +121,12 @@ def _close_quietly(stream: object | None) -> None:
 
 
 def _kill_and_reap(proc: subprocess.Popen) -> None:
-    """Unconditionally ensure the owned child is terminated and reaped.
+    """Kill a still-running owned child, then try twice to reap it.
 
-    Uses `Popen.kill()`, which sends `SIGKILL` on POSIX -- unblockable and
-    unignorable, so a child that deliberately ignores `SIGTERM` still dies
-    (contract §8/§12: "no owned child may remain running indefinitely").
+    Popen.kill sends SIGKILL on POSIX, including for children ignoring SIGTERM.
+    Ignore a ProcessLookupError race; each wait has a five-second cleanup bound.
+    Two expired waits return without another attempt; other errors propagate.
+    This helper owns neither stream closure nor drain-thread joins.
     """
 
     if proc.poll() is None:
@@ -144,6 +165,21 @@ def launch_process(
     (`docs/design/execution-process-design.md` §5/§22); a portable Genia
     caller can never supply this value directly, so it cannot itself
     obtain PATH-based execution authority.
+
+    Callers supply already-validated argv and timeout_ms (1..300000). Child stdin
+    is EOF. A monotonic deadline starts before Popen; two reader threads drain
+    stdout/stderr concurrently with independent 1,048,576-byte capture limits.
+    The poll loop checks overflow before timeout; success waits for both EOFs.
+    Timeout, overflow, or polling failure kills/reaps the owned child, joins the
+    readers with bounded waits, closes pipes, and returns no partial output.
+    Cleanup waits may extend beyond the request deadline.
+
+    Popen OSError becomes launch failure; polling exceptions and negative signal
+    exit statuses become provider failure. Normal exits, including nonzero,
+    return exact bytes. spawn_hook is a host test observer receiving the PID;
+    its exceptions are ignored and the PID is never returned in a result.
+    Setup/cleanup exceptions outside the polling catch may propagate to the
+    execution boundary, which normalizes launcher exceptions.
     """
 
     argv = [executable, *args]

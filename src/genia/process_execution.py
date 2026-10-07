@@ -23,10 +23,14 @@ _REQUEST_FIELDS = {"executable", "args", "timeout_ms"}
 
 
 def _runtime_type_name(value: Any) -> str:
+    """Return the Python type name used by local misuse diagnostics, not a value rendering."""
+
     return type(value).__name__
 
 
 def _require_capability(capability: Any) -> GeniaProcessCapability:
+    """Return the opaque host capability unchanged, or raise TypeError without provider effects."""
+
     if not isinstance(capability, GeniaProcessCapability):
         raise TypeError(
             "execution.process expected a process capability, "
@@ -36,6 +40,13 @@ def _require_capability(capability: Any) -> GeniaProcessCapability:
 
 
 def _require_request_map(request: Any) -> GeniaMap:
+    """Check that the request is a GeniaMap with the required string-field set.
+
+    Raise TypeError for the wrong map type or string-field set; return the same
+    map without validating values. This helper compares string keys only;
+    non-string keys do not participate in its field-set check.
+    """
+
     if not isinstance(request, GeniaMap):
         raise TypeError(
             f"execution.process expected a request map, received {_runtime_type_name(request)}"
@@ -50,6 +61,8 @@ def _require_request_map(request: Any) -> GeniaMap:
 
 
 def _require_executable(value: Any) -> GeniaSymbol:
+    """Require a non-empty GeniaSymbol; raise TypeError rather than accept a native path."""
+
     if not isinstance(value, GeniaSymbol) or not value.name:
         raise TypeError(
             "execution.process expected executable to be a non-empty symbol, "
@@ -59,6 +72,12 @@ def _require_executable(value: Any) -> GeniaSymbol:
 
 
 def _require_args(value: Any) -> list[str]:
+    """Copy a list of exact strings for argv, rejecting non-strings and NULs.
+
+    TypeError is misuse; empty strings and shell metacharacters remain unchanged.
+    No splitting, expansion, encoding, or provider invocation occurs here.
+    """
+
     if not isinstance(value, list):
         raise TypeError(
             f"execution.process expected args to be a list, received {_runtime_type_name(value)}"
@@ -77,6 +96,8 @@ def _require_args(value: Any) -> list[str]:
 
 
 def _require_timeout_ms(value: Any) -> int:
+    """Require an integer in 1..300000 milliseconds; reject booleans with TypeError."""
+
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError(
             f"execution.process expected an integer timeout_ms, received {_runtime_type_name(value)}"
@@ -87,6 +108,12 @@ def _require_timeout_ms(value: Any) -> int:
 
 
 def _to_process_result(outcome: ProcessTransportResult) -> GeniaMap:
+    """Build the closed result map with exit_code and GeniaBytes stdout/stderr.
+
+    Preserve captured bytes without text decoding; a nonzero normal exit is data.
+    The transport has already enforced capture limits and normalized failures.
+    """
+
     return (
         GeniaMap()
         .put("exit_code", outcome.exit_code)
@@ -98,6 +125,13 @@ def _to_process_result(outcome: ProcessTransportResult) -> GeniaMap:
 def _normalize_transport_failure(
     failure: ProcessTransportFailure, executable: GeniaSymbol, timeout_ms: int
 ) -> GeniaOptionErr:
+    """Translate transport kinds to closed err reasons and context maps.
+
+    Launch exposes only the requested symbol, timeout only the validated timeout,
+    and output-limit only the fixed byte limit. Provider and unknown kinds use
+    the execute-operation catch-all; native details and partial output are omitted.
+    """
+
     if failure.kind == "launch":
         return GeniaOptionErr("process-launch-failure", GeniaMap().put("executable", executable))
     if failure.kind == "timeout":
@@ -113,13 +147,19 @@ def _normalize_transport_failure(
 
 
 def perform_process_execution(capability: Any, request: Any, *extra: Any) -> Any:
-    """`execution.process(capability, request)`.
+    """Validate, resolve, authorize, and launch one symbolic process request.
 
-    Validation occurs completely -- capability type, request shape,
-    `executable`, `args`, `timeout_ms`, and the recursive protected-value
-    scan -- with zero provider effects before resolution or launch
-    (contract §5/§13). V1 accepts exactly two arguments; there is no
-    authority argument and no declassification sink.
+    Reject extra arguments, then validate capability and request shape, scan the
+    request recursively for protected values, and validate executable, args,
+    timeout_ms in that order. Misuse raises before resolution or provider effects;
+    there is no authority argument or declassification sink.
+
+    Unbound symbols return process-executable-unavailable without authorization;
+    denied bound symbols return process-unauthorized without launch. Authorized
+    targets stay host-private. A transport result becomes some(closed result map),
+    including nonzero normal exits; transport failures, launcher exceptions and
+    unexpected launcher results become closed err Outcomes without native details.
+    Authorization callback exceptions are outside the launcher catch boundary.
     """
 
     if extra:
