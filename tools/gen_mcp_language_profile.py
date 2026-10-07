@@ -3,7 +3,7 @@
 
 The registry is the ``mcp_language_profile`` key of ``docs/contract/semantic_facts.json``. It is a
 guarded projection source: ``GENIA_STATE.md`` stays the semantic authority (each fact carries
-semantic anchors and evidence), and ``genia_language_profile`` stays native Genia with no runtime
+semantic anchors and evidence), and the MCP language-profile tool stays native Genia with no runtime
 file or Markdown reading. This tool renders the governed constants into a delimited block.
 
   python tools/gen_mcp_language_profile.py           # rewrite the generated block
