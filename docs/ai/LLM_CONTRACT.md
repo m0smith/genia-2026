@@ -297,3 +297,11 @@ That validation should enforce:
 - no conflicting authority claims
 - no semantic redefinition in tool-local files
 - reminders to update docs and tests
+
+## Maintained code documentation
+
+Follow [the maintained-code documentation contract](../contract/code-documentation.md).
+The policy covers both repositories, including applications and substantial internal
+bindings. New or changed required bindings must be documented in the same change;
+legacy baseline entries are temporary debt and cannot be added or refreshed to
+hide new gaps. Review accuracy and usefulness as well as checker presence.

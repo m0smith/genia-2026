@@ -6957,3 +6957,10 @@ program through real MCP `genia_run`, direct CLI execution, deterministic stdout
 JSON, Unicode code-point provenance, invalid/duplicate/zero-chunk diagnostics,
 input limit behavior, prompt-like text as inert data, and static denial of
 imports, private underscore host functions, and denied names.
+
+## Development documentation infrastructure
+
+The maintained-code documentation policy and native-language coverage checker
+are development infrastructure, not language semantics or host capabilities.
+See `docs/contract/code-documentation.md` and `docs/process/code-documentation.md`.
+Existing source-documentation debt is tracked separately from semantic host gaps.

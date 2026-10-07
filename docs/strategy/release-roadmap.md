@@ -218,3 +218,12 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 ## Scheduling
 
 The detailed dependency graph and its qualifications live in [`roadmap/sequence.md`](roadmap/sequence.md). Roadmap ordering never implements behavior and never skips the repository's contract, design, failing-test, implementation, documentation, audit, and distillation gates.
+
+## Required infrastructure — maintained code documentation (#1101)
+
+Define the repository-wide standard and establish initial documentation CI
+enforcement after R28, before new R29 implementation. Coordinate with the
+unnumbered R20 follow-up #1067 without introducing a new release number.
+Remediate existing gaps in bounded subsystem slices alongside roadmap work,
+starting with MCP. The entire legacy backlog does not block R29. This work
+does not reopen R28 or change language/runtime behavior.

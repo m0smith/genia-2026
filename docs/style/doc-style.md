@@ -324,3 +324,12 @@ python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
 Coverage is enforced over both the registered prelude surface and the non-internal
 Python-host builtin registry. The generated function reference consumes the same two
 surfaces; generated pages are not a documentation source.
+
+## 13. Maintained application and implementation code
+
+The [maintained-code documentation contract](../contract/code-documentation.md)
+extends documentation obligations to applications, internal implementation,
+tooling, tests and scripts in both repositories. Public prelude/builtin coverage
+remains strict under §12. Internal naming alone does not exempt substantial
+behavior. The separate native-language checker tracks legacy implementation debt
+without weakening DOC008/DOC009.

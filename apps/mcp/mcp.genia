@@ -17,14 +17,17 @@
 # so it advertises genia_capabilities and the native-only genia_language_profile
 # (amendment A6, section 19 of the contract). The execution tool belongs to E28-3.
 
+@doc "Match and unwrap one json representation layer."
 pattern Json(value) = representation_match("json", value)
 
 # ---- closed JSON type checks (Genia Templates compiled from json_schema) ----
 
+@doc "Compile a decoded schema Outcome, or return schema-unavailable."
 schema_template(o) =
   some(sch, _) -> json_schema(sch) |
   _ -> err("schema-unavailable", {})
 
+@doc "Decode and compile schema text; substitute a schema-unavailable absence on failure."
 template(text) =
   unwrap_or((_) -> none("schema-unavailable"), schema_template(json_decode(text)))
 
@@ -32,11 +35,16 @@ StringT = template("{\"type\":\"string\"}")
 IntegerT = template("{\"type\":\"integer\"}")
 ObjectT = template("{\"type\":\"object\"}")
 
+@doc "Return true only for a successful single-value Outcome."
 accepted(o) = some(_) -> true | _ -> false
 
+@doc "Test a value against the compiled JSON string Template."
 is_string(v) = accepted(StringT(v))
+@doc "Test a value against the compiled JSON integer Template."
 is_integer(v) = accepted(IntegerT(v))
+@doc "Test a value against the compiled JSON object Template."
 is_object(v) = accepted(ObjectT(v))
+@doc "Accept only string or integer request identifiers."
 is_id(v) = is_string(v) || is_integer(v)
 
 # ---- fixed protocol constants ----
@@ -56,6 +64,7 @@ META_CAPABILITIES = "io.modelcontextprotocol/clientCapabilities"
 # The patterns are built once at load time.
 SQUASH_DEEPEST = 128
 
+@doc "Build newline-and-indent separators through the JSON container depth bound."
 indent_patterns(k, cur, acc) =
   (n, c, a) ? n > SQUASH_DEEPEST -> a |
   (n, c, a) -> indent_patterns(n + 1, concat(c, "  "), append(a, [c]))
@@ -63,6 +72,7 @@ indent_patterns(k, cur, acc) =
 # Longest first, so a shorter pattern never cuts a longer one.
 INDENT_PATTERNS = reverse(indent_patterns(0, "\n", []))
 
+@doc "Remove JSON layout newlines and indentation without altering escaped string content."
 squash(text) = reduce((t, sep) -> join("", split(t, sep)), text, INDENT_PATTERNS)
 
 # Fixed placeholders for the genia_parse splice (a quoted JSON string in the encoding).
@@ -73,33 +83,44 @@ STRUCT_SLOT = concat(concat("\"", STRUCT_SLOT_VALUE), "\"")
 
 INTERNAL_FRAME = "{\"error\": {\"code\": -32603,\"message\": \"Internal error\"},\"jsonrpc\": \"2.0\"}"
 
+@doc "Convert encoded JSON success to one line; use a fixed internal-error frame on failure."
 finish(o) =
   some(text, _) -> squash(text) |
   _ -> INTERNAL_FRAME
 
+@doc "Encode a response map as one JSON protocol line."
 frame(message) = finish(json_encode(message))
 
 # ---- response construction ----
 
 # idv is [] (id unreadable or absent) or [id]; Outcome values are avoided as
 # data because none(...) propagates through ordinary calls.
+@doc "Attach the singleton readable identifier, or leave the response without an id."
 with_id(base, idv) =
   (b, [x]) -> map_put(b, "id", x) |
   (b, _) -> b
 
+@doc "Construct the fixed JSON-RPC code and message object."
 error_body(code, message) = {code: code, message: message}
 
+@doc "Build a JSON-RPC error and preserve the readable request identifier."
 error_response(c, code, message) =
   with_id(
     {jsonrpc: "2.0", error: error_body(code, message)},
     map_get(c, "idv"))
 
+@doc "Build JSON-RPC Parse error with code -32700."
 parse_error(c) = error_response(c, -32700, "Parse error")
+@doc "Build JSON-RPC Invalid request with code -32600."
 invalid_request(c) = error_response(c, -32600, "Invalid request")
+@doc "Build JSON-RPC Method not found with code -32601."
 method_not_found(c) = error_response(c, -32601, "Method not found")
+@doc "Build JSON-RPC Invalid params with code -32602."
 invalid_params(c) = error_response(c, -32602, "Invalid params")
+@doc "Build JSON-RPC Internal error with code -32603."
 internal_error(c) = error_response(c, -32603, "Internal error")
 
+@doc "Report unsupported modern protocol version and the supported version list."
 version_error(c, requested) =
   with_id(
     {jsonrpc: "2.0",
@@ -108,24 +129,30 @@ version_error(c, requested) =
              data: {supported: [PROTOCOL_VERSION], requested: requested}}},
     map_get(c, "idv"))
 
+@doc "Return Invalid params with the fixed Unknown tool message."
 unknown_tool_response(c) =
   with_id(
     {jsonrpc: "2.0", error: error_body(-32602, "Unknown tool")},
     map_get(c, "idv"))
 
+@doc "Build a JSON-RPC success with the selected protocol-era result shape."
 result_response(c, result) =
   with_id({jsonrpc: "2.0", result: era_shaped(c, result)}, map_get(c, "idv"))
 
 # The 2025-11-25 wire shape omits the 2026-07-28-only members (contract A5.5).
+@doc "Keep modern result fields or remove compatibility-inapplicable fields."
 era_shaped(c, result) =
   (k, r) ? modern_request(k) -> r |
   (_, r) -> compat_shape(r)
 
+@doc "Remove resultType, ttlMs, cacheScope and metadata for compatibility clients."
 compat_shape(r) =
   map_remove(map_remove(map_remove(map_remove(r, "resultType"), "ttlMs"), "cacheScope"), "_meta")
 
+@doc "Return the fixed server name and launch revision as its version."
 server_info(c) = {"name": "genia-mcp", "version": map_get(c, "rev")}
 
+@doc "Wrap server identity in modern result metadata."
 result_meta(c) = {"io.modelcontextprotocol/serverInfo": server_info(c)}
 
 # ---- capability values ----
@@ -135,9 +162,12 @@ RESULT_MAX_BYTES = 3276800
 
 # The host map holds provisioned capabilities; a tool is advertised only if the host
 # provisioned what it needs (parse -> genia_parse, run -> genia_run).
+@doc "Test whether the explicit host map provisions the parse capability."
 parse_enabled(c) = map_has?(map_get(c, "host"), "parse")
+@doc "Test whether the explicit host map provisions the run capability."
 run_enabled(c) = map_has?(map_get(c, "host"), "run")
 
+@doc "Decide whether the named tool is available under the explicit host map."
 advertised(c, name) =
   (k, "genia_capabilities") -> true |
   (k, "genia_parse") -> parse_enabled(k) |
@@ -145,6 +175,7 @@ advertised(c, name) =
   (k, "genia_language_profile") -> true |
   (_, _) -> false
 
+@doc "Return advertised tool names in contract descriptor order."
 tool_names(c) = tool_descriptors(c) |> map((t) -> field(t, "name"))
 
 EXECUTION_PROFILE = {
@@ -162,6 +193,7 @@ EXECUTION_PROFILE = {
   network: false
 }
 
+@doc "Describe the active protocol era, host, revision, tool names and fixed execution profile."
 capabilities_value(c) = {
   server: {name: "genia-mcp", contract: "genia.mcp.v1"},
   mcp: {protocol_version: serving_version(c), transport: "stdio"},
@@ -172,6 +204,7 @@ capabilities_value(c) = {
   execution_profile: EXECUTION_PROFILE
 }
 
+@doc "Wrap capability discovery in the genia.mcp.v1 success envelope."
 capabilities_envelope(c) = {
   schema_version: "genia.mcp.v1",
   status: "ok",
@@ -207,9 +240,11 @@ profile_descriptor = {
 
 # Contract order: genia_capabilities, genia_parse, genia_run, genia_language_profile
 # (only those provisioned; the profile needs no host capability).
+@doc "Filter the fixed descriptor list by provisioned host capabilities."
 tool_descriptors(c) =
   [tool_descriptor, parse_descriptor, run_descriptor, profile_descriptor] |> filter((t) -> advertised(c, field(t, "name")))
 
+@doc "Construct stateless modern discovery with zero TTL and public cache scope."
 discover_result(c) = {
   resultType: "complete",
   supportedVersions: [PROTOCOL_VERSION],
@@ -219,6 +254,7 @@ discover_result(c) = {
   "_meta": result_meta(c)
 }
 
+@doc "Construct the modern tool list with identity metadata and zero TTL."
 list_result(c) = {
   resultType: "complete",
   tools: tool_descriptors(c),
@@ -231,13 +267,24 @@ list_result(c) = {
 # structuredContent and (single-line encoded) the sole text content item. An
 # envelope whose encoding exceeds the aggregate result limit is replaced by a
 # fixed result_limit envelope (the oversized content is discarded).
+@doc "Encode an envelope and apply the aggregate result-size policy."
 tool_result(c, envelope) = bounded_result(c, envelope, json_encode(envelope))
 
+@doc """
+Reject oversized encoded content, finish a valid result, or return internal error.
+
+## Arguments
+`c`: context. `envelope`: tool envelope. `encoded`: JSON encode Outcome.
+
+## Returns
+Finished result if encoded content meets the aggregate limit; fixed result-limit response above it; JSON-RPC internal error on encoding failure.
+"""
 bounded_result(c, envelope, encoded) =
   (k, e, some(text, _)) ? byte_length(squash(text)) > RESULT_MAX_BYTES -> limited_result(k) |
   (k, e, some(text, _)) -> finished_result(k, e, squash(text)) |
   (k, _, _) -> internal_error(k)
 
+@doc "Put the same envelope in structuredContent and the sole encoded text item."
 finished_result(c, envelope, text) = {
   resultType: "complete",
   content: [{type: "text", text: text}],
@@ -246,13 +293,17 @@ finished_result(c, envelope, text) = {
   "_meta": result_meta(c)
 }
 
+@doc "Test whether the envelope status is error."
 envelope_is_error(envelope) = field(envelope, "status") == "error"
 
+@doc "Return the fixed aggregate result-limit envelope."
 limited_result(c) =
   finish_limited(c, error_envelope("result_limit", "adapter", "Result exceeds the 3276800-byte limit"))
 
+@doc "Finish an already bounded limit envelope without recursively checking its size."
 finish_limited(c, envelope) = finished_result(c, envelope, squash(unwrap_or("", json_encode(envelope))))
 
+@doc "Construct a closed schema-versioned tool failure envelope."
 error_envelope(kind, phase, message) = {
   schema_version: "genia.mcp.v1",
   status: "error",
@@ -260,6 +311,7 @@ error_envelope(kind, phase, message) = {
   error: {kind: kind, message: message, phase: phase}
 }
 
+@doc "Build the capability tool result with aggregate size enforcement."
 call_result(c) = tool_result(c, capabilities_envelope(c))
 
 # ---- genia_language_profile (amendment A6) ----
@@ -410,6 +462,7 @@ LANGUAGE_DISCOVERY = {
 }
 # <<< END GENERATED: mcp_language_profile <<<
 
+@doc "Return the curated language profile and launch revision without live discovery."
 language_value(c) = {
   name: "Genia",
   contract_revision: map_get(c, "rev"),
@@ -422,6 +475,7 @@ language_value(c) = {
   discovery: LANGUAGE_DISCOVERY
 }
 
+@doc "Wrap the language profile in the standard success envelope."
 profile_envelope(c) = {
   schema_version: "genia.mcp.v1",
   status: "ok",
@@ -436,70 +490,100 @@ profile_envelope(c) = {
 # non-object, and nil satisfies none of the type checks.
 # JSON null decodes to none("nil"), and none(...) short-circuits ordinary calls,
 # so null and absent both normalize to [] (which fails every type check).
+@doc "Replace null-decoding absence Outcomes with an inert empty-list sentinel."
 norm(v) =
   none(_) -> [] |
   none(_, _) -> [] |
   x -> x
 
+@doc "Read an existing key and normalize null, or return the empty-list sentinel."
 field_present(m, key) =
   (y, j) ? map_has?(y, j) -> norm(map_get(y, j)) |
   (_, _) -> []
 
+@doc "Read a JSON object member safely; non-objects and missing/null members yield the sentinel."
 field(m, key) =
   (x, k) ? is_object(x) -> field_present(x, k) |
   (_, _) -> []
 
+@doc "Test object membership safely without reading the member value."
 present(m, key) =
   (x, k) ? is_object(x) -> map_has?(x, k) |
   (_, _) -> false
 
+@doc "Return true only for an object containing no members."
 empty_object(v) =
   x ? is_object(x) -> map_count(x) == 0 |
   _ -> false
 
+@doc "Require JSON-RPC 2.0 and a string method name."
 header_valid(r) = field(r, "jsonrpc") == "2.0" && is_string(field(r, "method"))
 
+@doc "Read the decoded message from a validated request context."
 msg_of(c) = map_get(c, "msg")
 
+@doc "Read normalized request parameters from the context message."
 params_of(c) = field(msg_of(c), "params")
 
+@doc "Require request parameters to be a JSON object."
 params_valid(c) = is_object(params_of(c))
 
+@doc "Read normalized per-request metadata from parameters."
 meta_of(c) = field(params_of(c), "_meta")
 
+@doc "Require metadata with a string protocol version and object client capabilities."
 meta_valid(c) = is_object(meta_of(c)) && is_string(field(meta_of(c), META_VERSION)) && is_object(field(meta_of(c), META_CAPABILITIES))
 
+@doc "Read the normalized method member from the request message."
 method_of(c) = field(msg_of(c), "method")
 
+@doc "Recognize only modern discovery, tool listing and tool calling."
 known_method(m) = m == "server/discover" || m == "tools/list" || m == "tools/call"
 
 # ---- era selection (contract A5.2) ----
 # A request whose params._meta carries the 2026-07-28 version key is a 2026-07-28
 # request; every other request is a 2025-11-25 request. This is the only protocol
 # decision the two eras do not share.
+@doc "Select the modern era by presence of its metadata version key."
 modern_request(c) = present(meta_of(c), META_VERSION)
 
+@doc "Return the protocol version selected by the request metadata."
 serving_version(c) =
   k ? modern_request(k) -> PROTOCOL_VERSION |
   _ -> COMPAT_PROTOCOL_VERSION
 
 # ---- dispatch ----
 
+@doc "Require the requested tool name to be a string."
 tool_name_valid(c) = is_string(field(params_of(c), "name"))
 
+@doc "Accept omitted arguments or an empty object for argument-free tools."
 arguments_ok(c) = present(params_of(c), "arguments") == false || empty_object(field(params_of(c), "arguments"))
 
+@doc "Return an object's member count, or -1 for non-objects."
 object_size(v) =
   x ? is_object(x) -> map_count(x) |
   _ -> -1
 
+@doc "Read normalized tool arguments from request parameters."
 args_of(c) = field(params_of(c), "arguments")
 
 # genia_parse and genia_run take exactly one string `source` (closed schema).
+@doc "Require a closed argument object containing exactly one string source."
 parse_arguments_ok(c) = object_size(args_of(c)) == 1 && is_string(field(args_of(c), "source"))
 
+@doc "Read the requested tool name from parameters."
 tool_of(c) = field(params_of(c), "name")
 
+@doc """
+Dispatch an available tool after name validation, or return a protocol error.
+
+## Arguments
+`c`: validated request context; parameters carry the name and tool arguments.
+
+## Returns
+Tool response or fixed JSON-RPC error. Parse/run availability requires the corresponding explicit host callback.
+"""
 call_tool(c) =
   k ? tool_name_valid(k) == false -> invalid_params(k) |
   k ? tool_of(k) == "genia_capabilities" -> call_capabilities(k) |
@@ -508,14 +592,17 @@ call_tool(c) =
   k ? tool_of(k) == "genia_language_profile" -> call_language_profile(k) |
   k -> unknown_tool_response(k)
 
+@doc "Validate empty arguments and return the capability tool response."
 call_capabilities(c) =
   k ? arguments_ok(k) == false -> invalid_params(k) |
   k -> result_response(k, call_result(k))
 
+@doc "Validate empty arguments and return the deterministic language profile response."
 call_language_profile(c) =
   k ? arguments_ok(k) == false -> invalid_params(k) |
   k -> result_response(k, tool_result(k, profile_envelope(k)))
 
+@doc "Validate closed source arguments and construct the parse response."
 call_parse(c) =
   k ? parse_arguments_ok(k) == false -> invalid_params(k) |
   k -> parse_response(k, parse_result(k, field(args_of(k), "source")))
@@ -523,17 +610,37 @@ call_parse(c) =
 # parse_result yields [result, structured]. `structured` is "" for an ordinary result.
 # For a parsed AST it is the final single-line structuredContent text (see below), and
 # the result carries a placeholder where that text goes.
+@doc """
+Return an ordinary response or mark structuredContent for opaque AST splicing.
+
+## Arguments
+`c`: request context. `pair`: [tool result, structured text].
+
+## Returns
+Ordinary JSON-RPC response for empty structured text; otherwise an application-owned genia_splice marker consumed by `to_line`.
+"""
 parse_response(c, pair) =
   (k, [r, ""]) -> result_response(k, r) |
   (k, [r, s]) -> {genia_splice: [result_response(k, r), s]}
 
 # genia_parse: size policy is native; only the parser itself is host-provided.
+@doc """
+Enforce the source byte bound before invoking the explicit host parser once.
+
+## Arguments
+`c`: context whose host provides parse(source). `source`: explicit string source.
+
+## Returns
+[tool result, structured text]. Empty structured text means ordinary framing. Oversized input never invokes the callback; malformed callback replies become fixed internal errors.
+"""
 parse_result(c, source) =
   (k, src) ? byte_length(src) > SOURCE_MAX_BYTES -> parse_plain(k, error_envelope("input_limit", "protocol", "Genia source exceeds the 262144-byte limit")) |
   (k, src) -> parse_reply(k, split((map_get(map_get(k, "host"), "parse"))(src), "\n"))
 
+@doc "Pair an ordinary tool result with the empty splice sentinel."
 parse_plain(c, envelope) = [tool_result(c, envelope), ""]
 
+@doc "Construct the fixed parsing internal-error envelope."
 parse_internal() = error_envelope("internal_error", "adapter", "Internal error while parsing")
 
 # H22 / contract Clarification A3: the AST is lossless opaque transport text. The host
@@ -541,30 +648,61 @@ parse_internal() = error_envelope("internal_error", "adapter", "Internal error w
 # the AST text. Only the header is decoded here (json_decode); the AST text is never
 # decoded or re-encoded, so integers outside the R9 portable-JSON range (+/-(2^53-1))
 # cross unchanged. This is a local string splice for genia_parse, not a Genia facility.
+@doc """
+Interpret the host header plus optional opaque AST fragment; reject other framing.
+
+## Arguments
+`c`: request context. `parts`: host text split on newline into a header and optional AST fragment.
+
+## Returns
+An ordinary result pair or a pair carrying opaque structured JSON. Only the header is decoded; the AST is transported unchanged to preserve large integer spelling.
+"""
 parse_reply(c, parts) =
   (k, [head, ast]) -> parse_parsed(k, json_decode(head), ast) |
   (k, [head]) -> parse_head(k, json_decode(head)) |
   (k, _) -> parse_plain(k, parse_internal())
 
+@doc "Convert a syntax-error header into a diagnostic envelope; reject other headers."
 parse_head(c, decoded) =
   (k, some(Json(r), _)) ? field(r, "status") == "syntax_error" -> parse_plain(k, syntax_error_envelope(field(r, "offset"))) |
   (k, _) -> parse_plain(k, parse_internal())
 
+@doc "Require a parsed header containing exactly its status member."
 parsed_header_ok(r) = field(r, "status") == "parsed" && object_size(r) == 1
 
 # The AST must be an object or array text.
+@doc "Check object/array outer delimiters without parsing the opaque AST fragment."
 fragment_ok(a) =
   (starts_with(a, "{") && ends_with(a, "}")) || (starts_with(a, "[") && ends_with(a, "]"))
 
+@doc """
+Validate the parsed header and fragment boundary before preparing AST substitution.
+
+## Arguments
+`c`: context. `decoded`: header JSON Outcome. `ast`: opaque object/array JSON text supplied by the host.
+
+## Returns
+A slot-bearing bounded result pair, or a fixed parsing internal error. Fragment validation checks outer delimiters only; the host owns AST JSON correctness.
+"""
 parse_parsed(c, decoded, ast) =
   (k, some(Json(r), _), a) ? parsed_header_ok(r) && fragment_ok(a) -> parsed_slotted(k, a, split(squash(unwrap_or("", json_encode(parsed_envelope(AST_SLOT_VALUE)))), AST_SLOT)) |
   (k, _, _) -> parse_plain(k, parse_internal())
 
+@doc "Substitute opaque AST text only when the encoded envelope has one slot."
 parsed_slotted(c, ast, parts) =
   (k, a, [before, after]) -> parsed_structured(k, join(a, [before, after])) |
   (k, _, _) -> parse_plain(k, parse_internal())
 
 # The result limit is measured on the final single-line structuredContent text.
+@doc """
+Apply the byte limit to final structured content and construct its slot-bearing result.
+
+## Arguments
+`c`: context. `structured`: already substituted, single-line structuredContent JSON text.
+
+## Returns
+[result, text] for permitted size; [limit result, ""] above RESULT_MAX_BYTES. The final opaque text, not a re-encoded AST, determines the limit.
+"""
 parsed_structured(c, structured) =
   (k, s) ? byte_length(s) > RESULT_MAX_BYTES -> [limited_result(k), ""] |
   (k, s) -> [{
@@ -575,6 +713,7 @@ parsed_structured(c, structured) =
     "_meta": result_meta(k)
   }, s]
 
+@doc "Wrap the AST value or placeholder in the standard parsed success envelope."
 parsed_envelope(ast) = {
   schema_version: "genia.mcp.v1",
   status: "ok",
@@ -582,9 +721,11 @@ parsed_envelope(ast) = {
   error: nil
 }
 
+@doc "Construct the bounded parse-error envelope for a reported offset."
 syntax_error_envelope(offset) =
   error_envelope("parse_error", "parse", parse_error_message(offset))
 
+@doc "Include an integer character offset or use the fixed offset-free diagnostic."
 parse_error_message(offset) =
   o ? is_integer(o) -> concat("Genia source failed to parse at character offset ", display(o)) |
   _ -> "Genia source failed to parse"
@@ -595,32 +736,64 @@ parse_error_message(offset) =
 # builds the cancellation predicate, maps the worker's closed reply to the envelope,
 # and applies the result limit. Every failure message is fixed and server-owned.
 
+@doc "Validate closed source arguments and return the execution tool response."
 call_run(c) =
   k ? parse_arguments_ok(k) == false -> invalid_params(k) |
   k -> result_response(k, run_result(k, field(args_of(k), "source")))
 
+@doc """
+Enforce source size before invoking the worker capability with a cancellation predicate.
+
+## Arguments
+`c`: context whose host provides run(source, cancellation predicate). `source`: explicit string source.
+
+## Returns
+A bounded tool result. Source over SOURCE_MAX_BYTES is rejected before the callback; worker statuses are normalized by `run_status`.
+"""
 run_result(c, source) =
   (k, src) ? byte_length(src) > SOURCE_MAX_BYTES -> tool_result(k, error_envelope("input_limit", "protocol", "Genia source exceeds the 262144-byte limit")) |
   (k, src) -> run_reply(k, json_decode((map_get(map_get(k, "host"), "run"))(src, cancel_matcher(k))))
 
+@doc "Return a callable unchanged so its closure can be passed as a value."
 keep(f) = f
 
 # Cancellation (contract section 5): the host hands each raw stdin line that arrives
 # during the run to this predicate. Only a notification whose requestId is this
 # request's id claims it; the host merely multiplexes lines and terminates the worker.
+@doc """
+Capture the request id in a predicate over raw incoming protocol lines.
+
+## Arguments
+`c`: request context containing a valid string/integer message id.
+
+## Returns
+Callable accepting a raw protocol line and returning a Boolean. It captures the id, performs no IO itself and does not claim unrelated messages.
+"""
 cancel_matcher(c) = keep((line) -> is_cancel_line(json_decode(line), field(msg_of(c), "id")))
 
+@doc "Decode a raw-line Outcome and test cancellation; invalid JSON cannot cancel."
 is_cancel_line(decoded, id) =
   (some(Json(m), _), i) -> is_cancel_message(m, i) |
   (_, _) -> false
 
+@doc "Match an id-free cancellation notification against this request's identifier."
 is_cancel_message(m, id) =
   is_object(m) && field(m, "method") == "notifications/cancelled" && present(m, "id") == false && field(field(m, "params"), "requestId") == id
 
+@doc "Decode a worker reply object and normalize invalid replies to internal error."
 run_reply(c, decoded) =
   (k, some(Json(r), _)) -> run_status(k, field(r, "status"), r) |
   (k, _) -> tool_result(k, run_internal())
 
+@doc """
+Map the worker's closed status vocabulary to server-owned result envelopes.
+
+## Arguments
+`c`: context. `status`: decoded worker status. `r`: worker reply object.
+
+## Returns
+Completed success only after channel-shape validation; parse, policy, runtime, timeout, cancellation and limit failures use fixed server-owned envelopes. Unknown statuses become internal errors.
+"""
 run_status(c, status, r) =
   (k, "completed", reply) ? run_completed_ok(reply) -> tool_result(k, run_completed_envelope(reply)) |
   (k, "parse_error", reply) -> tool_result(k, syntax_error_envelope(field(reply, "offset"))) |
@@ -631,11 +804,14 @@ run_status(c, status, r) =
   (k, "result_limit", _) -> tool_result(k, error_envelope("result_limit", "adapter", "Result exceeds a 1048576-byte channel limit")) |
   (k, _, _) -> tool_result(k, run_internal())
 
+@doc "Construct the fixed execution internal-error envelope."
 run_internal() = error_envelope("internal_error", "adapter", "Internal error while executing")
 
+@doc "Require exactly status, string value, string stdout and string stderr fields."
 run_completed_ok(r) =
   is_string(field(r, "value")) && is_string(field(r, "stdout")) && is_string(field(r, "stderr")) && object_size(r) == 4
 
+@doc "Wrap completed value rendering and separate output channels with exit code zero."
 run_completed_envelope(r) = {
   schema_version: "genia.mcp.v1",
   status: "ok",
@@ -649,24 +825,29 @@ run_completed_envelope(r) = {
   error: nil
 }
 
+@doc "Reject pagination cursors and return the available tool descriptors."
 list_tools(c) =
   k ? present(params_of(k), "cursor") -> invalid_params(k) |
   k -> result_response(k, list_result(k))
 
+@doc "Route a validated modern method to discovery, listing or calling."
 run_method(c) =
   k ? method_of(k) == "server/discover" -> result_response(k, discover_result(k)) |
   k ? method_of(k) == "tools/list" -> list_tools(k) |
   k -> call_tool(k)
 
+@doc "Require the exact modern version before running the requested method."
 check_version(c) =
   k ? field(meta_of(k), META_VERSION) != PROTOCOL_VERSION -> version_error(k, field(meta_of(k), META_VERSION)) |
   k -> run_method(k)
 
+@doc "Validate parameter and metadata shapes before checking the protocol version."
 check_meta(c) =
   k ? params_valid(k) == false -> invalid_params(k) |
   k ? meta_valid(k) == false -> invalid_params(k) |
   k -> check_version(k)
 
+@doc "Reject unknown modern methods before metadata validation."
 modern_dispatch(c) =
   k ? known_method(method_of(k)) == false -> method_not_found(k) |
   k -> check_meta(k)
@@ -676,8 +857,10 @@ modern_dispatch(c) =
 # initialize, then true. Client capabilities and clientInfo are validated for shape
 # and discarded; they change no behavior and grant no authority.
 
+@doc "Read the process-local compatibility initialization bit."
 initialized(c) = ref_get(map_get(c, "state"))
 
+@doc "Route compatibility initialization, ping and tools; reject modern discovery."
 compat_dispatch(c) =
   k ? method_of(k) == "initialize" -> handle_initialize(k) |
   k ? method_of(k) == "ping" -> handle_ping(k) |
@@ -685,36 +868,61 @@ compat_dispatch(c) =
   k ? method_of(k) == "tools/list" || method_of(k) == "tools/call" -> compat_tools(k) |
   k -> method_not_found(k)
 
+@doc "Require initialization before compatibility tool listing or calling."
 compat_tools(c) =
   k ? initialized(k) == false -> invalid_params(k) |
   k ? method_of(k) == "tools/list" -> list_tools(k) |
   k -> call_tool(k)
 
+@doc "Accept omitted or object parameters and return an empty success result."
 handle_ping(c) =
   k ? present(msg_of(k), "params") && params_valid(k) == false -> invalid_params(k) |
   k -> result_response(k, {})
 
+@doc "Read normalized compatibility clientInfo from parameters."
 client_info_of(c) = field(params_of(c), "clientInfo")
 
+@doc "Require string name and version members in clientInfo."
 client_info_ok(c) = is_string(field(client_info_of(c), "name")) && is_string(field(client_info_of(c), "version"))
 
+@doc "Require string protocolVersion, object capabilities and valid clientInfo."
 initialize_params_ok(c) = is_string(field(params_of(c), "protocolVersion")) && is_object(field(params_of(c), "capabilities")) && client_info_ok(c)
 
+@doc """
+Reject repeated or malformed initialization and unsupported compatibility versions.
+
+## Arguments
+`c`: compatibility request context with process-local state Ref.
+
+## Returns
+Invalid request after prior success; invalid parameters for malformed data or unsupported version; otherwise initialization success and a state transition through `enter_initialized`.
+"""
 handle_initialize(c) =
   k ? initialized(k) -> invalid_request(k) |
   k ? initialize_params_ok(k) == false -> invalid_params(k) |
   k ? field(params_of(k), "protocolVersion") != COMPAT_PROTOCOL_VERSION -> compat_version_error(k) |
   k -> enter_initialized(k)
 
+@doc """
+Set the shared initialization bit before returning the initialization result.
+
+## Arguments
+`c`: validated compatibility initialization context.
+
+## Returns
+Initialization response after setting the shared state Ref to true. Client metadata grants no authority.
+"""
 enter_initialized(c) =
   ref_set(map_get(c, "state"), true) |> (_) -> result_response(c, initialize_result(c))
 
+@doc "Return the compatibility protocol version, tool capability and server identity."
 initialize_result(c) = {
   protocolVersion: COMPAT_PROTOCOL_VERSION,
   capabilities: {tools: {}},
   serverInfo: server_info(c)
 }
 
+@doc "Report the supported compatibility version and requested version with code -32602."
 compat_version_error(c) =
   with_id(
     {jsonrpc: "2.0",
@@ -724,64 +932,143 @@ compat_version_error(c) =
                     requested: field(params_of(c), "protocolVersion")}}},
     map_get(c, "idv"))
 
+@doc """
+Select protocol era from metadata and dispatch within that era.
+
+## Arguments
+`c`: request context documented by `context`.
+
+## Returns
+JSON-RPC response from the modern or compatibility dispatcher. Protocol selection uses presence of the metadata version key, not initialization state.
+"""
 dispatch(c) =
   k ? modern_request(k) -> modern_dispatch(k) |
   k -> compat_dispatch(k)
 
 # A message with a readable id that is a valid JSON-RPC request object.
+@doc "Validate the JSON-RPC header before dispatching a readable-id request."
 request_with_id(c) =
   k ? header_valid(msg_of(k)) == false -> invalid_request(k) |
   k -> dispatch(k)
 
 # `boot` is the launch map {rev, host, state}; each request context extends it.
+@doc """
+Extend launch state with the decoded message and readable-id carrier.
+
+## Arguments
+`boot`: launch map with revision, explicit host callbacks and shared state Ref. `msg`: decoded message. `idv`: [] or [string/integer id].
+
+## Returns
+Request context {rev, host, state, msg, idv}; state remains the shared Ref.
+"""
 context(boot, msg, idv) = {rev: map_get(boot, "rev"), host: map_get(boot, "host"), state: map_get(boot, "state"), msg: msg, idv: idv}
 
 # A message without id: a notification (no response) when well formed.
+@doc "Suppress a well-formed id-free message; return Invalid request for a malformed header."
 notification(c) =
   k ? header_valid(msg_of(k)) -> "" |
   k -> invalid_request(k)
 
+@doc "Distinguish notifications, invalid ids and valid-id requests."
 handle_object(c) =
   k ? present(msg_of(k), "id") == false -> notification(k) |
   k ? is_id(field(msg_of(k), "id")) == false -> invalid_request(k) |
   k -> request_with_id(map_put(k, "idv", [field(msg_of(k), "id")]))
 
+@doc "Require a decoded object before applying JSON-RPC request handling."
 handle_value(c) =
   k ? is_object(msg_of(k)) == false -> invalid_request(k) |
   k -> handle_object(k)
 
+@doc """
+Unwrap decoded json representation or construct a Parse error response.
+
+## Arguments
+`pair`: [launch context, JSON decode Outcome].
+
+## Returns
+Protocol response or empty notification sentinel. Decode failures become Parse error; decoded non-object values become Invalid request through `handle_value`.
+"""
 handle_decoded(pair) =
   [boot, some(Json(root), _)] -> handle_value(context(boot, norm(root), [])) |
   [boot, _] -> parse_error(context(boot, [], []))
 
 # Outcome-or-response -> optional output line.
+@doc "Suppress empty notifications, splice opaque content, or frame an ordinary response."
 to_line(m) =
   "" -> "" |
   x ? present(x, "genia_splice") -> splice_line(field(x, "genia_splice")) |
   x -> frame(x)
 
 # Insert the already-built structuredContent text at its placeholder in the frame.
+@doc "Extract the marked response and opaque structured text, or use the fixed error frame."
 splice_line(pair) =
   [message, structured] -> splice_frame(split(frame(message), STRUCT_SLOT), structured) |
   _ -> INTERNAL_FRAME
 
+@doc """
+Insert opaque structured content only when the frame has exactly one placeholder.
+
+## Arguments
+`parts`: response frame split around STRUCT_SLOT. `structured`: opaque prebuilt JSON text.
+
+## Returns
+Joined frame only for exactly two parts; otherwise the fixed internal-error frame. This adapter-only splice does not decode or reinterpret structured text.
+"""
 splice_frame(parts, structured) =
   ([before, after], s) -> join(s, [before, after]) |
   (_, _) -> INTERNAL_FRAME
 
+@doc """
+Decode, handle and frame one incoming protocol line.
+
+## Arguments
+`boot`: {rev, host, state}. `line`: one raw input line.
+
+## Returns
+One framed response string or the empty notification sentinel. Parse/run calls may invoke explicit host callbacks; compatibility initialization may mutate the shared Ref.
+"""
 handle_line(boot, line) =
   to_line(handle_decoded([boot, json_decode(line)]))
 
 # ---- program entry ----
 
+@doc "Test whether a protocol input or output line is nonempty."
 nonempty(line) = is_empty(line) == false
 
 # Each response is flushed as soon as it is written: a live client waits on it, and a
 # block-buffered pipe would otherwise hold it back until exit (ledger R28-H31).
+@doc """
+Write one protocol line to stdout and flush immediately.
+
+## Arguments
+`text`: complete single-line protocol response.
+
+## Returns
+Flush result after writing text plus newline to stdout. IO failures propagate; stdout contains protocol output only.
+"""
 emit(text) = writeln(stdout, text) |> (_) -> flush(stdout)
 
+@doc """
+Build launch context with a fresh compatibility state bit and consume stdin.
+
+## Arguments
+`rev`: validated revision string. `host`: explicit capability map with optional parse and run callables.
+
+## Returns
+Pipeline terminal result after stdin is consumed. Creates ref(false) for compatibility initialization; writes and flushes protocol responses through `emit`.
+"""
 serve(rev, host) = serve_lines({rev: rev, host: host, state: ref(false)})
 
+@doc """
+Consume nonempty stdin lines, handle them and emit nonempty responses in order.
+
+## Arguments
+`boot`: launch context shared by requests.
+
+## Returns
+Terminal result of running the lazy, single-use stdin Flow. Blank input and empty responses are dropped; remaining responses are emitted in order. Consumption ends at EOF or propagated runtime failure.
+"""
 serve_lines(boot) =
   stdin
     |> lines
@@ -791,6 +1078,7 @@ serve_lines(boot) =
     |> each((text) -> emit(text))
     |> run
 
+@doc "Accept exactly forty lowercase hexadecimal characters."
 hex_revision(s) =
   glob"[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]" -> true |
   _ -> false
@@ -798,12 +1086,31 @@ hex_revision(s) =
 # Genia has no process-exit facility (ledger R28-H15): a rejected launch datum
 # writes one fixed diagnostic to stderr, then halts through a deliberate runtime
 # error (nonzero exit, nothing on stdout). The datum is never echoed.
+@doc """
+Write a fixed launch diagnostic then halt through a deliberate runtime error.
+
+## Arguments
+No arguments; the rejected launch datum is deliberately not included.
+
+## Returns
+No successful return: writes one fixed stderr diagnostic then references an undefined binding to cause nonzero runtime termination. Genia has no process-exit facility.
+"""
 reject_start() =
   writeln(stderr, "genia-mcp: contract revision must be 40 lowercase hex digits") |>
   (_) -> genia_mcp_launch_rejected
 
+@doc """
+Require one valid revision argument before starting the native-only server.
+
+## Arguments
+`args`: program argument list.
+
+## Returns
+Server terminal result for exactly one forty-character lowercase hex revision; otherwise the deliberate launch failure from `reject_start`. Plain file mode provisions no host callbacks.
+"""
 start(args) =
   [rev] ? hex_revision(rev) -> serve(rev, {}) |
   _ -> reject_start()
 
+@doc "Delegate program arguments to launch validation."
 main(args) = start(args)
