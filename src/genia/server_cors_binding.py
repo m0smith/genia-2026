@@ -13,6 +13,13 @@ from .values import GeniaMap
 
 @dataclass(frozen=True)
 class CorsDeclaration:
+    """Candidate annotation metadata with entry-file identity and source ordering.
+
+    The caller supplies evaluated metadata and target kind; discovery validates
+    them without executing the declaration. Frozen fields retain references to
+    metadata and source location rather than making deep immutable copies.
+    """
+
     name: str
     metadata: Mapping[str, Any] | GeniaMap
     target_kind: str
@@ -23,6 +30,12 @@ class CorsDeclaration:
 
 @dataclass(frozen=True)
 class CorsBinding:
+    """Accepted CORS policy and assignment provenance for server-owner matching.
+
+    Validation retains the input policy map; wrapping begins only in bind_cors.
+    Frozen fields do not deeply freeze referenced policy or location values.
+    """
+
     declaration_name: str
     policy: GeniaMap
     source_identity: str
@@ -32,6 +45,11 @@ class CorsBinding:
 
 @dataclass(frozen=True)
 class CorsBindingDiagnostic:
+    """Annotation failure carrying declaration identity and optional source location.
+
+    Discovery collects these records instead of binding invalid candidates.
+    """
+
     annotation_name: str
     declaration_name: str | None
     source_location: Any
@@ -40,12 +58,22 @@ class CorsBindingDiagnostic:
 
 @dataclass(frozen=True)
 class CorsBindingResult:
+    """Optional accepted policy or diagnostics preventing handler wrapping.
+
+    No binding and no diagnostics means CORS is absent; bind_cors then returns
+    the original handler. The diagnostics list remains mutable.
+    """
+
     binding: CorsBinding | None
     diagnostics: list[CorsBindingDiagnostic]
 
 
 def validate_cors_descriptor(value: Any) -> GeniaMap:
-    """Validate one closed inert descriptor through the R7 policy contract."""
+    """Validate via resolve_cors_policy and return the original map unchanged.
+
+    R7 policy validation errors propagate; the resolved policy object is not
+    retained and no handler is wrapped during descriptor validation.
+    """
 
     resolve_cors_policy(value)
     return value
@@ -58,7 +86,13 @@ def discover_cors_binding(
     server_declaration_name: str,
     server_source_index: int,
 ) -> CorsBindingResult:
-    """Discover the optional entry-file CORS descriptor for one server owner."""
+    """Validate optional entry-file CORS assignments in source-index/name order.
+
+    Ignore other sources; catch descriptor TypeError as diagnostic reasons.
+    Reject multiple valid policies, or one whose name/index differs from the
+    selected server owner. Any diagnostic suppresses the binding; no candidates
+    yields absence without diagnostics. Discovery never wraps the handler.
+    """
 
     candidates = sorted(
         (
@@ -133,7 +167,13 @@ def discover_entry_file_cors_binding(
     server_declaration_name: str,
     server_source_index: int,
 ) -> CorsBindingResult:
-    """Discover canonical CORS metadata owned by entry-file assignments."""
+    """Read evaluated CORS metadata from annotated top-level IrAssign nodes.
+
+    The caller supplies the entry-file-only IR list and evaluated environment;
+    candidates receive its source identity and enumerated indices. Environment
+    lookup failures propagate. Delegate policy/owner validation to discovery
+    without evaluating assignments or wrapping handlers.
+    """
 
     declarations: list[CorsDeclaration] = []
     for source_index, node in enumerate(nodes):
@@ -165,7 +205,12 @@ def bind_cors(
     *,
     cors: Callable[[GeniaMap, Any], Any],
 ) -> Any:
-    """Optionally wrap an accepted handler solely through the R7 operation."""
+    """Return the original handler on absence, or call injected cors once.
+
+    Diagnostics raise ValueError before wrapping. An accepted policy and handler
+    pass unchanged to the callback; return its result and propagate its effects
+    or exceptions. This function does not itself activate a server.
+    """
 
     if result.diagnostics:
         raise ValueError("cannot bind CORS with diagnostics")
@@ -175,14 +220,20 @@ def bind_cors(
 
 
 def _metadata_has(metadata: Mapping[str, Any] | GeniaMap, key: str) -> bool:
+    """Check key presence in either evaluated Genia metadata or a host mapping."""
+
     return metadata.has(key) if isinstance(metadata, GeniaMap) else key in metadata
 
 
 def _metadata_get(metadata: Mapping[str, Any] | GeniaMap, key: str) -> Any:
+    """Read an annotation payload; a missing key follows the mapping get behavior."""
+
     return metadata.get(key)
 
 
 def _diagnostic(declaration: CorsDeclaration, reason: str) -> CorsBindingDiagnostic:
+    """Associate a validation reason with the candidate name and source location."""
+
     return CorsBindingDiagnostic(
         annotation_name="cors",
         declaration_name=declaration.name,

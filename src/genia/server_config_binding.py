@@ -12,6 +12,13 @@ from .values import GeniaMap, _is_nil_none, _runtime_type_name
 
 @dataclass(frozen=True)
 class ServerConfigDeclaration:
+    """Candidate annotation metadata with entry-file identity and source ordering.
+
+    The caller supplies evaluated metadata and target kind; discovery validates
+    them without executing the declaration. Frozen fields retain references to
+    metadata and source location rather than making deep immutable copies.
+    """
+
     name: str
     metadata: Mapping[str, Any] | GeniaMap
     target_kind: str
@@ -22,6 +29,12 @@ class ServerConfigDeclaration:
 
 @dataclass(frozen=True)
 class ServerConfigBinding:
+    """Accepted normalized server configuration with its assignment provenance.
+
+    Discovery does not open a listener; bind_server_config passes this map to
+    the injected serving operation. Frozen fields do not deeply freeze the map.
+    """
+
     declaration_name: str
     config: GeniaMap
     source_identity: str
@@ -31,6 +44,11 @@ class ServerConfigBinding:
 
 @dataclass(frozen=True)
 class ServerConfigBindingDiagnostic:
+    """Annotation failure carrying declaration identity and optional source location.
+
+    Discovery collects these records instead of binding invalid candidates.
+    """
+
     annotation_name: str
     declaration_name: str | None
     source_location: Any
@@ -39,6 +57,12 @@ class ServerConfigBindingDiagnostic:
 
 @dataclass(frozen=True)
 class ServerConfigBindingResult:
+    """One accepted server binding or diagnostics preventing activation.
+
+    Missing required metadata produces a diagnostic, not a default binding.
+    The diagnostics list remains mutable despite the frozen dataclass.
+    """
+
     binding: ServerConfigBinding | None
     diagnostics: list[ServerConfigBindingDiagnostic]
 
@@ -47,7 +71,14 @@ _SERVER_KEYS = {"host", "port", "max_requests"}
 
 
 def validate_server_descriptor(value: Any) -> GeniaMap:
-    """Validate and normalize one closed inert server descriptor."""
+    """Normalize host/port/max_requests into a new map without listener activation.
+
+    Only these keys are allowed. Default host is 127.0.0.1 and port is 8000;
+    port accepts integers in 0..65535, excluding bool. A supplied limit must
+    be a positive non-bool integer; Python None or Genia none("nil") without context
+    omits the limit. Shape/type failures raise TypeError and range failures ValueError.
+    Input metadata is unchanged.
+    """
 
     if not isinstance(value, GeniaMap):
         raise TypeError(
@@ -95,7 +126,13 @@ def discover_server_config_binding(
     *,
     entry_source_identity: str,
 ) -> ServerConfigBindingResult:
-    """Discover exactly one validated entry-file server descriptor."""
+    """Select exactly one valid entry-file assignment in source-index/name order.
+
+    Ignore other sources. Missing candidates, wrong targets, invalid payloads
+    and multiple valid descriptors produce diagnostics with no binding. Catch
+    descriptor TypeError/ValueError as reasons; never activate a listener.
+    A valid candidate cannot override another candidate's diagnostic.
+    """
 
     candidates = sorted(
         (
@@ -166,7 +203,13 @@ def discover_entry_file_server_config_binding(
     *,
     entry_source_identity: str,
 ) -> ServerConfigBindingResult:
-    """Discover canonical server metadata owned by evaluated entry-file assignments."""
+    """Read evaluated server metadata from annotated top-level IrAssign nodes.
+
+    The caller supplies the entry-file-only IR list and evaluated environment.
+    Source indices come from that list; the supplied identity is assigned to
+    each candidate, not inferred from its span. Lookup failures propagate.
+    Discovery validates metadata without evaluating assignments or serving.
+    """
 
     declarations: list[ServerConfigDeclaration] = []
     for source_index, node in enumerate(nodes):
@@ -196,7 +239,12 @@ def bind_server_config(
     *,
     serve_http: Callable[[GeniaMap, Any], Any],
 ) -> Any:
-    """Pass accepted configuration solely to the existing serving operation."""
+    """Call injected serve_http once with accepted configuration and the handler.
+
+    Diagnostics or a missing binding raise ValueError before callback execution.
+    Return the callback result unchanged; its serving effects and exceptions
+    propagate. Discovery alone never reaches this activation boundary.
+    """
 
     if result.diagnostics or result.binding is None:
         raise ValueError("cannot bind server config with diagnostics")
@@ -204,10 +252,14 @@ def bind_server_config(
 
 
 def _metadata_has(metadata: Mapping[str, Any] | GeniaMap, key: str) -> bool:
+    """Check key presence in either evaluated Genia metadata or a host mapping."""
+
     return metadata.has(key) if isinstance(metadata, GeniaMap) else key in metadata
 
 
 def _metadata_get(metadata: Mapping[str, Any] | GeniaMap, key: str) -> Any:
+    """Read an annotation payload; a missing key follows the mapping get behavior."""
+
     return metadata.get(key)
 
 
@@ -215,6 +267,8 @@ def _diagnostic(
     declaration: ServerConfigDeclaration,
     reason: str,
 ) -> ServerConfigBindingDiagnostic:
+    """Associate a validation reason with the candidate name and source location."""
+
     return ServerConfigBindingDiagnostic(
         annotation_name="server",
         declaration_name=declaration.name,

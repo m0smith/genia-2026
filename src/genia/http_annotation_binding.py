@@ -52,6 +52,12 @@ def validate_http_annotation_descriptor(verb_name: str, value: Any) -> GeniaMap:
 
 
 def _is_exact_zero_argument_handler(value: Any) -> bool:
+    """Check for only arity zero and an existing arm without a rest parameter.
+
+    This predicate inspects the function group without invoking dynamic request
+    construction; annotation metadata presence is checked separately.
+    """
+
     if not isinstance(value, GeniaFunctionGroup) or value.sorted_arities() != [0]:
         return False
     function = value.get(0)
@@ -59,7 +65,12 @@ def _is_exact_zero_argument_handler(value: Any) -> bool:
 
 
 def resolve_http_annotation(fn: Any) -> GeniaMap:
-    """Extract and validate the ``{verb, path}`` descriptor from an annotated function."""
+    """Return attached HTTP metadata after checking its presence and fixed arity.
+
+    Raises TypeError for a non-group, absent metadata or an incompatible arity.
+    The descriptor payload is trusted from annotation validation, not revalidated
+    here, and the function is never invoked during resolution.
+    """
 
     if not isinstance(fn, GeniaFunctionGroup) or not fn.metadata.has(_HTTP_ANNOTATION_KEY):
         raise TypeError("send_annotated expected a function annotated with @get or @post")
@@ -80,9 +91,15 @@ def perform_send_annotated(
 ) -> Any:
     """``web.send_annotated(fn, base_url, authority, timeout_ms)``.
 
-    Composes the unchanged ``construct_http_operation`` and
-    ``perform_http_send`` — no method-specific duplicate transport or
-    lifecycle implementation is introduced.
+    Resolve metadata, then invoke the zero-argument function once for an exact
+    headers/query/body map. Invocation exceptions propagate; a malformed map
+    raises TypeError. Operation-construction failure is returned unchanged.
+    Only successful construction reaches perform_http_send, which validates
+    authority/timeout and owns the protected-header and transport boundary.
+
+    Calling this function is explicit execution: dynamic request construction
+    runs before send validation and may have application effects. Merely
+    attaching or resolving annotation metadata performs no network IO.
     """
 
     descriptor = resolve_http_annotation(fn)
