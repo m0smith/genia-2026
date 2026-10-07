@@ -94,6 +94,7 @@ Documentation must not claim security, portability or coverage beyond evidence.
 | Genia | Attached @doc using docs/style/doc-style.md; existing public @category requirements remain |
 | Python | Module/class/function/method docstrings; adjacent comments for implementation rationale |
 | C++ | Declaration-associated documentation comments; public contract at declaration, internal contract at definition where appropriate |
+| Rust | Declaration-associated Rust documentation comments |
 | TypeScript/JavaScript | Declaration-associated JSDoc/TSDoc-compatible comments |
 | Shell/other scripts | Header and function-associated comments covering inputs, output, exit status and side effects where relevant |
 | Build/CI configuration | Purpose/boundary comments for consequential non-obvious configuration and steps |

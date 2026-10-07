@@ -8,7 +8,7 @@ This is development infrastructure, not Genia semantics.
 
 One checker in `tools/code_documentation.py` inventories tracked first-party
 files and discovers declarations using Python AST, the native Genia parser,
-and pinned Tree-sitter grammars for C++, TypeScript and shell. Existing Genia
+and pinned Tree-sitter grammars for C++, JavaScript/TypeScript, shell and the maintained Rust component. Existing Genia
 style and public-surface checks remain independent and strict. Anonymous
 callbacks are covered by their enclosing binding; named callback assignments
 are inventoried when the grammar exposes them. Parser failures become explicit

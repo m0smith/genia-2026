@@ -18,8 +18,8 @@ import subprocess
 LANGUAGES = {'.py': 'python', '.genia': 'genia', '.cpp': 'cpp', '.hpp': 'cpp',
              '.h': 'cpp', '.ts': 'typescript', '.tsx': 'tsx', '.js': 'typescript',
              '.jsx': 'tsx', '.mjs': 'typescript', '.cjs': 'typescript', '.sh': 'bash',
-             '.rs': 'unsupported', '.go': 'unsupported', '.java': 'unsupported',
-             '.ps1': 'unsupported', '.c': 'unsupported', '.toml': 'config',
+             '.rs': 'rust', '.go': 'unsupported', '.java': 'unsupported',
+             '.ps1': 'unsupported', '.c': 'unsupported', '.toml': 'config', '.wit': 'config',
              '.yml': 'config', '.yaml': 'config', '.cmake': 'config'}
 
 
@@ -132,10 +132,13 @@ def discover(language, source, path):
                         visit_genia(value, prefix)
         for node in nodes:
             visit_genia(node)
-    elif language in ('cpp', 'typescript', 'tsx', 'bash'):
+    elif language in ('cpp', 'typescript', 'tsx', 'bash', 'rust'):
         from tree_sitter import Language, Parser
         if language == 'cpp':
             import tree_sitter_cpp as grammar
+            capsule = grammar.language()
+        elif language == 'rust':
+            import tree_sitter_rust as grammar
             capsule = grammar.language()
         elif language == 'bash':
             import tree_sitter_bash as grammar
@@ -158,7 +161,8 @@ def discover(language, source, path):
         def visit_tree(node, prefix=''):
             """Associate declaration comments, including named callbacks and class methods."""
             kinds = {'function_definition', 'function_declaration', 'method_definition',
-                     'class_declaration', 'class_specifier', 'struct_specifier', 'enum_specifier'}
+                     'class_declaration', 'class_specifier', 'struct_specifier', 'enum_specifier',
+                     'function_item', 'struct_item', 'enum_item', 'trait_item'}
             named_arrow = (node.type == 'variable_declarator' and
                            node.child_by_field_name('value') is not None and
                            node.child_by_field_name('value').type in ('arrow_function', 'function_expression'))
@@ -182,6 +186,8 @@ def discover(language, source, path):
                     if node.type in ('class_declaration', 'class_specifier', 'struct_specifier',
                                      'function_definition', 'function_declaration'):
                         prefix += name + '.'
+            if node.type == 'impl_item':
+                prefix += text(node.child_by_field_name('type')) + '::'
             if node.type == 'namespace_definition':
                 prefix += text(node.child_by_field_name('name')) + '::'
             for child in node.named_children:
@@ -246,7 +252,7 @@ def inventory(root, manifest):
         language = LANGUAGES.get(file.suffix)
         if file.name == 'CMakeLists.txt':
             language = 'config'
-        if language == 'config' and not (path.startswith('.github/workflows/') or file.suffix == '.cmake' or file.name in ('CMakeLists.txt', 'pyproject.toml')):
+        if language == 'config' and not (path.startswith('.github/workflows/') or file.suffix in ('.cmake', '.toml', '.wit') or file.name in ('CMakeLists.txt', 'pyproject.toml')):
             continue  # Declarative specs/data are covered by their existing contract checks.
         if language is None and file.read_bytes().startswith(b'#!'):
             language = 'bash' if b'sh' in file.read_bytes().split(b'\n')[0] else 'unsupported'
