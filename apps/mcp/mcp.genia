@@ -363,7 +363,8 @@ LANGUAGE_ABSENT_FORMS = ["if_expression", "while_loop", "for_loop"]
 LANGUAGE_IDIOMS = {
   branching: "Use pattern-matched function clauses or case expressions.",
   clauses: "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open.",
-  repetition: "Use recursion; tail-recursive calls are optimized in tail position."
+  repetition: "Use recursion; tail-recursive calls are optimized in tail position.",
+  pipelines: "Build data pipelines with |>: lines makes a Flow, map transforms, keep_some keeps only some results, and some, none, and err Outcomes carry validation; callers define the parse and validate functions."
 }
 
 # A7: static curated facts; nil encodes as JSON null. No live discovery.
@@ -465,6 +466,14 @@ LANGUAGE_DISCOVERY = {
       maturity: nil,
       summary: "macOS MCP runs are verified without an address-space bound or network namespace; the profile is not a security sandbox.",
       state_sections: ["9.48", "9.49"]
+    },
+    {
+      id: "validated_data_pipelines",
+      scope: "language",
+      status: "implemented",
+      maturity: "Experimental",
+      summary: "Experimental: |> pipelines using lines, map, keep_some and some/none/err Outcomes validate records; callers define the parse and validate functions.",
+      state_sections: ["6"]
     }
   ]
 }

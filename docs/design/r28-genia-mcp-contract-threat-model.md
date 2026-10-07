@@ -1141,3 +1141,29 @@ into `apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
 `docs/contract/semantic_facts.json`; `state_sections` values are the legacy section numbers recorded
 in the registry's anchor crosswalk. This amendment's wire contract, vocabularies, and bounds are
 unchanged. See `docs/design/r28-follow-up-1099-registry-contract.md`.
+
+## 21. Amendment A8: validated-data-pipeline profile content (#1119)
+
+Pre-flight: issue #1119. This amendment defines MCP application content, not Genia
+semantics; the behavior it describes is recorded in the STATE subsection anchored
+`state:validated-pipelines` (section 6). A8 supersedes only A6/A7 closed sizes and members as
+stated here; every other member, vocabulary, and bound is unchanged.
+
+### A8.1 Additions
+
+- `result.language.idioms` gains exactly one member, `pipelines`, a non-empty string
+  stating that `|>` pipelines over a `lines` Flow use `map`, `keep_some`, and the
+  `some`/`none`/`err` Outcomes for validation, and that callers define the parse and
+  validate functions.
+- `result.language.discovery.facts` grows from 12 to exactly 13 objects. The 13th, appended
+  last, is `validated_data_pipelines`: `scope` `language`, `status` `implemented`,
+  `maturity` `Experimental`, `state_sections` `["6"]`, and a summary of at most 256 UTF-8
+  bytes that names the Experimental maturity and states that callers supply parse and validate
+  functions.
+- The discovery JSON bound (16,384 UTF-8 bytes) is unchanged.
+
+### A8.2 Non-claims
+
+The new content grants no authority, adds no tool, resource, prompt, transport, or limit,
+and claims no built-in parser for any input format, no C++ MCP, and no Flow shared-coverage
+beyond STATE section 0. It does not make `docs/strategy/killer-workflow.md` authoritative.

@@ -2456,6 +2456,20 @@ PYTHON REFERENCE HOST:
 - list items are validated using the existing raw callable invocation path
 - Flow items are validated lazily during Flow consumption using the existing Flow stage pattern
 - Outcome detection uses a local `_is_validation_outcome` helper; `collect_validated` applies equivalent inline Outcome checks
+### Outcome-aware validated data pipelines (composition of implemented helpers; **Experimental**)
+<!-- anchor: state:validated-pipelines -->
+
+LANGUAGE CONTRACT: this subsection names a composition of behavior already defined elsewhere in this file. It adds no syntax, builtin, parser or evaluator behavior, Core IR node, or host capability.
+
+- the composition shape is records in, a `|>` pipeline, and Outcome-valued validation out: `["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect` evaluates to `[10, 20]`
+  - `lines` turns a list into a Flow, `keep_some(stage)` applies an Option-returning stage to each item and keeps only the `some` payloads, and `collect` materializes the Flow
+- per-record validation uses the Outcome values `some(...)`, `none(...)`, and `err(reason, context)`: `validate_each(source, validator)` returns one Outcome per item, `validate_record` and `validate_required` produce `some(record)` or `err(reason, context)`, and `collect_validated` aggregates
+- the caller supplies the parse and validate functions for their record shape; this subsection does not claim a built-in parser for any input format
+- maturity is **Experimental** because Flow, `validate_each`, and `validate_record` are Experimental
+- `docs/strategy/killer-workflow.md` is a prioritization guide and does not define this behavior
+
+PYTHON REFERENCE HOST: the composition is evaluated by the Python reference host; shared executable coverage of Flow remains limited as stated in section 0.
+
 ### Primitive Option model (Phase 3 canonical access surface on runtime-backed values)
 
 - option values:
@@ -3559,16 +3573,16 @@ PYTHON REFERENCE HOST (MCP adapter):
   the same `genia.mcp.v1` envelope (`result = {language: {...}}`).
 - `language` is a fixed constant except `contract_revision` (the launch revision `genia_capabilities` reports): `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`, `examples` (`gcd`, `factorial`; they
   evaluate to `6` and `120` under direct command-source evaluation, verified by tests), and (A7) `discovery`. A literal-first-parameter multi-clause function needs its first clause declared `open`
-  (`open gcd(a, 0) = a`; the same text without `open` is rejected), and the profile states that rule in `idioms.clauses`. Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the
+  (`open gcd(a, 0) = a`; the same text without `open` is rejected), and the profile states that rule in `idioms.clauses`. Amendment A8 (issue #1119) adds `idioms.pipelines`, anchored in `state:validated-pipelines`. Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the
   encoder's sorted order.
 - **Provenance.** Each claim restates implemented behavior documented in the language sections of this file (control flow in `state:control-flow`, patterns in `state:pattern-matching`, tail calls in `state:tail-calls`, open
   clauses in `state:open-functions`). The governed members and the discovery catalogue are generated into a delimited block of `apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
   `docs/contract/semantic_facts.json`, a guarded projection source: this file stays the authority, and each registry fact carries semantic anchors (`<!-- anchor: state:... -->` markers in this file) and evidence (STATE
   text, executable probes, or manifest cross-checks). The server never reads the registry at runtime; `state_sections` values keep their legacy section numbers through the registry's anchor crosswalk.
-- **Discovery (A7).** `language.discovery` is exactly `{coverage, facts}`: `coverage` is `"curated_non_exhaustive"` and `facts` is a fixed ordered catalogue of 12 scoped facts, each exactly `{id, scope, status, maturity,
+- **Discovery (A7).** `language.discovery` is exactly `{coverage, facts}`: `coverage` is `"curated_non_exhaustive"` and `facts` is a fixed ordered catalogue of 13 scoped facts, each exactly `{id, scope, status, maturity,
   summary, state_sections}`. Status is `implemented|partial|planned|scaffolded|unsupported` within the row's scope; maturity copies an explicit STATE rating or is JSON null (null means unspecified, not Stable and not
   unavailable). The facts are `pattern_branching`, `tail_calls`, `if_and_loops`, `flow_shared_coverage`, `core_ir_stability`, `cpp_language_floor`, `other_language_hosts`, `browser_runtime`, `mcp_surface`, `cpp_mcp`,
-  `windows_mcp`, and `macos_hardening`; their ids, scopes, statuses, maturity labels, summaries, and anchors are defined only in the registry (and projected into amendment A7, section 20). Partial C++ support is the bounded
+  `windows_mcp`, `macos_hardening`, and (A8, issue #1119) `validated_data_pipelines`; their ids, scopes, statuses, maturity labels, summaries, and anchors are defined only in the registry (and projected into amendment A7, section 20). Partial C++ support is the bounded
   R27 language floor, not C++ MCP; partial Flow shared coverage does not mean missing Python Flow behavior; browser scaffolding is documentation only; macOS hardening is bounded as in section 9.48 and no security sandbox
   is claimed. The catalogue grants no execution authority, is not an exhaustive inventory, performs no live discovery, is at most 16,384 UTF-8 bytes with summaries at most 256 bytes (static output bounds, not runtime
   limits), and is identical in plain file mode.

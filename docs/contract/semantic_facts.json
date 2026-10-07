@@ -60,6 +60,9 @@
       },
       "state:mcp-language-profile": {
         "legacy_section": "9.50"
+      },
+      "state:validated-pipelines": {
+        "legacy_section": "6"
       }
     },
     "language": {
@@ -244,7 +247,8 @@
         "value": {
           "branching": "Use pattern-matched function clauses or case expressions.",
           "clauses": "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open.",
-          "repetition": "Use recursion; tail-recursive calls are optimized in tail position."
+          "repetition": "Use recursion; tail-recursive calls are optimized in tail position.",
+          "pipelines": "Build data pipelines with |>: lines makes a Flow, map transforms, keep_some keeps only some results, and some, none, and err Outcomes carry validation; callers define the parse and validate functions."
         },
         "evidence": [
           {
@@ -263,12 +267,21 @@
             "fragment": "must carry the `open` keyword"
           },
           {
+            "kind": "state_text",
+            "anchor": "state:validated-pipelines",
+            "fragment": "the caller supplies the parse and validate functions"
+          },
+          {
             "kind": "probe",
             "name": "tail_recursion_constant_stack"
           },
           {
             "kind": "probe",
             "name": "open_clause_rule"
+          },
+          {
+            "kind": "probe",
+            "name": "validated_pipeline_evaluates"
           }
         ]
       }
@@ -551,6 +564,32 @@
               "kind": "state_text",
               "anchor": "state:mcp-surface",
               "fragment": "not a security sandbox"
+            }
+          ]
+        },
+        {
+          "id": "validated_data_pipelines",
+          "scope": "language",
+          "status": "implemented",
+          "maturity": "Experimental",
+          "summary": "Experimental: |> pipelines using lines, map, keep_some and some/none/err Outcomes validate records; callers define the parse and validate functions.",
+          "anchors": [
+            "state:validated-pipelines"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:validated-pipelines",
+              "fragment": "`validate_each(source, validator)` returns one Outcome per item"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:validated-pipelines",
+              "fragment": "maturity is **Experimental**"
+            },
+            {
+              "kind": "probe",
+              "name": "validated_pipeline_evaluates"
             }
           ]
         }

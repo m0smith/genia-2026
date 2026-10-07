@@ -34,6 +34,7 @@ REQUIRED_ANCHORS = {
     "state:mcp-macos",
     "state:mcp-surface",
     "state:mcp-language-profile",
+    "state:validated-pipelines",
 }
 LANGUAGE_ANCHORS = {
     "state:syntax-forms",
@@ -41,6 +42,7 @@ LANGUAGE_ANCHORS = {
     "state:pattern-matching",
     "state:control-flow",
     "state:tail-calls",
+    "state:validated-pipelines",
 }
 
 
