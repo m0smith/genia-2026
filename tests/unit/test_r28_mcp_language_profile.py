@@ -251,80 +251,12 @@ def test_the_profile_literals_live_only_in_native_genia():
         assert PROFILE_TOOL not in text and "first_match" not in text, path.name
 
 
-# A7 contract values: independent wire oracle, not loaded from implementation or docs.
-DISCOVERY_FACTS = [{'id': 'pattern_branching',
-  'scope': 'language',
-  'status': 'implemented',
-  'maturity': None,
-  'summary': 'Branching uses pattern matching.',
-  'state_sections': ['5']},
- {'id': 'tail_calls',
-  'scope': 'language',
-  'status': 'implemented',
-  'maturity': None,
-  'summary': 'Tail calls are optimized.',
-  'state_sections': ['8']},
- {'id': 'if_and_loops',
-  'scope': 'language',
-  'status': 'unsupported',
-  'maturity': None,
-  'summary': 'There is no dedicated if expression or while/for loop syntax.',
-  'state_sections': ['5', '9.50']},
- {'id': 'flow_shared_coverage',
-  'scope': 'shared_conformance',
-  'status': 'partial',
-  'maturity': 'Experimental',
-  'summary': 'Flow runs in Python; shared executable coverage is limited to first-wave cases.',
-  'state_sections': ['0', '1']},
- {'id': 'core_ir_stability',
-  'scope': 'shared_conformance',
-  'status': 'partial',
-  'maturity': 'Partial',
-  'summary': 'Portable Core IR stability remains Partial.',
-  'state_sections': ['0']},
- {'id': 'cpp_language_floor',
-  'scope': 'cpp_host',
-  'status': 'partial',
-  'maturity': None,
-  'summary': 'C++ implements the bounded R27 production floor, not Python feature parity.',
-  'state_sections': ['0']},
- {'id': 'other_language_hosts',
-  'scope': 'other_hosts',
-  'status': 'planned',
-  'maturity': None,
-  'summary': 'Node.js, Java, Rust, and Go hosts are planned, not implemented.',
-  'state_sections': ['0']},
- {'id': 'browser_runtime',
-  'scope': 'browser',
-  'status': 'scaffolded',
-  'maturity': None,
-  'summary': 'Browser artifacts are documentation scaffolding; no runtime or playground is implemented.',
-  'state_sections': ['0.1']},
- {'id': 'mcp_surface',
-  'scope': 'mcp',
-  'status': 'implemented',
-  'maturity': None,
-  'summary': 'Python-host local stdio MCP exposes four tools after A6.',
-  'state_sections': ['9.49', '9.50']},
- {'id': 'cpp_mcp',
-  'scope': 'mcp',
-  'status': 'unsupported',
-  'maturity': None,
-  'summary': 'There is no C++ MCP implementation.',
-  'state_sections': ['9.49', '9.50']},
- {'id': 'windows_mcp',
-  'scope': 'mcp_windows',
-  'status': 'unsupported',
-  'maturity': None,
-  'summary': 'Windows MCP deployment is unsupported.',
-  'state_sections': ['9.49']},
- {'id': 'macos_hardening',
-  'scope': 'mcp_macos',
-  'status': 'partial',
-  'maturity': None,
-  'summary': 'macOS MCP runs are verified without an address-space bound or network namespace; the profile '
-             'is not a security sandbox.',
-  'state_sections': ['9.48', '9.49']}]
+# A7 contract values: independent wire oracle. The golden snapshot was captured from the
+# pre-registry implementation (#1099) and is test data, not generated from the registry,
+# so a registry/generator defect cannot silently move the wire.
+GOLDEN_PATH = REPO_ROOT / "tests" / "data" / "mcp_language_profile.golden.json"
+GOLDEN = json.loads(GOLDEN_PATH.read_text(encoding="utf-8"))
+DISCOVERY_FACTS = GOLDEN["discovery"]["facts"]
 
 
 def test_discovery_is_the_exact_closed_scoped_catalogue():
@@ -357,30 +289,17 @@ def test_discovery_does_not_expand_capabilities_payload():
 
 
 @pytest.mark.parametrize("fact", DISCOVERY_FACTS, ids=lambda fact: fact["id"])
-def test_discovery_claims_have_scoped_state_authority(fact):
-    state = (REPO_ROOT / "GENIA_STATE.md").read_text(encoding="utf-8")
-    sections = dict(re.findall(r"^## ([0-9.]+)\) [^\n]+\n(.*?)(?=^## |\Z)", state, re.M | re.S))
-    cited = "\n".join(sections[section] for section in fact["state_sections"])
-    # Pin semantic evidence, not just existence of a heading. These fragments
-    # deliberately select current entries rather than obsolete release summaries.
-    evidence = {
-        "pattern_branching": ["implemented via pattern matching in function definitions and case expressions"],
-        "tail_calls": ["proper tail-call optimization is implemented via trampoline evaluation"],
-        "if_and_loops": ["if_expression: false", "loops: false"],
-        "flow_shared_coverage": ["first-wave", "**Experimental**", "Flow behavior is implemented in Python"],
-        "core_ir_stability": ["IR stability remains **Partial**"],
-        "cpp_language_floor": ["C++ is the bounded R27 production host", "not Python feature parity"],
-        "other_language_hosts": ["Node.js, Java, Rust, Go: planned only, not implemented"],
-        "browser_runtime": ["no browser playground application runtime is implemented", "architecture/contract scaffolding only"],
-        "mcp_surface": ["exactly four tools", "local stdio only"],
-        "cpp_mcp": ["no C++ MCP"],
-        "windows_mcp": ["Windows unsupported"],
-        "macos_hardening": ["no address-space bound", "no network namespace", "not a security sandbox"],
-    }
-    for fragment in evidence[fact["id"]]:
-        assert fragment in cited, (fact["id"], fragment)
+def test_discovery_fact_matches_the_golden_wire_snapshot(fact):
+    # STATE authority for each claim is verified structurally by the registry tests
+    # (tests/doc/test_state_anchors_and_registry_sync.py); here the wire row must be exact.
     observed = {row["id"]: row for row in _profile()["discovery"]["facts"]}
     assert observed[fact["id"]] == fact
+
+
+def test_whole_profile_equals_the_golden_snapshot_except_the_launch_revision():
+    language = _profile()
+    language.pop("contract_revision")
+    assert language == {k: v for k, v in GOLDEN.items()}
 
 
 def test_discovery_literals_remain_native_application_data():
