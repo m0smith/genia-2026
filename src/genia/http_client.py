@@ -42,6 +42,12 @@ _PEER_NAME = "http"
 
 
 def _require_operation(operation: Any) -> GeniaMap:
+    """Require a GeniaMap whose string-key set is the six operation fields.
+
+    Raise TypeError otherwise. This shallow guard returns the original map;
+    field values are assumed to come from construct_http_operation, and
+    non-string keys are not included in the field-set check.
+    """
     if not isinstance(operation, GeniaMap):
         raise TypeError(
             f"http_send expected an HttpOperation map, received {type(operation).__name__}"
@@ -56,6 +62,11 @@ def _require_operation(operation: Any) -> GeniaMap:
 
 
 def _require_authority(authority: Any) -> GeniaDeclassificationAuthority | None:
+    """Unwrap none to no authority or some of an R10 authority to its payload.
+
+    Reject other shapes with TypeError; provider/purpose matching is deferred
+    to declassify when a protected header is encountered.
+    """
     if isinstance(authority, GeniaOptionNone):
         return None
     if isinstance(authority, GeniaOptionSome) and isinstance(
@@ -69,6 +80,10 @@ def _require_authority(authority: Any) -> GeniaDeclassificationAuthority | None:
 
 
 def _require_timeout_ms(timeout_ms: Any) -> int:
+    """Require a non-bool Python integer in 1..300000 milliseconds.
+
+    Return it unchanged or raise TypeError before any lifecycle or transport.
+    """
     if isinstance(timeout_ms, bool) or not isinstance(timeout_ms, int):
         raise TypeError(
             f"http_send expected an integer timeout_ms, received {type(timeout_ms).__name__}"
@@ -81,6 +96,12 @@ def _require_timeout_ms(timeout_ms: Any) -> int:
 def _resolve_headers(
     headers: GeniaMap, authority: GeniaDeclassificationAuthority | None
 ) -> dict[str, str]:
+    """Build wire headers from validated entries, revealing protected values.
+
+    Require an authority for each protected entry and delegate matching and
+    audit effects to declassify; its exceptions propagate before lifecycle
+    entry. Plain entries pass unchanged. No extra value coercion is performed.
+    """
     resolved: dict[str, str] = {}
     for key, value in headers.items():
         if isinstance(value, GeniaProtected):
@@ -96,10 +117,16 @@ def _resolve_headers(
 
 
 def _quote(value: str) -> str:
+    """Percent-encode a query component as UTF-8, retaining only URI unreserved characters."""
     return urllib.parse.quote(value, safe="")
 
 
 def _build_url(base_url: str, path: str, query: GeniaMap) -> str:
+    """Append the unchanged path and a deterministically sorted query to base_url.
+
+    Assume validated strings and a string-entry GeniaMap. Encode each query
+    key/value separately, use %20 for spaces and omit ? for an empty query.
+    """
     pairs = sorted(query.items(), key=lambda item: item[0])
     if not pairs:
         return f"{base_url}{path}"
@@ -108,6 +135,12 @@ def _build_url(base_url: str, path: str, query: GeniaMap) -> str:
 
 
 def _resolve_body(body: Any, json_encode: Callable[[Any], Any]) -> bytes:
+    """Encode a validated text or JSON body to UTF-8 bytes; absence gives b"".
+
+    The supplied JSON encoder is assumed to succeed after construction-time
+    validation. Encoding/access errors propagate before lifecycle entry; this
+    helper does not turn forged body values into a validation Outcome.
+    """
     if isinstance(body, GeniaMap):
         kind = body.get("kind")
         if kind == symbol("text"):
@@ -119,12 +152,23 @@ def _resolve_body(body: Any, json_encode: Callable[[Any], Any]) -> bytes:
 
 
 def _failure_reason(kind: str, timeout_ms: int) -> tuple[str, GeniaMap]:
+    """Map a normalized transport kind to the public HTTP failure reason/context.
+
+    Timeout retains timeout_ms; other closed kinds become symbol-valued kind
+    context. The private transport supplies the validated failure vocabulary.
+    """
     if kind == "timeout":
         return "http-timeout", GeniaMap().put("timeout_ms", timeout_ms)
     return "http-transport-failure", GeniaMap().put("kind", symbol(kind))
 
 
 def _to_http_response_map(response: HttpTransportResponse) -> GeniaMap:
+    """Convert a private response to {status, headers, body} without decoding bytes.
+
+    Lowercase header keys, with later case-colliding entries replacing earlier
+    ones, and wrap bytes in GeniaBytes. Assume a normalized transport response;
+    this helper does not validate status or response shape.
+    """
     headers = GeniaMap()
     for key, value in response.headers.items():
         headers = headers.put(key.lower(), value)
@@ -154,6 +198,19 @@ def perform_http_send(
     recoverable failure by the internal scope machinery. Only the one
     transport attempt runs inside the internal lifecycle scope; a transport
     failure there is an ordinary recoverable Outcome, never a raise.
+
+    Pass an unwrapped operation produced by construct_http_operation, not its
+    some wrapper: the operation guard checks only the string-key field set.
+    Authority is none or some of a host-injected R10 authority; timeout is a
+    non-bool integer in 1..300000 milliseconds. URL/body preparation and any
+    declassification audit effects occur before entry and may raise directly.
+    The supplied invoke callback runs the private lifecycle callbacks.
+
+    Return some({status, headers, body}) with lowercase headers and GeniaBytes,
+    or err(http-timeout, {timeout_ms}) / err(http-transport-failure, {kind}).
+    The injected transport must return HttpTransportResponse or raise an
+    Exception for normalization; malformed returns are not response-validated.
+    Each call owns an independent scope with no retained connection resource.
     """
 
     operation = _require_operation(operation)
@@ -166,6 +223,11 @@ def perform_http_send(
     method_name = operation.get("method").name.upper()
 
     def _enter(scope: Any) -> Any:
+        """Make the one transport attempt during peer entry and publish its Outcome.
+
+        Use the prepared request and seconds-converted timeout. Successful responses
+        become the peer context; normalized failures become entry failures.
+        """
         request = HttpTransportRequest(
             method=method_name,
             url=url,
@@ -181,9 +243,11 @@ def perform_http_send(
         return GeniaOptionErr(reason, context)
 
     def _work(scope: Any) -> Any:
+        """Return the successful HTTP peer response from this active scope context."""
         return lookup_lifecycle_context(scope, symbol(_PEER_NAME)).value
 
     def _exit(scope: Any, summary: Any) -> Any:
+        """Complete peer unwind with some("nil"); no transport resource is retained."""
         return GeniaOptionSome("nil")
 
     peers = [GeniaMap().put("name", symbol(_PEER_NAME)).put("enter", _enter).put("exit", _exit)]
