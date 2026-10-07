@@ -221,9 +221,4 @@ The detailed dependency graph and its qualifications live in [`roadmap/sequence.
 
 ## Required infrastructure — maintained code documentation (#1101)
 
-Define the repository-wide standard and establish initial documentation CI
-enforcement after R28, before new R29 implementation. Coordinate with the
-unnumbered R20 follow-up #1067 without introducing a new release number.
-Remediate existing gaps in bounded subsystem slices alongside roadmap work,
-starting with MCP. The entire legacy backlog does not block R29. This work
-does not reopen R28 or change language/runtime behavior.
+Establish the standard and initial CI after R28, before new R29 implementation; coordinate with #1067 without a new release number. Remediate legacy gaps in bounded slices starting with MCP; the whole backlog does not block R29. See [the detailed sequence](roadmap/sequence.md).
