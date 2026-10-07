@@ -13,6 +13,13 @@ from .values import GeniaMap, _runtime_type_name
 
 @dataclass(frozen=True)
 class RouteDeclaration:
+    """Candidate annotation metadata with entry-file identity and source ordering.
+
+    The caller supplies evaluated metadata and target kind; discovery validates
+    them without executing the declaration. Frozen fields retain references to
+    metadata and source location rather than making deep immutable copies.
+    """
+
     name: str
     value: Any
     metadata: Mapping[str, Any] | GeniaMap
@@ -24,6 +31,12 @@ class RouteDeclaration:
 
 @dataclass(frozen=True)
 class RouteBinding:
+    """Accepted exact method/path pair and fixed request handler with source provenance.
+
+    The handler is retained without invocation; assembly passes it to the R7
+    route constructor. Freezing fields does not freeze referenced values.
+    """
+
     declaration_name: str
     method: str
     path: str
@@ -35,6 +48,11 @@ class RouteBinding:
 
 @dataclass(frozen=True)
 class RouteBindingDiagnostic:
+    """Annotation failure carrying declaration identity and optional source location.
+
+    Discovery collects these records instead of binding invalid candidates.
+    """
+
     annotation_name: str
     declaration_name: str | None
     source_location: Any
@@ -43,6 +61,12 @@ class RouteBindingDiagnostic:
 
 @dataclass(frozen=True)
 class RouteBindingResult:
+    """Ordered accepted routes or diagnostics, with no partial routes on failure.
+
+    Empty routes without diagnostics means no entry-file routes were found.
+    The contained lists remain mutable despite the frozen dataclass.
+    """
+
     routes: list[RouteBinding]
     diagnostics: list[RouteBindingDiagnostic]
 
@@ -51,7 +75,11 @@ _ROUTE_KEYS = {"method", "path"}
 
 
 def validate_route_descriptor(value: Any) -> GeniaMap:
-    """Validate one closed inert route descriptor without normalizing it."""
+    """Require exactly method/path strings, with a nonempty method and /-prefixed path.
+
+    Return the same map without case normalization or method allowlisting.
+    Invalid shape or fields raise TypeError; no handler or host operation runs.
+    """
 
     if not isinstance(value, GeniaMap):
         raise TypeError(
@@ -88,7 +116,13 @@ def discover_route_bindings(
     *,
     entry_source_identity: str,
 ) -> RouteBindingResult:
-    """Discover validated entry-file routes without executing handlers."""
+    """Validate entry-file candidates in source-index/name order without invocation.
+
+    Require function targets and a single fixed request argument. Collect
+    target/payload/arity diagnostics before exact method/path conflict records.
+    Any diagnostic discards all accepted routes; absence yields empty routes.
+    Imported declarations are ignored and input metadata is not mutated.
+    """
 
     candidates = sorted(
         (
@@ -162,7 +196,13 @@ def discover_entry_file_route_bindings(
     *,
     entry_source_identity: str,
 ) -> RouteBindingResult:
-    """Discover route declarations owned by one evaluated entry-file IR list."""
+    """Read evaluated route values/metadata from annotated top-level IrFuncDef nodes.
+
+    The caller supplies only the entry-file IR list and its evaluated environment;
+    this function tags declarations with the supplied source identity rather
+    than deriving it from spans. Environment lookup errors propagate. Handlers
+    are not invoked; validation/order/conflicts use discover_route_bindings.
+    """
 
     declarations: list[RouteDeclaration] = []
     for source_index, node in enumerate(nodes):
@@ -193,7 +233,12 @@ def assemble_route_handler(
     route: Callable[[str, str, Any], Any],
     route_request: Callable[[list[Any]], Any],
 ) -> Any:
-    """Assemble accepted bindings solely through existing R7 operations."""
+    """Reject diagnostics, then call route per binding and route_request once.
+
+    Pass the retained handlers in accepted order without invoking them directly.
+    Empty accepted routes still reach route_request. Injected callback effects
+    and exceptions propagate; this function does not open a listener.
+    """
 
     if result.diagnostics:
         raise ValueError("cannot assemble routes with diagnostics")
@@ -205,6 +250,11 @@ def assemble_route_handler(
 
 
 def _is_exact_one_argument_handler(value: Any) -> bool:
+    """Accept only a function group with one fixed arity-1 GeniaFunction arm.
+
+    Extra arities and rest parameters fail without invoking the handler.
+    """
+
     if not isinstance(value, GeniaFunctionGroup) or value.sorted_arities() != [1]:
         return False
     function = value.get(1)
@@ -212,10 +262,14 @@ def _is_exact_one_argument_handler(value: Any) -> bool:
 
 
 def _metadata_has(metadata: Mapping[str, Any] | GeniaMap, key: str) -> bool:
+    """Check key presence in either evaluated Genia metadata or a host mapping."""
+
     return metadata.has(key) if isinstance(metadata, GeniaMap) else key in metadata
 
 
 def _metadata_get(metadata: Mapping[str, Any] | GeniaMap, key: str) -> Any:
+    """Read an annotation payload; a missing key follows the mapping get behavior."""
+
     return metadata.get(key)
 
 
@@ -223,6 +277,8 @@ def _diagnostic(
     declaration: RouteDeclaration,
     reason: str,
 ) -> RouteBindingDiagnostic:
+    """Associate a validation reason with the candidate name and source location."""
+
     return RouteBindingDiagnostic(
         annotation_name="route",
         declaration_name=declaration.name,
