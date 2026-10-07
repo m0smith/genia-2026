@@ -114,7 +114,7 @@ def test_ledger_matches_the_live_state_while_it_is_still_the_baseline():
     assert len(text.split("\n")) == LEDGER["baseline"]["lines"]
     lines = text.split("\n")
     for row in ROWS:
-        first = next((l for l in lines[row["start"] - 1 : row["end"]] if l.strip() and not l.startswith("<!--")), "")
+        first = next((line for line in lines[row["start"] - 1 : row["end"]] if line.strip() and not line.startswith("<!--")), "")
         assert first.strip()[:110] == row["title"], row["id"]
     live = [(h["id"], h["line"], h["heading"]) for h in inv.headings(text)]
     assert live == [(h["id"], h["line"], h["heading"]) for h in LEDGER["headings"]]

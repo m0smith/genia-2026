@@ -36,7 +36,7 @@ def test_state_is_within_the_ratified_size_bounds():
 
 
 def test_state_has_no_ticket_narrative_in_headings_or_historical_evidence_markers():
-    headings = [l for l in STATE.split("\n") if l.startswith("#")]
+    headings = [line for line in STATE.split("\n") if line.startswith("#")]
     assert [h for h in headings if re.search(r"\bE\d+-\d+\b", h)] == []
     assert len(re.findall(r"#\d{3,4}", STATE)) <= MAX_ISSUE_REFS
     assert not re.findall(r"\b[0-9a-f]{40}\b", STATE), "pinned evidence commit hashes belong in release/evidence documents"

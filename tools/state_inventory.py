@@ -42,7 +42,7 @@ def headings(text: str) -> list[dict]:
     rows = []
     for n, (i, level, title) in enumerate(found):
         end = len(lines)
-        for j, lvl in [(j, l) for j, l, _ in found[n + 1 :]]:
+        for j, lvl in [(pos, depth) for pos, depth, _ in found[n + 1 :]]:
             if lvl <= level:
                 end = j
                 break
@@ -110,7 +110,7 @@ def blocks(text: str, min_lines: int = 14, split_over: int = 70) -> list[dict]:
     out = []
     for n, (a, b) in enumerate(rows):
         seg = "\n".join(lines[a:b])
-        title = next((l for l in lines[a:b] if l.strip() and not l.startswith("<!--")), "").strip()
+        title = next((text_line for text_line in lines[a:b] if text_line.strip() and not text_line.startswith("<!--")), "").strip()
         out.append(
             {
                 "id": f"B{n + 1:03d}",
