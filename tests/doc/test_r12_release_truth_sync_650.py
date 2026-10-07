@@ -37,7 +37,7 @@ def _run_genia(*args: str) -> subprocess.CompletedProcess[str]:
 def test_r12_status_remains_synchronized_after_release_completion() -> None:
     required = {
         "AGENTS.md": "E12-8 release-example truth synchronization",
-        "GENIA_STATE.md": "R12 E12-8, issue #650",
+        "GENIA_STATE.md": "R12 is release-complete through E12-9",
         "README.md": "R12 E12-8",
         "GENIA_REPL_README.md": "E12-8 synchronizes runnable release examples",
         "docs/ai/LLM_CONTRACT.md": "R9, R10, R11, R12, R13, and R14 Complete",

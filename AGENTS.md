@@ -316,8 +316,8 @@ E14-1 through E14-15
 is implemented merely because its roadmap, issues, or contract exist.
 R14 is release-complete; any further R14-adjacent work is a new,
 separately contracted release. See `docs/design/r14-composable-lifecycle-contract.md`,
-`docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.20.
+`docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` section
+9.8 (digest).
 
 **R23 — Numeric Representation and Interchange is complete (E23-1 through
 E23-11).** It implements canonical Integer/Decimal/Rational/Float64
@@ -343,8 +343,8 @@ genuine `"GeniaRational"` class-name diagnostic leak, repaired by E23-8
 not documented itself, repaired by E23-10 (#937); E23-11 (#939), a third
 independent re-audit, passed cleanly. See
 `docs/design/r23-numeric-representation-interchange-contract.md`,
-`docs/analysis/r23-release-truth-audit.md`, and `GENIA_STATE.md` sections
-9.32-9.37. Per contract §10, R23 explicitly adds no arbitrary-precision
+`docs/analysis/r23-release-truth-audit.md`, and `GENIA_STATE.md` section
+9.32 (digest). Per contract §10, R23 explicitly adds no arbitrary-precision
 JSON-number transport, no new JSON dialect, no R22 arithmetic/equality
 change, no Rational literal syntax, no Float64 suffix/raw-bit syntax, no
 public NaN payload/sign construction semantics, no locale-sensitive

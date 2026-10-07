@@ -1153,3 +1153,7 @@ Restating explicitly, consistent with the issue's own Non-goals section:
   only and remains exactly as unimplemented as it already was.
 - No Flow/Seq/`stream<T>`/`future<T>` design, per the mismatch table's
   explicit exclusion.
+
+## State record (non-authoritative)
+
+Exact text displaced from `GENIA_STATE.md` during the #1099 distillation is preserved verbatim, as provenance only, in: [`docs/state-record/provider-proof-records.md`](../state-record/provider-proof-records.md). `GENIA_STATE.md` governs.
