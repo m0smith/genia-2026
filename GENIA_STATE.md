@@ -3500,7 +3500,7 @@ APPLICATION BEHAVIOR (local stdio only; no HTTP transport):
 - generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
-- MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers the E28-1 skeleton, the E28-2 `genia_parse` tool, and the E28-3 `genia_run` tool, the E28-4 stdio client configuration, the E28-5 conformance matrix, and the E28-6 demo and release-candidate documentation, with the VS Code/Copilot acceptance gate still open; see sections 9.41 to 9.46)
+- MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (the R28 MCP server is complete: four tools over local stdio on the Python reference host; see sections 9.41-9.50)
 
 ## 11) Example demos shipped in-repo
 

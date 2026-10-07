@@ -389,6 +389,23 @@ E28-5 conformance evidence is section 9.45; the E28-6 demo and final audit are s
 
 ~~~~~
 
+## B308: baseline lines 6584-6593
+
+Moved from GENIA_STATE.md@d401f322, lines 6584-6593 (ledger row B308, retained-condensed, sha256 7dff31fa04304aff)
+
+~~~~~markdown
+## 10) Explicitly not implemented (current)
+
+- general unrestricted host interop / FFI layer
+- general member access syntax
+- index syntax
+- generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)
+- full Flow system (stages/sinks/backpressure/multi-port pipelines)
+- language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
+- MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers the E28-1 skeleton, the E28-2 `genia_parse` tool, and the E28-3 `genia_run` tool, the E28-4 stdio client configuration, the E28-5 conformance matrix, and the E28-6 demo and release-candidate documentation, with the VS Code/Copilot acceptance gate still open; see sections 9.41 to 9.46)
+
+~~~~~
+
 ## B315: baseline lines 6672-6709
 
 Moved from GENIA_STATE.md@d401f322, lines 6672-6709 (ledger row B315, moved, sha256 3552f31afb00109f)

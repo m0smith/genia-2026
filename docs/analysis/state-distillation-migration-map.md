@@ -1,8 +1,8 @@
 # GENIA_STATE.md distillation: migration ledger and dry-run (#1099 PR B, phase 4a)
 
-Status: **phase 4a review artifact, 2026-10-07.** Non-authoritative planning/audit record;
-`GENIA_STATE.md` is final authority. **No STATE content has moved.** This phase only
-measures, classifies, and proposes. Baseline: `GENIA_STATE.md` at `d401f322` (the merge of
+Status: **phase 4a review artifact (approved), updated with the phase 4b/4c outcome, 2026-10-07.**
+Non-authoritative planning/audit record; `GENIA_STATE.md` is final authority. Sections 1-10 are the
+phase 4a analysis as reviewed; section 11 records the executed result. Baseline: `GENIA_STATE.md` at `d401f322` (the merge of
 PR A / #1100), 6,960 lines, 72,919 words.
 
 Machine-readable sources (guarded by `tests/doc/test_state_migration_map.py`):
@@ -184,3 +184,21 @@ destination record in the same PR. The scan is approximate and is re-run in 4b.
 
 No STATE edit, no record file, no test retargeting, no heading renumbering, no change to
 `apps/mcp/mcp.genia` or the registry. Phase 4b begins only after this ledger is approved.
+
+## 11) Outcome of phases 4b and 4c
+
+Owner decisions applied: Q1 `docs/state-record/` (non-authoritative; linked from release/design pages and from STATE's navigation
+digest), Q2 ratified ceiling of 3,900 lines / 43,000 words (stretch not pursued), Q3 both superseded statements removed with original
+wording preserved, Q4 pinned semantic sentences kept in STATE (two historical ticket-citation assertions retargeted; see the ledger
+`exceptions`), Q5 digests D1-D8 written as concise current-state summaries (not a line quota).
+
+| Measure | Baseline (`d401f322`) | Distilled | Change |
+|---|---:|---:|---:|
+| Lines | 6,960 | 3,590 | -48.4% |
+| Words | 72,919 | 42,398 | -41.9% |
+
+Ledger changes versus the 4a proposal: B005 and B308 became `retained-condensed` (stale R25-era host summary and the E28-3
+acceptance-gate-open parenthetical); several per-ticket rows were consolidated into one condensed block (B028 for B029-B040, B007 for
+B008-B011, B181 for B182-B183, B283 for B284-B292, B320 for B321, B137 for B138-B140). Every change is listed in the ledger `exceptions`
+and guarded by `tests/doc/test_state_migration_map.py`; verbatim preservation by `tests/doc/test_state_records.py`; size, structure,
+identifier, link, and crosswalk gates by `tests/doc/test_state_distillation_gates.py`.
