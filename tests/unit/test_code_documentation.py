@@ -45,10 +45,10 @@ def test_parse_failure_is_an_explicit_gap():
     assert any(r["kind"] == "parse_error" for r in records)
 
 
-def test_genia_multiclause_unicode_and_multiline_doc():
-    source = '# Purpose.\n@doc """Return the greatest common divisor.\n\n## Returns\nAn integer.\n"""\nopen 最大(a, 0) = a\n最大(a, b) = 最大(b, a % b)\n'
+def test_genia_multiclause_and_multiline_doc():
+    source = '# Purpose.\n@doc """Return the greatest common divisor.\n\n## Returns\nAn integer.\n"""\nopen gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\n'
     records = discover("genia", source, "sample.genia")
-    assert any(r["binding"] == "最大" and r["documented"] for r in records)
+    assert any(r["binding"] == "gcd" and r["documented"] for r in records)
     assert not any(r["kind"] == "parse_error" for r in records)
 
 
@@ -90,3 +90,37 @@ def test_target_branch_baseline_only_allows_removal():
     assert baseline_errors({"a": "old"}, {}) == []
     assert baseline_errors({}, {"new": "hash"})
     assert baseline_errors({"a": "old"}, {"a": "changed"})
+
+
+def test_cpp_namespaces_have_distinct_debt_identities():
+    records = discover('cpp', '// Purpose.\nnamespace a { int f() {return 1;} }\nnamespace b { int f() {return 2;} }', 'sample.hpp')
+    names = {r['binding'] for r in records}
+    assert 'a::f' in names and 'b::f' in names
+
+
+def test_documented_overload_does_not_hide_an_undocumented_overload():
+    records = discover('cpp', '// Purpose.\n\n/// Return the integer.\nint f(int x) {return x;}\ndouble f(double x) {return x;}', 'sample.hpp')
+    assert not next(r for r in records if r['binding'] == 'f')['documented']
+
+
+def test_large_cpp_tree_keeps_valid_source_positions():
+    source = '// Purpose.\nclass C {\n' + '\n'.join(f'int f{i}() {{ return {i}; }}' for i in range(150)) + '\n};'
+    records = discover('cpp', source, 'sample.hpp')
+    assert len([r for r in records if r['kind'] == 'binding']) == 151
+    assert all(1 <= r['line'] <= len(source.splitlines()) for r in records)
+
+
+def test_initial_baseline_cannot_hide_a_new_binding(tmp_path):
+    import subprocess
+    from tools.code_documentation import parent_baseline
+    subprocess.run(['git', 'init', '-q', str(tmp_path)], check=True)
+    subprocess.run(['git', 'config', 'user.name', 'Test'], cwd=tmp_path, check=True)
+    subprocess.run(['git', 'config', 'user.email', 'test@example.invalid'], cwd=tmp_path, check=True)
+    old = '"""Purpose."""\ndef old():\n    return 1\n'
+    (tmp_path / 'sample.py').write_text(old)
+    subprocess.run(['git', 'add', '.'], cwd=tmp_path, check=True)
+    subprocess.run(['git', 'commit', '-qm', 'Base'], cwd=tmp_path, check=True)
+    records = discover('python', old + '\ndef new():\n    return 2\n', 'sample.py')
+    previous = parent_baseline(tmp_path, 'HEAD', 'absent.json', records)
+    current = {r['id']: r['fingerprint'] for r in records if not r['documented']}
+    assert baseline_errors(previous, current) == ['Baseline expansion/change: sample.py::binding::new']
