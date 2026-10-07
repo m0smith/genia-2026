@@ -38,6 +38,12 @@ For work requiring pre-flight:
    - This obligation reuses R16. Do not create a parallel runner, protocol,
      evidence format, capability registry/profile system, semantic manifest, or
      Core IR mechanism merely to satisfy this process gate.
+   - Answer the **MCP language-knowledge impact** question: does this change
+     affect knowledge an MCP client should know about Genia
+     (`genia_language_profile`)? If yes, the same change updates STATE, the
+     `mcp_language_profile` registry in `docs/contract/semantic_facts.json`, and the
+     generated block in `apps/mcp/mcp.genia`
+     (`tools/gen_mcp_language_profile.py`); if no, record why.
    - Identify whether Python, C++, or both are affected. A semantic change must
      land first as shared contract/conformance work; then both hosts must
      implement it, or a temporary host gap must be documented before merge.

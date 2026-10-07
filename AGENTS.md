@@ -46,7 +46,7 @@ Rules:
 - Tests must reflect actual behavior
 - Implementation must match STATE + RULES
 - Docs must describe ONLY what is implemented
-- Cross-doc semantic guardrails live in `docs/contract/semantic_facts.json` and `tests/doc/test_semantic_doc_sync.py`
+- Cross-doc semantic guardrails live in `docs/contract/semantic_facts.json` and `tests/doc/test_semantic_doc_sync.py` (the `mcp_language_profile` registry key is a guarded projection source for `genia_language_profile`, verified by `tests/doc/test_state_anchors_and_registry_sync.py`; STATE stays authority)
 “Contract” defines behavior only.
 It MUST NOT include tests.
 
@@ -675,7 +675,11 @@ The `implementation` phase must reference the failing-test commit SHA.
 ## Required Workflow for Any Change
 
 1. update `GENIA_STATE.md`
-2. update any other affected core docs
+2. update any other affected core docs, including **MCP language-knowledge impact**: does the
+   change affect knowledge an MCP client should know about Genia (`genia_language_profile`)? If
+   yes, update the `mcp_language_profile` registry in `docs/contract/semantic_facts.json` (fact
+   ids, STATE anchors, evidence) and regenerate `apps/mcp/mcp.genia`; run
+   `uv run python tools/gen_mcp_language_profile.py --check`. If no, record why in the pre-flight
 3. update implementation only for already-defined behavior
 4. update or add tests
 5. run the relevant audit/validation

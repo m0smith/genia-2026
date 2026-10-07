@@ -55,6 +55,11 @@ Update ONLY for:
 - implemented code
 - verified test results
 
+MCP language-knowledge impact:
+- confirm the pre-flight's answer; if affected, the STATE statement, the
+  `mcp_language_profile` registry in `docs/contract/semantic_facts.json`, and the
+  generated block in `apps/mcp/mcp.genia` are updated together
+
 Do NOT:
 - document unimplemented features
 - “clean up everything” outside scope

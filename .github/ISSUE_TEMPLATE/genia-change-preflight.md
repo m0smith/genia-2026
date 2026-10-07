@@ -87,6 +87,10 @@ completed, the change is not ready to implement. -->
 **Required synchronization (STATE, RULES, book, cheatsheets, specs, hosts, generated docs):**
 -
 
+**MCP language-knowledge impact** (does this change affect knowledge an MCP client should know about Genia, as projected by `genia_language_profile`?):
+- [ ] None — reason:
+- [ ] Affected — registry fact/member ids in `docs/contract/semantic_facts.json` (`mcp_language_profile`), STATE anchor(s), and evidence updated; `uv run python tools/gen_mcp_language_profile.py` run and `--check` passes:
+
 ## 9. Philosophy check
 
 - **Preserves minimalism:** YES / NO / N/A

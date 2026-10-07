@@ -6907,13 +6907,23 @@ Browser scaffolding is documentation only. macOS hardening is bounded as in
 9.48; no security sandbox is claimed. These facts grant no execution authority
 and are not an exhaustive language/host inventory.
 
-The discovery constant is defined only in `apps/mcp/mcp.genia`. Its JSON is
+The profile constants (`control_flow`, `supported_forms`, `patterns`, `absent_forms`,
+`idioms`, and `discovery`) are generated into a delimited block of
+`apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
+`docs/contract/semantic_facts.json`, a guarded projection source: this file stays the
+authority, and each registry fact carries semantic anchors (`<!-- anchor: state:... -->`
+markers in this file) and evidence (STATE text, executable probes, or manifest
+cross-checks). `state_sections` values keep their legacy section numbers through the
+registry's anchor crosswalk, so the wire output is unchanged. The server never reads
+the registry at runtime. Its JSON is
 bounded to 16,384 UTF-8 bytes with summaries at most 256 bytes each; these are
 static output bounds, not new runtime limits. Output remains deterministic
 across calls, protocol eras, namespace modes, and plain file mode. Existing
 profile members/examples, launch revision, arguments, four-tool surface,
 `genia_capabilities`, envelopes, authority, and host behavior are unchanged.
-Evidence: `tests/unit/test_r28_mcp_language_profile.py`; matrix row D10. No
+Evidence: `tests/unit/test_r28_mcp_language_profile.py`,
+`tests/unit/test_r28_mcp_language_registry.py`,
+`tests/doc/test_state_anchors_and_registry_sync.py`; matrix row D10. No
 new authentic client acceptance run is claimed; runs 1–3 predate A6 and A7.
 
 ## 9.51) R28 follow-up: MCP grounded-evidence example (issue #1087)

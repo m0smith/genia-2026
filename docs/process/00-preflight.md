@@ -145,6 +145,13 @@ Risk of drift:
 [ ] Medium
 [ ] High
 
+MCP language-knowledge impact (does this change affect knowledge an MCP client
+should know about Genia, as projected by `genia_language_profile`?):
+[ ] None — reason:
+[ ] Affected — update the `mcp_language_profile` registry in
+    `docs/contract/semantic_facts.json` (fact ids, STATE anchors, evidence) and
+    regenerate `apps/mcp/mcp.genia` with `tools/gen_mcp_language_profile.py`
+
 ---
 
 9. DOC DISTILLATION CHECK

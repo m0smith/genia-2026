@@ -85,7 +85,7 @@ in `semantic_facts.json`, and not every semantic boundary belongs in Core IR.
 | Link | Current mechanism | State |
 | --- | --- | --- |
 | Implemented behavior -> authority | `GENIA_STATE.md` hierarchy in `AGENTS.md` | Strong and process-enforced |
-| Cross-doc semantic fact -> drift guard | `docs/contract/semantic_facts.json` + doc sync tests | Machine-checkable for selected protected facts, intentionally not exhaustive |
+| Cross-doc semantic fact -> drift guard | `docs/contract/semantic_facts.json` + doc sync tests | Machine-checkable for selected protected facts, intentionally not exhaustive; the `mcp_language_profile` key is a guarded projection source for MCP language knowledge |
 | Portable syntax/value semantics -> representation | Core IR plus ordinary value/protocol contracts | Strong where explicitly contracted; must remain concern-specific |
 | Portable behavior -> executable cases | shared YAML under `spec/` | Strong for behavior represented by shared cases; coverage is incremental |
 | Case -> required capability | case `requires:` + `spec/manifest.json` vocabulary | Machine-checkable |
@@ -305,7 +305,13 @@ below portable semantics.
 ### Does it make `semantic_facts.json` a second language definition?
 
 **No.** Semantic facts remain selective cross-document drift guards.
-`GENIA_STATE.md` remains final authority.
+`GENIA_STATE.md` remains final authority. The one non-sentence key,
+`mcp_language_profile`, is a guarded projection source for the MCP
+`genia_language_profile` tool, not a second language definition: each of its facts is
+identified by a stable semantic ID and `state:` anchors in `GENIA_STATE.md`, and is
+verified by STATE text evidence, executable probes, or manifest cross-checks. The
+generated block in `apps/mcp/mcp.genia` is derived from it (`tools/gen_mcp_language_profile.py`),
+and `tests/doc/test_state_anchors_and_registry_sync.py` fails when the projection and STATE disagree.
 
 ### Is a new machine-readable semantic manifest required?
 

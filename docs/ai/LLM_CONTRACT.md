@@ -285,6 +285,12 @@ Protected semantic facts currently live in:
 - `docs/contract/semantic_facts.json`
 - `tests/doc/test_semantic_doc_sync.py`
 
+The `mcp_language_profile` key of `docs/contract/semantic_facts.json` is a guarded
+projection source for `genia_language_profile`; `GENIA_STATE.md` remains authority.
+Every semantic change must evaluate **MCP language-knowledge impact** (does it affect
+knowledge an MCP client should know about Genia?) and, if so, update that registry and
+regenerate `apps/mcp/mcp.genia` with `tools/gen_mcp_language_profile.py`.
+
 That validation should enforce:
 
 - required canonical references
