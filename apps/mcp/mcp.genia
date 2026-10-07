@@ -268,6 +268,15 @@ call_result(c) = tool_result(c, capabilities_envelope(c))
 # text, not language behavior: GENIA_STATE.md governs, and tests evaluate every example
 # directly. The only varying datum is the launch contract_revision.
 
+LANGUAGE_EXAMPLES = {
+  gcd: "open gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)",
+  factorial: "open fact(0) = 1\nfact(n) = n * fact(n - 1)\nfact(5)"
+}
+
+# >>> BEGIN GENERATED: mcp_language_profile (docs/contract/semantic_facts.json) >>>
+# Generated from the governed registry; GENIA_STATE.md governs. Do not edit by hand:
+# run `python tools/gen_mcp_language_profile.py` and commit the result.
+
 LANGUAGE_CONTROL_FLOW = {
   conditionals: "pattern_matching",
   if_expression: false,
@@ -276,84 +285,130 @@ LANGUAGE_CONTROL_FLOW = {
   tail_call_optimization: true
 }
 
-LANGUAGE_SUPPORTED_FORMS = [
-  "function_definition",
-  "function_call",
-  "binary_expression",
-  "literal",
-  "variable",
-  "pattern_dispatch",
-  "case_expression",
-  "open_function_clauses",
-  "pipeline"
-]
+LANGUAGE_SUPPORTED_FORMS = ["function_definition", "function_call", "binary_expression", "literal", "variable", "pattern_dispatch", "case_expression", "open_function_clauses", "pipeline"]
 
 LANGUAGE_PATTERNS = {
   function_argument_patterns: true,
-  literal_patterns: true,
-  wildcard_patterns: true,
-  tuple_patterns: true,
-  list_patterns: true,
-  map_patterns: true,
   guard_patterns: true,
-  ordered_resolution: "first_match"
+  list_patterns: true,
+  literal_patterns: true,
+  map_patterns: true,
+  ordered_resolution: "first_match",
+  tuple_patterns: true,
+  wildcard_patterns: true
 }
 
 LANGUAGE_ABSENT_FORMS = ["if_expression", "while_loop", "for_loop"]
 
 LANGUAGE_IDIOMS = {
   branching: "Use pattern-matched function clauses or case expressions.",
-  repetition: "Use recursion; tail-recursive calls are optimized in tail position.",
-  clauses: "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open."
+  clauses: "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open.",
+  repetition: "Use recursion; tail-recursive calls are optimized in tail position."
 }
 
-LANGUAGE_EXAMPLES = {
-  gcd: "open gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)",
-  factorial: "open fact(0) = 1\nfact(n) = n * fact(n - 1)\nfact(5)"
-}
-
-# A7: static, curated STATE facts; nil encodes as JSON null. No live discovery.
+# A7: static curated facts; nil encodes as JSON null. No live discovery.
 LANGUAGE_DISCOVERY = {
   coverage: "curated_non_exhaustive",
   facts: [
-    {id: "pattern_branching", scope: "language", status: "implemented",
-     maturity: nil, summary: "Branching uses pattern matching.",
-     state_sections: ["5"]},
-    {id: "tail_calls", scope: "language", status: "implemented",
-     maturity: nil, summary: "Tail calls are optimized.",
-     state_sections: ["8"]},
-    {id: "if_and_loops", scope: "language", status: "unsupported",
-     maturity: nil, summary: "There is no dedicated if expression or while/for loop syntax.",
-     state_sections: ["5", "9.50"]},
-    {id: "flow_shared_coverage", scope: "shared_conformance", status: "partial",
-     maturity: "Experimental", summary: "Flow runs in Python; shared executable coverage is limited to first-wave cases.",
-     state_sections: ["0", "1"]},
-    {id: "core_ir_stability", scope: "shared_conformance", status: "partial",
-     maturity: "Partial", summary: "Portable Core IR stability remains Partial.",
-     state_sections: ["0"]},
-    {id: "cpp_language_floor", scope: "cpp_host", status: "partial",
-     maturity: nil, summary: "C++ implements the bounded R27 production floor, not Python feature parity.",
-     state_sections: ["0"]},
-    {id: "other_language_hosts", scope: "other_hosts", status: "planned",
-     maturity: nil, summary: "Node.js, Java, Rust, and Go hosts are planned, not implemented.",
-     state_sections: ["0"]},
-    {id: "browser_runtime", scope: "browser", status: "scaffolded",
-     maturity: nil, summary: "Browser artifacts are documentation scaffolding; no runtime or playground is implemented.",
-     state_sections: ["0.1"]},
-    {id: "mcp_surface", scope: "mcp", status: "implemented",
-     maturity: nil, summary: "Python-host local stdio MCP exposes four tools after A6.",
-     state_sections: ["9.49", "9.50"]},
-    {id: "cpp_mcp", scope: "mcp", status: "unsupported",
-     maturity: nil, summary: "There is no C++ MCP implementation.",
-     state_sections: ["9.49", "9.50"]},
-    {id: "windows_mcp", scope: "mcp_windows", status: "unsupported",
-     maturity: nil, summary: "Windows MCP deployment is unsupported.",
-     state_sections: ["9.49"]},
-    {id: "macos_hardening", scope: "mcp_macos", status: "partial",
-     maturity: nil, summary: "macOS MCP runs are verified without an address-space bound or network namespace; the profile is not a security sandbox.",
-     state_sections: ["9.48", "9.49"]}
+    {
+      id: "pattern_branching",
+      scope: "language",
+      status: "implemented",
+      maturity: nil,
+      summary: "Branching uses pattern matching.",
+      state_sections: ["5"]
+    },
+    {
+      id: "tail_calls",
+      scope: "language",
+      status: "implemented",
+      maturity: nil,
+      summary: "Tail calls are optimized.",
+      state_sections: ["8"]
+    },
+    {
+      id: "if_and_loops",
+      scope: "language",
+      status: "unsupported",
+      maturity: nil,
+      summary: "There is no dedicated if expression or while/for loop syntax.",
+      state_sections: ["5", "9.50"]
+    },
+    {
+      id: "flow_shared_coverage",
+      scope: "shared_conformance",
+      status: "partial",
+      maturity: "Experimental",
+      summary: "Flow runs in Python; shared executable coverage is limited to first-wave cases.",
+      state_sections: ["0", "1"]
+    },
+    {
+      id: "core_ir_stability",
+      scope: "shared_conformance",
+      status: "partial",
+      maturity: "Partial",
+      summary: "Portable Core IR stability remains Partial.",
+      state_sections: ["0"]
+    },
+    {
+      id: "cpp_language_floor",
+      scope: "cpp_host",
+      status: "partial",
+      maturity: nil,
+      summary: "C++ implements the bounded R27 production floor, not Python feature parity.",
+      state_sections: ["0"]
+    },
+    {
+      id: "other_language_hosts",
+      scope: "other_hosts",
+      status: "planned",
+      maturity: nil,
+      summary: "Node.js, Java, Rust, and Go hosts are planned, not implemented.",
+      state_sections: ["0"]
+    },
+    {
+      id: "browser_runtime",
+      scope: "browser",
+      status: "scaffolded",
+      maturity: nil,
+      summary: "Browser artifacts are documentation scaffolding; no runtime or playground is implemented.",
+      state_sections: ["0.1"]
+    },
+    {
+      id: "mcp_surface",
+      scope: "mcp",
+      status: "implemented",
+      maturity: nil,
+      summary: "Python-host local stdio MCP exposes four tools after A6.",
+      state_sections: ["9.49", "9.50"]
+    },
+    {
+      id: "cpp_mcp",
+      scope: "mcp",
+      status: "unsupported",
+      maturity: nil,
+      summary: "There is no C++ MCP implementation.",
+      state_sections: ["9.49", "9.50"]
+    },
+    {
+      id: "windows_mcp",
+      scope: "mcp_windows",
+      status: "unsupported",
+      maturity: nil,
+      summary: "Windows MCP deployment is unsupported.",
+      state_sections: ["9.49"]
+    },
+    {
+      id: "macos_hardening",
+      scope: "mcp_macos",
+      status: "partial",
+      maturity: nil,
+      summary: "macOS MCP runs are verified without an address-space bound or network namespace; the profile is not a security sandbox.",
+      state_sections: ["9.48", "9.49"]
+    }
   ]
 }
+# <<< END GENERATED: mcp_language_profile <<<
 
 language_value(c) = {
   name: "Genia",

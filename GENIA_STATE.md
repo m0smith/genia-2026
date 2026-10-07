@@ -3,6 +3,7 @@
 This file describes what is **actually implemented now** in the Python runtime.
 
 ## 0) Multi-host status
+<!-- anchor: state:host-status -->
 
 
 Implemented today:
@@ -242,6 +243,7 @@ Scaffolded or planned, not implemented as hosts:
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
 
 ## 0.1) Browser playground status
+<!-- anchor: state:browser -->
 
 Implemented today:
 
@@ -271,6 +273,7 @@ Clarifications:
 
 
 ## 1) Shared Conformance — Semantic Spec System
+<!-- anchor: state:conformance -->
 
 LANGUAGE CONTRACT:
 
@@ -441,6 +444,7 @@ Clarifications:
 - rules are intentionally conservative and deterministic
 
 ## 1) Execution model
+<!-- anchor: state:execution-model -->
 
 - programs are expression sequences
 - parser AST stays close to surface syntax, then lowers into a tiny Core IR before evaluation
@@ -1017,6 +1021,7 @@ Implemented as `GeniaSheet` — a frozen dataclass with tuple-backed column stor
 - Sheets are not Seq-compatible sources in this phase.
 
 ## 3) Implemented syntax and expression forms
+<!-- anchor: state:syntax-forms -->
 
 - literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`, `none`
   - numeric source classification (R21 E21-1, see section 9.21): `DIGIT+` classifies as Integer source; `DIGIT+ "." DIGIT+`, `DIGIT+` exponent, and `DIGIT+ "." DIGIT+` exponent (`e`/`E`, optional sign, `DIGIT+`) all classify as Decimal source; `.5` and `5.` are not numeric literals; a malformed exponent (`1e`, `1e+`) is a deterministic `SyntaxError`
@@ -1399,6 +1404,7 @@ Pipeline (Phase 2) evaluation model:
   - unsupported quoted forms raise a clear runtime error instead of silently expanding evaluator coverage
 
 ## 4.7) R20 open functions and extensible pattern dispatch (Experimental, R20 complete through E20-8)
+<!-- anchor: state:open-functions -->
 
 R20 adds one concept: an **open function interface** is an identity-bearing
 ordinary callable whose immutable clause set is assembled from ordered local
@@ -1534,6 +1540,7 @@ Core IR).
     Python debug adapter) is not threaded through open-function dispatch.
 
 ## 5) Case expressions and pattern matching
+<!-- anchor: state:pattern-matching -->
 
 Case arms support:
 
@@ -1556,6 +1563,8 @@ Implemented pattern types:
 - duplicate binding semantics (same name must match equal value)
 - multiline list pattern formatting is accepted (newlines inside `[...]` pattern shapes)
 - named reusable patterns (`Name(inner_pattern)`) — **Experimental**
+
+Resolution order: arms of a case expression and clauses of a function are tried in source order, and the first matching arm or clause is selected.
 
 Map pattern semantics:
 
@@ -1711,9 +1720,13 @@ Case placement rules (enforced):
 - rejected in ordinary subexpressions / call args / non-final block positions
 
 ### Conditionals
+<!-- anchor: state:control-flow -->
 
 - implemented via pattern matching in function definitions and case expressions; lambdas may also pattern-match their single parameter arm
 - no dedicated conditional keyword exists
+- no `if` expression or `if` form exists; branching uses pattern matching
+- no dedicated loop syntax (`while`, `for`) exists
+- repetition is expressed by recursion; tail calls are optimized in tail position (see tail-call behavior)
 - `decide` has been removed from the language
 
 ## 6) Builtins (runtime)
@@ -3420,6 +3433,7 @@ Notable autoloaded functions include:
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Tail calls and optimization behavior
+<!-- anchor: state:tail-calls -->
 
 Callable dispatch semantics (arity resolution, none-propagation detection, closure capture, TCO trampoline, invocation dispatch via `invoke_callable`) live in `src/genia/callable.py`; expression evaluation and pipeline dispatch (eval_call, eval_pipeline_stage) live in `src/genia/evaluator.py`; builtin registration and Python host interop bridge live in `src/genia/builtins.py` and `src/genia/host_bridge.py` respectively; `src/genia/interpreter.py` is the CLI/REPL orchestration facade (REPL loop, CLI arg parsing, run_source orchestration, pipe-mode validation, debug-stdio adapter) and re-exports the following symbols for backward compatibility with code written before the #210 module-split series: `make_global_env` (builtins); `Evaluator`, `GeniaPromise`, `GeniaMetaEnv` (evaluator); `GeniaFunction`, `GeniaFunctionGroup`, `TailCall`, `eval_with_tco`, `DebugHooks` (callable); `GeniaFlow`, `GeniaOptionNone`, `GeniaOptionSome`, `OPTION_NONE`, `truthy` (values); `lex`, `SourceSpan` (lexer); `Parser` (parser); `lower_program` (lowering); `optimize_program` (optimizer); `Assign`, `Block`, `ExprStmt`, `Lambda`, `ListPattern`, `MapPattern`, `Node`, `NoneOption`, `RestPattern`, `SomePattern`, `TuplePattern`, `Var` (ast_nodes); `_load_source_from_path` (host_bridge). All other symbols are imported for internal orchestration use only and are not part of the compat surface.
 
@@ -6759,6 +6773,7 @@ Python host code: it is entirely native Genia in `apps/mcp/mcp.genia`.
   discovered `.mcp.json`, started the launcher, and spoke stdio JSON-RPC (R28-H43).
 
 ## 9.48) R28 E28-6 macOS portability of the governed `genia_run` profile (issue #707, ledger R28-H47)
+<!-- anchor: state:mcp-macos -->
 
 Trigger: authentic VS Code run 2 on macOS (Darwin x64 24.6.0, 2026-10-05, revision `66b50594`) proved amendment A5
 (negotiation, three tools, `genia_capabilities`, both `genia_parse` calls) but `genia_run` returned the sanitized
@@ -6791,6 +6806,7 @@ prompt, protocol, authority, limit, parse behavior, or envelope changed.
   namespace (Linux-only; Linux-only namespace tests skip on macOS). R28-H47 and R28-H48 are closed; R28-H36 was closed by run 2.
 
 ## 9.49) R28 completion: authentic VS Code + GitHub Copilot acceptance (issue #707, epic #700)
+<!-- anchor: state:mcp-surface -->
 
 R28 (Genia MCP Server) is **Complete**: contract section 12.2 is satisfied by an authentic VS Code + GitHub Copilot
 run. The evidence record is `docs/mcp/acceptance/vscode-copilot-evidence.md`; the release page is `docs/releases/R28.md`.
@@ -6822,6 +6838,7 @@ or envelope.
   bound and no network namespace; the execution profile is a defense-in-depth profile, not a security sandbox.
 
 ## 9.50) R28 follow-up amendment A6: `genia_language_profile` (MCP adapter affordance)
+<!-- anchor: state:mcp-language-profile -->
 
 Contract amendment A6 (section 19 of `docs/design/r28-genia-mcp-contract-threat-model.md`; pre-flight
 `docs/design/r28-a6-language-profile-preflight.md`) adds one MCP tool to the R28 server. It adds no Genia syntax, parser or

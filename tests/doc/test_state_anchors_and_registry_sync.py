@@ -86,6 +86,13 @@ def test_crosswalk_matches_current_enclosing_section_numbers():
         assert row["legacy_section"] == ANCHORS[name].section_number, name
 
 
+def test_recorded_anchor_nesting_matches_state_spans():
+    for name, row in REGISTRY["state_anchors"].items():
+        if "within" in row:
+            inner, outer = ANCHORS[name], ANCHORS[row["within"]]
+            assert outer.start <= inner.start and inner.end <= outer.end, (name, row["within"])
+
+
 def test_every_cited_anchor_is_in_the_crosswalk():
     for fact in REGISTRY["discovery"]["facts"]:
         for anchor in fact["anchors"]:

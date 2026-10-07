@@ -20,5 +20,541 @@
   "r11_ordinary_composition_boundary": "R11 messages and requests are ordinary values, prompts are functions, models are callable, chains are pipelines, and conversations are application-owned composition over existing scan; provider adapters are Python-host-only.",
   "r12_ordinary_composition_boundary": "R12 documents, chunks, embeddings, evidence, grounded contexts, and grounded answers are ordinary values composed through callables and Outcomes; exact provenance, explicit query embedding, an opaque index handle, backend-native scores, and unchanged model/4 remain distinct, while provider fixtures and private handle mechanics are Python-host-only.",
   "r13_ordinary_composition_boundary": "R13 configuration views are ordinary callables over an explicit provider; Outcomes, immutable snapshots, explicit conversion and callable Template validation, and protected values compose without ambient lookup, while environment and exact-path file acquisition are Python-host-only.",
-  "r18_equality_relation": "Genia has one non-overloadable semantic equality relation; == , != , literal patterns, duplicate bindings, assert_eq, map-key identity, and Sheet column-name identity all answer identically, protected equality observes carrier identity only, and map iteration order remains a separate observable from map equality."
+  "r18_equality_relation": "Genia has one non-overloadable semantic equality relation; == , != , literal patterns, duplicate bindings, assert_eq, map-key identity, and Sheet column-name identity all answer identically, protected equality observes carrier identity only, and map iteration order remains a separate observable from map equality.",
+  "mcp_language_profile": {
+    "schema_version": 1,
+    "state_anchors": {
+      "state:host-status": {
+        "legacy_section": "0"
+      },
+      "state:browser": {
+        "legacy_section": "0.1"
+      },
+      "state:conformance": {
+        "legacy_section": "1"
+      },
+      "state:execution-model": {
+        "legacy_section": "1"
+      },
+      "state:syntax-forms": {
+        "legacy_section": "3"
+      },
+      "state:open-functions": {
+        "legacy_section": "4.7"
+      },
+      "state:pattern-matching": {
+        "legacy_section": "5"
+      },
+      "state:control-flow": {
+        "legacy_section": "5",
+        "within": "state:pattern-matching"
+      },
+      "state:tail-calls": {
+        "legacy_section": "8"
+      },
+      "state:mcp-macos": {
+        "legacy_section": "9.48"
+      },
+      "state:mcp-surface": {
+        "legacy_section": "9.49"
+      },
+      "state:mcp-language-profile": {
+        "legacy_section": "9.50"
+      }
+    },
+    "language": {
+      "control_flow": {
+        "value": {
+          "conditionals": "pattern_matching",
+          "if_expression": false,
+          "loops": false,
+          "recursion": true,
+          "tail_call_optimization": true
+        },
+        "evidence": [
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "no `if` expression or `if` form exists"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "no dedicated loop syntax"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "repetition is expressed by recursion"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "implemented via pattern matching in function definitions and case expressions"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:tail-calls",
+            "fragment": "proper tail-call optimization is implemented via trampoline evaluation"
+          },
+          {
+            "kind": "probe",
+            "name": "absent_forms_are_absent"
+          },
+          {
+            "kind": "probe",
+            "name": "tail_recursion_constant_stack"
+          }
+        ]
+      },
+      "supported_forms": {
+        "value": [
+          "function_definition",
+          "function_call",
+          "binary_expression",
+          "literal",
+          "variable",
+          "pattern_dispatch",
+          "case_expression",
+          "open_function_clauses",
+          "pipeline"
+        ],
+        "evidence": [
+          {
+            "kind": "state_text",
+            "anchor": "state:syntax-forms",
+            "fragment": "pipeline operator: `|>`"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:syntax-forms",
+            "fragment": "binary operators:"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:open-functions",
+            "fragment": "must carry the `open` keyword"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "Case arms support:"
+          },
+          {
+            "kind": "probe",
+            "name": "supported_forms_evaluate"
+          },
+          {
+            "kind": "probe",
+            "name": "pattern_dispatch_evaluates"
+          }
+        ]
+      },
+      "patterns": {
+        "value": {
+          "function_argument_patterns": true,
+          "guard_patterns": true,
+          "list_patterns": true,
+          "literal_patterns": true,
+          "map_patterns": true,
+          "ordered_resolution": "first_match",
+          "tuple_patterns": true,
+          "wildcard_patterns": true
+        },
+        "evidence": [
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "literal patterns"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "wildcard `_`"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "tuple patterns"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "list patterns"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "map patterns (partial-by-default key matching)"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "pattern ? guard -> result"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "lambda parameter patterns use the same implemented pattern families as function clauses and case arms"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:pattern-matching",
+            "fragment": "the first matching arm or clause is selected"
+          },
+          {
+            "kind": "probe",
+            "name": "pattern_kinds_evaluate"
+          },
+          {
+            "kind": "probe",
+            "name": "pattern_dispatch_evaluates"
+          }
+        ]
+      },
+      "absent_forms": {
+        "value": [
+          "if_expression",
+          "while_loop",
+          "for_loop"
+        ],
+        "evidence": [
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "no `if` expression or `if` form exists"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "no dedicated loop syntax"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "repetition is expressed by recursion"
+          },
+          {
+            "kind": "probe",
+            "name": "absent_forms_are_absent"
+          }
+        ]
+      },
+      "idioms": {
+        "value": {
+          "branching": "Use pattern-matched function clauses or case expressions.",
+          "clauses": "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open.",
+          "repetition": "Use recursion; tail-recursive calls are optimized in tail position."
+        },
+        "evidence": [
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "branching uses pattern matching"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:control-flow",
+            "fragment": "repetition is expressed by recursion"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:open-functions",
+            "fragment": "must carry the `open` keyword"
+          },
+          {
+            "kind": "probe",
+            "name": "tail_recursion_constant_stack"
+          },
+          {
+            "kind": "probe",
+            "name": "open_clause_rule"
+          }
+        ]
+      }
+    },
+    "discovery": {
+      "coverage": "curated_non_exhaustive",
+      "facts": [
+        {
+          "id": "pattern_branching",
+          "scope": "language",
+          "status": "implemented",
+          "maturity": null,
+          "summary": "Branching uses pattern matching.",
+          "anchors": [
+            "state:pattern-matching"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:control-flow",
+              "fragment": "implemented via pattern matching in function definitions and case expressions"
+            },
+            {
+              "kind": "probe",
+              "name": "pattern_dispatch_evaluates"
+            }
+          ]
+        },
+        {
+          "id": "tail_calls",
+          "scope": "language",
+          "status": "implemented",
+          "maturity": null,
+          "summary": "Tail calls are optimized.",
+          "anchors": [
+            "state:tail-calls"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:tail-calls",
+              "fragment": "proper tail-call optimization is implemented via trampoline evaluation"
+            },
+            {
+              "kind": "probe",
+              "name": "tail_recursion_constant_stack"
+            }
+          ]
+        },
+        {
+          "id": "if_and_loops",
+          "scope": "language",
+          "status": "unsupported",
+          "maturity": null,
+          "summary": "There is no dedicated if expression or while/for loop syntax.",
+          "anchors": [
+            "state:pattern-matching",
+            "state:mcp-language-profile"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:control-flow",
+              "fragment": "no `if` expression or `if` form exists"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:control-flow",
+              "fragment": "no dedicated loop syntax"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:control-flow",
+              "fragment": "repetition is expressed by recursion"
+            },
+            {
+              "kind": "probe",
+              "name": "absent_forms_are_absent"
+            }
+          ]
+        },
+        {
+          "id": "flow_shared_coverage",
+          "scope": "shared_conformance",
+          "status": "partial",
+          "maturity": "Experimental",
+          "summary": "Flow runs in Python; shared executable coverage is limited to first-wave cases.",
+          "anchors": [
+            "state:host-status",
+            "state:conformance"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "first-wave"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "**Experimental**"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "Flow behavior is implemented in Python"
+            }
+          ]
+        },
+        {
+          "id": "core_ir_stability",
+          "scope": "shared_conformance",
+          "status": "partial",
+          "maturity": "Partial",
+          "summary": "Portable Core IR stability remains Partial.",
+          "anchors": [
+            "state:host-status"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "IR stability remains **Partial**"
+            }
+          ]
+        },
+        {
+          "id": "cpp_language_floor",
+          "scope": "cpp_host",
+          "status": "partial",
+          "maturity": null,
+          "summary": "C++ implements the bounded R27 production floor, not Python feature parity.",
+          "anchors": [
+            "state:host-status"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "C++ is the bounded R27 production host"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "not Python feature parity"
+            },
+            {
+              "kind": "manifest",
+              "name": "cpp_host_implemented"
+            }
+          ]
+        },
+        {
+          "id": "other_language_hosts",
+          "scope": "other_hosts",
+          "status": "planned",
+          "maturity": null,
+          "summary": "Node.js, Java, Rust, and Go hosts are planned, not implemented.",
+          "anchors": [
+            "state:host-status"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "Node.js, Java, Rust, Go: planned only, not implemented"
+            },
+            {
+              "kind": "manifest",
+              "name": "other_hosts_planned_not_implemented"
+            }
+          ]
+        },
+        {
+          "id": "browser_runtime",
+          "scope": "browser",
+          "status": "scaffolded",
+          "maturity": null,
+          "summary": "Browser artifacts are documentation scaffolding; no runtime or playground is implemented.",
+          "anchors": [
+            "state:browser"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:browser",
+              "fragment": "no browser playground application runtime is implemented"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:browser",
+              "fragment": "architecture/contract scaffolding only"
+            },
+            {
+              "kind": "manifest",
+              "name": "browser_scaffolded"
+            }
+          ]
+        },
+        {
+          "id": "mcp_surface",
+          "scope": "mcp",
+          "status": "implemented",
+          "maturity": null,
+          "summary": "Python-host local stdio MCP exposes four tools after A6.",
+          "anchors": [
+            "state:mcp-surface",
+            "state:mcp-language-profile"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:mcp-surface",
+              "fragment": "exactly four tools"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:mcp-surface",
+              "fragment": "local stdio only"
+            }
+          ]
+        },
+        {
+          "id": "cpp_mcp",
+          "scope": "mcp",
+          "status": "unsupported",
+          "maturity": null,
+          "summary": "There is no C++ MCP implementation.",
+          "anchors": [
+            "state:mcp-surface",
+            "state:mcp-language-profile"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:mcp-language-profile",
+              "fragment": "no C++ MCP"
+            }
+          ]
+        },
+        {
+          "id": "windows_mcp",
+          "scope": "mcp_windows",
+          "status": "unsupported",
+          "maturity": null,
+          "summary": "Windows MCP deployment is unsupported.",
+          "anchors": [
+            "state:mcp-surface"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:mcp-surface",
+              "fragment": "Windows unsupported"
+            }
+          ]
+        },
+        {
+          "id": "macos_hardening",
+          "scope": "mcp_macos",
+          "status": "partial",
+          "maturity": null,
+          "summary": "macOS MCP runs are verified without an address-space bound or network namespace; the profile is not a security sandbox.",
+          "anchors": [
+            "state:mcp-macos",
+            "state:mcp-surface"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:mcp-macos",
+              "fragment": "no address-space bound"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:mcp-macos",
+              "fragment": "no network namespace"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:mcp-surface",
+              "fragment": "not a security sandbox"
+            }
+          ]
+        }
+      ]
+    }
+  }
 }
