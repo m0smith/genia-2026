@@ -3588,7 +3588,7 @@ PYTHON REFERENCE HOST (MCP adapter):
   R27 language floor, not C++ MCP; partial Flow shared coverage does not mean missing Python Flow behavior; browser scaffolding is documentation only; macOS hardening is bounded as in section 9.48 and no security sandbox
   is claimed. The catalogue grants no execution authority, is not an exhaustive inventory, performs no live discovery, is at most 16,384 UTF-8 bytes with summaries at most 256 bytes (static output bounds, not runtime
   limits), and is identical in plain file mode.
-- **Evidence:** `tests/unit/test_r28_mcp_language_profile.py`, `tests/unit/test_r28_mcp_language_registry.py`, `tests/doc/test_state_anchors_and_registry_sync.py`, and the golden wire snapshot
+- **Evidence:** `tests/unit/test_r28_mcp_language_profile.py`, `tests/unit/test_r28_mcp_language_registry.py`, `tests/unit/test_r28_mcp_language_outcomes.py` (A9), `tests/doc/test_state_anchors_and_registry_sync.py`, and the golden wire snapshot
   `tests/data/mcp_language_profile.golden.json`; matrix rows D1, D5, D6, D9, D10 in `docs/mcp/conformance-matrix.md`. The authentic client acceptance runs (1-3) predate A6 and A7 and describe the three-tool surface; no new
   authentic client run is claimed. Not done: source-specific parse or run diagnostic hints.
 
