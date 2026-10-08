@@ -74,11 +74,12 @@ REGISTRY = gen.load_registry()
 
 
 def _direct(source):
+    """Evaluate `source` as command source on the Python reference host and return the host value."""
     return run_source(source, make_global_env(), filename="<command>")
 
 
 def _shown(source):
-    # The Python host's str() quotes with ' where the CLI display uses "; compare quote-independently.
+    """Return the evaluated value's string form with double quotes, so Outcome text matches the CLI display."""
     return str(_direct(source)).replace("'", '"')
 
 
@@ -251,6 +252,7 @@ def test_capabilities_payload_is_unchanged_by_a9():
 
 
 def _fact(registry=REGISTRY):
+    """Return the registry's `outcome_pipeline_propagation` fact, or None when it is not yet registered."""
     return next(
         (f for f in registry["discovery"]["facts"] if f["id"] == "outcome_pipeline_propagation"),
         None,

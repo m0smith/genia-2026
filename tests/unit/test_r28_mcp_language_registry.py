@@ -196,7 +196,7 @@ def _probe_validated_pipeline_evaluates():
 
 
 def _shown(source):
-    # The Python host's str() quotes with ' where the CLI display uses "; compare quote-independently.
+    """Return the evaluated value's string form with double quotes, so Outcome text matches the CLI display."""
     return str(_direct(source)).replace("'", '"')
 
 
@@ -213,12 +213,14 @@ def _probe_direct_call_vs_pipeline_outcome():
 
 
 def _probe_err_is_not_absence():
+    """A9 (#1084): `err(...)` is neither `none` nor `some`, and a later `unwrap_or` stage leaves it unchanged."""
     assert _direct('none?(err("e"))') is False
     assert _direct('is_some?(err("e"))') is False
     assert _shown('err("bad") |> unwrap_or(0)') == 'err("bad")'  # not converted to none or recovered
 
 
 def _probe_recovery_wraps_pipeline():
+    """A9 (#1084): `unwrap_or` recovers around the whole expression; as a later `|>` stage it never runs after `none`."""
     assert _direct('unwrap_or(0, parse_int("x"))') == 0
     assert _direct('unwrap_or(0, parse_int("7"))') == 7
     later_stage = _direct('parse_int("x") |> unwrap_or(0)')
