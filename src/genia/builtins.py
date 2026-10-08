@@ -312,6 +312,8 @@ def make_global_env(
     environment_snapshot_provider: Optional[Callable[[], Mapping[str, str]]] = os.environ.copy,
     dotenv_snapshot_provider: Optional[Callable[[str], bytes]] = _read_dotenv_snapshot,
 ) -> Env:
+    """Build the Python host's global Genia environment and builtin table."""
+
     env = Env()
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
     env.debug_mode = debug_mode
@@ -734,15 +736,23 @@ def make_global_env(
         return construct_secret_view(provider, prefix, purpose)
 
     def lifecycle_scope_fn(peers: Any, work: Any) -> Any:
+        """Run a root lifecycle scope through the shared runtime algorithm."""
+
         return run_lifecycle_scope(peers, work, _invoke_raw_from_builtin)
 
     def lifecycle_child_fn(scope_handle: Any, peers: Any, work: Any) -> Any:
+        """Run a child lifecycle scope under an active parent handle."""
+
         return run_lifecycle_child(scope_handle, peers, work, _invoke_raw_from_builtin)
 
     def lifecycle_context_fn(scope_handle: Any, name: Any) -> Any:
+        """Look up lifecycle context by name from a live scope handle."""
+
         return lookup_lifecycle_context(scope_handle, name)
 
     def lifecycle_config_fn(provider: Any) -> Any:
+        """Build a lifecycle peer that exposes a configuration provider."""
+
         if not isinstance(provider, GeniaConfigProvider):
             raise TypeError(
                 f"lifecycle_config expected a configuration provider, "
@@ -750,9 +760,13 @@ def make_global_env(
             )
 
         def enter(scope_handle: Any) -> Any:
+            """Expose the provider as this peer's lifecycle context value."""
+
             return GeniaOptionSome(provider)
 
         def exit_(scope_handle: Any, primary_summary: Any) -> Any:
+            """Complete configuration peer cleanup without changing failures."""
+
             return GeniaOptionSome("nil")
 
         return GeniaMap().put("name", symbol("config")).put("enter", enter).put("exit", exit_)
@@ -791,6 +805,8 @@ def make_global_env(
     send_annotated_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def lifecycle_repeat_fn(peers: Any, source: Any, element_work: Any) -> Any:
+        """Run element-scoped lifecycle work over a list or lazy Flow source."""
+
         ensure_seq_compatible_fn("lifecycle_repeat", source)
         if isinstance(source, list):
             return [
@@ -801,6 +817,8 @@ def make_global_env(
         upstream = source
 
         def iterator() -> Iterable[Any]:
+            """Yield lifecycle results lazily while finalizing the upstream flow."""
+
             items = iter(upstream.consume())
             idx = 0
             primary_error = False

@@ -1,3 +1,5 @@
+"""Unit tests for the server lifecycle runner boundary."""
+
 import importlib
 from collections.abc import Callable
 
@@ -17,14 +19,20 @@ RESULT_KEYS = [
 
 
 def _module():
+    """Return the server lifecycle module under test."""
+
     return importlib.import_module("genia.server_lifecycle")
 
 
 def _keys(record):
+    """Return map keys in observable insertion order."""
+
     return [key for key, _value in record.items()]
 
 
 def _failure_values(failure):
+    """Extract stable failure fields for server lifecycle assertions."""
+
     return {
         "mode": failure.get("mode"),
         "phase": failure.get("phase"),
@@ -65,14 +73,20 @@ def test_success_processes_requests_in_order_closes_once_and_returns_exact_resul
     calls = []
 
     def activate(application):
+        """Record startup and return the owned listener handle."""
+
         calls.append(("activate", application))
         return handle
 
     def request(owned, value):
+        """Record one request and return its response marker."""
+
         calls.append(("request", owned, value))
         return f"response:{value}"
 
     def close(owned):
+        """Record shutdown and return server summary data."""
+
         calls.append(("close", owned))
         return {"host": "127.0.0.1", "port": 8000, "handled_requests": 2}
 
@@ -127,6 +141,8 @@ def test_startup_failure_skips_requests_and_does_not_close_unowned_listener():
     calls = []
 
     def activate(application):
+        """Raise during startup after recording the activation attempt."""
+
         calls.append(("activate", application))
         raise RuntimeError("bind failed")
 
@@ -159,6 +175,8 @@ def test_request_failure_skips_later_requests_and_still_closes_owned_listener():
     calls = []
 
     def request(owned, value):
+        """Raise on the marked request to exercise request-phase failure."""
+
         calls.append(("request", owned, value))
         if value == "bad":
             raise ValueError("handler failed")
@@ -190,6 +208,8 @@ def test_shutdown_failure_is_primary_when_no_earlier_failure_exists():
     close_calls = []
 
     def close(owned):
+        """Raise during shutdown after proving the listener was owned."""
+
         close_calls.append(owned)
         raise RuntimeError("close failed")
 
@@ -215,9 +235,13 @@ def test_shutdown_failure_does_not_replace_request_primary_failure():
     handle = object()
 
     def fail_request(_owned, _value):
+        """Raise the primary request failure."""
+
         raise RuntimeError("request failed first")
 
     def fail_close(_owned):
+        """Raise the secondary cleanup failure."""
+
         raise RuntimeError("cleanup failed second")
 
     result = lifecycle.run_server_lifecycle(
@@ -243,6 +267,8 @@ def test_failure_preserves_available_source_location():
     error.source_location = "app.genia:12"
 
     def activate(_application):
+        """Raise an exception that carries source-location metadata."""
+
         raise error
 
     result = lifecycle.run_server_lifecycle(
