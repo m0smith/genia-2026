@@ -293,6 +293,16 @@ implement exactly this and no more:
   (contract §6, structural dispatch-key over alpha-normalized pattern/guard
   with spans stripped) runs once when a unit (base or contribution) is built,
   not deferred to call time.
+- Tail calls (contract §5.1). `GeniaOpenFunction` and
+  `GeniaLinkedOpenFunction` expose one dispatch step (`_dispatch_once`) that
+  returns either a final value or a `TailCall`. The shared tail-call
+  trampoline `eval_with_tco` drives that step for these kinds exactly as it
+  drives an ordinary `GeniaFunction` body, and their `__call__` enters the same
+  trampoline. A `TailCall` to any callable (itself, another open interface or
+  view, an ordinary function) therefore continues in the one trampoline loop;
+  no per-kind loop and no nested `eval_with_tco` call remain. Dispatch
+  selection, diagnostics, and Option/Outcome handling are unchanged, and no
+  Core IR, parser, or lowering change is involved.
 
 ## 6. Compatibility with current grammar and Core IR
 
