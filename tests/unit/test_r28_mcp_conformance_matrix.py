@@ -43,6 +43,7 @@ KEYS = {
     "lregistry": "test_r28_mcp_language_registry.py",
     "loutcomes": "test_r28_mcp_language_outcomes.py",
     "lflow": "test_r28_mcp_language_flow.py",
+    "labsence": "test_r28_mcp_language_absence.py",
     "compatconf": "test_r28_mcp_compat_conformance.py",
     "port": "test_r28_mcp_portability.py",
 }

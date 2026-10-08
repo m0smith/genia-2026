@@ -1410,3 +1410,88 @@ Prerequisites for the implementation phase, to be made in `GENIA_STATE.md` (not 
   `merge`, `zip`, `scan`, `rules`, `refine`, or lifecycle content.
 - The content restates implemented behavior, grants no authority, does not mirror STATE, and
   claims no portability beyond the C++ sentence in the fact summary.
+
+## 24. Amendment A11: absence-aware callee wording in `idioms.outcomes` (#1084)
+
+Pre-flight: issue #1084 (A9 audit finding 1, carried through the A10 closeout). This is a
+**profile wording correction, not a runtime change**: it defines MCP application content only, and
+the behavior it states is already recorded in `GENIA_STATE.md` (anchor `state:outcome-propagation`).
+A11 supersedes only the exact `idioms.outcomes` string of A9.1 (and its 510-byte length); every other
+A6-A10 member, fact, vocabulary, and bound is unchanged.
+
+### A11.1 The correction
+
+A9.1's sentence "A direct call passes the Outcome itself as the argument, except that a none
+argument short-circuits an ordinary call." omitted the exception STATE states in full:
+`ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles
+absence`. An assistant reading the old text could conclude that a callee can never receive `none`,
+and so avoid writing absence-aware functions that are valid.
+
+`result.language.idioms.outcomes` becomes exactly this string (566 UTF-8 bytes; the A9
+static bound of at most 600 is unchanged):
+
+> Outcomes are values: some(x) is present, none(...) is absent, and err(reason) is a recoverable failure that is not absence. In |> pipelines an ordinary stage receives x from some(x) and its plain result is wrapped back into some, while none and err skip the remaining stages and are returned unchanged. A direct call passes the Outcome itself as the argument, except that a none argument short-circuits the call unless the callee explicitly handles absence, such as unwrap_or. Recover around the expression, as in unwrap_or(0, parse_int(s)), not as a later |> stage.
+
+Only the clause after "except that a none argument" changed: "short-circuits an ordinary call" became
+"short-circuits the call unless the callee explicitly handles absence, such as unwrap_or". The text
+before and after that clause is byte-identical to A9.1.
+
+### A11.2 Factual distinctions (Python reference host)
+
+| Situation | Behavior | Example |
+|---|---|---|
+| `none` argument, ordinary callee | The call short-circuits; the same `none` is returned | `inc(x) = x + 1`; `inc(none("m"))` is `none("m")` |
+| `none` argument, `unwrap_or` | `unwrap_or` is absence-aware and receives the `none` | `unwrap_or(7, none("m"))` is `7` |
+| `none` argument, callee delegating to `unwrap_or` | The callee is recognized as absence-aware and receives the `none` | `f(o) = unwrap_or(0, o)`; `f(none("a"))` is `0` |
+| `none` argument, callee with a `none(...)` pattern | The callee explicitly handles absence and receives the `none` | `g(o) = none(r) -> "absent" \| _ -> "other"`; `g(none("a"))` is `"absent"` |
+| `some(x)` argument, ordinary callee | Still a normal value, passed explicitly; not lifted | `inc(some(1))` is not `some(2)` |
+
+The example column is evidence for A11.5 probes, not wire content. The `none(...)` pattern row is
+observed behavior of an explicit absence handler; the idiom itself claims only what STATE states.
+
+### A11.3 Authorizing STATE anchors
+
+| Claim | Fragment | Anchor | Exists? |
+|---|---|---|---|
+| Ordinary calls short-circuit on `none`, unless the callee explicitly handles absence | `` ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence `` | `state:outcome-propagation` | Yes (the registry pinned only the prefix before A11) |
+| `unwrap_or` is an explicitly Option-aware function | `` explicitly Option-aware stages (for example `unwrap_or`, `map_some`, `flat_map_some`, and `then_*`) still receive Option values directly `` | `state:outcome-propagation` | Yes |
+| A direct call passes the Outcome itself | `In direct calls, `some(x)` is still a normal value and is passed explicitly.` | `state:outcome-propagation` | Yes (A9) |
+
+No `GENIA_STATE.md` change is required by A11 apart from the section 9.50 profile description and
+test-evidence list, which are documentation of the adapter, not language semantics. No new anchor is
+needed, and the existing registry crosswalk is unchanged.
+
+### A11.4 Closed surface and wire invariants (unchanged)
+
+- Exactly four tools in the same order; no resources, prompts, pagination, transport, limit, or authority.
+- `idioms` keeps exactly `branching`, `clauses`, `flow`, `outcomes`, `pipelines`, `repetition`;
+  `discovery.facts` keeps exactly the 15 A10 facts in the same order, with identical ids, scopes,
+  statuses, maturity labels, summaries, and `state_sections`.
+- `idioms.flow` and the `flow_semantics` fact (A10) are byte-identical; so are `outcome_pipeline_propagation`
+  and every other fact. The `genia_capabilities` payload is unchanged; output stays byte-identical across calls,
+  protocol eras, namespace modes, and plain file mode.
+- The wire change is exactly the one `idioms.outcomes` string of A11.1.
+
+### A11.5 Future test obligations (TEST phase; none are written here)
+
+1. Golden snapshot: `idioms.outcomes` is the A11.1 string; nothing else differs from the A10 golden.
+2. Wire: the profile carries the exact string; the retired phrase "short-circuits an ordinary call"
+   is absent; the phrase "unless the callee explicitly handles absence" is present; byte length is
+   566 (at most 600); the other idioms, 15 facts, and four-tool surface are unchanged;
+   the string is identical in plain file mode and deterministic across calls.
+3. Executable: an absence-aware callee (`unwrap_or`, a callee delegating to `unwrap_or`, a `none(...)` pattern)
+   receives `none` in a direct call; an ordinary callee still short-circuits; `some(x)` is still not lifted.
+4. Registry: `idioms.outcomes` carries the full STATE fragment of A11.3 and a new probe
+   `absence_aware_callee_receives_none`; the probe is referenced and implemented; `gen --check` passes.
+5. A10 content (`idioms.flow`, `flow_semantics`) and the A9 fact are asserted byte-identical.
+6. Documentation: current descriptions of the outcomes idiom agree; historical A9 text (contract section 22, which records
+   the 510-byte string as approved at the time) is preserved.
+7. Official-SDK MCP stdio acceptance still passes with the closed four tools.
+
+### A11.6 Non-goals and non-claims
+
+- No Genia semantics, parser, evaluator, builtin, or Core IR change; no host capability change.
+- No change to the A9 fact `outcome_pipeline_propagation` or its summary, to A10, or to the fact count.
+- No new tool, resource, prompt, transport, limit, authority, source-reference field, or second registry.
+- No new Outcome rule: the idiom restates the existing STATE exception and names `unwrap_or` only as an example of an
+  explicitly Option-aware function.
