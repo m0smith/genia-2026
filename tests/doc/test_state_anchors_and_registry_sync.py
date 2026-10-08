@@ -35,6 +35,7 @@ REQUIRED_ANCHORS = {
     "state:mcp-surface",
     "state:mcp-language-profile",
     "state:validated-pipelines",
+    "state:outcome-propagation",  # A9 (#1084): intentionally red until the implementation phase
 }
 LANGUAGE_ANCHORS = {
     "state:syntax-forms",
@@ -43,6 +44,7 @@ LANGUAGE_ANCHORS = {
     "state:control-flow",
     "state:tail-calls",
     "state:validated-pipelines",
+    "state:outcome-propagation",  # A9 (#1084)
 }
 
 
@@ -205,3 +207,54 @@ def test_conformance_architecture_doc_states_the_registry_is_a_guarded_projectio
     assert "mcp_language_profile" in text
     assert "not a second language definition" in text
     assert "projection source" in text
+
+
+# --- A9 (#1084): Outcome propagation anchor and STATE text --------------------------------------
+# RED PHASE (intentional): `state:outcome-propagation` and the explicit direct-call sentence are
+# STATE prerequisites of contract amendment A9, clause A9.3; the implementation phase adds them. These tests
+# only assert their required future presence; they do not define a second authority.
+
+A9_ANCHOR = "state:outcome-propagation"
+A9_STATE_FRAGMENTS = [
+    "for recoverable failure (Experimental)",
+    "`err(...)` is not absence",
+    "ordinary function calls short-circuit on `none(...)` arguments",
+    "pipelines short-circuit on `none(...)` and `err(...)`, and automatically lift ordinary stages over `some(...)`",
+    "non-Option stage results are wrapped back into `some(...)`",
+    "recovery must wrap the whole pipeline",
+]
+A9_PIPELINE_FRAGMENTS = [  # already under the existing state:syntax-forms anchor
+    "automatic Outcome propagation is part of pipeline evaluation",
+    "if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x`",
+    "if a stage input is `err(...)`, the remaining stages do not execute and the same `err(...)` is returned",
+]
+A9_DIRECT_CALL_SENTENCE = "In direct calls, `some(x)` is still a normal value and is passed explicitly."
+
+
+def test_a9_pipeline_fragments_already_exist_under_the_syntax_forms_anchor():
+    span = sa.span_text(STATE, ANCHORS["state:syntax-forms"])
+    for fragment in A9_PIPELINE_FRAGMENTS:
+        assert fragment in span, fragment
+
+
+def test_a9_outcome_propagation_anchor_exists_once_and_is_in_section_2():
+    assert A9_ANCHOR in ANCHORS, "A9.3 prerequisite 1: add <!-- anchor: state:outcome-propagation --> in STATE section 2"
+    assert ANCHORS[A9_ANCHOR].section_number == "2"
+    assert re.findall(r"^<!-- anchor: (state:[a-z0-9-]+) -->$", STATE, re.M).count(A9_ANCHOR) == 1
+
+
+@pytest.mark.parametrize("fragment", A9_STATE_FRAGMENTS)
+def test_a9_outcome_fragments_are_inside_the_new_anchor_span(fragment):
+    assert A9_ANCHOR in ANCHORS, "A9.3 prerequisite 1 (anchor) is missing"
+    assert fragment in sa.span_text(STATE, ANCHORS[A9_ANCHOR]), fragment
+
+
+def test_a9_state_states_the_direct_call_sentence_under_the_new_anchor():
+    assert A9_ANCHOR in ANCHORS, "A9.3 prerequisite 1 (anchor) is missing"
+    assert A9_DIRECT_CALL_SENTENCE in sa.span_text(STATE, ANCHORS[A9_ANCHOR]), (
+        "A9.3 prerequisite 2: STATE must restate the GENIA_RULES.md direct-call sentence"
+    )
+
+
+def test_a9_the_direct_call_sentence_is_already_authoritative_in_rules():
+    assert A9_DIRECT_CALL_SENTENCE in read_text("GENIA_RULES.md")
