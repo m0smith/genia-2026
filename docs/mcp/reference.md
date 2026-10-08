@@ -122,13 +122,13 @@ language model and selected maturity/host gaps for assistants. It is MCP adapter
 - `supported_forms`, `absent_forms` (`if_expression`, `while_loop`, `for_loop`), `patterns` (function-argument, literal,
   wildcard, tuple, list, map, and guard patterns; `ordered_resolution: "first_match"`), `idioms` (branching, repetition, the
   `open` rule for multi-clause functions, and, from A8, `pipelines`: `|>` pipelines with `lines`, `map`, `keep_some`, and
-  `some`/`none`/`err` Outcomes, where callers define the parse and validate functions);
+  `some`/`none`/`err` Outcomes, where callers define the parse and validate functions, and, from A9, `outcomes`: `some`/`none`/`err` are values; in `|>` pipelines ordinary stages lift over `some` and `none`/`err` skip later stages unchanged; `err` is not absence; a direct call receives the Outcome itself; recovery wraps the whole expression, as in `unwrap_or(0, parse_int(s))`);
 - `examples`: `gcd` and `factorial`, each a runnable program (`gcd(48, 18)` is `6`, `fact(5)` is `120`). Several clauses of
   one function with a literal first parameter must declare the first clause with `open`; the same text without `open` is
   rejected by the language, so the profile does not use it.
 
 Amendment A7 (#1086) also returns `discovery`, exactly `{coverage, facts}`:
-`coverage: "curated_non_exhaustive"` and an ordered array of 13 static facts (A8, #1119, appends `validated_data_pipelines`, Experimental, STATE section 6; contract section 21).
+`coverage: "curated_non_exhaustive"` and an ordered array of 14 static facts (A8, #1119, appends `validated_data_pipelines`, Experimental, STATE section 6; A9, #1084, appends `outcome_pipeline_propagation`, Experimental, STATE sections 2 and 3; contract sections 21 and 22).
 Each fact has exactly `id`, `scope`, `status`, `maturity`, `summary`, and
 `state_sections` (ordered strings referencing STATE at `contract_revision`).
 The IDs, scopes, statuses, maturity labels, summaries, and section mappings are defined in the
@@ -137,7 +137,7 @@ The IDs, scopes, statuses, maturity labels, summaries, and section mappings are 
 
 Status is one of `implemented`, `partial`, `planned`, `scaffolded`,
 `unsupported`, within the stated scope. Maturity is `Experimental`, `Partial`,
-`Stable`, or JSON null for unspecified; none of these 13 facts is Stable.
+`Stable`, or JSON null for unspecified; none of these 14 facts is Stable.
 Partial shared Flow coverage does not mean missing Python Flow, bounded C++
 language support does not mean C++ MCP, and browser scaffolding is docs only.
 The catalogue grants no governed execution authority; omitted facts imply
