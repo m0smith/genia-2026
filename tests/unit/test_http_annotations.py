@@ -1,3 +1,5 @@
+"""Tests for inert outbound HTTP annotation metadata on Genia functions."""
+
 import pytest
 
 from genia.builtins import make_global_env
@@ -7,6 +9,7 @@ from genia.values import symbol
 
 
 def _run(source: str, env=None):
+    """Evaluate annotation source in a supplied or fresh global environment."""
     return run_source(source, env or make_global_env([]))
 
 

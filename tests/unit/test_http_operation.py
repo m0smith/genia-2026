@@ -31,11 +31,13 @@ from genia.values import (
 
 
 def _http_operation():
+    """Fetch the real `http_operation` builtin from a fresh global env."""
     return make_global_env().get("http_operation")
 
 
 def _call(method="get", base_url="https://api.example.com", path="/v1/things",
            headers=None, query=None, body=None):
+    """Call `http_operation` with valid defaults and selected overrides."""
     op = _http_operation()
     return op(
         symbol(method) if isinstance(method, str) else method,
@@ -48,6 +50,7 @@ def _call(method="get", base_url="https://api.example.com", path="/v1/things",
 
 
 def _stage(result):
+    """Extract the normalized validation stage from an operation error."""
     assert isinstance(result, GeniaOptionErr)
     assert result.reason == "http-operation-invalid"
     return result.context.get("stage")

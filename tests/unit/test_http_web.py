@@ -1,3 +1,5 @@
+"""Loopback tests for the Genia web prelude's inbound HTTP server helpers."""
+
 import json
 import socket
 import threading
@@ -14,14 +16,17 @@ from genia import make_global_env, run_source
 
 
 def _free_port() -> int:
+    """Return a worker-reserved loopback port for web-server tests."""
     # Worker-reserved port below the ephemeral range: see tests/fixtures/loopback.py.
     return free_port()
 
 
 def _start_server(source: str, env, *, filename: str):
+    """Run one Genia HTTP server source program in a background thread."""
     outcome: dict[str, object] = {}
 
     def target() -> None:
+        """Execute the server source and capture its result or exception."""
         try:
             outcome["result"] = run_source(source, env, filename=filename)
         except BaseException as exc:  # pragma: no cover - surfaced through assertions
@@ -33,6 +38,7 @@ def _start_server(source: str, env, *, filename: str):
 
 
 def _request(method: str, url: str, *, body: str | None = None, headers: dict[str, str] | None = None):
+    """Send one HTTP request, retrying until the server accepts connections."""
     encoded_body = None if body is None else body.encode("utf-8")
     last_error = None
 
@@ -51,6 +57,7 @@ def _request(method: str, url: str, *, body: str | None = None, headers: dict[st
 
 
 def _finish_server(thread: threading.Thread, outcome: dict[str, object]):
+    """Join the server thread and return its captured Genia result."""
     thread.join(timeout=3)
     assert not thread.is_alive(), "server thread did not stop"
     if "error" in outcome:

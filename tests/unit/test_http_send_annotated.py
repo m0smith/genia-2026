@@ -1,3 +1,5 @@
+"""Tests for composing inert HTTP annotations into explicit send operations."""
+
 import pytest
 
 from genia.builtins import make_global_env
@@ -8,14 +10,17 @@ from genia.values import GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
 
 
 def _invoke(fn, args):
+    """Invoke a Genia callable with an already-normalized argument list."""
     return fn(*args)
 
 
 def _json_encode(value):
+    """Return deterministic JSON for annotation-send tests."""
     return GeniaOptionSome("{}")
 
 
 def _annotated_function(env, verb, path, dynamic_source):
+    """Define and return one annotated zero-argument Genia handler."""
     run_source(f'@{verb} {{path: "{path}"}}\nhandler() = {dynamic_source}\n', env)
     return env.get("handler")
 
@@ -28,6 +33,7 @@ def test_perform_send_annotated_composes_operation_and_send():
     calls = []
 
     def fake_transport(request):
+        """Capture the composed GET request and return a success response."""
         calls.append(request)
         return HttpTransportResponse(status=200, headers={}, body=b"ok")
 
@@ -54,6 +60,7 @@ def test_perform_send_annotated_uses_post_verb():
     calls = []
 
     def fake_transport(request):
+        """Capture the composed POST request and return a created response."""
         calls.append(request)
         return HttpTransportResponse(status=201, headers={}, body=b"")
 
@@ -125,6 +132,7 @@ def test_perform_send_annotated_two_calls_are_independent():
     calls = []
 
     def fake_transport(request):
+        """Record each composed request for independence assertions."""
         calls.append(request)
         return HttpTransportResponse(status=200, headers={}, body=b"ok")
 
