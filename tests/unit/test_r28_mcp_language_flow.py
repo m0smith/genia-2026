@@ -104,6 +104,16 @@ def test_take_does_not_over_pull_and_a_full_collect_pulls_everything():
     assert everything == "a\nb\nc\n"  # control: proves the printing stage really runs when consumed
 
 
+def test_map_filter_and_take_keep_a_flow_lazy():
+    """Audit (A10): the idiom says map, filter and take keep a Flow lazy; building the stages prints nothing."""
+    built = '["a", "b", "c"] |> lines |> filter((s) -> true) |> map((s) -> print(s)) |> take(1)\n1'
+    value, printed = _stdout_of(built)
+    assert value == 1 and printed == ""
+    consumed = '["a", "b", "c"] |> lines |> filter((s) -> true) |> map((s) -> print(s)) |> take(1) |> run'
+    _, printed = _stdout_of(consumed)
+    assert printed == "a\n"  # a terminal pulled exactly one element through filter and map
+
+
 def test_nothing_runs_until_a_terminal_pulls():
     value, printed = _stdout_of('f = ["a", "b"] |> lines |> each(print)\n1')
     assert value == 1 and printed == ""  # building the Flow pulled nothing
