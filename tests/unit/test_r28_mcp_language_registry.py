@@ -274,6 +274,14 @@ def _probe_stdin_requires_lines_adapter():
         _direct("collect(stdin)")
 
 
+def _probe_absence_aware_callee_receives_none():
+    """A11 (#1084): a callee that explicitly handles absence receives `none` in a direct call; an ordinary callee does not."""
+    assert _shown('inc(x) = x + 1\ninc(none("m"))') == 'none("m")'  # ordinary callee: short-circuited
+    assert _direct('unwrap_or(7, none("m"))') == 7  # unwrap_or is absence-aware
+    assert _direct('handles(o) = unwrap_or(0, o)\nhandles(none("a"))') == 0  # delegates to unwrap_or
+    assert _direct('g(o) =\n  none(r) -> "absent" |\n  _ -> "other"\ng(none("a"))') == "absent"  # explicit none pattern
+
+
 PROBES = {
     "absent_forms_are_absent": _probe_absent_forms_are_absent,
     "tail_recursion_constant_stack": _probe_tail_recursion_constant_stack,
@@ -293,6 +301,8 @@ PROBES = {
     "flow_bounded_demand": _probe_flow_bounded_demand,
     "flow_terminals_and_kinds": _probe_flow_terminals_and_kinds,
     "stdin_requires_lines_adapter": _probe_stdin_requires_lines_adapter,
+    # A11 (#1084): unreferenced by the registry until the implementation phase (intentionally red).
+    "absence_aware_callee_receives_none": _probe_absence_aware_callee_receives_none,
 }
 
 

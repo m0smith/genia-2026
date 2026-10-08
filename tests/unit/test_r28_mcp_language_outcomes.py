@@ -40,8 +40,9 @@ A9_IDIOM = (
     "Outcomes are values: some(x) is present, none(...) is absent, and err(reason) is a recoverable failure "
     "that is not absence. In |> pipelines an ordinary stage receives x from some(x) and its plain result is "
     "wrapped back into some, while none and err skip the remaining stages and are returned unchanged. A direct "
-    "call passes the Outcome itself as the argument, except that a none argument short-circuits an ordinary "
-    "call. Recover around the expression, as in unwrap_or(0, parse_int(s)), not as a later |> stage."
+    "call passes the Outcome itself as the argument, except that a none argument short-circuits the call "
+    "unless the callee explicitly handles absence, such as unwrap_or. Recover around the expression, as in "
+    "unwrap_or(0, parse_int(s)), not as a later |> stage."
 )
 A9_FACT = {
     "id": "outcome_pipeline_propagation",
@@ -143,7 +144,7 @@ def test_a9_idioms_gain_exactly_the_outcomes_member():
 
 def test_a9_outcomes_idiom_is_the_exact_contract_text():
     assert _profile()["idioms"]["outcomes"] == A9_IDIOM
-    assert len(A9_IDIOM.encode("utf-8")) == 510 <= 600
+    assert len(A9_IDIOM.encode("utf-8")) == 566 <= 600  # A11 (#1084): 510 -> 566
 
 
 def test_a9_outcomes_idiom_states_the_documented_distinctions():
