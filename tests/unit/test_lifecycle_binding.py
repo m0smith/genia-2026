@@ -1,3 +1,5 @@
+"""Unit tests for lifecycle annotation binding discovery."""
+
 import importlib
 from unittest.mock import NonCallableMock
 
@@ -5,10 +7,14 @@ import pytest
 
 
 def _binding_module():
+    """Return the lifecycle binding module under test."""
+
     return importlib.import_module("genia.lifecycle_binding")
 
 
 def _annotation(name, metadata=None, *, line=1):
+    """Build annotation metadata with deterministic source-location data."""
+
     lifecycle_binding = _binding_module()
     return lifecycle_binding.AnnotationInfo(
         name=name,
@@ -25,6 +31,8 @@ def _candidate(
     source_identity="suite.genia",
     source_index=1,
 ):
+    """Build a lifecycle annotation candidate for binding discovery tests."""
+
     lifecycle_binding = _binding_module()
     return lifecycle_binding.AnnotationCandidate(
         name=name,
@@ -44,6 +52,8 @@ def _binding(
     required=False,
     participant_kind="callable",
 ):
+    """Build a lifecycle annotation binding fixture with test defaults."""
+
     lifecycle_binding = _binding_module()
     return lifecycle_binding.LifecycleAnnotationBinding(
         phase="test_before",
@@ -57,18 +67,26 @@ def _binding(
 
 
 def _discover(binding, candidates):
+    """Run lifecycle participant discovery through the module under test."""
+
     return _binding_module().discover_lifecycle_participants(binding, candidates)
 
 
 def _participant_names(result):
+    """Return participant declaration names from a binding result."""
+
     return [participant.declaration_name for participant in result.participants]
 
 
 def _diagnostic_reasons(result):
+    """Return diagnostic reason strings from a binding result."""
+
     return [diagnostic.reason for diagnostic in result.diagnostics]
 
 
 def _genia_function(name="setup"):
+    """Build a minimal GeniaFunction value without executing it."""
+
     callable_mod = importlib.import_module("genia.callable")
     environment_mod = importlib.import_module("genia.environment")
     ir_mod = importlib.import_module("genia.ir")
@@ -159,6 +177,8 @@ def test_exact_metadata_filters_exclude_non_matching_metadata():
 
 def test_callable_participant_kind_accepts_callable_values():
     def setup():
+        """Fail if discovery tries to execute a Python callable participant."""
+
         raise AssertionError("binding discovery must not execute participants")
 
     result = _discover(_binding(participant_kind="callable"), [_candidate("setup", setup, [_annotation("setup")])])
@@ -289,6 +309,8 @@ def test_non_string_ordering_reports_field_and_runtime_type_without_calling_valu
     calls = []
 
     def ordering_value():
+        """Record calls if ordering validation accidentally invokes the value."""
+
         calls.append("called")
 
     with pytest.raises(
