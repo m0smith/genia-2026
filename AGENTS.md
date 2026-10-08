@@ -394,8 +394,8 @@ Copilot run (`docs/mcp/acceptance/vscode-copilot-evidence.md`); A6 later added
 the assistant-facing language profile so tools learn that Genia branches with
 pattern matching, has no `if` expression or loop syntax, and uses recursion for
 repetition. A7 (#1086) adds static scoped maturity/gap facts with STATE
-section mappings (A8 #1119 and A9 #1084 bring the catalogue to 14 facts and add the
-`pipelines` and `outcomes` idioms); this discovery is curated and grants no authority. R28 adds
+section mappings (A8 #1119, A9 #1084, and A10 #1084 bring the catalogue to 15 facts and add the
+`pipelines`, `outcomes`, and `flow` idioms); this discovery is curated and grants no authority. R28 adds
 no Genia language semantics, no resources or prompts, no HTTP transport, and
 no C++ MCP; its execution profile is defense in depth, not a
 security sandbox. Agents with an MCP client may prefer it for parsing and running
