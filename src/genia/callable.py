@@ -315,9 +315,7 @@ def eval_with_tco(
     current_args = args
 
     while True:
-        if isinstance(current_fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
-            result = current_fn._dispatch_once(current_args)
-        elif isinstance(current_fn, GeniaFunction):
+        if isinstance(current_fn, GeniaFunction):
             if current_fn.rest_param is None:
                 if len(current_args) != current_fn.arity:
                     raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
@@ -342,6 +340,8 @@ def eval_with_tco(
             )
             if debug_mode:
                 debug_hooks.on_function_exit(current_fn.name, result, frame, current_fn.span)
+        elif isinstance(current_fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+            result = current_fn._dispatch_once(current_args)
         else:
             result = current_fn(*current_args)
 
