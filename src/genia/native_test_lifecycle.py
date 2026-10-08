@@ -13,6 +13,8 @@ from .values import GeniaMap, GeniaOptionSome, OPTION_NONE, symbol
 
 
 def _record(**fields: object) -> GeniaMap:
+    """Build an inert descriptor map from keyword fields."""
+
     record = GeniaMap()
     for key, value in fields.items():
         record = record.put(key, value)
@@ -20,10 +22,14 @@ def _record(**fields: object) -> GeniaMap:
 
 
 def _phase(name: str, action: str) -> GeniaMap:
+    """Build one native-test lifecycle plan phase descriptor."""
+
     return _record(name=symbol(name), action=symbol(action))
 
 
 def _scope(name: str, parent: object, children: list[str]) -> GeniaMap:
+    """Build one native-test lifecycle scope tree descriptor."""
+
     return _record(
         name=symbol(name),
         parent=parent,
