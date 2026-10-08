@@ -11,6 +11,8 @@ from .values import _runtime_type_name
 
 @dataclass(frozen=True)
 class LifecycleAnnotationBinding:
+    """Descriptor for selecting lifecycle participants from annotations."""
+
     phase: str
     annotation_name: str
     filters: Mapping[str, Any]
@@ -22,6 +24,8 @@ class LifecycleAnnotationBinding:
 
 @dataclass(frozen=True)
 class AnnotationInfo:
+    """Annotation metadata discovered on a candidate declaration."""
+
     name: str
     metadata: Mapping[str, Any]
     source_location: Any = None
@@ -29,6 +33,8 @@ class AnnotationInfo:
 
 @dataclass(frozen=True)
 class AnnotationCandidate:
+    """Declaration that may participate in a lifecycle annotation binding."""
+
     name: str
     value: Any
     annotations: list[AnnotationInfo]
@@ -39,6 +45,8 @@ class AnnotationCandidate:
 
 @dataclass(frozen=True)
 class LifecycleParticipant:
+    """Selected lifecycle participant with its binding and ordering data."""
+
     declaration_name: str
     value: Any
     annotation: AnnotationInfo
@@ -50,6 +58,8 @@ class LifecycleParticipant:
 
 @dataclass(frozen=True)
 class LifecycleBindingDiagnostic:
+    """Non-fatal diagnostic emitted while resolving lifecycle annotations."""
+
     phase: str
     annotation_name: str
     declaration_name: str | None
@@ -59,6 +69,8 @@ class LifecycleBindingDiagnostic:
 
 @dataclass(frozen=True)
 class LifecycleBindingResult:
+    """Resolved lifecycle participants and diagnostics for one binding."""
+
     phase: str
     binding: LifecycleAnnotationBinding
     participants: list[LifecycleParticipant]
@@ -77,6 +89,8 @@ def discover_lifecycle_participants(
     binding: LifecycleAnnotationBinding,
     candidates: list[AnnotationCandidate],
 ) -> LifecycleBindingResult:
+    """Return matching lifecycle participants for one annotation binding."""
+
     ordering = _validate_ordering(binding.ordering)
 
     participants: list[LifecycleParticipant] = []
@@ -159,6 +173,8 @@ def _annotation_matches(
     binding: LifecycleAnnotationBinding,
     annotation: AnnotationInfo,
 ) -> bool:
+    """Return whether an annotation name and metadata satisfy a binding."""
+
     if annotation.name != binding.annotation_name:
         return False
     for key, expected in binding.filters.items():
@@ -173,16 +189,22 @@ def _participant_kind_matches(
     binding: LifecycleAnnotationBinding,
     candidate: AnnotationCandidate,
 ) -> bool:
+    """Return whether a candidate value satisfies the binding participant kind."""
+
     if binding.participant_kind == "callable":
         return _is_lifecycle_callable_participant(candidate.value)
     return True
 
 
 def _is_lifecycle_callable_participant(value: Any) -> bool:
+    """Return whether a value can be invoked as a lifecycle participant."""
+
     return isinstance(value, (GeniaFunctionGroup, GeniaFunction)) or callable(value)
 
 
 def _validate_ordering(ordering: Any) -> str:
+    """Validate and return a supported lifecycle participant ordering name."""
+
     if not isinstance(ordering, str):
         raise ValueError(
             "invalid lifecycle annotation binding at binding.ordering: "
@@ -200,6 +222,8 @@ def _order_key(
     ordering: str,
     candidate: AnnotationCandidate,
 ) -> tuple[Any, ...]:
+    """Build the stable sort key for a lifecycle participant candidate."""
+
     source_identity = candidate.source_identity
     source_index = candidate.source_index
     name = candidate.name
@@ -215,6 +239,8 @@ def _diagnostic(
     candidate: AnnotationCandidate,
     reason: str,
 ) -> LifecycleBindingDiagnostic:
+    """Build a binding diagnostic attached to the candidate's source location."""
+
     return LifecycleBindingDiagnostic(
         phase=binding.phase,
         annotation_name=binding.annotation_name,
