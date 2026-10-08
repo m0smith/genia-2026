@@ -73,6 +73,8 @@ def normalize_lifecycle_scope_tree(value: Any) -> GeniaMap:
 
 
 def _normalize_scope(value: Any, index: int) -> GeniaMap:
+    """Normalize one canonical lifecycle scope entry from the scope tree list."""
+
     path = f"{_SCOPE_TREE}.scopes[{index}]"
     if not isinstance(value, GeniaMap):
         _fail(path, "expected map", value)
@@ -101,6 +103,8 @@ def _normalize_scope(value: Any, index: int) -> GeniaMap:
 
 
 def _validate_canonical_hierarchy(scopes_by_name: dict[str, GeniaMap]) -> None:
+    """Reject scope trees that do not match execution/suite/module/test nesting."""
+
     for scope_name in _SCOPE_NAMES:
         if scope_name not in scopes_by_name:
             raise ValueError(
@@ -128,6 +132,8 @@ def _validate_canonical_hierarchy(scopes_by_name: dict[str, GeniaMap]) -> None:
 
 
 def _required(record: GeniaMap, field: str, path: str) -> Any:
+    """Return a required field value or raise the scope-tree error spelling."""
+
     if not record.has(field):
         raise ValueError(
             f"invalid lifecycle scope tree at {path}.{field}: missing required field"
@@ -136,11 +142,15 @@ def _required(record: GeniaMap, field: str, path: str) -> Any:
 
 
 def _require_identifier(value: Any, path: str) -> None:
+    """Require a Genia symbol where the scope schema names a scope identifier."""
+
     if not isinstance(value, GeniaSymbol):
         _fail(path, "expected identifier", value)
 
 
 def _require_parent(value: Any, path: str) -> None:
+    """Require the parent field to be none or some(identifier)."""
+
     if isinstance(value, GeniaOptionNone):
         return
     if isinstance(value, GeniaOptionSome) and isinstance(value.value, GeniaSymbol):
@@ -149,6 +159,8 @@ def _require_parent(value: Any, path: str) -> None:
 
 
 def _require_children(value: Any, path: str) -> None:
+    """Require children to be an ordered list of scope identifiers."""
+
     if not isinstance(value, list):
         _fail(path, "expected list", value)
     for index, child in enumerate(value):
@@ -156,6 +168,8 @@ def _require_children(value: Any, path: str) -> None:
 
 
 def _validate_optional_tree_field(field: str, value: Any) -> None:
+    """Validate optional root-level fields carried by the scope tree map."""
+
     path = f"{_SCOPE_TREE}.{field}"
     if field == "description" and not isinstance(value, str):
         _fail(path, "expected string", value)
@@ -164,6 +178,8 @@ def _validate_optional_tree_field(field: str, value: Any) -> None:
 
 
 def _validate_optional_scope_field(field: str, value: Any, scope_path: str) -> None:
+    """Validate optional fields attached to a single scope map."""
+
     path = f"{scope_path}.{field}"
     if field == "description" and not isinstance(value, str):
         _fail(path, "expected string", value)
@@ -172,27 +188,37 @@ def _validate_optional_scope_field(field: str, value: Any, scope_path: str) -> N
 
 
 def _parent_name(value: GeniaOptionNone | GeniaOptionSome) -> str | None:
+    """Convert the option-encoded parent field into its comparable name."""
+
     if isinstance(value, GeniaOptionNone):
         return None
     return value.value.name
 
 
 def _format_parent(parent: str | None) -> str:
+    """Render expected or actual parent values in lifecycle diagnostics."""
+
     if parent is None:
         return "none"
     return parent
 
 
 def _format_children(children: tuple[str, ...]) -> str:
+    """Render ordered child scope names in lifecycle diagnostics."""
+
     return "[" + ", ".join(children) + "]"
 
 
 def _fail(path: str, expected: str, value: Any) -> None:
+    """Raise a scope-tree validation error with normalized runtime type names."""
+
     actual = _lifecycle_type_name(value)
     raise ValueError(f"invalid lifecycle scope tree at {path}: {expected}, got {actual}")
 
 
 def _lifecycle_type_name(value: Any) -> str:
+    """Report Genia symbols distinctly while delegating other runtime names."""
+
     if isinstance(value, GeniaSymbol):
         return "symbol"
     return _runtime_type_name(value)
