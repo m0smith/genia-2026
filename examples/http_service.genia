@@ -39,8 +39,10 @@ web_serve_http = web.serve_http
 
 # -- Handlers --------------------------------------------------------------
 
+@doc "GET /health — return a plain-text health check response."
 health(_request) = web_ok_text("ok")
 
+@doc "GET /info — return basic service metadata as JSON."
 info(_request) = web_json({
   service: "genia",
   status: "running"
@@ -48,6 +50,7 @@ info(_request) = web_json({
 
 # -- Routing ---------------------------------------------------------------
 
+@doc "Build the routed and CORS-wrapped HTTP handler."
 app() = web_route_request([
   web_get("/health", health),
   web_get("/info", info)
@@ -60,6 +63,7 @@ app() = web_route_request([
 # -- Server configuration -------------------------------------------------
 # Guard pattern: include `max_requests` in the config map only when > 0.
 
+@doc "Build server config, including max_requests only when positive."
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
     host: host,
@@ -73,16 +77,20 @@ config_with_max(host, port, max_requests) = (
 )
 
 # Parse CLI options into typed values with safe defaults.
+@doc "Extract the service port from parsed CLI options."
 port_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(8080, parse_int(cli_option_or(opts, "port", "8080")))
 )
 
+@doc "Extract the optional max-requests limit from parsed CLI options."
 max_requests_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
 )
 
+@doc "Build server config from parsed CLI options."
 config_from_parsed(parsed) = config_with_max("127.0.0.1", port_from_parsed(parsed), max_requests_from_parsed(parsed))
 
+@doc "Parse raw CLI args and return the server config."
 server_config(args) = config_from_parsed(
   cli_parse(args, {
     options: ["port", "max-requests"]
@@ -91,4 +99,5 @@ server_config(args) = config_from_parsed(
 
 # -- Entry point -----------------------------------------------------------
 
+@doc "Start the minimal HTTP service."
 main(args) = web_serve_http(server_config(args), app())

@@ -42,10 +42,12 @@ next_id = ref(1)
 
 # -- Request helpers -------------------------------------------------------
 
+@doc "Extract the parsed request body map, defaulting to an empty map."
 body_map(request) = unwrap_or({}, request |> get("body"))
 
 # -- Server configuration -------------------------------------------------
 
+@doc "Build server config, including max_requests only when positive."
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
     host: host,
@@ -58,14 +60,17 @@ config_with_max(host, port, max_requests) = (
   }
 )
 
+@doc "Extract the TODO service port from parsed CLI options."
 port_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(8081, parse_int(cli_option_or(opts, "port", "8081")))
 )
 
+@doc "Extract the optional max-requests limit from parsed CLI options."
 max_requests_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
 )
 
+@doc "Parse raw CLI args into TODO service server config."
 server_config(args) = config_with_max(
   "127.0.0.1",
   port_from_parsed(cli_parse(args, {options: ["port", "max-requests"]})),
@@ -74,14 +79,17 @@ server_config(args) = config_with_max(
 
 # -- Handlers --------------------------------------------------------------
 
+@doc "GET /todos — return all todo items and their count."
 list_todos(_request) = web_json({
   items: ref_get(todos),
   count: length(ref_get(todos))
 })
 
 # Validate that a title is provided before creating a todo.
+@doc "POST /todos/create — create a todo from the request body title."
 create_todo(request) = create_todo_from_title(unwrap_or("", body_map(request) |> get("title")))
 
+@doc "Validate a title and append a new todo item."
 create_todo_from_title(title) = (
   (title) ? trim(title) == "" -> web_bad_request("title is required") |
   (title) -> {
@@ -97,8 +105,10 @@ create_todo_from_title(title) = (
   }
 )
 
+@doc "POST /todos/complete — mark the requested todo id complete."
 complete_todo(request) = complete_todo_with_id(unwrap_or(-1, body_map(request) |> get("id")))
 
+@doc "Validate a todo id and update the matching todo."
 complete_todo_with_id(id) = (
   (id) ? id < 0 -> web_bad_request("id is required") |
   (id) -> {
@@ -111,6 +121,7 @@ complete_todo_with_id(id) = (
 )
 
 # Use `map` to transform each todo, marking the matching one done.
+@doc "Return a todo marked done when its id matches the requested id."
 mark_done(todo, id) = (
   (todo, id) ? unwrap_or(-1, todo |> get("id")) == id -> {
     id: unwrap_or(-1, todo |> get("id")),
@@ -122,10 +133,12 @@ mark_done(todo, id) = (
 
 # -- Routing & entry point -------------------------------------------------
 
+@doc "Build the TODO service route table."
 app() = web_route_request([
   web_get("/todos", list_todos),
   web_post("/todos/create", create_todo),
   web_post("/todos/complete", complete_todo)
 ])
 
+@doc "Start the TODO HTTP service."
 main(args) = web_serve_http(server_config(args), app())

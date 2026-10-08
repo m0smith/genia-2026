@@ -34,15 +34,20 @@ web_serve_http = web.serve_http
 
 # -- State -----------------------------------------------------------------
 
+@doc "Shared mutable state holding short-code to URL mappings."
 links = ref({})
 
 # -- Request helpers -------------------------------------------------------
 
+@doc "Extract the parsed request body map, defaulting to an empty map."
 body_map(request) = unwrap_or({}, request |> get("body"))
+
+@doc "Extract the parsed request query map, defaulting to an empty map."
 query_map(request) = unwrap_or({}, request |> get("query"))
 
 # -- Server configuration -------------------------------------------------
 
+@doc "Build server config, including max_requests only when positive."
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
     host: host,
@@ -55,14 +60,17 @@ config_with_max(host, port, max_requests) = (
   }
 )
 
+@doc "Extract the shortener service port from parsed CLI options."
 port_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(8085, parse_int(cli_option_or(opts, "port", "8085")))
 )
 
+@doc "Extract the optional max-requests limit from parsed CLI options."
 max_requests_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
 )
 
+@doc "Parse raw CLI args into shortener service server config."
 server_config(args) = config_with_max(
   "127.0.0.1",
   port_from_parsed(cli_parse(args, {options: ["port", "max-requests"]})),
@@ -71,11 +79,13 @@ server_config(args) = config_with_max(
 
 # -- Handlers --------------------------------------------------------------
 
+@doc "POST /links — create a short-link mapping from request body fields."
 create_link(request) = create_link_values(
   unwrap_or("", body_map(request) |> get("code")),
   unwrap_or("", body_map(request) |> get("url"))
 )
 
+@doc "Validate and store a short-code to URL mapping."
 create_link_values(code, url) = (
   (code, _) ? trim(code) == "" -> web_bad_request("code is required") |
   (_, url) ? trim(url) == "" -> web_bad_request("url is required") |
@@ -88,14 +98,17 @@ create_link_values(code, url) = (
   }
 )
 
+@doc "GET /resolve — resolve a short code from the query string."
 resolve_link(request) = resolve_code(unwrap_or("", query_map(request) |> get("code")))
 
 # Lookup a code in the map; use `none?` to detect missing entries.
+@doc "Validate and resolve one short code."
 resolve_code(code) = (
   (code) ? trim(code) == "" -> web_bad_request("code is required") |
   (code) -> resolve_lookup(trim(code), ref_get(links) |> get(trim(code)))
 )
 
+@doc "Return a JSON response for a resolved code or unknown-code error."
 resolve_lookup(code, found) = (
   (_, found) ? none?(found) == true -> web_bad_request("unknown code") |
   (code, found) -> web_json({
@@ -104,16 +117,19 @@ resolve_lookup(code, found) = (
   })
 )
 
+@doc "GET /links — return all stored short-link mappings."
 list_links(_request) = web_json({
   links: ref_get(links)
 })
 
 # -- Routing & entry point -------------------------------------------------
 
+@doc "Build the shortener service route table."
 app() = web_route_request([
   web_post("/links", create_link),
   web_get("/links", list_links),
   web_get("/resolve", resolve_link)
 ])
 
+@doc "Start the shortener HTTP service."
 main(args) = web_serve_http(server_config(args), app())
