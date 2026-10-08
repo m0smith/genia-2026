@@ -1,3 +1,5 @@
+# Native R11 validated pipeline proving case.
+
 native_validate_input(record) =
   validate_record(record, {
     id: (value) -> validate_required("id", value),
@@ -29,6 +31,7 @@ native_validated_record(value, original_outcome) =
   (err(_), original_outcome) -> original_outcome |
   (err(_, _), original_outcome) -> original_outcome
 
+@doc "Parse, validate, and run the native fixture model for one JSONL line."
 native_process_line(line) = {
   parsed = parse_jsonl_record(line) |> native_validate_input
   apply_raw(native_validated_record, [parsed, parsed])

@@ -1,3 +1,5 @@
+# R11 validated pipeline proving case for model, template, and Outcome composition.
+
 """
 # R11 Outcome-Aware Validated Pipeline Proving Case
 
@@ -68,6 +70,7 @@ prompt(record) = {
   output: {kind: quote(json), schema: output_schema, template: OutputRecord}
 }
 
+@doc "Forward successful records through the model and preserve prior Outcome failures."
 process_validated_record(value, original_outcome) =
   (some(record), _) -> apply_raw(pipeline_model, [prompt(record)]) |> "message" |> "content" |> "value" |
   (none(_), original_outcome) -> original_outcome |

@@ -1,3 +1,5 @@
+"""Command-line entrypoint for running Genia shared specs locally or via hosts."""
+
 from __future__ import annotations
 
 import argparse
@@ -82,6 +84,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _run_in_process(args: argparse.Namespace) -> int:
+    """Execute discovered specs through the in-process Python adapters."""
+
     specs, invalid_specs = discover_specs()
 
     total = len(specs)

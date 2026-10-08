@@ -42,6 +42,8 @@ _POLL_BOUND_SECONDS = 5
 
 
 def _process_is_alive(pid: int) -> bool:
+    """Probe whether a pid is present using signal zero."""
+
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
@@ -64,6 +66,8 @@ def _wait_until_dead(pid: int, *, bound_seconds: float = _POLL_BOUND_SECONDS) ->
 
 
 def _launch_capturing_pid(argv: list[str], timeout_ms: int):
+    """Launch a fixture and return both result and observed child pid."""
+
     from tests.fixtures.execution_process_helpers import process_transport_module
 
     module = process_transport_module()
@@ -71,6 +75,8 @@ def _launch_capturing_pid(argv: list[str], timeout_ms: int):
     captured: dict[str, int] = {}
 
     def _spawn_hook(pid: int) -> None:
+        """Capture the pid reported by the transport launch seam."""
+
         captured["pid"] = pid
 
     result = module.launch_process(executable, args, timeout_ms, spawn_hook=_spawn_hook)
@@ -78,6 +84,8 @@ def _launch_capturing_pid(argv: list[str], timeout_ms: int):
 
 
 def _assert_no_leaked_child(pid, *, context: str) -> None:
+    """Assert a captured child has exited, force-killing on failure cleanup."""
+
     if pid is None:
         pytest.fail(
             f"{context}: no PID was captured via spawn_hook -- either no child "
@@ -150,6 +158,8 @@ def test_no_leaked_child_after_launch_failure():
     captured: dict[str, int] = {}
 
     def _spawn_hook(pid: int) -> None:
+        """Capture a pid if a partial launch reaches child creation."""
+
         captured["pid"] = pid
 
     result = module.launch_process(

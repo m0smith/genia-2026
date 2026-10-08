@@ -94,6 +94,8 @@ def refusing_launcher():
     """
 
     def _refuse(*_args: Any, **_kwargs: Any) -> Any:
+        """Fail if a zero-effect test accidentally reaches the launcher."""
+
         raise AssertionError(
             "launcher was invoked, but this test expects zero provider effects"
         )
@@ -106,6 +108,8 @@ def recording_launcher(result: Any):
     calls: list[tuple[Any, ...]] = []
 
     def _launch(*args: Any, **kwargs: Any) -> Any:
+        """Record launch arguments and return the preselected fixture result."""
+
         calls.append((args, kwargs))
         return result
 
@@ -169,11 +173,15 @@ def launch_bounded(
     captured: dict[str, int] = {}
 
     def _spawn_hook(pid: int) -> None:
+        """Remember the child pid exposed by the transport test seam."""
+
         captured["pid"] = pid
 
     result_queue: queue.Queue = queue.Queue(maxsize=1)
 
     def _run() -> None:
+        """Run the launch attempt and forward result or exception to the caller."""
+
         try:
             result_queue.put(
                 ("ok", module.launch_process(executable, args, timeout_ms, spawn_hook=_spawn_hook))

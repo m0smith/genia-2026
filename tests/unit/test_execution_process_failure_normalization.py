@@ -24,6 +24,8 @@ _LEAK_SENTINEL = "RAW_HOST_DETAIL_SENTINEL_978_MUST_NOT_CROSS_BOUNDARY"
 
 
 def _launch(executable: str, args: list[str], timeout_ms: int):
+    """Call the process transport directly for failure-normalization tests."""
+
     from tests.fixtures.execution_process_helpers import process_transport_module
 
     module = process_transport_module()
@@ -31,6 +33,8 @@ def _launch(executable: str, args: list[str], timeout_ms: int):
 
 
 def _assert_no_leak(*objs) -> None:
+    """Assert rendered objects contain no raw host detail sentinels."""
+
     for obj in objs:
         rendered = repr(obj)
         assert _LEAK_SENTINEL not in rendered
@@ -118,9 +122,13 @@ def test_provider_failure_context_excludes_raw_exception_text_and_type_name():
     module = process_execution_module()
 
     class _VeryRecognizableHostException(RuntimeError):
+        """Sentinel exception type that must not cross the process boundary."""
+
         pass
 
     def _explode(*_args, **_kwargs):
+        """Raise a recognizable host exception to test normalization."""
+
         raise _VeryRecognizableHostException(
             f"host exploded: {_LEAK_SENTINEL} at /some/native/path"
         )

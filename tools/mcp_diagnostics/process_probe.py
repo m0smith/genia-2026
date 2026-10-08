@@ -28,6 +28,8 @@ from tests.fixtures import r28_mcp_helpers as h  # noqa: E402
 
 
 def _raw_ps(pid, wide):
+    """Return one raw `ps` row for a pid, optionally with wide argv output."""
+
     command = ["ps", "-o", "pid=,ppid=,lstart=,command=", "-p", str(pid)]
     if wide:
         command.insert(1, "-ww")
@@ -37,6 +39,8 @@ def _raw_ps(pid, wide):
 
 
 def main() -> int:
+    """Run the diagnostic probe and report whether worker discovery succeeds."""
+
     report = {"backend": h.process_backend(), "sys.platform": sys.platform, "worker_rows": [], "governed_workers": []}
     with h.LauncherSession() as session:
         session.wait_ready()

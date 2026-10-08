@@ -33,6 +33,8 @@ from tests.fixtures.execution_process_helpers import (
 
 
 def _perform(capability, request):
+    """Invoke the process execution boundary through the lazy fixture import."""
+
     from tests.fixtures.execution_process_helpers import process_execution_module
 
     module = process_execution_module()
@@ -53,6 +55,8 @@ def test_non_capability_first_argument_is_rejected_as_misuse(label, value):
 
 
 def _closed_map(**fields) -> GeniaMap:
+    """Build a GeniaMap from keyword fields for closed-shape misuse tests."""
+
     result = GeniaMap()
     for key, value in fields.items():
         result = result.put(key, value)

@@ -18,6 +18,8 @@ from tests.fixtures.process_fixtures import OUTPUT_LIMIT_BYTES, write_forever, w
 
 
 def _launch(argv: list[str], timeout_ms: int = 15000):
+    """Run the process transport fixture with output-limit defaults."""
+
     from tests.fixtures.execution_process_helpers import process_transport_module
 
     module = process_transport_module()

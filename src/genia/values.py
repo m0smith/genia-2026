@@ -743,7 +743,11 @@ class GeniaCell:
 
 
 class GeniaProcess:
+    """Thread-backed mailbox process used by the language-level process API."""
+
     def __init__(self, handler: Callable[[Any], Any]):
+        """Start a daemon worker that invokes `handler` for queued messages."""
+
         self._handler = handler
         self._mailbox: queue.Queue[tuple[int, Any]] = queue.Queue()
         self._failed = False
@@ -757,9 +761,13 @@ class GeniaProcess:
         _register_r25_entity(self)
 
     def _error_text(self, exc: BaseException) -> str:
+        """Render handler exceptions through the shared diagnostic formatter."""
+
         return format_exception_text(exc)
 
     def _run(self) -> None:
+        """Drain mailbox messages sequentially until the handler fails."""
+
         while True:
             sequence, message = self._mailbox.get()
             with self._lock:
@@ -784,6 +792,8 @@ class GeniaProcess:
                 return
 
     def send(self, message: Any) -> None:
+        """Enqueue one message unless the process has failed or carries authority."""
+
         if contains_declassification_authority_value(message):
             raise TypeError("declassification authority cannot be sent to a process")
         with self._lock:
@@ -794,30 +804,44 @@ class GeniaProcess:
         self._mailbox.put((sequence, message))
 
     def _r25_wait_idle(self) -> None:
+        """Block test synchronization until all accepted messages finish."""
+
         with self._lock:
             target = self._accepted
             self._lock.wait_for(lambda: self._completed >= target and not self._in_flight)
 
     def _r25_accepted_count(self) -> int:
+        """Return the number of messages accepted for R25 fixture accounting."""
+
         with self._lock:
             return self._accepted
 
     def _r25_is_idle(self) -> bool:
+        """Report whether accepted work is complete and no handler is in flight."""
+
         with self._lock:
             return self._completed >= self._accepted and not self._in_flight
 
     def is_alive(self) -> bool:
+        """Return whether the daemon worker thread is still running."""
+
         return self._thread.is_alive()
 
     def failed(self) -> bool:
+        """Return whether the handler raised and closed the mailbox."""
+
         with self._lock:
             return self._failed
 
     def error(self) -> str | None:
+        """Return the formatted handler error, if the process failed."""
+
         with self._lock:
             return self._error
 
     def __repr__(self) -> str:
+        """Render only process state, never handler or queued message details."""
+
         with self._lock:
             if self._failed:
                 return "<process failed>"
