@@ -195,6 +195,38 @@ def _probe_validated_pipeline_evaluates():
     assert str(outcomes[0]).startswith("some(") and str(outcomes[1]).startswith("err(")
 
 
+def _shown(source):
+    """Return the evaluated value's string form with double quotes, so Outcome text matches the CLI display."""
+    return str(_direct(source)).replace("'", '"')
+
+
+def _probe_direct_call_vs_pipeline_outcome():
+    """A9.2 rows 1-4 (#1084): a direct call receives the Outcome itself; a pipeline lifts over it."""
+    inc = "inc(x) = x + 1\n"
+    assert _shown(inc + "some(1) |> inc") == "some(2)"  # pipeline unwraps and re-wraps
+    assert _shown(inc + "some(1) |> inc |> inc") == "some(3)"
+    assert _shown(inc + 'inc(none("m"))') == 'none("m")'  # ordinary call short-circuits on none
+    assert _shown(inc + 'none("m") |> inc') == 'none("m")'
+    assert _shown(inc + 'err("bad") |> inc') == 'err("bad")'  # err propagates unchanged
+    direct = _direct(inc + "inc(some(1))")  # the callee received some(1), not 1
+    assert str(direct) != "some(2)" and str(direct).startswith("none(")
+
+
+def _probe_err_is_not_absence():
+    """A9 (#1084): `err(...)` is neither `none` nor `some`, and a later `unwrap_or` stage leaves it unchanged."""
+    assert _direct('none?(err("e"))') is False
+    assert _direct('is_some?(err("e"))') is False
+    assert _shown('err("bad") |> unwrap_or(0)') == 'err("bad")'  # not converted to none or recovered
+
+
+def _probe_recovery_wraps_pipeline():
+    """A9 (#1084): `unwrap_or` recovers around the whole expression; as a later `|>` stage it never runs after `none`."""
+    assert _direct('unwrap_or(0, parse_int("x"))') == 0
+    assert _direct('unwrap_or(0, parse_int("7"))') == 7
+    later_stage = _direct('parse_int("x") |> unwrap_or(0)')
+    assert str(later_stage).startswith("none(")  # a later stage never runs after none
+
+
 PROBES = {
     "absent_forms_are_absent": _probe_absent_forms_are_absent,
     "tail_recursion_constant_stack": _probe_tail_recursion_constant_stack,
@@ -203,6 +235,11 @@ PROBES = {
     "supported_forms_evaluate": _probe_supported_forms_evaluate,
     "open_clause_rule": _probe_open_clause_rule,
     "validated_pipeline_evaluates": _probe_validated_pipeline_evaluates,
+    # A9 (#1084): the registry does not reference these yet, so the referenced-equals-implemented
+    # gate below is intentionally red until the implementation phase.
+    "direct_call_vs_pipeline_outcome": _probe_direct_call_vs_pipeline_outcome,
+    "err_is_not_absence": _probe_err_is_not_absence,
+    "recovery_wraps_pipeline": _probe_recovery_wraps_pipeline,
 }
 
 
@@ -242,7 +279,7 @@ def test_validated_pipeline_registry_entries_are_anchored_and_probed():
     idioms = REGISTRY["language"]["idioms"]
     assert "pipelines" in idioms["value"]
     assert any(i.get("anchor") == "state:validated-pipelines" for i in idioms["evidence"])
-    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 13
+    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 14  # A9 (#1084): 13 -> 14
 
 
 def test_the_direct_evaluation_helper_really_evaluates():

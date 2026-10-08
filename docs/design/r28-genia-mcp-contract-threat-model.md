@@ -1167,3 +1167,121 @@ stated here; every other member, vocabulary, and bound is unchanged.
 The new content grants no authority, adds no tool, resource, prompt, transport, or limit,
 and claims no built-in parser for any input format, no C++ MCP, and no Flow shared-coverage
 beyond STATE section 0. It does not make `docs/strategy/killer-workflow.md` authoritative.
+
+## 22. Amendment A9: Outcome propagation profile content (#1084)
+
+Pre-flight: issue #1084, comment `issuecomment-6065303048` (approved decisions A, C; B deferred to a
+separate A10). This amendment defines MCP application content, not Genia semantics; the
+behavior it describes is recorded in `GENIA_STATE.md` (anchors in A9.3). A9 supersedes only the
+A6/A7/A8 closed sizes and members as stated here; every other member, vocabulary, and bound is
+unchanged.
+
+### A9.1 Additions
+
+- `result.language.idioms` gains exactly one member, `outcomes` (so `idioms` has exactly
+  `branching`, `clauses`, `outcomes`, `pipelines`, `repetition`). Its value is exactly this
+  string (510 UTF-8 bytes; static bound at most 600):
+
+  > Outcomes are values: some(x) is present, none(...) is absent, and err(reason) is a recoverable failure that is not absence. In |> pipelines an ordinary stage receives x from some(x) and its plain result is wrapped back into some, while none and err skip the remaining stages and are returned unchanged. A direct call passes the Outcome itself as the argument, except that a none argument short-circuits an ordinary call. Recover around the expression, as in unwrap_or(0, parse_int(s)), not as a later |> stage.
+
+- `result.language.discovery.facts` grows from 13 to exactly 14 objects. The 14th, appended
+  last (after `validated_data_pipelines`), is `outcome_pipeline_propagation`: `scope` `language`,
+  `status` `implemented`, `maturity` `Experimental`, `state_sections` `["2","3"]`, and `summary`
+  exactly (220 UTF-8 bytes; bound at most 256):
+
+  > Experimental: in |> pipelines ordinary stages lift over some and none or err skip later stages unchanged; err is not absence; a direct call receives the Outcome itself; recover with unwrap_or around the whole expression.
+
+- The discovery JSON bound (16,384 UTF-8 bytes) and the fact object shape
+  (`id`, `scope`, `status`, `maturity`, `summary`, `state_sections`) are unchanged. No new
+  top-level or `language` member is added.
+
+### A9.2 Factual distinction the content states
+
+| Situation | Behavior | Example (Python reference host) |
+|---|---|---|
+| Direct call, `some(x)` argument | The callee receives the Outcome `some(x)` itself; it is not unwrapped | `inc(x) = x + 1` then `inc(some(1))` is not `some(2)` (it yields a `none` type-error Outcome) |
+| Direct call, `none(...)` argument | An ordinary call short-circuits and returns the `none` | `inc(none("m"))` is `none("m")` |
+| Pipeline stage, `some(x)` | An ordinary stage receives `x`; a plain result is wrapped back into `some` | `some(1) \|> inc` is `some(2)` |
+| Pipeline stage, `none(...)` / `err(...)` | Remaining stages do not run; the same value is returned; `err` is not converted to `none` | `none("m") \|> inc` is `none("m")`; `err("bad") \|> inc` is `err("bad")` |
+| `err` vs absence | `err(...)` is a recoverable value-level failure, not absence | `none?(err("e"))` is `false` |
+| Recovery | `unwrap_or` recovers the whole expression; as a later stage it never runs after `none` | `unwrap_or(0, parse_int("x"))` is `0`; `parse_int("x") \|> unwrap_or(0)` stays `none("parse-error", …)` |
+
+The example column is evidence for A9.5 probes, not additional wire content. The idiom and
+fact state no host diagnostic text and no `context` map contents.
+
+### A9.3 Authorizing STATE anchors (`GENIA_STATE.md`)
+
+Each claim must carry `state_text` evidence whose fragment appears verbatim in the anchored
+section (already verified present as of this contract):
+
+| Claim | Fragment | Anchor | Exists? |
+|---|---|---|---|
+| Outcome is `some`/`none`/`err`; Experimental | `for recoverable failure (Experimental)` | `state:outcome-propagation` (legacy 2) | **No — add** |
+| `err` is not absence | `` `err(...)` is not absence `` | `state:outcome-propagation` | **No — add** |
+| Ordinary call short-circuits on `none` argument | `` ordinary function calls short-circuit on `none(...)` arguments `` | `state:outcome-propagation` | **No — add** |
+| Pipelines lift ordinary stages over `some`; plain results re-wrapped | `` pipelines short-circuit on `none(...)` and `err(...)`, and automatically lift ordinary stages over `some(...)` ``; `` non-Option stage results are wrapped back into `some(...)` `` | `state:outcome-propagation` | **No — add** |
+| Recovery wraps the whole pipeline | `` recovery must wrap the whole pipeline `` | `state:outcome-propagation` | **No — add** |
+| Pipeline evaluation propagates | `automatic Outcome propagation is part of pipeline evaluation`; `` if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x` ``; `` if a stage input is `err(...)`, the remaining stages do not execute and the same `err(...)` is returned `` | `state:syntax-forms` (legacy 3) | Yes |
+
+Prerequisites for the implementation phase, to be made in `GENIA_STATE.md` (not in this phase):
+
+1. Add the marker `<!-- anchor: state:outcome-propagation -->` to the section 2 Outcome/Option
+   material and a matching registry crosswalk entry (`legacy_section` `"2"`).
+2. **Missing STATE text.** The clause "a direct call passes the Outcome itself as the
+   argument" (some(x) is a normal value in a direct call) is recorded in `GENIA_RULES.md`
+   (`In direct calls, \`some(x)\` is still a normal value and is passed explicitly.`) and
+   exercised by a probe, but `GENIA_STATE.md` has no sentence for it. Under AGENTS.md, STATE
+   is authority, so the implementation must add that one sentence to STATE under the new
+   anchor, restating RULES and the existing behavior. No new semantics. If that is not
+   accepted, the clause and the matching summary phrase are dropped and A9 is re-amended
+   before implementation; the idiom must not ship an unanchored claim.
+
+### A9.4 Closed surface and wire invariants (unchanged)
+
+- Exactly four tools in the order `genia_capabilities`, `genia_parse`, `genia_run`,
+  `genia_language_profile`; no resources, prompts, pagination, transport, limit, or authority.
+- `genia_language_profile` still takes no arguments, returns the `genia.mcp.v1` envelope
+  with `structuredContent` equal to the single text item, and is byte-identical across calls,
+  protocol eras, namespace modes, and plain file mode; JSON member order is the encoder's
+  sorted order; the fact array order is fixed.
+- The `genia_capabilities` payload does not change. Output remains static, with no live
+  discovery and no runtime registry or STATE read.
+- The wire change is exactly A9.1; the golden snapshot changes only by those two additions.
+
+### A9.5 Future test obligations (to be written in the TEST phase; none are written here)
+
+Failing tests are committed before implementation.
+
+1. Golden wire snapshot `tests/data/mcp_language_profile.golden.json`: `idioms.outcomes` exact
+   text; 14 facts, 14th `outcome_pipeline_propagation` with the A9.1 fields; no other diff.
+2. `tests/unit/test_r28_mcp_language_profile.py`: exact idiom keys; exact 14-fact catalogue and
+   order; summary ≤ 256 bytes, idiom ≤ 600 bytes, discovery ≤ 16,384 bytes; identical in plain
+   file mode, both protocol eras, and across calls; capabilities payload unchanged.
+3. `tests/unit/test_r28_mcp_language_registry.py`: new probes
+   `direct_call_vs_pipeline_outcome` (A9.2 rows 1–4), `err_is_not_absence`, and
+   `recovery_wraps_pipeline`, each referenced by the registry and implemented (the existing
+   referenced-equals-implemented gate); registry projection equals the committed generated
+   block and the golden; `python tools/gen_mcp_language_profile.py --check` passes.
+4. `tests/doc/test_state_anchors_and_registry_sync.py`: the new anchor exists once; every
+   `state_text` fragment in A9.3 appears in its anchored section; `state_sections` equals the
+   crosswalk of the fact's anchors (`["2","3"]`).
+5. `tests/doc/test_semantic_doc_sync.py` and `tests/unit/test_r28_mcp_conformance_matrix.py`:
+   matrix row D10 (14 facts, `idioms.outcomes`), `docs/mcp/reference.md`, STATE 9.50, and
+   `docs/releases/R28.md` agree on the count 14; stale "12 scoped facts" wording in
+   `AGENTS.md` and `docs/releases/R28.md` is corrected in the documentation phase.
+6. Official-SDK MCP stdio acceptance (`test_r28_mcp_official_client.py`) still passes, and the
+   advertised tool list stays the closed four.
+
+### A9.6 Non-goals and non-claims
+
+- No new Genia syntax or semantics; no parser, evaluator, builtin, or Core IR change; no
+  change to Outcome, pipeline, `unwrap_or`, or `err` behavior.
+- No new MCP tool, resource, prompt, transport, HTTP surface, limit, authority, or C++ MCP; no
+  new authority or source-reference wire field; no second registry.
+- No host-parity change: the content describes the language as recorded in STATE and was
+  observed on the Python reference host; it claims no C++ Outcome or pipeline conformance beyond
+  `flow_shared_coverage` and STATE section 0.
+- No Flow laziness, single-use, terminal, `lines`, or `stdin` content (deferred to A10), no
+  validated-pipeline change (A8), and no change to `flow_shared_coverage`.
+- The content grants no authority, does not mirror STATE, and does not make
+  `docs/strategy/killer-workflow.md` authoritative.

@@ -162,8 +162,9 @@ def test_profile_pattern_and_form_claims():
     assert "define" in pipelines
 
 
-def test_validated_pipeline_fact_is_last_experimental_and_scoped_to_state_section_6():
-    fact = _profile()["discovery"]["facts"][-1]
+def test_validated_pipeline_fact_is_13th_experimental_and_scoped_to_state_section_6():
+    # A9 (#1084) appends the 14th fact after it, so it is no longer last.
+    fact = _profile()["discovery"]["facts"][12]
     assert fact["id"] == "validated_data_pipelines"
     assert (fact["scope"], fact["status"], fact["maturity"], fact["state_sections"]) == ("language", "implemented", "Experimental", ["6"])
     assert "callers define" in fact["summary"]
@@ -276,8 +277,8 @@ def test_discovery_is_the_exact_closed_scoped_catalogue():
     discovery = _profile()["discovery"]
     assert discovery == {"coverage": "curated_non_exhaustive", "facts": DISCOVERY_FACTS}
     assert set(discovery) == {"coverage", "facts"}
-    assert len(discovery["facts"]) == 13
-    assert len({fact["id"] for fact in discovery["facts"]}) == 13
+    assert len(discovery["facts"]) == 14  # A9 (#1084): 13 -> 14
+    assert len({fact["id"] for fact in discovery["facts"]}) == 14
     assert len(json.dumps(discovery, ensure_ascii=False).encode("utf-8")) <= 16384
     for fact in discovery["facts"]:
         assert set(fact) == {"id", "scope", "status", "maturity", "summary", "state_sections"}

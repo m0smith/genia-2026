@@ -472,6 +472,7 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
   - `python.open` returns opaque Python file-handle values (`<python file>`)
   - these are capability-style values intended only for passing back to allowlisted Python host exports
 ### Current consistency notes
+<!-- anchor: state:outcome-propagation -->
 
 - Maybe/absence behavior is now unified around one explicit family:
   - present value: `some(value)`
@@ -493,6 +494,7 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
 - `some(pattern)`, `none(...)`, and `err(...)` constructor patterns are implemented in pattern matching.
   - context-aware forms `some(value, ctx)`, `none(reason, ctx)`, `err(reason, ctx)` bind only when context is present
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
+  - In direct calls, `some(x)` is still a normal value and is passed explicitly.
   - lambda expressions whose body delegates to a known Option-aware function (for example `(o) -> unwrap_or(0, o)`) are recognized as absence-aware and bypass short-circuiting
 - list higher-order functions (`reduce`, `map`, `filter`) are pure prelude implementations using `apply_raw` for callback invocation; `none(...)` list elements are delivered to the callback without short-circuit
   - `reduce` accepts both list and Flow (Seq-compatible) as its third argument; `none(...)` as initial accumulator is not short-circuited
@@ -3573,20 +3575,20 @@ PYTHON REFERENCE HOST (MCP adapter):
   the same `genia.mcp.v1` envelope (`result = {language: {...}}`).
 - `language` is a fixed constant except `contract_revision` (the launch revision `genia_capabilities` reports): `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`, `examples` (`gcd`, `factorial`; they
   evaluate to `6` and `120` under direct command-source evaluation, verified by tests), and (A7) `discovery`. A literal-first-parameter multi-clause function needs its first clause declared `open`
-  (`open gcd(a, 0) = a`; the same text without `open` is rejected), and the profile states that rule in `idioms.clauses`. Amendment A8 (issue #1119) adds `idioms.pipelines`, anchored in `state:validated-pipelines`. Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the
+  (`open gcd(a, 0) = a`; the same text without `open` is rejected), and the profile states that rule in `idioms.clauses`. Amendment A8 (issue #1119) adds `idioms.pipelines`, anchored in `state:validated-pipelines`. Amendment A9 (issue #1084) adds `idioms.outcomes`, anchored in `state:outcome-propagation` and `state:syntax-forms`: it restates, for assistants, that `some`/`none`/`err` are values, that `|>` pipelines lift ordinary stages over `some` while `none` and `err` skip later stages unchanged, that `err` is not absence, that a direct call receives the Outcome itself, and that recovery wraps the whole expression (`unwrap_or(0, parse_int(s))`) rather than being a later stage. Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the
   encoder's sorted order.
 - **Provenance.** Each claim restates implemented behavior documented in the language sections of this file (control flow in `state:control-flow`, patterns in `state:pattern-matching`, tail calls in `state:tail-calls`, open
   clauses in `state:open-functions`). The governed members and the discovery catalogue are generated into a delimited block of `apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
   `docs/contract/semantic_facts.json`, a guarded projection source: this file stays the authority, and each registry fact carries semantic anchors (`<!-- anchor: state:... -->` markers in this file) and evidence (STATE
   text, executable probes, or manifest cross-checks). The server never reads the registry at runtime; `state_sections` values keep their legacy section numbers through the registry's anchor crosswalk.
-- **Discovery (A7).** `language.discovery` is exactly `{coverage, facts}`: `coverage` is `"curated_non_exhaustive"` and `facts` is a fixed ordered catalogue of 13 scoped facts, each exactly `{id, scope, status, maturity,
+- **Discovery (A7).** `language.discovery` is exactly `{coverage, facts}`: `coverage` is `"curated_non_exhaustive"` and `facts` is a fixed ordered catalogue of 14 scoped facts, each exactly `{id, scope, status, maturity,
   summary, state_sections}`. Status is `implemented|partial|planned|scaffolded|unsupported` within the row's scope; maturity copies an explicit STATE rating or is JSON null (null means unspecified, not Stable and not
   unavailable). The facts are `pattern_branching`, `tail_calls`, `if_and_loops`, `flow_shared_coverage`, `core_ir_stability`, `cpp_language_floor`, `other_language_hosts`, `browser_runtime`, `mcp_surface`, `cpp_mcp`,
-  `windows_mcp`, `macos_hardening`, and (A8, issue #1119) `validated_data_pipelines`; their ids, scopes, statuses, maturity labels, summaries, and anchors are defined only in the registry (and projected into amendment A7, section 20). Partial C++ support is the bounded
+  `windows_mcp`, `macos_hardening`, (A8, issue #1119) `validated_data_pipelines`, and (A9, issue #1084) `outcome_pipeline_propagation`; their ids, scopes, statuses, maturity labels, summaries, and anchors are defined only in the registry (and projected into amendment A7, section 20). Partial C++ support is the bounded
   R27 language floor, not C++ MCP; partial Flow shared coverage does not mean missing Python Flow behavior; browser scaffolding is documentation only; macOS hardening is bounded as in section 9.48 and no security sandbox
   is claimed. The catalogue grants no execution authority, is not an exhaustive inventory, performs no live discovery, is at most 16,384 UTF-8 bytes with summaries at most 256 bytes (static output bounds, not runtime
   limits), and is identical in plain file mode.
-- **Evidence:** `tests/unit/test_r28_mcp_language_profile.py`, `tests/unit/test_r28_mcp_language_registry.py`, `tests/doc/test_state_anchors_and_registry_sync.py`, and the golden wire snapshot
+- **Evidence:** `tests/unit/test_r28_mcp_language_profile.py`, `tests/unit/test_r28_mcp_language_registry.py`, `tests/unit/test_r28_mcp_language_outcomes.py` (A9), `tests/doc/test_state_anchors_and_registry_sync.py`, and the golden wire snapshot
   `tests/data/mcp_language_profile.golden.json`; matrix rows D1, D5, D6, D9, D10 in `docs/mcp/conformance-matrix.md`. The authentic client acceptance runs (1-3) predate A6 and A7 and describe the three-tool surface; no new
   authentic client run is claimed. Not done: source-specific parse or run diagnostic hints.
 
