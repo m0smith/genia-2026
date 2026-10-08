@@ -1,3 +1,5 @@
+"""HTTP protected-value sink tests for redaction and declassification boundaries."""
+
 import pytest
 
 from genia.builtins import make_global_env
@@ -14,6 +16,7 @@ PURPOSE = "http_send"
 
 
 def _provider_source() -> str:
+    """Return Genia source that creates the sentinel-bearing config provider."""
     return (
         "config_provider([{kind: quote(values), values: {"
         f'{KEY_SENTINEL}: "{PAYLOAD_SENTINEL}"'
@@ -22,6 +25,7 @@ def _provider_source() -> str:
 
 
 def _provider_and_token(env):
+    """Create a provider/token pair for the outbound HTTP purpose."""
     return run_source(
         f"provider = {_provider_source()}\n"
         f'token = secret_get(provider, "{KEY_SENTINEL}", quote({PURPOSE})) |> unwrap_or(none)\n'
@@ -31,10 +35,12 @@ def _provider_and_token(env):
 
 
 def _invoke(fn, args):
+    """Invoke a Genia callable with an already-normalized argument list."""
     return fn(*args)
 
 
 def _json_encode(value):
+    """Return deterministic JSON for protected-sink tests."""
     return GeniaOptionSome("{}")
 
 
@@ -98,6 +104,7 @@ def test_http_send_full_round_trip_reveals_credential_only_to_transport_sentinel
     calls = []
 
     def fake_transport(request):
+        """Capture the authorized request that may see the secret payload."""
         calls.append(request)
         return HttpTransportResponse(status=200, headers={}, body=b"ok")
 
@@ -152,6 +159,7 @@ def test_http_send_unauthorized_protected_placement_fails_closed_sentinel_free(c
         authority_arg = GeniaOptionNone("nil")
 
     def fake_transport(request):
+        """Fail the test if unauthorized protection reaches transport."""
         raise AssertionError("transport must not be called for unauthorized protected placement")
 
     with pytest.raises(TypeError) as excinfo:
@@ -171,6 +179,7 @@ def test_http_send_unauthorized_protected_placement_fails_closed_sentinel_free(c
 
 def test_http_response_can_never_carry_protection():
     def fake_transport(request):
+        """Return an ordinary response that must remain unprotected."""
         return HttpTransportResponse(status=200, headers={"X-Test": "1"}, body=b"ok")
 
     env = make_global_env([])

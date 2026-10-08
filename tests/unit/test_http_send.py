@@ -1,3 +1,5 @@
+"""HTTP send lifecycle tests for operation normalization and transport calls."""
+
 import http.server
 import threading
 
@@ -23,14 +25,17 @@ from genia.values import (
 
 
 def _invoke(fn, args):
+    """Invoke a Genia callable with an already-normalized argument list."""
     return fn(*args)
 
 
 def _json_encode(value):
+    """Return a deterministic JSON body for tests that do not inspect encoding."""
     return GeniaOptionSome("{}")
 
 
 def _operation(**overrides):
+    """Construct a valid outbound HTTP operation with per-test overrides."""
     fields = {
         "method": symbol("get"),
         "base_url": "http://example.invalid",
@@ -54,7 +59,10 @@ def _operation(**overrides):
 
 
 def _fake_transport(response=None, failure=None, calls=None):
+    """Build an injectable transport that records calls and returns one outcome."""
+
     def transport(request):
+        """Capture one request before returning or raising the configured result."""
         if calls is not None:
             calls.append(request)
         if failure is not None:
@@ -274,6 +282,7 @@ def test_perform_http_send_json_body_uses_injected_json_encode():
     operation = _operation(body=GeniaMap().put("kind", symbol("json")).put("value", GeniaMap()))
 
     def json_encode(value):
+        """Return the exact JSON payload expected by this test."""
         return GeniaOptionSome('{"k":"v"}')
 
     perform_http_send(
@@ -333,18 +342,23 @@ def test_perform_http_send_timeout_seconds_derived_from_timeout_ms():
 
 
 def _free_port() -> int:
+    """Return a worker-reserved loopback port for local HTTP fixtures."""
     # Worker-reserved port below the ephemeral range: see tests/fixtures/loopback.py.
     return free_port()
 
 
 class _FixtureHandler(http.server.BaseHTTPRequestHandler):
+    """Loopback HTTP handler used by the end-to-end Genia source test."""
+
     def do_GET(self) -> None:  # noqa: N802
+        """Return a minimal successful plain-text response."""
         self.send_response(200)
         self.send_header("Content-Type", "text/plain")
         self.end_headers()
         self.wfile.write(b"ok")
 
     def log_message(self, format, *args):  # noqa: A002
+        """Suppress stdlib access logging during loopback tests."""
         pass
 
 

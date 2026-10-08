@@ -1,3 +1,5 @@
+"""HTTP transport boundary tests for real loopback and injected failure paths."""
+
 import http.server
 import socket
 import ssl
@@ -18,28 +20,37 @@ from genia.http_transport import (
 
 
 def _free_port() -> int:
+    """Return a worker-reserved loopback port for connection-failure probes."""
     # Worker-reserved port below the ephemeral range: see tests/fixtures/loopback.py.
     return free_port()
 
 
 class _FixtureServer(http.server.HTTPServer):
+    """Loopback server that records requests and replays queued responses."""
+
     def __init__(self, responses):
+        """Create a local server with deterministic response fixtures."""
         super().__init__(("127.0.0.1", 0), _FixtureHandler)
         self.captured: list[dict] = []
         self._responses = list(responses)
 
     def next_response(self):
+        """Pop the next configured response or return an empty success."""
         if self._responses:
             return self._responses.pop(0)
         return 200, {}, b""
 
     @property
     def port(self) -> int:
+        """Expose the assigned loopback port for request construction."""
         return self.server_port
 
 
 class _FixtureHandler(http.server.BaseHTTPRequestHandler):
+    """Request handler that captures inbound bytes before sending a fixture."""
+
     def _handle(self) -> None:
+        """Record one inbound request and write the server's next response."""
         length = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(length) if length else b""
         self.server.captured.append(
@@ -65,11 +76,15 @@ class _FixtureHandler(http.server.BaseHTTPRequestHandler):
     do_DELETE = _handle
 
     def log_message(self, format, *args):  # noqa: A002 - silence test-server logging
+        """Suppress stdlib access logging during transport tests."""
         pass
 
 
 def _run_fixture(server: _FixtureServer, request_count: int) -> threading.Thread:
+    """Run a fixture server for exactly `request_count` requests."""
+
     def serve() -> None:
+        """Serve the bounded request loop on a background thread."""
         for _ in range(request_count):
             server.handle_request()
 
@@ -79,12 +94,16 @@ def _run_fixture(server: _FixtureServer, request_count: int) -> threading.Thread
 
 
 class _SlowHandler(http.server.BaseHTTPRequestHandler):
+    """Handler that sleeps long enough to trigger client-side timeout logic."""
+
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler naming
+        """Delay a GET response beyond the test timeout."""
         time.sleep(1.0)
         self.send_response(200)
         self.end_headers()
 
     def log_message(self, format, *args):  # noqa: A002
+        """Suppress stdlib access logging during timeout tests."""
         pass
 
 
@@ -201,6 +220,7 @@ def test_send_http_request_timeout_against_slow_server_returns_timeout_failure()
 
 def test_send_http_request_classifies_dns_failure_via_gaierror():
     def fake_transport(request: HttpTransportRequest) -> HttpTransportResponse:
+        """Raise the DNS exception shape produced by socket resolution."""
         raise socket.gaierror("nodename nor servname provided")
 
     request = HttpTransportRequest(
@@ -215,6 +235,7 @@ def test_send_http_request_classifies_dns_failure_via_gaierror():
 
 def test_send_http_request_classifies_tls_failure_via_sslerror():
     def fake_transport(request: HttpTransportRequest) -> HttpTransportResponse:
+        """Raise the TLS exception shape produced by certificate failures."""
         raise ssl.SSLError("certificate verify failed")
 
     request = HttpTransportRequest(
@@ -229,6 +250,7 @@ def test_send_http_request_classifies_tls_failure_via_sslerror():
 
 def test_send_http_request_classifies_timeout_via_fake_transport():
     def fake_transport(request: HttpTransportRequest) -> HttpTransportResponse:
+        """Raise the generic timeout shape accepted by the normalizer."""
         raise TimeoutError("timed out")
 
     request = HttpTransportRequest(
@@ -243,6 +265,7 @@ def test_send_http_request_classifies_timeout_via_fake_transport():
 
 def test_send_http_request_classifies_urlerror_wrapped_reason():
     def fake_transport(request: HttpTransportRequest) -> HttpTransportResponse:
+        """Raise a urllib wrapper around a connection-refused reason."""
         raise urllib.error.URLError(ConnectionRefusedError("refused"))
 
     request = HttpTransportRequest(
@@ -257,6 +280,7 @@ def test_send_http_request_classifies_urlerror_wrapped_reason():
 
 def test_send_http_request_classifies_generic_oserror_as_connect():
     def fake_transport(request: HttpTransportRequest) -> HttpTransportResponse:
+        """Raise an OS-level connection error outside urllib's wrapper."""
         raise ConnectionResetError("reset")
 
     request = HttpTransportRequest(
@@ -271,6 +295,7 @@ def test_send_http_request_classifies_generic_oserror_as_connect():
 
 def test_send_http_request_classifies_unrecognized_exception_as_other():
     def fake_transport(request: HttpTransportRequest) -> HttpTransportResponse:
+        """Raise an unknown exception so the fallback kind remains covered."""
         raise RuntimeError("boom")
 
     request = HttpTransportRequest(
@@ -287,6 +312,7 @@ def test_send_http_request_preserves_non_utf8_body_bytes():
     non_utf8 = b"\xff\xfe\x00binary"
 
     def fake_transport(request: HttpTransportRequest) -> HttpTransportResponse:
+        """Echo raw bytes to prove the boundary never decodes payloads."""
         assert request.body == non_utf8
         return HttpTransportResponse(status=200, headers={}, body=non_utf8)
 
@@ -306,6 +332,7 @@ def test_send_http_request_preserves_non_utf8_body_bytes():
 
 def test_send_http_request_empty_body_request_and_response_round_trip():
     def fake_transport(request: HttpTransportRequest) -> HttpTransportResponse:
+        """Echo an empty payload response for no-body request coverage."""
         assert request.body == b""
         return HttpTransportResponse(status=204, headers={}, body=b"")
 

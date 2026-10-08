@@ -1,3 +1,5 @@
+"""Composition tests for inbound HTTP handlers that make outbound HTTP calls."""
+
 import http.server
 import json
 import socket
@@ -14,14 +16,17 @@ from genia import make_global_env, run_source
 
 
 def _free_port() -> int:
+    """Return a worker-reserved loopback port for Genia HTTP servers."""
     # Worker-reserved port below the ephemeral range: see tests/fixtures/loopback.py.
     return free_port()
 
 
 def _start_server(source: str, env, *, filename: str):
+    """Run one Genia server source program on a background thread."""
     outcome: dict[str, object] = {}
 
     def target() -> None:
+        """Execute the server program and capture either result or exception."""
         try:
             outcome["result"] = run_source(source, env, filename=filename)
         except BaseException as exc:  # pragma: no cover - surfaced through assertions
@@ -33,6 +38,7 @@ def _start_server(source: str, env, *, filename: str):
 
 
 def _request(method: str, url: str):
+    """Issue one request, retrying until the background server is listening."""
     last_error = None
     for _ in range(60):
         try:
@@ -48,6 +54,7 @@ def _request(method: str, url: str):
 
 
 def _finish_server(thread: threading.Thread, outcome: dict[str, object]):
+    """Join the background server and surface any captured exception."""
     thread.join(timeout=5)
     assert not thread.is_alive(), "server thread did not stop"
     if "error" in outcome:
@@ -56,7 +63,10 @@ def _finish_server(thread: threading.Thread, outcome: dict[str, object]):
 
 
 class _DownstreamHandler(http.server.BaseHTTPRequestHandler):
+    """Downstream loopback handler called by Genia request handlers."""
+
     def do_GET(self) -> None:  # noqa: N802
+        """Record the path and return it in the response body."""
         self.server.hits.append(self.path)  # type: ignore[attr-defined]
         self.send_response(200)
         self.send_header("Content-Type", "text/plain")
@@ -64,19 +74,25 @@ class _DownstreamHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(f"downstream:{self.path}".encode("utf-8"))
 
     def log_message(self, format, *args):  # noqa: A002
+        """Suppress stdlib access logging during composition tests."""
         pass
 
 
 class _DownstreamServer(http.server.ThreadingHTTPServer):
+    """Threaded downstream server with request-path capture."""
+
     def __init__(self):
+        """Bind a local downstream server and initialize captured paths."""
         super().__init__(("127.0.0.1", 0), _DownstreamHandler)
         self.hits: list[str] = []
         self.daemon_threads = True
 
     def start(self) -> None:
+        """Serve downstream requests on a daemon thread."""
         threading.Thread(target=self.serve_forever, daemon=True).start()
 
     def stop(self) -> None:
+        """Stop the downstream server and close its socket."""
         self.shutdown()
         self.server_close()
 
