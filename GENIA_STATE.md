@@ -472,6 +472,7 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
   - `python.open` returns opaque Python file-handle values (`<python file>`)
   - these are capability-style values intended only for passing back to allowlisted Python host exports
 ### Current consistency notes
+<!-- anchor: state:outcome-propagation -->
 
 - Maybe/absence behavior is now unified around one explicit family:
   - present value: `some(value)`
@@ -493,6 +494,7 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
 - `some(pattern)`, `none(...)`, and `err(...)` constructor patterns are implemented in pattern matching.
   - context-aware forms `some(value, ctx)`, `none(reason, ctx)`, `err(reason, ctx)` bind only when context is present
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
+  - In direct calls, `some(x)` is still a normal value and is passed explicitly.
   - lambda expressions whose body delegates to a known Option-aware function (for example `(o) -> unwrap_or(0, o)`) are recognized as absence-aware and bypass short-circuiting
 - list higher-order functions (`reduce`, `map`, `filter`) are pure prelude implementations using `apply_raw` for callback invocation; `none(...)` list elements are delivered to the callback without short-circuit
   - `reduce` accepts both list and Flow (Seq-compatible) as its third argument; `none(...)` as initial accumulator is not short-circuited
