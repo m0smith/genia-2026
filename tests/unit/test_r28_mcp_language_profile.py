@@ -277,8 +277,8 @@ def test_discovery_is_the_exact_closed_scoped_catalogue():
     discovery = _profile()["discovery"]
     assert discovery == {"coverage": "curated_non_exhaustive", "facts": DISCOVERY_FACTS}
     assert set(discovery) == {"coverage", "facts"}
-    assert len(discovery["facts"]) == 14  # A9 (#1084): 13 -> 14
-    assert len({fact["id"] for fact in discovery["facts"]}) == 14
+    assert len(discovery["facts"]) == 15  # A10 (#1084): 14 -> 15
+    assert len({fact["id"] for fact in discovery["facts"]}) == 15
     assert len(json.dumps(discovery, ensure_ascii=False).encode("utf-8")) <= 16384
     for fact in discovery["facts"]:
         assert set(fact) == {"id", "scope", "status", "maturity", "summary", "state_sections"}

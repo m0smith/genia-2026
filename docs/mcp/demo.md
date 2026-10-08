@@ -75,7 +75,7 @@ List the server's tools. There are exactly four, and no resources or prompts:
 - `genia_capabilities`: what this server supports and its limits.
 - `genia_parse`: parse Genia source; returns the structure or a diagnostic. Never runs the source.
 - `genia_run`: run Genia source in a fresh, restricted, disposable worker.
-- `genia_language_profile`: Genia's language model (pattern matching instead of `if`, recursion instead of loops, canonical examples) and 14 static scoped maturity/gap facts mapped to STATE; curated, not exhaustive; no arguments.
+- `genia_language_profile`: Genia's language model (pattern matching instead of `if`, recursion instead of loops, canonical examples) and 15 static scoped maturity/gap facts mapped to STATE; curated, not exhaustive; no arguments.
 
 ## 4. Parse a program that has a mistake
 

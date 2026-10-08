@@ -8,7 +8,9 @@ executable claim is verified by direct evaluation on the Python reference host.
 
 from __future__ import annotations
 
+import contextlib
 import copy
+import io
 import json
 
 import pytest
@@ -227,6 +229,51 @@ def _probe_recovery_wraps_pipeline():
     assert str(later_stage).startswith("none(")  # a later stage never runs after none
 
 
+def _probe_flow_single_use():
+    """A10 (#1084): a consumed Flow cannot be consumed again, whether by `collect` or `run`."""
+    assert _direct('f = ["a", "b"] |> lines\ncollect(f)') == ["a", "b"]
+    for source in ('f = ["a", "b"] |> lines\ncollect(f)\ncollect(f)', 'f = ["a", "b"] |> lines\nrun(f)\ncollect(f)'):
+        with pytest.raises(Exception, match="already been consumed"):
+            _direct(source)
+
+
+def _probe_lines_input_validation():
+    """A10 (#1084): `lines` takes a list of strings or a Flow; a bare string or a non-string element is rejected."""
+    assert _direct('["a", "b"] |> lines |> collect') == ["a", "b"]
+    assert _direct('["a"] |> lines |> lines |> collect') == ["a"]
+    for source in ('lines("abc")', "lines(5)", 'lines(["a", 1])', "[1, 2, 3] |> lines"):
+        with pytest.raises(Exception, match="lines expected"):
+            _direct(source)
+
+
+def _probe_flow_bounded_demand():
+    """A10 (#1084): `evolve` is unbounded yet `take` bounds it, and `take(1)` pulls exactly one element."""
+    assert _direct("inc(n) = n + 1\nevolve(0, inc) |> take(3) |> collect") == [0, 1, 2]
+    pulled = io.StringIO()
+    with contextlib.redirect_stdout(pulled):
+        taken = _direct('["a", "b", "c"] |> lines |> each(print) |> take(1) |> collect')
+    assert taken == ["a"] and pulled.getvalue() == "a\n"  # no over-pull: "b" was never demanded
+    everything = io.StringIO()
+    with contextlib.redirect_stdout(everything):
+        _direct('["a", "b", "c"] |> lines |> each(print) |> collect')
+    assert everything.getvalue() == "a\nb\nc\n"  # control: the same stage prints all when fully consumed
+
+
+def _probe_flow_terminals_and_kinds():
+    """A10 (#1084): `collect` returns a list, `run` returns nil, a list stays a list and a Flow stays a lazy Flow."""
+    assert _direct('["a", "b"] |> lines |> collect') == ["a", "b"]
+    assert _shown('["a"] |> lines |> run') == 'none("nil")'
+    assert _direct("inc(n) = n + 1\n[1, 2, 3] |> map(inc)") == [2, 3, 4]
+    assert _shown('["a"] |> lines |> map((s) -> s)').startswith("<flow")  # lazy: not yet a list
+    assert _direct('["a"] |> lines |> map((s) -> s) |> collect') == ["a"]
+
+
+def _probe_stdin_requires_lines_adapter():
+    """A10 (#1084): `stdin` is not a Flow; handing it to a terminal is rejected with a pointer to `stdin |> lines`."""
+    with pytest.raises(Exception, match=r"stdin \|> lines"):
+        _direct("collect(stdin)")
+
+
 PROBES = {
     "absent_forms_are_absent": _probe_absent_forms_are_absent,
     "tail_recursion_constant_stack": _probe_tail_recursion_constant_stack,
@@ -240,6 +287,12 @@ PROBES = {
     "direct_call_vs_pipeline_outcome": _probe_direct_call_vs_pipeline_outcome,
     "err_is_not_absence": _probe_err_is_not_absence,
     "recovery_wraps_pipeline": _probe_recovery_wraps_pipeline,
+    # A10 (#1084): unreferenced by the registry until the implementation phase (intentionally red).
+    "flow_single_use": _probe_flow_single_use,
+    "lines_input_validation": _probe_lines_input_validation,
+    "flow_bounded_demand": _probe_flow_bounded_demand,
+    "flow_terminals_and_kinds": _probe_flow_terminals_and_kinds,
+    "stdin_requires_lines_adapter": _probe_stdin_requires_lines_adapter,
 }
 
 
@@ -279,7 +332,7 @@ def test_validated_pipeline_registry_entries_are_anchored_and_probed():
     idioms = REGISTRY["language"]["idioms"]
     assert "pipelines" in idioms["value"]
     assert any(i.get("anchor") == "state:validated-pipelines" for i in idioms["evidence"])
-    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 14  # A9 (#1084): 13 -> 14
+    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 15  # A10 (#1084): 14 -> 15
 
 
 def test_the_direct_evaluation_helper_really_evaluates():

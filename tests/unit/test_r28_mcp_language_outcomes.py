@@ -138,7 +138,7 @@ def test_the_idiom_example_in_the_contract_is_valid_genia_with_the_documented_re
 
 def test_a9_idioms_gain_exactly_the_outcomes_member():
     idioms = _profile()["idioms"]
-    assert set(idioms) == {"branching", "clauses", "outcomes", "pipelines", "repetition"}
+    assert set(idioms) == {"branching", "clauses", "flow", "outcomes", "pipelines", "repetition"}  # A10 adds `flow`
 
 
 def test_a9_outcomes_idiom_is_the_exact_contract_text():
@@ -170,12 +170,13 @@ def test_a9_existing_idioms_are_unchanged():
 
 def test_a9_discovery_grows_from_13_to_exactly_14_facts_with_the_new_fact_last():
     facts = _profile()["discovery"]["facts"]
-    assert [f["id"] for f in facts] == [*FACT_IDS_BEFORE_A9, "outcome_pipeline_propagation"]
+    # A10 (#1084) appends a 15th fact after the A9 one, so A9's fact is no longer last.
+    assert [f["id"] for f in facts][:14] == [*FACT_IDS_BEFORE_A9, "outcome_pipeline_propagation"]
     assert facts[:13] == DISCOVERY_FACTS[:13]  # the first 13 rows are untouched
 
 
 def test_a9_new_fact_is_exact_and_closed():
-    fact = _profile()["discovery"]["facts"][-1]
+    fact = _profile()["discovery"]["facts"][13]  # the 14th; A10 appends a 15th after it
     assert fact == A9_FACT
     assert set(fact) == {"id", "scope", "status", "maturity", "summary", "state_sections"}
     assert 0 < len(fact["summary"].encode("utf-8")) <= 256
@@ -193,8 +194,8 @@ def test_a9_discovery_stays_closed_and_within_its_byte_bound():
 
 def test_a9_golden_snapshot_carries_exactly_the_two_additions():
     assert GOLDEN["idioms"]["outcomes"] == A9_IDIOM
-    assert GOLDEN["discovery"]["facts"][-1] == A9_FACT
-    assert len(GOLDEN["discovery"]["facts"]) == 14
+    assert GOLDEN["discovery"]["facts"][13] == A9_FACT
+    assert len(GOLDEN["discovery"]["facts"]) == 15  # A10 (#1084): 14 -> 15
 
 
 def test_a9_whole_profile_still_equals_the_golden_except_the_launch_revision():
@@ -217,7 +218,7 @@ def test_a9_plain_file_mode_carries_the_same_new_content():
     (response,) = responses(run_messages([PROFILE_CALL], args=(REVISION,)))
     language = structured(response)[1]["result"]["language"]
     assert language["idioms"]["outcomes"] == A9_IDIOM
-    assert language["discovery"]["facts"][-1] == A9_FACT
+    assert language["discovery"]["facts"][13] == A9_FACT
 
 
 def test_a9_output_is_deterministic_across_calls():
@@ -259,9 +260,9 @@ def _fact(registry=REGISTRY):
     )
 
 
-def test_a9_registry_holds_14_facts_and_the_generator_expects_14():
-    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 14
-    assert [f["id"] for f in REGISTRY["discovery"]["facts"]][-1] == "outcome_pipeline_propagation"
+def test_a9_registry_keeps_its_fact_14th_in_the_catalogue():
+    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 15  # A10 (#1084): 14 -> 15
+    assert [f["id"] for f in REGISTRY["discovery"]["facts"]][13] == "outcome_pipeline_propagation"
 
 
 def test_a9_registry_fact_is_anchored_and_probed():
@@ -308,7 +309,7 @@ def test_a9_registry_validates_and_its_projection_matches_the_committed_block():
     assert gen.check(REGISTRY, SERVER_PATH.read_text(encoding="utf-8")) == []
     projection = gen.wire_projection(REGISTRY)
     assert projection["idioms"]["outcomes"] == A9_IDIOM
-    assert projection["discovery"]["facts"][-1] == A9_FACT
+    assert projection["discovery"]["facts"][13] == A9_FACT
 
 
 def test_a9_the_new_content_is_not_hand_copied_outside_the_generated_block():

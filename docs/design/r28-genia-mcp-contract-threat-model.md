@@ -1285,3 +1285,128 @@ Failing tests are committed before implementation.
   validated-pipeline change (A8), and no change to `flow_shared_coverage`.
 - The content grants no authority, does not mirror STATE, and does not make
   `docs/strategy/killer-workflow.md` authoritative.
+
+## 23. Amendment A10: Flow profile content (#1084)
+
+Pre-flight: issue #1084, comment `issuecomment-6065303048` (decision B, deferred from A9 and now
+approved). This amendment defines MCP application content, not Genia semantics; the behavior it
+describes is recorded in `GENIA_STATE.md` (anchors in A10.3). A10 supersedes only the
+A6/A7/A8/A9 closed sizes and members as stated here; every other member, vocabulary, and
+bound is unchanged, and the A9 content (`idioms.outcomes`, `outcome_pipeline_propagation`) is
+retained byte for byte.
+
+### A10.1 Additions
+
+- `result.language.idioms` gains exactly one member, `flow` (so `idioms` has exactly
+  `branching`, `clauses`, `flow`, `outcomes`, `pipelines`, `repetition`). Its value is exactly
+  this string (513 UTF-8 bytes; static bound at most 600):
+
+  > Flow is a lazy, pull-based, single-use sequence, and a list stays a list. lines turns a list of strings or stdin into a Flow (a bare string or a list holding a non-string is an error), and map, filter and take keep a Flow lazy. Nothing runs until a terminal pulls: collect returns a list and run consumes the Flow and returns nil. Consuming a Flow twice is an error. evolve is unbounded, so take(n) before collect or run. stdin is a host input, not a Flow: adapt it with stdin |> lines where the host supplies it.
+
+- `result.language.discovery.facts` grows from 14 to exactly 15 objects. The 15th, appended
+  last (after `outcome_pipeline_propagation`), is `flow_semantics`: `scope` `language`, `status`
+  `implemented`, `maturity` `Experimental`, `state_sections` `["6","0"]`, and `summary` exactly
+  (170 UTF-8 bytes; bound at most 256):
+
+  > Experimental: Flow is lazy, pull-based and single-use; lines takes a list of strings; bound unbounded sources with take; the C++ host supports only a bounded Flow subset.
+
+- The discovery JSON bound (16,384 UTF-8 bytes) and the fact object shape
+  (`id`, `scope`, `status`, `maturity`, `summary`, `state_sections`) are unchanged. No new
+  top-level or `language` member is added.
+
+### A10.2 Factual distinctions the content states
+
+| Topic | Behavior (Python reference host unless stated) | Example |
+|---|---|---|
+| Laziness | A Flow is pull-based; stages run as elements are demanded; `take(n)` stops pulling after `n` | `evolve(0, inc) \|> take(3) \|> collect` is `[0, 1, 2]` |
+| Flow vs List | `map`/`filter`/`take` work on both and return the same kind: a list stays a list, a Flow stays a lazy Flow | `[1, 2, 3] \|> map(inc)` is `[2, 3, 4]`; `["a"] \|> lines \|> map(f)` is a Flow |
+| Single use | Consuming a Flow a second time raises `Flow has already been consumed` | `f = ["a"] \|> lines`, then `collect(f)` twice |
+| Terminals | `collect` returns a list; `run` consumes and returns `nil` | `["a", "b"] \|> lines \|> collect` is `["a", "b"]` |
+| `lines` input | Accepts a list of strings, a Flow, or `stdin`; a bare string or a list with a non-string fails | `lines("abc")`, `[1, 2] \|> lines` fail |
+| Unbounded sources | `evolve` is unbounded; bound it with `take` before `collect` or `run` | as in the laziness row |
+| `stdin` | A host input capability, not a Flow; `collect(stdin)` is rejected with a pointer to `stdin \|> lines` | `stdin \|> lines` is the adapter |
+| Portability | The C++ host implements a bounded Flow subset; `tee`, `merge`, `zip`, `rules`/`refine`, list-form `scan` and Flow display are not supported there | carried by the fact summary only |
+
+The example column is evidence for A10.5 probes, not additional wire content. The idiom and
+fact state no host diagnostic text beyond what is quoted above.
+
+### A10.3 Authorizing STATE anchors (`GENIA_STATE.md`)
+
+Each claim must carry `state_text` evidence whose fragment appears verbatim in the anchored
+section:
+
+| Claim | Fragment | Anchor | Exists? |
+|---|---|---|---|
+| Lazy, pull-based, single-use | `lazy, pull-based, source-bound, single-use` | `state:flow-semantics` (legacy 6) | **No — add anchor** |
+| Second consumption fails | `consuming a flow twice raises` (full sentence in STATE) | `state:flow-semantics` | **No — add anchor** |
+| `take` stops pulling | `` `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item) `` | `state:flow-semantics` | **No — add anchor** |
+| `collect` / `run` terminals | `` `collect(source)` for list or Flow (returns list) ``; `` `run(source)` for list or Flow (consume/traverse to completion; returns `nil`) `` | `state:flow-semantics` | **No — add anchor** |
+| `evolve` is unbounded | `` `evolve(init, f)` (experimental unbounded progression flow; `` | `state:flow-semantics` | **No — add anchor** |
+| A list stays a list; `map`/`filter`/`take` keep the kind | `the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary`; `` Polymorphic functions (work on both lists and flows, same-kind return) `` | `state:flow-semantics` | **No — add anchor** |
+| `stdin \|> lines` | `` `stdin` is a lazy source value when used in pipelines (`stdin \|> lines`) `` | `state:flow-semantics` | **No — add anchor** |
+| `stdin` is not a Flow | `` `stdin` is a host-backed input capability, not a Seq-compatible public value `` | `state:outcome-propagation` (A9) | Yes |
+| `lines` input set | new STATE sentence (below) | `state:flow-semantics` | **No — add text** |
+| C++ Flow subset | `` `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan`, Flow display, and a ``; `Flow behavior is implemented in Python` | `state:host-status` | Yes |
+
+Prerequisites for the implementation phase, to be made in `GENIA_STATE.md` (not in this phase):
+
+1. Add the marker `<!-- anchor: state:flow-semantics -->` directly under the existing heading
+   `### Flow runtime (Phase 1)` (section 6) and a matching registry crosswalk entry
+   (`legacy_section` `"6"`).
+2. **Missing STATE text.** STATE names `lines(flow_or_source)` but does not state which values
+   `lines` accepts. The implementation must add one sentence under the anchor, restating the
+   existing behavior: `lines` accepts `stdin`, a Flow, or a list of strings; any other value (for
+   example a bare string, or a list containing a non-string) fails with a Genia-facing error.
+   This was observed on the Python reference host (`lines expected stdin source, flow, or list of
+   strings`). No new semantics.
+
+### A10.4 Boundaries deliberately kept off the wire
+
+- `genia_run` supplies no stdin (the worker's `stdin` is immediate end-of-input; STATE section
+  9.41). That sentence is anchored in an MCP digest section, and the existing guard
+  `test_language_claim_text_is_anchored_in_language_sections_not_only_mcp_sections` forbids
+  MCP-section anchors for language idioms. The point stays in `docs/mcp/reference.md`, which
+  already documents `genia_run` as source-only, and is not weakened or duplicated on the wire.
+- Pipe-mode `stdin` handling (`-p` supplies `stdin |> lines` and rejects an explicit `stdin`) is a
+  CLI execution-mode rule and stays in STATE section 1 and `GENIA_REPL_README.md`.
+- C++ detail beyond "bounded subset" is carried only by `flow_shared_coverage`,
+  `cpp_language_floor`, and STATE section 0; A10 adds no C++ Flow claim to the idiom.
+
+### A10.5 Closed surface and wire invariants (unchanged)
+
+- Exactly four tools in the order `genia_capabilities`, `genia_parse`, `genia_run`,
+  `genia_language_profile`; no resources, prompts, pagination, transport, limit, or authority.
+- `genia_language_profile` still takes no arguments, returns the `genia.mcp.v1` envelope, and
+  is byte-identical across calls, protocol eras, namespace modes, and plain file mode; JSON
+  member order is the encoder's sorted order; the fact array order is fixed.
+- The `genia_capabilities` payload does not change. The wire change is exactly A10.1.
+
+### A10.6 Future test obligations (TEST phase; none are written here)
+
+1. Golden snapshot: `idioms.flow` exact text, 15 facts with `flow_semantics` last, no other diff;
+   A9 content (`idioms.outcomes`, fact 14) byte-identical.
+2. Profile tests: exact idiom keys and 15-fact catalogue and order; byte bounds (idiom ≤ 600,
+   summary ≤ 256, discovery ≤ 16,384); identical in plain file mode and across calls and eras;
+   capabilities payload and four-tool surface unchanged.
+3. Registry tests: new probes `flow_single_use`, `lines_input_validation`,
+   `flow_bounded_demand`, `flow_terminals_and_kinds`, `stdin_requires_lines_adapter`, each
+   referenced by the registry and implemented; projection equals the committed generated block
+   and golden; `tools/gen_mcp_language_profile.py --check` passes; the generator expects 15.
+4. Anchor tests: `state:flow-semantics` exists once in section 6; every A10.3 fragment is found in
+   its anchored span; the `lines` input sentence is present; `state_sections` equals the
+   crosswalk of the fact's anchors (`["6","0"]`).
+5. Documentation counts agree on 15 in STATE 9.50, `docs/mcp/{reference,demo,conformance-matrix}.md`,
+   `docs/releases/R28.md`, `docs/ai/LLM_CONTRACT.md`, `AGENTS.md`, and `README.md`; historical A7/A8/A9
+   counts are preserved.
+6. Official-SDK MCP stdio acceptance still passes with the closed four tools.
+
+### A10.7 Non-goals and non-claims
+
+- No new Genia syntax or semantics; no parser, evaluator, builtin, Flow, or Core IR change;
+  no host capability change; no change to `flow_shared_coverage`.
+- No new MCP tool, resource, prompt, transport, limit, authority, source-reference field, or
+  second registry; no C++ MCP.
+- No Outcome guidance (A9), validated-pipeline guidance (A8), `keep_some`/`validate_*`, `tee`,
+  `merge`, `zip`, `scan`, `rules`, `refine`, or lifecycle content.
+- The content restates implemented behavior, grants no authority, does not mirror STATE, and
+  claims no portability beyond the C++ sentence in the fact summary.

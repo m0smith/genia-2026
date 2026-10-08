@@ -35,7 +35,8 @@ REQUIRED_ANCHORS = {
     "state:mcp-surface",
     "state:mcp-language-profile",
     "state:validated-pipelines",
-    "state:outcome-propagation",  # A9 (#1084): intentionally red until the implementation phase
+    "state:outcome-propagation",  # A9 (#1084)
+    "state:flow-semantics",  # A10 (#1084): intentionally red until the implementation phase
 }
 LANGUAGE_ANCHORS = {
     "state:syntax-forms",
@@ -45,6 +46,7 @@ LANGUAGE_ANCHORS = {
     "state:tail-calls",
     "state:validated-pipelines",
     "state:outcome-propagation",  # A9 (#1084)
+    "state:flow-semantics",  # A10 (#1084)
 }
 
 
@@ -258,3 +260,59 @@ def test_a9_state_states_the_direct_call_sentence_under_the_new_anchor():
 
 def test_a9_the_direct_call_sentence_is_already_authoritative_in_rules():
     assert A9_DIRECT_CALL_SENTENCE in read_text("GENIA_RULES.md")
+
+
+# --- A10 (#1084): Flow semantics anchor and STATE text ------------------------------------------
+# RED PHASE (intentional): `state:flow-semantics` and the `lines` input sentence are STATE
+# prerequisites of contract amendment A10, clause A10.3; the implementation phase adds them. These
+# tests only assert their required future presence; they do not define a second authority.
+
+A10_ANCHOR = "state:flow-semantics"
+A10_FLOW_FRAGMENTS = [
+    "lazy, pull-based, source-bound, single-use",
+    'consuming a flow twice raises `RuntimeError("Flow has already been consumed")`',
+    "`take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)",
+    "`collect(source)` for list or Flow (returns list)",
+    "`run(source)` for list or Flow (consume/traverse to completion; returns `nil`)",
+    "`evolve(init, f)` (experimental unbounded progression flow;",
+    "the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary",
+    "Polymorphic functions (work on both lists and flows, same-kind return)",
+    "`stdin` is a lazy source value when used in pipelines (`stdin |> lines`)",
+    "`lines(flow_or_source)`",
+]
+A10_HOST_FRAGMENTS = [  # already under the existing state:host-status anchor
+    "`tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan`, Flow display, and a",
+    "Flow behavior is implemented in Python",
+]
+A10_STDIN_FRAGMENT = "`stdin` is a host-backed input capability, not a Seq-compatible public value"
+# Wording pinned by the RED phase; the implementation must restate existing behavior with exactly this.
+A10_LINES_SENTENCE = (
+    "`lines` accepts `stdin`, a Flow, or a list of strings; any other value "
+    "(for example a bare string, or a list containing a non-string) fails with a Genia-facing error."
+)
+
+
+def test_a10_host_and_stdin_fragments_already_exist_under_existing_anchors():
+    host = sa.span_text(STATE, ANCHORS["state:host-status"])
+    for fragment in A10_HOST_FRAGMENTS:
+        assert fragment in host, fragment
+    assert A10_STDIN_FRAGMENT in sa.span_text(STATE, ANCHORS["state:outcome-propagation"])
+
+
+def test_a10_flow_semantics_anchor_exists_once_in_section_6():
+    assert A10_ANCHOR in ANCHORS, "A10.3 prerequisite 1: add <!-- anchor: state:flow-semantics --> under `### Flow runtime (Phase 1)`"
+    assert ANCHORS[A10_ANCHOR].section_number == "6"
+    assert re.findall(r"^<!-- anchor: (state:[a-z0-9-]+) -->$", STATE, re.M).count(A10_ANCHOR) == 1
+
+
+@pytest.mark.parametrize("fragment", A10_FLOW_FRAGMENTS)
+def test_a10_flow_fragments_are_inside_the_new_anchor_span(fragment):
+    assert A10_ANCHOR in ANCHORS, "A10.3 prerequisite 1 (anchor) is missing"
+    assert fragment in sa.span_text(STATE, ANCHORS[A10_ANCHOR]), fragment
+
+
+def test_a10_state_states_which_values_lines_accepts_under_the_new_anchor():
+    assert A10_ANCHOR in ANCHORS, "A10.3 prerequisite 1 (anchor) is missing"
+    assert A10_LINES_SENTENCE in sa.span_text(STATE, ANCHORS[A10_ANCHOR]), (
+        "A10.3 prerequisite 2: STATE must state the accepted `lines` inputs"
+    )
