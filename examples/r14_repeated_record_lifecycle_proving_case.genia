@@ -1,3 +1,4 @@
+# Repeated-record lifecycle proving case for R14 lifecycle_repeat composition.
 """
 # R14 Repeated Record Lifecycle Proving Case
 
@@ -34,14 +35,17 @@ genia examples/r14_repeated_record_lifecycle_proving_case.genia
 """
 
 log = ref([])
+@doc "Append one lifecycle observation event to the shared proof log."
 log_event(event) = ref_update(log, (entries) -> [..entries, event])
 
+@doc "Return the outer session peer that records enter and exit phases."
 session_peer() = {
   name: quote(session),
   enter: (scope) -> { log_event({peer: quote(session), phase: quote(enter)}); some("session-ctx") },
   exit: (scope, summary) -> { log_event({peer: quote(session), phase: quote(exit), status: summary.status}); some(nil) }
 }
 
+@doc "Return the per-record peer that exposes record and row-number context."
 record_context_peer() = {
   name: quote(record_context),
   enter: (scope) -> {
@@ -57,6 +61,7 @@ record_context_peer() = {
   }
 }
 
+@doc "Return the per-record diagnostics peer that records element phase activity."
 diagnostics_peer() = {
   name: quote(diagnostics),
   enter: (scope) -> {
@@ -71,10 +76,12 @@ diagnostics_peer() = {
   }
 }
 
+@doc "Classify a split CSV field list as a row or malformed-record error."
 classify_fields(fields) =
   [id_str, name, status] -> some({id: id_str, name: name, status: status}) |
   other -> err("malformed-record", {fields: other})
 
+@doc "Process one lifecycle_repeat element scope into row diagnostics."
 process_record(scope) = {
   ctx = lifecycle_context(scope, quote(record_context)) |> unwrap_or(none)
   record = ctx.record
@@ -84,9 +91,12 @@ process_record(scope) = {
   {nr: nr, record: record, fields: fields, nf: nf, row: classify_fields(fields)}
 }
 
+@doc "Return true when a row classification succeeded."
 is_clean_row(entry) = (some(_)) -> true | (err(_, _)) -> false
+@doc "Extract a successful row classification or nil for malformed rows."
 clean_row(entry) = (some(row)) -> row | (err(_, _)) -> nil
 
+@doc "Return successfully classified rows from lifecycle_repeat result maps."
 survived(results) =
   results
   |> filter((r) -> r.status == quote(ok))
@@ -97,13 +107,16 @@ survived(results) =
 eager_records = ["1,Ada,ok", "2,Grace,ok", "bad", 999, "3,Lin,ok"]
 lazy_records = ["10,Amy,ok", "20,Ben,ok", "30,Cara,ok", "40,Drew,ok"]
 
+@doc "Run eager repeated-record lifecycle processing over the list source."
 run_eager() = lifecycle_repeat([record_context_peer(), diagnostics_peer()], eager_records, process_record)
 
+@doc "Run bounded lazy repeated-record lifecycle processing over the flow source."
 run_bounded() =
   lifecycle_repeat([record_context_peer(), diagnostics_peer()], lines(lazy_records), process_record)
   |> take(2)
   |> collect
 
+@doc "Run both eager and bounded lifecycle_repeat examples inside the session scope."
 pipeline(scope) = {
   eager_results = run_eager()
   bounded_results = run_bounded()

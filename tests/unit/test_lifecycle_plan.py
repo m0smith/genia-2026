@@ -1,3 +1,5 @@
+"""Unit tests for lifecycle plan normalization and validation."""
+
 import importlib
 
 import pytest
@@ -6,10 +8,14 @@ from genia.values import GeniaMap, symbol
 
 
 def _lifecycle_plan_module():
+    """Return the lifecycle plan module under test."""
+
     return importlib.import_module("genia.lifecycle_plan")
 
 
 def _record(**fields):
+    """Build a Genia map fixture from keyword fields."""
+
     record = GeniaMap()
     for key, value in fields.items():
         record = record.put(key, value)
@@ -17,14 +23,20 @@ def _record(**fields):
 
 
 def _phase(name, action, **fields):
+    """Build a lifecycle phase fixture with symbol name and action fields."""
+
     return _record(name=symbol(name), action=symbol(action), **fields)
 
 
 def _normalize(plan):
+    """Normalize a plan fixture through the module under test."""
+
     return _lifecycle_plan_module().normalize_lifecycle_plan(plan)
 
 
 def _assert_invalid(plan, expected_message):
+    """Assert that plan normalization raises the expected diagnostic."""
+
     lifecycle_plan = _lifecycle_plan_module()
     with pytest.raises(ValueError, match=expected_message):
         lifecycle_plan.normalize_lifecycle_plan(plan)
@@ -98,6 +110,8 @@ def test_validate_accepts_minimal_plan_and_phase_without_execution():
     calls = []
 
     def action_that_must_not_be_called():
+        """Record calls if plan validation executes metadata by mistake."""
+
         calls.append("called")
 
     plan = _record(
@@ -177,6 +191,8 @@ def test_rejects_duplicate_phase_names_with_deterministic_diagnostic():
 
 def test_rejects_callable_phase_action_as_nonportable_behavior():
     def host_callable():
+        """Fail if lifecycle plan validation invokes a host callable action."""
+
         raise AssertionError("lifecycle validation must not call phase actions")
 
     plan = _record(

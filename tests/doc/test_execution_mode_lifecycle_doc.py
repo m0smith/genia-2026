@@ -1,3 +1,5 @@
+"""Documentation synchronization tests for the execution-mode lifecycle proposal."""
+
 from __future__ import annotations
 
 import re
@@ -11,10 +13,14 @@ PROPOSAL_DOC = REPO / "docs" / "architecture" / "execution-mode-lifecycle.md"
 
 
 def normalize(text: str) -> str:
+    """Normalize text for case-insensitive proposal excerpt comparisons."""
+
     return " ".join(text.casefold().split())
 
 
 def read_proposal_doc() -> str:
+    """Read the execution-mode lifecycle proposal or fail clearly."""
+
     if not PROPOSAL_DOC.exists():
         pytest.fail(
             "docs/architecture/execution-mode-lifecycle.md must exist as the R4 "
@@ -24,6 +30,8 @@ def read_proposal_doc() -> str:
 
 
 def assert_contains_all(text: str, excerpts: list[str]) -> None:
+    """Assert that normalized proposal text contains every required excerpt."""
+
     normalized = normalize(text)
     for excerpt in excerpts:
         assert normalize(excerpt) in normalized, (

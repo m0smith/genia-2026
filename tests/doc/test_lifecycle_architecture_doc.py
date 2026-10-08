@@ -1,3 +1,5 @@
+"""Documentation synchronization tests for the lifecycle architecture contract."""
+
 from __future__ import annotations
 
 import re
@@ -11,10 +13,14 @@ LIFECYCLE_DOC = REPO / "docs" / "architecture" / "lifecycle.md"
 
 
 def normalize(text: str) -> str:
+    """Normalize text for case-insensitive contract excerpt comparisons."""
+
     return " ".join(text.casefold().split())
 
 
 def line_context_allows_non_goal_or_proposal(line: str) -> bool:
+    """Return whether a line frames lifecycle claims as non-goals or proposals."""
+
     normalized = normalize(line)
     allowed_markers = [
         "not implemented",
@@ -33,6 +39,8 @@ def line_context_allows_non_goal_or_proposal(line: str) -> bool:
 
 
 def read_lifecycle_doc() -> str:
+    """Read the lifecycle architecture document or fail the test clearly."""
+
     if not LIFECYCLE_DOC.exists():
         pytest.fail(
             "docs/architecture/lifecycle.md must exist as the permanent R4 lifecycle "
@@ -42,12 +50,16 @@ def read_lifecycle_doc() -> str:
 
 
 def assert_contains_all(text: str, excerpts: list[str]) -> None:
+    """Assert that normalized text contains every required excerpt."""
+
     normalized = normalize(text)
     for excerpt in excerpts:
         assert normalize(excerpt) in normalized, f"lifecycle doc missing required contract text: {excerpt}"
 
 
 def assert_mentions_words(text: str, label: str, words: list[str]) -> None:
+    """Assert that a documented concept mentions each required word."""
+
     normalized = normalize(text)
     missing = [word for word in words if normalize(word) not in normalized]
     assert missing == [], f"lifecycle doc must define {label}; missing words: {missing}"

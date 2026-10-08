@@ -1,3 +1,5 @@
+"""Unit tests for the native-test lifecycle descriptor consumer."""
+
 import importlib
 from collections.abc import Callable
 
@@ -10,26 +12,38 @@ from genia.values import GeniaMap, GeniaOptionSome, OPTION_NONE, symbol
 
 
 def _native_test_lifecycle_module():
+    """Return the native test lifecycle descriptor module under test."""
+
     return importlib.import_module("genia.native_test_lifecycle")
 
 
 def _plan():
+    """Return the inert native-test lifecycle plan fixture."""
+
     return _native_test_lifecycle_module().native_test_lifecycle_plan()
 
 
 def _scope_tree():
+    """Return the inert native-test lifecycle scope tree fixture."""
+
     return _native_test_lifecycle_module().native_test_lifecycle_scope_tree()
 
 
 def _phase_names(plan):
+    """Return phase names from a lifecycle plan map."""
+
     return [phase.get("name") for phase in plan.get("phases")]
 
 
 def _scope_names(scope_tree):
+    """Return scope names from a lifecycle scope-tree map."""
+
     return [scope.get("name") for scope in scope_tree.get("scopes")]
 
 
 def _parent_name(parent):
+    """Return the optional parent symbol value or fail on unexpected shape."""
+
     if parent == OPTION_NONE:
         return None
     if isinstance(parent, GeniaOptionSome):

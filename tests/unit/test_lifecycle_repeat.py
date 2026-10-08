@@ -26,15 +26,21 @@ class _CountingCloser:
     """Iterator counting pulls/closes, to prove no-over-pull and close-once."""
 
     def __init__(self, state, *, limit=1000):
+        """Initialize the pull/close counters and finite iteration limit."""
+
         self._state = state
         self._limit = limit
         self._next = 0
         self._closed = False
 
     def __iter__(self):
+        """Return this counter as its own iterator."""
+
         return self
 
     def __next__(self):
+        """Return the next integer while recording each pull."""
+
         if self._next >= self._limit:
             raise StopIteration
         value = self._next
@@ -43,6 +49,8 @@ class _CountingCloser:
         return value
 
     def close(self):
+        """Record the first close request and ignore repeated closes."""
+
         if self._closed:
             return
         self._closed = True
@@ -50,10 +58,14 @@ class _CountingCloser:
 
 
 def _counting_env(*, limit=1000):
+    """Build an environment with a lazy ticks flow and exposed counters."""
+
     env = make_global_env()
     state = {"pulled": 0, "closed": 0}
 
     def ticks():
+        """Return a fresh counted flow over integer ticks."""
+
         return GeniaFlow(lambda: _CountingCloser(state, limit=limit), label="ticks")
 
     env.set("ticks", ticks)
@@ -61,9 +73,13 @@ def _counting_env(*, limit=1000):
 
 
 def _values_flow_env(values):
+    """Build an environment whose numbers flow yields the supplied values."""
+
     env = make_global_env()
 
     def numbers():
+        """Return a fresh flow over the captured values."""
+
         return GeniaFlow(lambda: iter(values), label="numbers")
 
     env.set("numbers", numbers)

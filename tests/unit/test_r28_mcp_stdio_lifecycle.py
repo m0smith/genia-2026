@@ -41,6 +41,8 @@ GRACE_S = 60  # an upper bound for observable conditions only, never a sleep
 
 
 def _wait_until(condition, timeout=GRACE_S):
+    """Poll an observable stdio lifecycle condition until it holds."""
+
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if condition():
@@ -59,6 +61,8 @@ def _chain(session):
 
 
 def _survivors(identities):
+    """Return process identities that are still observable."""
+
     return [i for i in identities if identity_exists(i)]
 
 
@@ -72,6 +76,8 @@ def _in_flight(session):
 
 
 def _host_pid(session):
+    """Find the host process PID below the client-launched wrapper."""
+
     for pid in process_children(session.proc.pid):
         if any("hosts.python.mcp_host" in part for part in _cmdline(pid)):
             return pid
@@ -152,6 +158,8 @@ def test_sigterm_to_the_host_reaps_the_worker_and_removes_its_directory():
 
 
 def _start_worker(backstop_seconds=None):
+    """Start a standalone worker process with an optional orphan backstop."""
+
     code = "import hosts.python.mcp_worker as w\n"
     if backstop_seconds is not None:
         code += f"w.ORPHAN_BACKSTOP_SECONDS = {backstop_seconds}\n"
