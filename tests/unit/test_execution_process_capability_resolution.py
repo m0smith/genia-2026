@@ -32,6 +32,8 @@ from tests.fixtures.execution_process_helpers import (
 
 
 def _perform(capability, request):
+    """Invoke `perform_process_execution` through the shared fixture module."""
+
     from tests.fixtures.execution_process_helpers import process_execution_module
 
     module = process_execution_module()
@@ -120,6 +122,8 @@ def test_launch_failure_from_the_launcher_normalizes_without_leaking_the_native_
     native_target_sentinel = "OPAQUE_NATIVE_TARGET_SENTINEL_978_DO_NOT_LEAK"
 
     def _fail_to_launch(*_args, **_kwargs):
+        """Return the transport launch-failure fixture result."""
+
         from tests.fixtures.execution_process_helpers import process_transport_module
 
         transport = process_transport_module()

@@ -52,6 +52,8 @@ def _protected_sentinel():
 
 
 def _assert_no_sentinel(text) -> None:
+    """Assert protected fixture secrets do not appear in rendered diagnostics."""
+
     rendered = str(text)
     assert PAYLOAD not in rendered
     assert KEY not in rendered
@@ -59,6 +61,8 @@ def _assert_no_sentinel(text) -> None:
 
 
 def _perform(capability, request):
+    """Invoke process execution through the lazy fixture import."""
+
     from tests.fixtures.execution_process_helpers import process_execution_module
 
     module = process_execution_module()

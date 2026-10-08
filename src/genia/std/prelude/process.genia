@@ -1,3 +1,5 @@
+# Standard process prelude wrappers for mailbox process handles.
+
 @doc """Create a process handle backed by a host-thread mailbox worker.
 
 ## Arguments

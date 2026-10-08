@@ -41,6 +41,8 @@ def exit_with(code: int) -> list[str]:
 
 
 def _b64(data: bytes) -> str:
+    """Encode binary fixture payloads for safe inline Python source."""
+
     return base64.b64encode(data).decode("ascii")
 
 

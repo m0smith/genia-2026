@@ -1,3 +1,6 @@
+# Multiline awk-style slash-splitting regression case.
+
+@doc "Extract the first slash-separated field from an awk-style input row."
 process_line(n, line) =
     (n, [_, $1, .._]) -> nth(0, split($1, "/"))
 

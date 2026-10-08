@@ -17,6 +17,8 @@ def run_eval_subprocess(
     module_entry: str | None = None,
     module_files: tuple[tuple[str, str], ...] = (),
 ) -> dict[str, object]:
+    """Execute one eval spec in an isolated interpreter subprocess."""
+
     interpreter_path = REPO_ROOT / "src" / "genia" / "interpreter.py"
     env = dict(os.environ)
     pythonpath = str(REPO_ROOT / "src")

@@ -77,12 +77,16 @@ _FORBIDDEN_SPECULATIVE_NODE_NAMES = {
 
 
 def _lowered_node_type_names(source: str) -> set[str]:
+    """Collect dataclass node type names reachable after parsing and lowering."""
+
     ast_nodes = Parser(lex(source)).parse_program()
     ir_nodes = lower_program(ast_nodes)
 
     seen: set[str] = set()
 
     def walk(obj) -> None:
+        """Recursively visit lowered dataclasses and containers."""
+
         if hasattr(obj, "__dataclass_fields__"):
             seen.add(type(obj).__name__)
             for field_name in obj.__dataclass_fields__:

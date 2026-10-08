@@ -26,6 +26,8 @@ from tests.fixtures.process_fixtures import exit_with, nonexistent_target_path
 
 
 def _launch(argv: list[str], timeout_ms: int = 5000):
+    """Run the process transport fixture for normal-exit assertions."""
+
     from tests.fixtures.execution_process_helpers import process_transport_module
 
     module = process_transport_module()

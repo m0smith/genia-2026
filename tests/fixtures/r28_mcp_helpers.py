@@ -363,6 +363,8 @@ _TOOL_PATH = "/usr/bin:/bin:/usr/sbin:/sbin"  # `ps` and `lsof` (macOS keeps lso
 
 
 def process_backend():
+    """Select the process-inspection backend for lifecycle assertions."""
+
     forced = os.environ.get("GENIA_R28_PROCESS_BACKEND")
     if forced in ("proc", "ps"):
         return forced
@@ -405,6 +407,8 @@ def _ps_snapshot(pid=None):
 
 
 def process_snapshot(pid=None):
+    """Return process-table entries for all processes or one pid."""
+
     if process_backend() == "proc":
         table = _proc_snapshot()
         return table if pid is None else {pid: table[pid]} if pid in table else {}
@@ -527,6 +531,8 @@ class LauncherSession:
         }
 
     def probe_processes(self):
+        """Return descendants currently running the namespace probe command."""
+
         return {pid for pid in self.descendants() if is_namespace_probe(pid)}
 
     def wait_for_worker(self, timeout=60):
