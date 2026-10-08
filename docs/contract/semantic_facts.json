@@ -66,6 +66,9 @@
       },
       "state:outcome-propagation": {
         "legacy_section": "2"
+      },
+      "state:flow-semantics": {
+        "legacy_section": "6"
       }
     },
     "language": {
@@ -250,6 +253,7 @@
         "value": {
           "branching": "Use pattern-matched function clauses or case expressions.",
           "clauses": "Several clauses of one function, such as a literal base case followed by a general case, need the first clause declared with open.",
+          "flow": "Flow is a lazy, pull-based, single-use sequence, and a list stays a list. lines turns a list of strings or stdin into a Flow (a bare string or a list holding a non-string is an error), and map, filter and take keep a Flow lazy. Nothing runs until a terminal pulls: collect returns a list and run consumes the Flow and returns nil. Consuming a Flow twice is an error. evolve is unbounded, so take(n) before collect or run. stdin is a host input, not a Flow: adapt it with stdin |> lines where the host supplies it.",
           "outcomes": "Outcomes are values: some(x) is present, none(...) is absent, and err(reason) is a recoverable failure that is not absence. In |> pipelines an ordinary stage receives x from some(x) and its plain result is wrapped back into some, while none and err skip the remaining stages and are returned unchanged. A direct call passes the Outcome itself as the argument, except that a none argument short-circuits an ordinary call. Recover around the expression, as in unwrap_or(0, parse_int(s)), not as a later |> stage.",
           "pipelines": "Build data pipelines with |>: lines makes a Flow, map transforms, keep_some keeps only some results, and some, none, and err Outcomes carry validation; callers define the parse and validate functions.",
           "repetition": "Use recursion; tail-recursive calls are optimized in tail position."
@@ -348,6 +352,86 @@
           {
             "kind": "probe",
             "name": "recovery_wraps_pipeline"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "lazy, pull-based, source-bound, single-use"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "consuming a flow twice raises `RuntimeError(\"Flow has already been consumed\")`"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "`take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "`collect(source)` for list or Flow (returns list)"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "`run(source)` for list or Flow (consume/traverse to completion; returns `nil`)"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "`evolve(init, f)` (experimental unbounded progression flow;"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "Polymorphic functions (work on both lists and flows, same-kind return)"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "`stdin` is a lazy source value when used in pipelines (`stdin |> lines`)"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "`lines(flow_or_source)`"
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:flow-semantics",
+            "fragment": "`lines` accepts `stdin`, a Flow, or a list of strings; any other value (for example a bare string, or a list containing a non-string) fails with a Genia-facing error."
+          },
+          {
+            "kind": "state_text",
+            "anchor": "state:outcome-propagation",
+            "fragment": "`stdin` is a host-backed input capability, not a Seq-compatible public value"
+          },
+          {
+            "kind": "probe",
+            "name": "flow_single_use"
+          },
+          {
+            "kind": "probe",
+            "name": "lines_input_validation"
+          },
+          {
+            "kind": "probe",
+            "name": "flow_bounded_demand"
+          },
+          {
+            "kind": "probe",
+            "name": "flow_terminals_and_kinds"
+          },
+          {
+            "kind": "probe",
+            "name": "stdin_requires_lines_adapter"
           }
         ]
       }
@@ -731,6 +815,104 @@
             {
               "kind": "probe",
               "name": "recovery_wraps_pipeline"
+            }
+          ]
+        },
+        {
+          "id": "flow_semantics",
+          "scope": "language",
+          "status": "implemented",
+          "maturity": "Experimental",
+          "summary": "Experimental: Flow is lazy, pull-based and single-use; lines takes a list of strings; bound unbounded sources with take; the C++ host supports only a bounded Flow subset.",
+          "anchors": [
+            "state:flow-semantics",
+            "state:host-status"
+          ],
+          "evidence": [
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "lazy, pull-based, source-bound, single-use"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "consuming a flow twice raises `RuntimeError(\"Flow has already been consumed\")`"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "`take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "`collect(source)` for list or Flow (returns list)"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "`run(source)` for list or Flow (consume/traverse to completion; returns `nil`)"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "`evolve(init, f)` (experimental unbounded progression flow;"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "Polymorphic functions (work on both lists and flows, same-kind return)"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "`stdin` is a lazy source value when used in pipelines (`stdin |> lines`)"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "`lines(flow_or_source)`"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:flow-semantics",
+              "fragment": "`lines` accepts `stdin`, a Flow, or a list of strings; any other value (for example a bare string, or a list containing a non-string) fails with a Genia-facing error."
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "`tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan`, Flow display, and a"
+            },
+            {
+              "kind": "state_text",
+              "anchor": "state:host-status",
+              "fragment": "Flow behavior is implemented in Python"
+            },
+            {
+              "kind": "probe",
+              "name": "flow_single_use"
+            },
+            {
+              "kind": "probe",
+              "name": "lines_input_validation"
+            },
+            {
+              "kind": "probe",
+              "name": "flow_bounded_demand"
+            },
+            {
+              "kind": "probe",
+              "name": "flow_terminals_and_kinds"
+            },
+            {
+              "kind": "probe",
+              "name": "stdin_requires_lines_adapter"
             }
           ]
         }

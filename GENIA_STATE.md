@@ -1654,6 +1654,7 @@ Implementation files:
 - `src/genia/builtins.py` — builtin registration
 - `src/genia/utf8.py` — deterministic Sheet rendering
 ### Flow runtime (Phase 1)
+<!-- anchor: state:flow-semantics -->
 
 - `stdin` is a lazy source value when used in pipelines (`stdin |> lines`)
   - `stdin |> lines` reads incrementally from the underlying source
@@ -1712,6 +1713,7 @@ Implementation files:
   - observable behavior must remain unchanged: item order, callback order, side-effect order, laziness, bounded pulling, upstream close behavior, single-use enforcement, errors, stdout/stderr/exit code, and Flow display labels
 - flow transforms:
   - `lines(flow_or_source)`
+    - `lines` accepts `stdin`, a Flow, or a list of strings; any other value (for example a bare string, or a list containing a non-string) fails with a Genia-facing error.
   - `evolve(init, f)` (experimental unbounded progression flow; emits `init` first, then repeatedly emits `f(previous_value)`)
   - `tee(flow)` returns `[left_flow, right_flow]`
   - `merge(flow1, flow2)` and `merge(pair)` where `pair` is a two-element list such as the result of `tee(flow)`
