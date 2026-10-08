@@ -12,9 +12,14 @@ import json
 import os
 import re
 import subprocess
-import tomllib
+import sys
 
 import pytest
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:  # pytest requires tomli on Python 3.10, so it is always present there
+    import tomli as tomllib
 
 from tests.fixtures.r28_mcp_helpers import (
     REPO_ROOT,
