@@ -109,7 +109,9 @@ def test_map_filter_and_take_keep_a_flow_lazy():
     built = '["a", "b", "c"] |> lines |> filter((s) -> true) |> map((s) -> print(s)) |> take(1)\n1'
     value, printed = _stdout_of(built)
     assert value == 1 and printed == ""
-    consumed = '["a", "b", "c"] |> lines |> filter((s) -> true) |> map((s) -> print(s)) |> take(1) |> run'
+    consumed = (
+        '["a", "b", "c"] |> lines |> filter((s) -> true) |> map((s) -> print(s)) |> take(1) |> run'
+    )
     _, printed = _stdout_of(consumed)
     assert printed == "a\n"  # a terminal pulled exactly one element through filter and map
 
