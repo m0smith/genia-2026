@@ -54,6 +54,10 @@ R20_EVAL_SPECS = [
     "r20-cross-module-alias-interface-identity.yaml",
     "r20-cross-module-lexical-visibility.yaml",
     "r20-cross-module-consumer-non-transitivity.yaml",
+    # Contract 5.1 / issue #1067 (F1 open-function tail calls).
+    "r20-open-mutual-tail-call.yaml",
+    "r20-open-ordinary-mutual-tail-call.yaml",
+    "r20-cross-module-view-mutual-tail-call.yaml",
 ]
 
 R20_ERROR_SPECS = [
