@@ -51,16 +51,22 @@ class GeniaLifecycleScope:
     __slots__ = ("kind", "parent", "lifetime", "context")
 
     def __init__(self, kind: str, parent: "GeniaLifecycleScope | None"):
+        """Create a scope handle before its enter phase begins."""
+
         self.kind = kind
         self.parent = parent
         self.lifetime = "created"
         self.context: dict[str, Any] = {}
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid only
+        """Return a compact representation of the scope kind and lifetime."""
+
         return f"<lifecycle-scope {self.kind} {self.lifetime}>"
 
 
 def _require_live(handle: Any, operation: str) -> GeniaLifecycleScope:
+    """Return a live lifecycle scope handle or raise the operation error."""
+
     if not isinstance(handle, GeniaLifecycleScope):
         raise TypeError(
             f"{operation} expected a lifecycle scope handle, "
@@ -72,6 +78,8 @@ def _require_live(handle: Any, operation: str) -> GeniaLifecycleScope:
 
 
 def _peer_name(peer: Any, operation: str) -> str:
+    """Validate a peer descriptor and return its non-empty symbol name."""
+
     if not isinstance(peer, GeniaMap):
         raise TypeError(
             f"{operation} expected a lifecycle definition map, "
@@ -134,11 +142,15 @@ def _validate_peers(
 
 
 def _normalize_exception(error: Exception) -> tuple[str, GeniaMap]:
+    """Convert a host exception into the lifecycle failure reason envelope."""
+
     reason = str(error) or "lifecycle-failure"
     return reason, GeniaMap()
 
 
 def _outcome_context(context: Any, operation: str) -> GeniaMap:
+    """Normalize an err context value to the map required by lifecycle results."""
+
     if context is None:
         return GeniaMap()
     if not isinstance(context, GeniaMap):
@@ -147,6 +159,8 @@ def _outcome_context(context: Any, operation: str) -> GeniaMap:
 
 
 def _failure_value(peer_name: str | None, phase: str, reason: str, context: GeniaMap) -> GeniaMap:
+    """Build the portable lifecycle failure map for one failed phase."""
+
     peer_opt = GeniaOptionSome(symbol(peer_name)) if peer_name is not None else _NO_PEER
     return (
         GeniaMap()
@@ -158,6 +172,8 @@ def _failure_value(peer_name: str | None, phase: str, reason: str, context: Geni
 
 
 def _primary_summary(primary: GeniaMap | None) -> GeniaMap:
+    """Build the status summary passed to exit handlers during unwind."""
+
     if primary is None:
         return (
             GeniaMap()
@@ -189,6 +205,8 @@ def _run_scope(
     *,
     preset_context: dict[str, Any] | None = None,
 ) -> GeniaMap:
+    """Run the lifecycle enter/work/exit algorithm for one scope instance."""
+
     operation = _OPERATION_BY_KIND[kind]
 
     scope = GeniaLifecycleScope(kind, parent)
