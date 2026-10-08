@@ -1,3 +1,5 @@
+"""Unit tests for lifecycle scope tree normalization and validation."""
+
 import importlib
 
 import pytest
@@ -6,10 +8,14 @@ from genia.values import GeniaMap, GeniaOptionSome, OPTION_NONE, symbol
 
 
 def _lifecycle_scope_module():
+    """Return the lifecycle scope module under test."""
+
     return importlib.import_module("genia.lifecycle_scope")
 
 
 def _record(**fields):
+    """Build a Genia map fixture from keyword fields."""
+
     record = GeniaMap()
     for key, value in fields.items():
         record = record.put(key, value)
@@ -17,6 +23,8 @@ def _record(**fields):
 
 
 def _scope(name, parent, children, **fields):
+    """Build one lifecycle scope-tree fixture entry."""
+
     return _record(
         name=symbol(name),
         parent=parent,
@@ -26,10 +34,14 @@ def _scope(name, parent, children, **fields):
 
 
 def _scope_tree(scopes, **fields):
+    """Build a lifecycle scope-tree fixture with optional root fields."""
+
     return _record(scopes=scopes, **fields)
 
 
 def _canonical_scope_tree(**fields):
+    """Build the canonical execution/suite/module/test scope tree fixture."""
+
     return _scope_tree(
         [
             _scope("execution", OPTION_NONE, ["suite"]),
@@ -42,10 +54,14 @@ def _canonical_scope_tree(**fields):
 
 
 def _normalize(scope_tree):
+    """Normalize a scope-tree fixture through the module under test."""
+
     return _lifecycle_scope_module().normalize_lifecycle_scope_tree(scope_tree)
 
 
 def _assert_invalid(scope_tree, expected_message):
+    """Assert that scope-tree normalization raises the expected diagnostic."""
+
     lifecycle_scope = _lifecycle_scope_module()
     with pytest.raises(ValueError, match=expected_message):
         lifecycle_scope.normalize_lifecycle_scope_tree(scope_tree)
@@ -99,6 +115,8 @@ def test_normalize_preserves_optional_root_and_scope_data_without_execution():
     calls = []
 
     def metadata_callable_that_must_not_be_called():
+        """Record calls if normalization accidentally executes metadata."""
+
         calls.append("called")
 
     root_metadata = _record(owner=symbol("r4"))

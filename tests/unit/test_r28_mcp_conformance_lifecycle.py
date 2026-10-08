@@ -50,10 +50,14 @@ GRACE_S = 60
 
 
 def _gone(identities):
+    """Return whether every captured process identity has disappeared."""
+
     return [i for i in identities if identity_exists(i)] == []
 
 
 def _wait_until(condition, timeout=GRACE_S):
+    """Poll an observable condition until it becomes true or times out."""
+
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if condition():
@@ -63,6 +67,8 @@ def _wait_until(condition, timeout=GRACE_S):
 
 
 def _session(mode):
+    """Create a launcher session configured for one namespace mode."""
+
     return LauncherSession(env=env_for(mode))
 
 
@@ -291,6 +297,8 @@ def test_sighup_to_the_client_launched_process_stops_the_chain_and_cleans_up():
 
 
 def _identity(pid):
+    """Return the stable process identity for a PID, if still observable."""
+
     from tests.fixtures.r28_mcp_helpers import process_identity
 
     return process_identity(pid)
@@ -327,6 +335,8 @@ def test_sigterm_to_the_host_mid_run_reaps_the_worker_and_removes_its_directory(
 
 
 def _host_of(session):
+    """Find the host process PID below a configured launcher session."""
+
     from tests.fixtures.r28_mcp_helpers import _cmdline
 
     for pid in process_children(session.proc.pid):
