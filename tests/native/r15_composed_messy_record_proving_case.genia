@@ -1,3 +1,5 @@
+# Native R15 composed messy-record proving case.
+
 sku_schema = represent("json", {type: "string"})
 qty_schema = represent("json", {type: "integer"})
 price_schema = represent("json", {type: "number"})
@@ -46,6 +48,7 @@ combine_order(envelope_result, item_diag_count, items_result) =
   (some(_), _, items_result) -> err(quote(order-validation-failed), {envelope: [], items: items_result("diagnostics")}) |
   (err(_, ctx), _, items_result) -> err(quote(order-validation-failed), {envelope: ctx("diagnostics"), items: items_result("diagnostics")})
 
+@doc "Validate a messy order envelope and items into one composed Outcome."
 process_order(raw) = {
   items_result = validate_items(raw("items"))
   envelope_result = accumulate(OrderEnvelope, normalize_envelope(raw))

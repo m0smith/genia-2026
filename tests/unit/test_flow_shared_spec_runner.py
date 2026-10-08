@@ -1,3 +1,5 @@
+"""Shared flow spec-runner tests for loader fields and subprocess delegation."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -70,6 +72,8 @@ def test_exec_flow_delegates_to_command_source_subprocess_without_wrapping(monke
     calls: list[tuple[str, str | None]] = []
 
     def fake_run_eval_subprocess(source: str, stdin: str | None) -> dict[str, object]:
+        """Record delegated flow source and stdin without launching Python."""
+
         calls.append((source, stdin))
         return {"stdout": "", "stderr": "", "exit_code": 0}
 

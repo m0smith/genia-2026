@@ -1,3 +1,5 @@
+"""Process builtin smoke tests for mailbox delivery and wrapper behavior."""
+
 import threading
 import time
 

@@ -24,6 +24,8 @@ _GENEROUS_RETURN_WINDOW_SECONDS = 5  # generous multiple of _SHORT_TIMEOUT_MS
 
 
 def _launch(argv: list[str], timeout_ms: int):
+    """Run the process transport fixture for timeout assertions."""
+
     from tests.fixtures.execution_process_helpers import process_transport_module
 
     module = process_transport_module()

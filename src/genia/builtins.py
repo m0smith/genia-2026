@@ -433,6 +433,8 @@ def make_global_env(
         return None
 
     def _enable_virtual_terminal_processing_if_needed(sink: GeniaOutputSink) -> None:
+        """Enable ANSI escape handling for Windows console sinks when possible."""
+
         if os.name != "nt":
             return
         stream = getattr(sink, "_stream", None)
@@ -790,6 +792,8 @@ def make_global_env(
     http_send_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def execution_process_fn(capability: Any, request: Any) -> Any:
+        """Expose the governed process execution boundary as a builtin."""
+
         return perform_process_execution(capability, request)
 
     def send_annotated_fn(fn: Any, base_url: Any, authority: Any, timeout_ms: Any) -> Any:
@@ -1119,6 +1123,8 @@ def make_global_env(
     _RECURSIVE_TEMPLATE_MAX_DEPTH_CEILING = 100
 
     def recursive_template_fn(name: Any, build_fn: Any, max_depth: Any) -> Any:
+        """Build a bounded self-referential template without recursive host stack growth."""
+
         if not _discriminator_string(name) or name == "":
             raise TypeError(
                 "recursive_template expected non-empty reference name string, "
@@ -1176,6 +1182,8 @@ def make_global_env(
             original_value: Any,
             is_exact: bool,
         ) -> tuple[str, Any]:
+            """Prepare the next recursive-template field step or immediate failure."""
+
             field, field_template = fields_items[index]
             if original_value.has(field):
                 return ("descend", field, field_template, original_value.get(field), False)
@@ -3647,16 +3655,22 @@ def make_global_env(
         return None
 
     def process_alive_fn(process: Any) -> bool:
+        """Implement `process_alive?` with process-handle type checking."""
+
         if not isinstance(process, GeniaProcess):
             raise TypeError("process_alive? expected a process")
         return process.is_alive()
 
     def process_failed_fn(process: Any) -> bool:
+        """Implement `process_failed?` with process-handle type checking."""
+
         if not isinstance(process, GeniaProcess):
             raise TypeError("process_failed? expected a process")
         return process.failed()
 
     def process_error_fn(process: Any) -> Any:
+        """Return `some(error)` for failed processes, otherwise `none`."""
+
         if not isinstance(process, GeniaProcess):
             raise TypeError("process_error expected a process")
         err = process.error()

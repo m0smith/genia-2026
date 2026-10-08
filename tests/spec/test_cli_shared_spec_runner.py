@@ -1,3 +1,5 @@
+"""Shared CLI spec-runner tests for file, command, pipe, REPL, and test modes."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -343,6 +345,8 @@ def test_exec_cli_uses_subprocess_without_shell_piping(monkeypatch) -> None:
     calls: list[dict[str, object]] = []
 
     def fake_run(argv: list[str], **kwargs: object) -> SimpleNamespace:
+        """Record subprocess arguments without starting a child process."""
+
         calls.append({"argv": argv, **kwargs})
         return SimpleNamespace(stdout="", stderr="", returncode=0)
 

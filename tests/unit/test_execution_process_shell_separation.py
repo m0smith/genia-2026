@@ -22,6 +22,8 @@ _SHELL_SIGNIFICANT_ARGS = ["*", "$HOME", ";", "|", ">", "a b c", "$(whoami)", "`
 
 
 def _launch(argv: list[str], timeout_ms: int = 5000):
+    """Run the process transport fixture for argv-preservation checks."""
+
     from tests.fixtures.execution_process_helpers import process_transport_module
 
     module = process_transport_module()

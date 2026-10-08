@@ -21,6 +21,8 @@ from tests.fixtures.process_fixtures import (
 
 
 def _launch(argv: list[str], timeout_ms: int = 5000):
+    """Run the process transport fixture for a prepared argv vector."""
+
     from tests.fixtures.execution_process_helpers import process_transport_module
 
     module = process_transport_module()
