@@ -15,6 +15,7 @@ contract, never generated from the registry.
 from __future__ import annotations
 
 import json
+import re
 
 import pytest
 
@@ -156,8 +157,8 @@ def test_a9_outcomes_idiom_states_the_documented_distinctions():
         "unwrap_or(0, parse_int(s))",
     ):
         assert term in text, term
-    for overclaim in ("all ", "always", "complete", "fully"):
-        assert overclaim not in text.lower(), overclaim
+    for overclaim in (r"\ball\b", r"\balways\b", r"\bcomplete", r"\bfully\b"):  # word-bounded: "call" is not "all"
+        assert not re.search(overclaim, text.lower()), overclaim
 
 
 def test_a9_existing_idioms_are_unchanged():
