@@ -935,6 +935,10 @@ gcd(48, 18)
 - plain `import store_impl` never changes what `base.get` resolves to —
   only the explicit `use ... from ... with ...` in a consuming module links
   selected contributions into one immutable view, local to that module
+- calls in tail position out of an open clause (to itself, another open
+  function, a linked view, or an ordinary function) are proper tail calls, so
+  mutual recursion across them runs in constant stack space on the Python
+  reference host
 - see `docs/design/r20-open-functions-contract.md` and `GENIA_STATE.md`
   section 4.7 for the full semantics, diagnostics, and known limitations of
   this Experimental release

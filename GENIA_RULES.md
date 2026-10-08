@@ -441,6 +441,11 @@ Required constraints:
   `OpenClauseRecord.dispatch_key`) and reused identically for a base-only
   open function and a linked cross-module view — there is no second
   dispatch algorithm for the cross-module case.
+- Open interfaces and linked views have no tail-call mechanism of their own:
+  a tail call out of a selected clause (to any callable, including itself)
+  continues in the one shared `eval_with_tco` trampoline, so the ordinary
+  constant-stack tail-call guarantee holds for self and mutual recursion
+  across open interfaces, linked views, and ordinary functions (contract §5.1).
 - Declaration, import, and `use` are inert with respect to R20-added
   effects: no clause body executes and no lifecycle/resource/network
   activation occurs merely because an `open`/`extend`/`use` statement is
