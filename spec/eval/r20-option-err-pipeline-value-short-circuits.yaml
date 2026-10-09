@@ -1,0 +1,15 @@
+name: r20-option-err-pipeline-value-short-circuits
+category: eval
+description: R20 contract 5.2 an err pipeline value short-circuits an open call and is not a clause result
+input:
+  source: |
+    open f(x) = x + 1
+
+    [err("e") |> f]
+expected:
+  stdout: "[err(\"e\")]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

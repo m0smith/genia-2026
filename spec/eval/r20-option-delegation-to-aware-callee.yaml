@@ -1,0 +1,15 @@
+name: r20-option-delegation-to-aware-callee
+category: eval
+description: R20 contract 5.2 an open clause whose body delegates to an Option-aware callee receives none like an ordinary function
+input:
+  source: |
+    open f(x) = unwrap_or(0, x)
+
+    [f(none)]
+expected:
+  stdout: "[0]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

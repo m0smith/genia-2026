@@ -1,0 +1,16 @@
+name: r20-option-varargs-stratum-ignores-fixed-clause
+category: eval
+description: R20 contract 5.2 awareness is decided in the selected varargs stratum, not by a none clause of a fixed shape that is not selected
+input:
+  source: |
+    open f(a, ..r) = "va"
+    f(a, b, c) = (none, y, z) -> 1
+
+    [f(none, 1) == none]
+expected:
+  stdout: "[true]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions
