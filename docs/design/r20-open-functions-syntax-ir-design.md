@@ -285,7 +285,14 @@ implement exactly this and no more:
   Called directly, it dispatches using only its own clauses as the single
   participating unit (contract §5 with exactly one unit).
 - `GeniaOpenContributionUnit` — `target_interface_key`, declaring module id,
-  ordered clauses/closure. Never callable by itself.
+  ordered clauses/closure. Never callable by itself. Held in the declaring
+  module's contribution table (`Env.open_contributions`, copied onto
+  `ModuleValue.contributions` when the module finishes loading), keyed by
+  `target_interface_key`; never bound under a name. Evaluating `IrOpenContribution`
+  resolves the target, then replaces the table entry for that key with a new
+  unit holding the earlier clauses followed by the new ones (so the build-time
+  duplicate check of contract §6 covers all runs); `IrOpenUse` reads only the
+  table. The Core IR is unchanged.
 - `GeniaLinkedOpenFunction` — `base: GeniaOpenFunction`, `units: tuple[
   GeniaOpenContributionUnit, ...]` (immutable, selection order is not dispatch
   order). Implements the full contract §5 algorithm (shape stratum → per-unit
