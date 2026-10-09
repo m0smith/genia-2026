@@ -34,6 +34,8 @@ META_SERVER_INFO = "io.modelcontextprotocol/serverInfo"
 
 
 def good_meta(**extra):
+    """Build the per-request metadata required by the current MCP contract."""
+
     meta = {META_VERSION: PROTOCOL_VERSION, META_CAPABILITIES: {}}
     meta.update(extra)
     return meta
@@ -50,6 +52,8 @@ def request(method, req_id=1, params=None, *, meta=True):
 
 
 def notification(method, params=None):
+    """Build a JSON-RPC notification, omitting params when the caller has none."""
+
     message = {"jsonrpc": "2.0", "method": method}
     if params is not None:
         message["params"] = params
@@ -57,10 +61,14 @@ def notification(method, params=None):
 
 
 def encode(message, *, ensure_ascii=True) -> bytes:
+    """Serialize one compact UTF-8 JSON-RPC frame body without its newline."""
+
     return json.dumps(message, ensure_ascii=ensure_ascii, separators=(",", ":")).encode("utf-8")
 
 
 def server_env(extra=None):
+    """Return the subprocess environment used by MCP server harness calls."""
+
     env = dict(os.environ)
     src = str(REPO_ROOT / "src")
     existing = env.get("PYTHONPATH")
@@ -103,6 +111,8 @@ def denied_namespace_path(path: str) -> str:
 
 
 def server_command(args):
+    """Return the direct Genia CLI command for running the native MCP server."""
+
     assert SERVER_PATH.is_file(), (
         "E28-1 not implemented: apps/mcp/mcp.genia does not exist "
         "(native Genia MCP server expected at this path)"
@@ -132,6 +142,8 @@ def run_raw(lines, *, args=(REVISION,), cwd=None, env=None, timeout=60):
 
 
 def run_messages(messages, **kwargs):
+    """Run direct server mode with JSON-RPC messages encoded as stdin lines."""
+
     return run_raw([encode(m) for m in messages], **kwargs)
 
 
@@ -144,6 +156,8 @@ def frames(stdout: bytes):
 
 
 def responses(completed):
+    """Decode all response frames from a completed direct-server subprocess."""
+
     assert completed.returncode == 0, completed.stderr.decode("utf-8", "replace")
     decoded = []
     for frame in frames(completed.stdout):
@@ -161,12 +175,16 @@ def call(message, **kwargs):
 
 @lru_cache(maxsize=None)
 def _cached(key):
+    """lru_cache target keyed by serialized request payloads."""
+
     kind, payload = key
     message = json.loads(payload)
     return call(message)
 
 
 def cached_call(message):
+    """Return a cached direct-server response for deterministic discovery calls."""
+
     return _cached(("call", json.dumps(message, sort_keys=True)))
 
 
@@ -175,6 +193,8 @@ NATIVE_TOOLS = ("genia_capabilities", PROFILE_TOOL)  # what plain file mode (no 
 
 
 def expected_capabilities(revision=REVISION, tools=NATIVE_TOOLS):
+    """Expected `genia_capabilities` payload for direct native server mode."""
+
     return {
         "server": {"name": "genia-mcp", "contract": "genia.mcp.v1"},
         "mcp": {"protocol_version": PROTOCOL_VERSION, "transport": "stdio"},
@@ -202,6 +222,8 @@ def expected_capabilities(revision=REVISION, tools=NATIVE_TOOLS):
 
 
 def expected_envelope(revision=REVISION, tools=NATIVE_TOOLS):
+    """Expected standard success envelope around the capabilities payload."""
+
     return {
         "schema_version": "genia.mcp.v1",
         "status": "ok",
@@ -249,6 +271,8 @@ HOST_BOOTSTRAP_PATH = REPO_ROOT / "hosts" / "python" / "mcp_host.py"
 
 
 def repository_revision() -> str:
+    """Return the repository HEAD used as the launcher contract revision."""
+
     done = subprocess.run(
         ["git", "rev-parse", "HEAD"],
         cwd=str(REPO_ROOT),
@@ -276,18 +300,24 @@ def run_launcher_raw(lines, *, timeout=120, env=None):
 
 
 def launcher_call(message, **kwargs):
+    """Send one launcher-mode request and return its decoded response."""
+
     out = responses(run_launcher_raw([encode(message)], **kwargs))
     assert len(out) == 1, out
     return out[0]
 
 
 def parse_request(source, req_id=1, **extra_arguments):
+    """Build a `genia_parse` tool call for launcher-mode tests."""
+
     arguments = {"source": source}
     arguments.update(extra_arguments)
     return request("tools/call", req_id, {"name": "genia_parse", "arguments": arguments})
 
 
 def error_envelope(kind, phase, message):
+    """Build the common Genia MCP error envelope expected inside tool results."""
+
     return {
         "schema_version": "genia.mcp.v1",
         "status": "error",
@@ -313,18 +343,24 @@ RUN_INTERNAL_MESSAGE = "Internal error while executing"
 
 
 def run_request(source, req_id=1, **extra_arguments):
+    """Build a `genia_run` tool call for launcher-mode tests."""
+
     arguments = {"source": source}
     arguments.update(extra_arguments)
     return request("tools/call", req_id, {"name": "genia_run", "arguments": arguments})
 
 
 def cancel_notification(request_id, reason="client cancelled"):
+    """Build the MCP cancellation notification for a request id."""
+
     return notification(
         "notifications/cancelled", {"requestId": request_id, "reason": reason}
     )
 
 
 def completed_envelope(rendered, stdout="", stderr=""):
+    """Build the common successful `genia_run` envelope for assertions."""
+
     return {
         "schema_version": "genia.mcp.v1",
         "status": "ok",
@@ -427,6 +463,8 @@ def process_children(pid):
 
 
 def _entry(pid):
+    """Return one process snapshot entry, or None if the pid is absent."""
+
     return process_snapshot(pid).get(pid)
 
 
@@ -443,11 +481,15 @@ def process_identity(pid):
 
 
 def identity_exists(identity):
+    """Return whether a previously captured process identity still exists."""
+
     entry = _entry(identity[0])
     return entry is not None and entry[1] == identity[1]
 
 
 def _cmdline(pid):
+    """Return the command line captured for pid, or an empty list if absent."""
+
     entry = _entry(pid)
     return [] if entry is None else list(entry[2])
 
@@ -470,6 +512,8 @@ def is_governed_worker(pid):
 
 
 def is_namespace_probe(pid):
+    """Return whether pid appears to be the one-time network namespace probe."""
+
     return any("/proc/net/dev" in part for part in _cmdline(pid))
 
 
@@ -477,6 +521,8 @@ class LauncherSession:
     """A live launcher-mode server with timed writes (for cancellation tests)."""
 
     def __init__(self, extra_env=None, *, command=None, cwd=None, env=None):
+        """Start a launcher subprocess with pipes retained for protocol frames."""
+
         self.proc = subprocess.Popen(
             command if command is not None else [sys.executable, "-m", "hosts.python.mcp_launch"],
             stdin=subprocess.PIPE,
@@ -489,6 +535,8 @@ class LauncherSession:
         self.raw_stdout = b""  # every byte the server wrote to stdout, in order
 
     def send(self, message):
+        """Write one newline-delimited JSON-RPC message to the launcher."""
+
         self.proc.stdin.write(encode(message) + b"\n")
         self.proc.stdin.flush()
 
@@ -520,6 +568,8 @@ class LauncherSession:
         assert response["id"] == "ready" and "result" in response, response
 
     def descendants(self):
+        """Return live descendant pids currently below the launcher process."""
+
         return process_children(self.proc.pid)
 
     def governed_workers(self):
@@ -549,6 +599,8 @@ class LauncherSession:
         raise AssertionError("no governed worker process appeared within the timeout")
 
     def close(self):
+        """Close stdin, wait for launcher exit, then close captured streams."""
+
         try:
             self.proc.stdin.close()
         except OSError:
@@ -563,9 +615,13 @@ class LauncherSession:
                     pass
 
     def __enter__(self):
+        """Enter the context manager without altering the live session."""
+
         return self
 
     def __exit__(self, *exc):
+        """Kill any still-running launcher and release its pipes."""
+
         if self.proc.poll() is None:
             self.proc.kill()
         self.close()
@@ -585,6 +641,8 @@ CLIENT_ENV_NAMES = ("HOME", "LOGNAME", "PATH", "SHELL", "TERM", "USER")
 
 
 def load_mcp_config():
+    """Load the checked-in MCP client configuration."""
+
     assert MCP_CONFIG_PATH.is_file(), (
         "E28-4 not implemented: the repository-root .mcp.json does not exist"
     )
@@ -597,11 +655,15 @@ def configured_server():
 
 
 def configured_command():
+    """Return the configured command argv exactly as `.mcp.json` specifies."""
+
     entry = configured_server()
     return [entry["command"], *entry.get("args", [])]
 
 
 def client_environment():
+    """Return the minimal client-style environment passed to stdio servers."""
+
     return {name: os.environ[name] for name in CLIENT_ENV_NAMES if name in os.environ}
 
 
@@ -629,6 +691,8 @@ def configured_session():
 
 
 def _lsof(args):
+    """Run `lsof` with stable parse-friendly flags for portability assertions."""
+
     done = subprocess.run(["lsof", "-nP", "-F", "pn", *args], capture_output=True, text=True, check=False,
                           env={"LC_ALL": "C", "PATH": _TOOL_PATH})
     return done.stdout.splitlines()
@@ -734,6 +798,8 @@ def compat_request(method, req_id=1, params=None):
 
 
 def compat_call(name, arguments=None, req_id=1):
+    """Build a compatibility-era `tools/call` request for a tool name."""
+
     params = {"name": name}
     if arguments is not None:
         params["arguments"] = arguments
@@ -741,12 +807,18 @@ def compat_call(name, arguments=None, req_id=1):
 
 
 def compat_run(source, req_id=1):
+    """Build a compatibility-era `genia_run` tool call."""
+
     return compat_call("genia_run", {"source": source}, req_id)
 
 
 def compat_parse(source, req_id=1):
+    """Build a compatibility-era `genia_parse` tool call."""
+
     return compat_call("genia_parse", {"source": source}, req_id)
 
 
 def compat_handshake(init_id="init"):
+    """Return the initialize/initialized pair for compatibility-era sessions."""
+
     return [initialize_request(init_id), INITIALIZED_NOTIFICATION]
