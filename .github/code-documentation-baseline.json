@@ -1081,8 +1081,6 @@
     "src/genia/callable.py::binding::_append_fused_stage": "8ffd828b26af6167747a583569320956eab258dc8a72b0f6cf55285ab3f04149",
     "src/genia/callable.py::binding::_callable_case_explicitly_handles_none": "c14e98d0db2fc7870f33586ec3e25265b5c3577d2e5386ee568363cffdda3966",
     "src/genia/callable.py::binding::_callable_case_explicitly_handles_some": "447c8eb07e1122d52138fd0acca24763f62dc43d0ce2de300439ebc1fc1b97c0",
-    "src/genia/callable.py::binding::_callable_explicitly_handles_none": "bb98115aff10c4166ee00f27e843f4a91f7356e9a762fb4f055a6889b7bf8230",
-    "src/genia/callable.py::binding::_callable_explicitly_handles_some": "56fff36122c6a863145b4612e6c4009881ba9642c9ecde6c488bb951d5573cf9",
     "src/genia/callable.py::binding::_check_no_duplicate_clauses": "6d7f22519a4f3977098d938f1edf85576b9ff75ba731d55fff942468e8ddf6d6",
     "src/genia/callable.py::binding::_clause_shape": "bb4f8b110693a3da08378f13740d859f864b01e6e9f363cfa40ce6e7bd7dd6cb",
     "src/genia/callable.py::binding::_finalize_iterable": "07fb88e1eaad65ee4fe83a37d9b91398fee106c056217276ccd9781eb2881de3",

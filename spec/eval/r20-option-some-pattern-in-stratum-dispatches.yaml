@@ -1,0 +1,18 @@
+name: r20-option-some-pattern-in-stratum-dispatches
+category: eval
+description: R20 contract 5.2 a some pattern in the selected stratum lets some reach dispatch; unaware clauses see the unwrapped value
+input:
+  source: |
+    open g(some(v)) = v
+    g(z) = "other"
+
+    open h(x) = x + 1
+
+    [g(some(4)), some(4) |> h]
+expected:
+  stdout: "[4, some(5)]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

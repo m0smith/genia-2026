@@ -58,6 +58,14 @@ R20_EVAL_SPECS = [
     "r20-open-mutual-tail-call.yaml",
     "r20-open-ordinary-mutual-tail-call.yaml",
     "r20-cross-module-view-mutual-tail-call.yaml",
+    # Contract 5.2 / issue #1067 (F1 open-function Option awareness).
+    "r20-option-other-arity-clause-not-aware.yaml",
+    "r20-option-delegation-to-aware-callee.yaml",
+    "r20-option-varargs-stratum-ignores-fixed-clause.yaml",
+    "r20-option-none-pattern-in-stratum-dispatches.yaml",
+    "r20-option-some-pattern-in-stratum-dispatches.yaml",
+    "r20-option-err-pipeline-value-short-circuits.yaml",
+    "r20-cross-module-option-contribution-awareness.yaml",
 ]
 
 R20_ERROR_SPECS = [

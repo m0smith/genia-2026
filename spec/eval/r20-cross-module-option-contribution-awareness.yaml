@@ -1,0 +1,28 @@
+name: r20-cross-module-option-contribution-awareness
+category: eval
+description: R20 contract 5.2 a selected contribution clause in the selected stratum makes the linked view Option-aware while the base alone stays unaware
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open f("a", x) = "base"
+      - path: ext.genia
+        source: |
+          import base
+          extend base.f("b", none) = "ext-none"
+      - path: main.genia
+        source: |
+          import base
+          import ext
+          use f from base with ext
+
+          [base.f("b", none) == none, f("b", none)]
+expected:
+  stdout: "[true, \"ext-none\"]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - open_functions
+  - multi_file_eval

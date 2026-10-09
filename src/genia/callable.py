@@ -748,6 +748,21 @@ def _all_open_clause_records(fn: Any) -> list[OpenClauseRecord]:
     return []
 
 
+def _open_stratum_records(fn: Any, arity: int) -> list[OpenClauseRecord]:
+    """Clause records of an open function or linked view in the shape stratum
+    that a call with `arity` arguments selects (contract 5 step 1).
+
+    Output: the fixed-`arity` records of the base and every selected unit, else
+    every varargs record whose minimum is at most `arity` (all of them when the
+    stratum is ambiguous, since dispatch reports that). Never raises.
+    """
+    records = _all_open_clause_records(fn)
+    fixed = [r for r in records if r.dispatch_key[0] == ("fixed", arity)]
+    if fixed:
+        return fixed
+    return [r for r in records if r.dispatch_key[0][0] == "varargs" and r.dispatch_key[0][1] <= arity]
+
+
 # ---------------------------------------------------------------------------
 # None-awareness detection
 # ---------------------------------------------------------------------------
@@ -932,6 +947,15 @@ def _function_explicitly_handles_some(fn: GeniaFunction) -> bool:
 
 
 def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: Optional[IrNode] = None) -> bool:
+    """Whether calling `fn` with `arity` arguments lets a `none` argument reach it.
+
+    Output: True when the resolved callable explicitly handles none/some in a
+    pattern, a case body, or by delegating to an Option-aware callee; False
+    means `invoke_callable` returns the `none` unchanged. Ordinary groups are
+    judged by the arity-resolved entry; open functions and linked views by the
+    clauses of the selected shape stratum across all selected units (R20
+    contract 5.2). Never raises or runs user code.
+    """
     if getattr(fn, "__genia_handles_none__", False):
         return True
     if isinstance(fn, GeniaFunction):
@@ -962,8 +986,11 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: Optional
         return False
     if isinstance(fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
         return any(
-            pattern_explicitly_handles_none(record.pattern) or pattern_explicitly_handles_some(record.pattern)
-            for record in _all_open_clause_records(fn)
+            pattern_explicitly_handles_none(record.pattern)
+            or pattern_explicitly_handles_some(record.pattern)
+            or _callable_case_explicitly_handles_none(record.body)
+            or _body_delegates_to_option_aware(record.body, record.closure)
+            for record in _open_stratum_records(fn, arity)
         )
     genia_body = getattr(fn, "__genia_body__", None)
     if genia_body is not None:
@@ -977,6 +1004,12 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: Optional
 
 
 def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: Optional[IrNode] = None) -> bool:
+    """Whether calling `fn` with `arity` arguments lets a `some(...)` value reach it.
+
+    Same resolution as `_callable_explicitly_handles_none`, but only `some`
+    patterns, `some`-aware case bodies, and Option-aware delegation count; a
+    False answer means the pipeline unwraps the `some` before the call.
+    """
     if getattr(fn, "__genia_handles_some__", False):
         return True
     if isinstance(fn, GeniaFunction):
@@ -1004,7 +1037,12 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: Optional
             return _function_explicitly_handles_some(matches[0])
         return False
     if isinstance(fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
-        return any(pattern_explicitly_handles_some(record.pattern) for record in _all_open_clause_records(fn))
+        return any(
+            pattern_explicitly_handles_some(record.pattern)
+            or _callable_case_explicitly_handles_some(record.body)
+            or _body_delegates_to_option_aware(record.body, record.closure)
+            for record in _open_stratum_records(fn, arity)
+        )
     genia_body = getattr(fn, "__genia_body__", None)
     if genia_body is not None:
         genia_pattern = getattr(fn, "__genia_pattern__", None)

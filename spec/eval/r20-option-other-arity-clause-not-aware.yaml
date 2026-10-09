@@ -1,0 +1,16 @@
+name: r20-option-other-arity-clause-not-aware
+category: eval
+description: R20 contract 5.2 a none/some clause of a different shape does not make an open call Option-aware
+input:
+  source: |
+    open f(x) = "ran"
+    f(a, b) = (some(y), z) -> y
+
+    [f(none) == none]
+expected:
+  stdout: "[true]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

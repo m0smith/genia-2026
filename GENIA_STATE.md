@@ -1039,9 +1039,11 @@ Core IR).
 - **Duplicate clauses.** Two clauses in the same unit with the same
   structural, alpha-normalized, span-free dispatch key are
   `open-function-duplicate-clause`, detected once when the unit is built
-  (module load time), never deferred to call time. The same dispatch key in
-  two different units is not a build-time duplicate; if both match one call,
-  the across-unit ambiguity rule applies.
+  never deferred to call time. The same dispatch key in two different units
+  is not a build-time duplicate; if both match one call, the across-unit
+  ambiguity rule applies. Automatic `none`/`some` propagation for a call is
+  decided over the selected shape stratum's clauses in all selected units
+  (contract §5.2).
 - **Explicit cross-module contribution.**
   - `extend <module-alias>.<name>(<pattern>, ...) = <body>` (in a
     contributing module that has already `import`ed `<module-alias>`)
@@ -1057,11 +1059,10 @@ Core IR).
     immutable linked view. There is no wildcard/implicit selection.
   - Ordinary `import` alone never selects a contribution: importing a
     contribution-bearing module without an explicit `use` leaves the base
-    interface (and any other module's already-linked view) completely
+    interface (and any other module's already-linked view)
     unaffected.
   - Interface/contribution identity is the pair (canonical cached module
-    name, exported name) — the same identity `Env.load_module` already
-    caches modules under. Import alias, file path, and host object address
+    name, exported name), the identity `Env.load_module` caches modules under. Import alias, file path, and host object address
     are never part of this identity, so two aliases of the same cached
     module are one interface/contribution, duplicate selection through two
     such aliases is a deterministic `open-function-duplicate-selection`
@@ -1081,21 +1082,19 @@ Core IR).
   the interface name, its declaration span, effective documentation (or "No
   documentation available."), and every participating unit's clauses in
   deterministic order — the base unit first (labelled by its declaring
-  module identity), then each contribution unit ordered by its declaring
-  module identity, clauses within a unit by lexical ordinal. `doc(name)`
+  module identity), then each contribution unit by its own, clauses within a unit by lexical ordinal. `doc(name)`
   returns the interface's own docstring; contribution clauses cannot supply,
-  replace, or erase interface-level documentation. No host object address or
-  Python-specific representation is exposed.
+  replace, or erase interface-level documentation. No host object or Python
+  representation is exposed.
 - **Diagnostics.** `open-function-redeclaration`,
   `open-function-target-not-open`, `open-function-duplicate-clause`,
   `open-function-duplicate-selection`,
   `open-function-incompatible-contribution`,
   `open-function-varargs-ambiguity`, and `open-function-clause-ambiguity` are
   raised as `TypeError` subclasses (`src/genia/callable.py`) with the
-  parameters the contract requires; a pattern/shape miss reuses the existing
-  `No matching function` / `No matching case` diagnostic families. Span
-  rendering in these messages is a plain `filename:line` string, not a raw
-  host object repr.
+  contract parameters; a pattern/shape miss reuses the existing
+  `No matching function` / `No matching case` diagnostic families. Spans
+  render as plain `filename:line`, not a host object repr.
 - **Core IR.** Three new portable node types —
   `IrOpenFuncDef(name, clauses, docstring, annotations)`,
   `IrOpenContribution(target_module_alias, target_name, clauses)`, and
@@ -1116,7 +1115,7 @@ Core IR).
     a one-expression `{ }` block containing one); other combinations of a
     non-trivial header with a case body are rejected;
   - `@doc`/`@meta`-style annotation attachment is not wired for `open`/
-    `extend` declarations in this slice — interface metadata beyond the
+    `extend` declarations — interface metadata beyond the
     optional docstring position is a follow-up;
   - cross-module behavior has Python-host real-file unit evidence and portable
     shared eval/error cases that additionally require `multi_file_eval`;

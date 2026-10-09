@@ -1,0 +1,16 @@
+name: r20-option-none-pattern-in-stratum-dispatches
+category: eval
+description: R20 contract 5.2 a none pattern in the selected stratum lets none reach dispatch and fall back by clause order
+input:
+  source: |
+    open f(none) = "was-none"
+    f(v) = v
+
+    [f(none), f(3)]
+expected:
+  stdout: "[\"was-none\", 3]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

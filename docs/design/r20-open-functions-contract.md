@@ -185,6 +185,29 @@ A host that cannot provide the constant-stack guarantee for a program must
 report it unsupported rather than diverge from this section; it must not claim
 the guarantee for ordinary functions only.
 
+### 5.2 Option and Outcome arguments
+
+An open interface or linked view follows the same automatic `none`/`some`
+propagation rule as an ordinary function, applied to the shape stratum of
+section 5 step 1 selected for the call's argument count. A `none` argument
+reaches dispatch only when some clause that participates in that stratum
+(base or any selected contribution unit) explicitly handles it: its argument
+pattern contains a `none` or `some` pattern, its body is a case expression
+that does, or its body's final call delegates to a known Option-aware callee.
+Otherwise the call returns that `none` unchanged and no clause runs. The same
+test, using `some` patterns and `some`-aware callees, decides whether a
+`some(...)` pipeline value is unwrapped before the call.
+
+Clauses of any other shape never make a call Option-aware, and a clause that
+is not selected into the view (an unselected contribution) never does either.
+When the stratum is varargs-ambiguous, awareness is the union over the
+eligible clauses and the ambiguity diagnostic of section 5 still applies.
+Once a call reaches dispatch, a pattern miss is the section 5
+no-matching-case failure, while a clause body that returns `none` or
+`err(...)` returns an ordinary value; an `err(...)` pipeline value still
+short-circuits before the call as for any callable. Behavior after dispatch
+is unchanged.
+
 ## 6. Duplicate clauses
 
 Every clause has a **dispatch key** consisting of:
