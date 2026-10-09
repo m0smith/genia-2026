@@ -1,3 +1,5 @@
+"""Tests for the private R25 concurrency fixture's deterministic idle barrier."""
+
 from __future__ import annotations
 
 from hosts.python.exec_eval import run_eval_subprocess
@@ -50,3 +52,26 @@ def test_r25_fixture_reaches_fixed_point_for_nested_committed_send() -> None:
         ("r25_concurrency",),
     )
     assert result == {"stdout": "[1, 15]\n", "stderr": "", "exit_code": 0}
+
+
+def test_r25_fixture_waits_for_process_failure_thread_exit() -> None:
+    result = run_eval_subprocess(
+        """
+        log = ref([])
+        handle(msg) =
+          "boom" -> 1 / 0 |
+          value -> ref_update(log, (xs) -> append(xs, [value]))
+        p = spawn(handle)
+        send(p, 1)
+        send(p, "boom")
+        _r25_await_idle()
+        [ref_get(log), process_failed?(p), process_alive?(p), some?(process_error(p))]
+        """,
+        None,
+        ("r25_concurrency",),
+    )
+    assert result == {
+        "stdout": "[[1], true, false, true]\n",
+        "stderr": "",
+        "exit_code": 0,
+    }

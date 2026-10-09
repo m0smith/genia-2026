@@ -168,7 +168,10 @@ enabled_flags_for(user, items) = filter(
 )
 
 # Pair accessors for [key, value] entries.
+@doc "Return the key from a [key, value] flag entry."
 entry_key(entry) = unwrap_or("", nth(0, entry))
+
+@doc "Return the value from a [key, value] flag entry."
 entry_value(entry) = unwrap_or({}, nth(1, entry))
 
 @doc "Convert the flags map into a list of [name, rule] pairs."

@@ -35,16 +35,21 @@ web_serve_http = web.serve_http
 
 # -- State -----------------------------------------------------------------
 
+@doc "Shared mutable state holding received webhook events."
 events = ref([])
 
 # -- Request helpers -------------------------------------------------------
 
+@doc "Extract the parsed request body map, defaulting to an empty map."
 body_map(request) = unwrap_or({}, request |> get("body"))
+
 # Extract a header value; headers use lowercased keys.
+@doc "Extract one lowercased request header value, defaulting to empty string."
 header_value(request, name) = unwrap_or("", request |> get("headers") |> then_get(name))
 
 # -- Server configuration -------------------------------------------------
 
+@doc "Build server config, including max_requests only when positive."
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
     host: host,
@@ -57,14 +62,17 @@ config_with_max(host, port, max_requests) = (
   }
 )
 
+@doc "Extract the webhook service port from parsed CLI options."
 port_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(8082, parse_int(cli_option_or(opts, "port", "8082")))
 )
 
+@doc "Extract the optional max-requests limit from parsed CLI options."
 max_requests_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
 )
 
+@doc "Parse raw CLI args into webhook service server config."
 server_config(args) = config_with_max(
   "127.0.0.1",
   port_from_parsed(cli_parse(args, {options: ["port", "max-requests"]})),
@@ -74,6 +82,7 @@ server_config(args) = config_with_max(
 # -- Handlers --------------------------------------------------------------
 # Reject events without a signature header; otherwise record the event.
 
+@doc "POST /webhooks/events — validate, record, and echo a webhook event."
 ingest_event(request) = (
   (request) ? header_value(request, "x-signature") == "" -> web_bad_request("missing x-signature header") |
   (request) -> {
@@ -92,6 +101,7 @@ ingest_event(request) = (
   }
 )
 
+@doc "GET /webhooks/events — list all accepted webhook events."
 list_events(_request) = web_json({
   total: length(ref_get(events)),
   items: ref_get(events)
@@ -99,9 +109,11 @@ list_events(_request) = web_json({
 
 # -- Routing & entry point -------------------------------------------------
 
+@doc "Build the webhook service route table."
 app() = web_route_request([
   web_post("/webhooks/events", ingest_event),
   web_get("/webhooks/events", list_events)
 ])
 
+@doc "Start the webhook HTTP service."
 main(args) = web_serve_http(server_config(args), app())

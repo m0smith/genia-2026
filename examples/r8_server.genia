@@ -1,9 +1,14 @@
+# Minimal R8 server annotation example.
+
 import web
 
+@doc "Local alias for the web prelude plain-text response helper."
 ok_text = web.ok_text
 
+@doc "Server marker configured by the R8 server annotation example."
 @server {host: "127.0.0.1", port: 8088, max_requests: 1}
 server = none
 
+@doc "GET / — return the R8 server greeting."
 @route {method: "GET", path: "/"}
 home(request) = ok_text("hello from genia")

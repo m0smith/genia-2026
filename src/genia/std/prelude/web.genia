@@ -1,3 +1,5 @@
+# Web prelude helpers for inbound HTTP routing, responses, CORS, and outbound requests.
+
 @doc """Start a minimal synchronous HTTP server.
 
 ## Arguments
@@ -34,11 +36,19 @@ route(method, path, handler) = {
   handler: handler
 }
 
+@doc "Return a route's HTTP method, defaulting to empty string."
 route_method(route) = route("method", "")
+
+@doc "Return a route's path, defaulting to empty string."
 route_path(route) = route("path", "")
+
+@doc "Return a route's handler, defaulting to a not-found handler."
 route_handler(route) = route("handler", (_) -> not_found())
 
+@doc "Return a request map's method, defaulting to empty string."
 request_method(request) = request("method", "")
+
+@doc "Return a request map's path, defaulting to empty string."
 request_path(request) = request("path", "")
 
 @doc """Create a GET route.
@@ -64,8 +74,10 @@ get = (path, handler) -> route("GET", path, handler)
 """
 post = (path, handler) -> route("POST", path, handler)
 
+@doc "Return true when a route and request have the same method and path."
 route_matches?(route, request) = route_method(route) == request_method(request) && route_path(route) == request_path(request)
 
+@doc "Find the first route handler that matches a request."
 find_route_handler(routes, request) = (
   ([], _) -> none |
   ([route, .._], request) ? route_matches?(route, request) == true -> some(route_handler(route)) |
@@ -82,13 +94,16 @@ find_route_handler(routes, request) = (
 """
 route_request(routes) = make_route_handler(routes)
 
+@doc "Close over a route list and return one request handler function."
 make_route_handler(routes) = {
   handler = (request) -> route_request_eval(routes, request)
   handler
 }
 
+@doc "Evaluate route lookup and dispatch for one request."
 route_request_eval(routes, request) = route_request_handler(find_route_handler(routes, request), request)
 
+@doc "Return not-found for missing routes or invoke the matched handler."
 route_request_handler(result, request) = (
   (none, _) -> not_found() |
   (some(handler), request) -> apply(handler, [request])
@@ -136,7 +151,10 @@ with_headers(headers, response) = _with_headers(headers, response)
 """
 cors(policy, handler) = _cors(policy, handler)
 
+@doc "Return the standard JSON response content-type header map."
 json_headers() = {"content-type": "application/json; charset=utf-8"}
+
+@doc "Return the standard plain-text response content-type header map."
 text_headers() = {"content-type": "text/plain; charset=utf-8"}
 
 @doc """Return a `200` JSON response.
