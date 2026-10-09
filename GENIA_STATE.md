@@ -1046,17 +1046,17 @@ Core IR).
   (contract §5.2).
 - **Explicit cross-module contribution.**
   - `extend <module-alias>.<name>(<pattern>, ...) = <body>` (in a
-    contributing module that has already `import`ed `<module-alias>`)
+    contributing module that `import`ed `<module-alias>`)
     declares one clause of that module's contribution unit targeting the
     open interface exported as `<name>` by `<module-alias>`. Repeated
     `extend` statements for the same target in the same module accumulate
-    into one contribution unit, in source order.
+    into one contribution unit, in source order, across aliases, runs, and
+    alias rebinding; units sit in a table, not exports.
   - `use <name> from <base-alias> with <contrib-alias-1>, <contrib-alias-2>,
     ...` is a declarative, once-evaluated top-level statement (like
     `import`) that resolves `<base-alias>.<name>`, resolves each named
-    contribution module's exported contribution unit for that exact
-    interface, and binds `<name>` in the *current* module to the resulting
-    immutable linked view. There is no wildcard/implicit selection.
+    contribution module's unit for that exact interface, and binds `<name>` in the *current* module to the resulting
+    immutable linked view. No wildcard/implicit selection.
   - Ordinary `import` alone never selects a contribution: importing a
     contribution-bearing module without an explicit `use` leaves the base
     interface (and any other module's already-linked view)
@@ -1101,14 +1101,14 @@ Core IR).
   `IrOpenUse(local_name, target_module_alias, target_name,
   contribution_module_aliases)` — reuse the existing `IrCaseClause`/
   `IrPatTuple`/`IrPatRest` pattern representation verbatim; no new pattern or
-  guard node was added. See
+  guard node. See
   `docs/architecture/core-ir-portability.md`.
 - **Host capability.** The `open_functions` optional capability
   (`spec/manifest.json`; `docs/host-interop/HOST_CAPABILITY_MATRIX.md`) is
   `Implemented` for Python; every R20 shared spec requires it, so a
   non-conforming host reports these cases unsupported rather than silently
   passing them.
-- **Known limitations of this Experimental slice** (see
+- **Known limitations** (see
   `docs/analysis/r20-release-truth-audit.md` for the full accounting):
   - a grouped case-with-pipe body is auto-flattened only when the header
     pattern is plain identifiers and the body is exactly one `CaseExpr` (or
