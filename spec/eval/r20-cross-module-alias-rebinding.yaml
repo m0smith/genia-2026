@@ -1,0 +1,42 @@
+name: r20-cross-module-alias-rebinding
+category: eval
+description: R20 contract 4.2 rebinding an import alias to another module between extend statements keeps each contribution attached to the interface it named
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: a.genia
+        source: |
+          open f(1) = "a1"
+      - path: b.genia
+        source: |
+          open f(1) = "b1"
+      - path: ext.genia
+        source: |
+          import a as m
+          extend m.f(2) = "a2"
+          import b as m
+          extend m.f(2) = "b2"
+      - path: view_a.genia
+        source: |
+          import a
+          import ext
+          use f from a with ext
+      - path: view_b.genia
+        source: |
+          import b
+          import ext
+          use f from b with ext
+      - path: main.genia
+        source: |
+          import view_a
+          import view_b
+
+          [view_a.f(1), view_a.f(2), view_b.f(1), view_b.f(2)]
+expected:
+  stdout: "[\"a1\", \"a2\", \"b1\", \"b2\"]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - open_functions
+  - multi_file_eval

@@ -1,0 +1,30 @@
+name: r20-cross-module-contribution-through-two-aliases
+category: eval
+description: R20 contract 4.2 extend clauses for one target accumulate into one unit even when the module names the target through two import aliases
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open get("mem", store, key) = "mem:" + key
+      - path: ext.genia
+        source: |
+          import base
+          import base as b2
+          extend base.get("db", db, key) = "db:" + key
+          extend b2.get("cache", c, key) = "cache:" + key
+      - path: main.genia
+        source: |
+          import base
+          import ext
+          use get from base with ext
+
+          [get("mem", 1, "k"), get("db", 1, "k"), get("cache", 1, "k")]
+expected:
+  stdout: "[\"mem:k\", \"db:k\", \"cache:k\"]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - open_functions
+  - multi_file_eval

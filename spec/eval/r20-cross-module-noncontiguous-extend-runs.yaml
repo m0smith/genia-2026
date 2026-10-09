@@ -1,0 +1,30 @@
+name: r20-cross-module-noncontiguous-extend-runs
+category: eval
+description: R20 contract 4.2 separate runs of extend statements for one target, with an unrelated statement between them, accumulate in source order instead of the later run replacing the earlier one
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open get("mem", store, key) = "mem:" + key
+      - path: ext.genia
+        source: |
+          import base
+          extend base.get("db", db, key) = "db:" + key
+          marker = 1
+          extend base.get("cache", c, key) = "cache:" + key
+      - path: main.genia
+        source: |
+          import base
+          import ext
+          use get from base with ext
+
+          [get("db", 1, "k"), get("cache", 1, "k")]
+expected:
+  stdout: "[\"db:k\", \"cache:k\"]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - open_functions
+  - multi_file_eval
