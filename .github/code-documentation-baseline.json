@@ -3044,7 +3044,6 @@
     "tests/unit/test_r23_json_rational_float64_boundary.py::binding::_encode": "41475e645b10e6a70593b1bcd1f4c9f9d2588e28b95c44c14f2a401fecc2df69",
     "tests/unit/test_r23_json_rational_float64_boundary.py::binding::_env": "6465390578b00b3c53f682b2a877cc809821afb23ecd723bf7e9675a15afce0c",
     "tests/unit/test_r23_json_rational_float64_boundary.py::binding::_run": "840213292a927980499bd627c3bc726b7bccaf53421074c881c994f14b65e9eb",
-    "tests/unit/test_r25_concurrency_fixture.py::module::<module>": "f0226ddf44a25581078631b73de0a74403d745c0ed6f186542771723bc6e1252",
     "tests/unit/test_r28_mcp_architecture.py::binding::_python_sources": "91f09b9c467e50fe2559425b76b00e39716eaf21e691925f1e0febeb7cd0341c",
     "tests/unit/test_r28_mcp_architecture.py::binding::_session_bytes": "ad68d19ed8744d837aaca9b241a610d0794d5455325563bc992c0c4eb51a3a2c",
     "tests/unit/test_r28_mcp_architecture.py::binding::_string_constants": "c9aace43ee79fdf307b00f5a88ca8db53aa1c63480a6b53c34ae5a99fd5f13b8",

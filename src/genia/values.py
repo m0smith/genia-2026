@@ -809,6 +809,9 @@ class GeniaProcess:
         with self._lock:
             target = self._accepted
             self._lock.wait_for(lambda: self._completed >= target and not self._in_flight)
+            failed = self._failed
+        if failed and threading.current_thread() is not self._thread:
+            self._thread.join()
 
     def _r25_accepted_count(self) -> int:
         """Return the number of messages accepted for R25 fixture accounting."""
@@ -820,7 +823,9 @@ class GeniaProcess:
         """Report whether accepted work is complete and no handler is in flight."""
 
         with self._lock:
-            return self._completed >= self._accepted and not self._in_flight
+            idle = self._completed >= self._accepted and not self._in_flight
+            failed = self._failed
+        return idle and (not failed or not self._thread.is_alive())
 
     def is_alive(self) -> bool:
         """Return whether the daemon worker thread is still running."""
