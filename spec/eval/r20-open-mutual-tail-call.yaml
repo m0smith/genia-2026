@@ -1,0 +1,19 @@
+name: r20-open-mutual-tail-call
+category: eval
+description: R20 contract 5.1 mutual tail recursion between two open interfaces runs in constant stack space
+input:
+  source: |
+    open even(0) = true
+    even(n) = odd(n - 1)
+
+    open odd(0) = false
+    odd(n) = even(n - 1)
+
+    even(20000)
+expected:
+  stdout: "true\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

@@ -166,6 +166,25 @@ This algorithm preserves current fixed-over-varargs behavior and current
 first-match grouped-case behavior without making cross-module import order a
 hidden priority rule.
 
+### 5.1 Tail calls
+
+Selecting a clause does not change tail-call behavior. A call in tail position
+of a selected clause body (base or contribution) has exactly the guarantee the
+existing tail-call rules give an ordinary function body: it replaces the
+current call instead of growing the host call stack, whatever the callee is.
+The callee may be the same open interface, another open interface, a linked
+view, or an ordinary function, and the caller may equally be any of those. Self
+and mutual tail recursion across any mix of these kinds therefore run in
+constant stack space. Dispatching an open interface or linked view from a tail
+call neither adds a nesting level nor changes which clause is selected: shape
+stratum, unit-local selection, across-unit selection, and Option/Outcome
+handling are exactly those of section 5.
+
+A clause body call that is not in tail position is an ordinary nested call.
+A host that cannot provide the constant-stack guarantee for a program must
+report it unsupported rather than diverge from this section; it must not claim
+the guarantee for ordinary functions only.
+
 ## 6. Duplicate clauses
 
 Every clause has a **dispatch key** consisting of:

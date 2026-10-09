@@ -1,0 +1,31 @@
+name: r20-cross-module-view-mutual-tail-call
+category: eval
+description: R20 contract 5.1 mutual tail recursion between a linked view (through a selected contribution clause) and an ordinary function runs in constant stack space
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open walk("base", hop, n) = "base"
+      - path: ext.genia
+        source: |
+          import base
+          extend base.walk("x", hop, 0) = "done"
+          extend base.walk("x", hop, n) = hop(n)
+      - path: main.genia
+        source: |
+          import base
+          import ext
+          use walk from base with ext
+
+          hop(n) = walk("x", hop, n - 1)
+
+          walk("x", hop, 20000)
+expected:
+  stdout: "\"done\"\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - open_functions
+  - multi_file_eval

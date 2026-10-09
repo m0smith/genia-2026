@@ -1005,8 +1005,7 @@ Core IR).
     for a name already declared `open`, is a repeated clause appended to that
     interface, in source order. `open`/repeated clauses must form one
     contiguous run of top-level statements — a later bare
-    `name(<pattern>...) = body` for a name whose run already ended does not
-    silently reopen it.
+    `name(<pattern>...) = body` after the run ended does not reopen it.
   - `<pattern>` reuses the existing lambda-parameter pattern grammar
     verbatim: identifier bind, wildcard `_`, literal, tuple/list/map
     sub-pattern, `some(...)`/`err(...)`, named-pattern use, and one final
@@ -1015,7 +1014,7 @@ Core IR).
     case-with-pipe over a plain-identifier header is flattened at parse time
     into one clause per arm, so grouped and repeated local clause syntax
     normalize to an identical ordered clause list (contract §3.1).
-  - Example (the release's required acceptance case):
+  - Example (the required acceptance case):
     ```genia
     open gcd(a, 0) = a
     gcd(a, b) = gcd(b, a % b)
@@ -1033,11 +1032,10 @@ Core IR).
   selected contribution), clauses are tested in lexical order and at most one
   becomes that unit's candidate. If exactly one unit supplies a candidate it
   runs; more than one candidate is a deterministic `open-function-clause-
-  ambiguity` failure — there is no specificity ranking and contribution
-  selection/import order can never break a tie. Existing fixed-over-varargs
-  precedence, first-match order, guards, named patterns, and automatic
-  Outcome/`none` propagation are preserved by reusing the existing pattern
-  engine (`match_lambda_pattern`) unchanged.
+  ambiguity` failure — no specificity ranking exists and
+  selection/import order never breaks a tie. Fixed-over-varargs precedence,
+  first-match order, guards, named patterns, and automatic Outcome/`none`
+  propagation are preserved by reusing `match_lambda_pattern` unchanged.
 - **Duplicate clauses.** Two clauses in the same unit with the same
   structural, alpha-normalized, span-free dispatch key are
   `open-function-duplicate-clause`, detected once when the unit is built
@@ -1072,8 +1070,13 @@ Core IR).
   - Selecting a module with no matching contribution unit, or a closed
     function/non-function, is `open-function-incompatible-contribution`.
   - Declaration, import, and `use` perform no lifecycle activation, resource
-    acquisition, network/process IO, or clause-body execution; a clause body
-    runs only after a successful call dispatches to it.
+    acquisition, IO, or clause-body execution; a body runs only after a
+    successful call dispatches to it.
+- **Tail calls** (contract §5.1). A tail call out of a selected clause — to any
+  open interface, linked view, or ordinary function — is an ordinary tail call
+  (section 8): self and mutual recursion run in constant stack via the shared
+  `eval_with_tco` trampoline. The C++ host has no tail-call optimization and
+  reports the `r20-*-tail-call` shared specs unsupported.
 - **Provenance and introspection.** `help(interface-or-linked-view)` lists
   the interface name, its declaration span, effective documentation (or "No
   documentation available."), and every participating unit's clauses in
@@ -1101,26 +1104,22 @@ Core IR).
   `IrPatTuple`/`IrPatRest` pattern representation verbatim; no new pattern or
   guard node was added. See
   `docs/architecture/core-ir-portability.md`.
-- **Host capability.** A dedicated `open_functions` capability
-  (`spec/manifest.json` optional capability;
-  `docs/host-interop/HOST_CAPABILITY_MATRIX.md`) is `Implemented` for Python;
-  every R20 shared spec case requires `open_functions` so an
-  older/non-conforming host reports these cases unsupported rather than
-  silently passing them.
+- **Host capability.** The `open_functions` optional capability
+  (`spec/manifest.json`; `docs/host-interop/HOST_CAPABILITY_MATRIX.md`) is
+  `Implemented` for Python; every R20 shared spec requires it, so a
+  non-conforming host reports these cases unsupported rather than silently
+  passing them.
 - **Known limitations of this Experimental slice** (see
   `docs/analysis/r20-release-truth-audit.md` for the full accounting):
   - a grouped case-with-pipe body is auto-flattened only when the header
     pattern is plain identifiers and the body is exactly one `CaseExpr` (or
     a one-expression `{ }` block containing one); other combinations of a
-    non-trivial header with a case body are rejected rather than given
-    ad hoc semantics;
+    non-trivial header with a case body are rejected;
   - `@doc`/`@meta`-style annotation attachment is not wired for `open`/
     `extend` declarations in this slice — interface metadata beyond the
     optional docstring position is a follow-up;
-  - cross-module contribution/linking behavior retains Python-host real-file
-    unit evidence and has eight portable shared eval/error cases using #836's
-    logical multi-file fixture; those cases additionally require the R16
-    `multi_file_eval` transport capability, independently of R20 semantics;
+  - cross-module behavior has Python-host real-file unit evidence and portable
+    shared eval/error cases that additionally require `multi_file_eval`;
   - debug-hook wiring (`debug_hooks`/`debug_mode` propagation used by the
     Python debug adapter) is not threaded through open-function dispatch.
 ## 5) Case expressions and pattern matching

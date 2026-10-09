@@ -301,6 +301,16 @@ def eval_with_tco(
     debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS,
     debug_mode: bool = False,
 ) -> Any:
+    """Run `fn(*args)` to a final value in one flat tail-call loop.
+
+    Inputs: any callable and its argument tuple; `debug_hooks`/`debug_mode`
+    apply to `GeniaFunction` frames only.
+    Output: the first non-`TailCall` result. A `TailCall` returned by a step
+    replaces the current callee and arguments, so self and mutual tail
+    recursion across ordinary functions, open interfaces, and linked views
+    (R20 contract 5.1) use constant host stack.
+    Failure: arity, dispatch, and body errors propagate unchanged.
+    """
     current_fn = fn
     current_args = args
 
@@ -330,6 +340,8 @@ def eval_with_tco(
             )
             if debug_mode:
                 debug_hooks.on_function_exit(current_fn.name, result, frame, current_fn.span)
+        elif isinstance(current_fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+            result = current_fn._dispatch_once(current_args)
         else:
             result = current_fn(*current_args)
 
@@ -681,15 +693,13 @@ class GeniaOpenFunction:
         return _dispatch_open(self.interface_key, [("base", "base", self.clauses)], args)
 
     def __call__(self, *args: Any) -> Any:
-        current_args = args
-        while True:
-            result = self._dispatch_once(current_args)
-            if not isinstance(result, TailCall):
-                return result
-            if result.fn is self:
-                current_args = result.args
-                continue
-            return eval_with_tco(result.fn, result.args)
+        """Dispatch the base clauses for `args` and return the final value.
+
+        Runs through the shared tail-call loop, so tail calls out of a
+        selected clause (to this or any other callable) do not nest host
+        frames. Dispatch failures use the open-function diagnostics.
+        """
+        return eval_with_tco(self, args)
 
     def __repr__(self) -> str:
         return f"<open function {self.name}>"
@@ -715,15 +725,13 @@ class GeniaLinkedOpenFunction:
         return _dispatch_open(self.interface_key, participating, args)
 
     def __call__(self, *args: Any) -> Any:
-        current_args = args
-        while True:
-            result = self._dispatch_once(current_args)
-            if not isinstance(result, TailCall):
-                return result
-            if result.fn is self:
-                current_args = result.args
-                continue
-            return eval_with_tco(result.fn, result.args)
+        """Dispatch base plus selected contribution clauses for `args`.
+
+        Returns the final value through the shared tail-call loop, so a tail
+        call out of a selected clause does not nest host frames. The view
+        stays immutable; dispatch failures use the open-function diagnostics.
+        """
+        return eval_with_tco(self, args)
 
     def __repr__(self) -> str:
         return f"<open function {self.base.name} (linked)>"
