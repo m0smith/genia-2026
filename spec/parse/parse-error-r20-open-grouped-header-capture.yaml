@@ -1,0 +1,14 @@
+name: parse-error-r20-open-grouped-header-capture
+category: parse
+description: R20 contract 3.3 an arm result referencing a header name its pattern does not bind is rejected
+input:
+  source: |
+    open f(a, b) = (x, 0) -> a + 100 | (x, y) -> y
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "open-function-header-capture: 'a' is a header name of 'f' and is not bound in this clause"
+
+requires:
+  - open_functions

@@ -34,6 +34,10 @@ R20_PARSE_SPECS = [
     "parse-error-r20-extend-requires-qualified-target.yaml",
     "parse-error-r20-nested-open-declaration.yaml",
     "parse-error-r20-use-missing-with.yaml",
+    # Contract 3.3 / issue #1067 (F1 grouped-header capture).
+    "parse-error-r20-open-grouped-header-capture.yaml",
+    "parse-error-r20-open-grouped-header-capture-guard.yaml",
+    "parse-error-r20-open-grouped-header-capture-nested-lambda.yaml",
 ]
 
 R20_IR_SPECS = [
@@ -70,6 +74,11 @@ R20_EVAL_SPECS = [
     "r20-cross-module-contribution-through-two-aliases.yaml",
     "r20-cross-module-noncontiguous-extend-runs.yaml",
     "r20-cross-module-alias-rebinding.yaml",
+    # Contract 3.3 / issue #1067: unambiguous grouped-header programs keep working.
+    "r20-open-grouped-header-name-rebound-by-arm.yaml",
+    "r20-open-grouped-header-name-unreferenced.yaml",
+    "r20-open-grouped-header-name-shadowed-by-lambda.yaml",
+    "r20-open-grouped-outer-name-still-visible.yaml",
 ]
 
 R20_ERROR_SPECS = [
@@ -79,6 +88,9 @@ R20_ERROR_SPECS = [
     "error-r20-cross-module-duplicate-alias-selection.yaml",
     "error-r20-cross-module-incompatible-target.yaml",
     "error-r20-cross-module-overlapping-unit-ambiguity.yaml",
+    # Contract 3.3 / issue #1067 (F1 grouped-header capture).
+    "error-r20-open-grouped-header-capture.yaml",
+    "error-r20-cross-module-extend-header-capture.yaml",
 ]
 
 # Issue #836 adds portable logical multi-file fixtures, so cross-module
