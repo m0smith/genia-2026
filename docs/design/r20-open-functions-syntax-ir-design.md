@@ -303,6 +303,15 @@ implement exactly this and no more:
   no per-kind loop and no nested `eval_with_tco` call remain. Dispatch
   selection, diagnostics, and Option/Outcome handling are unchanged, and no
   Core IR, parser, or lowering change is involved.
+- Option awareness (contract §5.2). The none/some propagation guard in
+  `invoke_callable` asks `_callable_explicitly_handles_none/_some` about an
+  open kind with the call's argument count. For these kinds the answer is
+  computed over the shape stratum for that count (a pure filter over the base
+  and selected units' clause records that mirrors dispatch step 1 but never
+  raises), true when any record there has a none/some pattern, a case-body
+  that handles them, or a final call to an Option-aware callee (the same
+  predicates `GeniaFunction` uses, evaluated against each record's own closure).
+  Dispatch, duplicate detection, and diagnostics are unchanged.
 
 ## 6. Compatibility with current grammar and Core IR
 
