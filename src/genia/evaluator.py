@@ -649,6 +649,12 @@ def _format_args_for_diagnostic(args: tuple[Any, ...]) -> str:
 
 
 class Evaluator:
+    """Tree-walking evaluator for Core IR nodes over one lexical Env.
+
+    One instance evaluates against a single environment (and optional debug
+    hooks); calls create a fresh instance per function frame.
+    """
+
     def __init__(self, env: Env, debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS, debug_mode: bool = False):
         self.env = env
         self.debug_hooks = debug_hooks
@@ -1268,19 +1274,11 @@ class Evaluator:
         return _ComposedMatcher(self, left, right)
 
     def _find_open_contribution_unit(self, module_value: ModuleValue, interface_key: tuple[str, str]) -> Optional["GeniaOpenContributionUnit"]:
-        """R20: locate the exported contribution unit in `module_value`
-        targeting exactly `interface_key`. Lookup is by portable interface
-        key, not by the mangled export name a contributing module happened
-        to store it under — module identity, not spelling, is authoritative
-        (contract §2.1, §4.1)."""
-        matches = [
-            value
-            for value in module_value.exports.values()
-            if isinstance(value, GeniaOpenContributionUnit) and value.target_interface_key == interface_key
-        ]
-        if not matches:
-            return None
-        return matches[0]
+        """R20: the contribution unit in `module_value`'s contribution table
+        targeting exactly `interface_key`, or None. Lookup is by portable
+        interface key, never by an import alias or a binding name (contract
+        §2.1, §4.2)."""
+        return module_value.contributions.get(interface_key)
 
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         return match_pattern(pattern, args, named_pattern_resolver=self.resolve_named_pattern)
@@ -1314,6 +1312,13 @@ class Evaluator:
         return result
 
     def _eval_impl(self, node: IrNode) -> Any:
+        """Evaluate one Core IR node and return its value (the dispatcher behind `eval`).
+
+        Handles every node kind, including R20 `open`/`extend`/`use`
+        declarations, by `isinstance` dispatch in order. Tail-position calls
+        may return a `TailCall` for the caller's trampoline. Unknown nodes and
+        language errors raise; there is no recovery here.
+        """
         if isinstance(node, IrShellStage):
             raise SyntaxError("shell stage $(...) is only valid as a pipeline stage")
         if isinstance(node, IrExprStmt):
@@ -1521,9 +1526,11 @@ class Evaluator:
                 OpenClauseRecord(clause.pattern, clause.guard, clause.result, self.env, clause.span)
                 for clause in node.clauses
             ]
+            existing = self.env.open_contributions.get(target.interface_key)
+            if existing is not None:
+                clauses = [*existing.clauses, *clauses]
             unit = GeniaOpenContributionUnit(target.interface_key, self.env.module_identity(), clauses)
-            export_name = f"__open_contribution__{node.target_module_alias}__{node.target_name}"
-            self.env.set(export_name, unit, assignable=False)
+            self.env.open_contributions[target.interface_key] = unit
             return unit
         if isinstance(node, IrOpenUse):
             base_module = self.env.get(node.target_module_alias)

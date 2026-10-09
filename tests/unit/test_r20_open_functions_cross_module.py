@@ -23,6 +23,8 @@ import pytest
 
 from genia.builtins import make_global_env
 from genia.callable import (
+    GeniaOpenContributionUnit,
+    OpenFunctionDuplicateClauseError,
     OpenFunctionDuplicateSelectionError,
     OpenFunctionIncompatibleContributionError,
     OpenFunctionClauseAmbiguityError,
@@ -187,3 +189,37 @@ def test_alias_identity_two_aliases_of_the_same_module_are_one_interface(tmp_pat
         'import iface\nimport iface as iface2\n\n[iface.ping("a") == iface2.ping("a")]\n',
     )
     assert result == [True]
+
+
+# --- Issue #1067 F1-C: contribution units are table entries, not exports ----
+# Python-host evidence: the mangled binding name and the raw class name are
+# implementation details of this host, so they cannot be shared specs.
+
+
+def test_contribution_unit_is_not_an_ordinary_module_export(tmp_path):
+    _base_and_contribs(tmp_path)
+    _write(tmp_path, "main", "import base\nimport db_ext\ndb_ext\n")
+    module = _run(tmp_path, "main", "import base\nimport db_ext\ndb_ext\n")
+    assert not [v for v in module.exports.values() if isinstance(v, GeniaOpenContributionUnit)]
+    assert not [name for name in module.exports if "contribution" in name]
+
+
+def test_contribution_unit_cannot_be_read_or_called_through_the_module(tmp_path):
+    _base_and_contribs(tmp_path)
+    for expr in ("db_ext.__open_contribution__base__get", "db_ext.__open_contribution__base__get(1)"):
+        with pytest.raises(NameError, match="has no export named"):
+            _run(tmp_path, "main", f"import base\nimport db_ext\n{expr}\n")
+
+
+def test_duplicate_clause_across_separate_extend_runs_is_a_build_time_error(tmp_path):
+    _write(tmp_path, "base", 'open get("mem", store, key) = "mem:" + key\n')
+    _write(
+        tmp_path,
+        "dup_ext",
+        'import base\n'
+        'extend base.get("db", db, key) = "one"\n'
+        'marker = 1\n'
+        'extend base.get("db", other, k) = "two"\n',
+    )
+    with pytest.raises(OpenFunctionDuplicateClauseError):
+        _run(tmp_path, "main", "import base\nimport dup_ext\n1\n")

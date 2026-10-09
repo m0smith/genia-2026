@@ -5,7 +5,7 @@ from __future__ import annotations
 import queue
 import threading
 import weakref
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable, Iterator
 
 from .errors import GeniaQuietBrokenPipe, format_exception_text
@@ -455,9 +455,19 @@ class GeniaRng:
 
 @dataclass(frozen=True)
 class ModuleValue:
+    """An immutable loaded module: its canonical `name`, source `path`, top-level
+    `exports` read with `get_export`, and the R20 `contributions` table.
+
+    `contributions` maps a target open-interface key to the unit this module
+    declared with `extend`; it is consulted only by `use` and is never
+    reachable as an export. Equality ignores the table.
+    """
+
     name: str
     exports: dict[str, Any]
     path: str
+    # R20 contribution table (target interface key -> unit); never an export.
+    contributions: dict[Any, Any] = field(default_factory=dict, compare=False, repr=False)
 
     def get_export(self, export_name: str) -> Any:
         if export_name not in self.exports:

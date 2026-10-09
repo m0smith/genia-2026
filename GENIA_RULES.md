@@ -412,10 +412,12 @@ Required constraints:
   already declared `open` earlier in the same module still hits the
   existing plain-parameter-list `SyntaxError` — R20 adds no new error path
   for that case.
-- `open`/repeated clauses for one interface, and `extend` clauses for one
-  contribution target, must form one contiguous run of top-level statements
-  in a module; interleaving unrelated statements does not merge across the
-  gap.
+- `open`/repeated clauses for one interface must form one contiguous run of
+  top-level statements in a module; interleaving unrelated statements does not
+  merge across the gap. `extend` clauses are different: all of a module's
+  `extend` clauses for one target interface, through any alias and in any
+  number of runs, accumulate in source order into that module's one unit for
+  the target (contract §4.2), held in a table and never as an export.
 - A grouped case-with-`|` body is flattened into per-arm clauses only when
   the clause header is a plain-identifier (optionally varargs) pattern and
   the body is exactly one `CaseExpr` or a single-expression `{ }` block

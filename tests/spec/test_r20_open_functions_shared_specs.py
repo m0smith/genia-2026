@@ -66,6 +66,10 @@ R20_EVAL_SPECS = [
     "r20-option-some-pattern-in-stratum-dispatches.yaml",
     "r20-option-err-pipeline-value-short-circuits.yaml",
     "r20-cross-module-option-contribution-awareness.yaml",
+    # Contract 4.2 / issue #1067 (F1 contribution identity and accumulation).
+    "r20-cross-module-contribution-through-two-aliases.yaml",
+    "r20-cross-module-noncontiguous-extend-runs.yaml",
+    "r20-cross-module-alias-rebinding.yaml",
 ]
 
 R20_ERROR_SPECS = [

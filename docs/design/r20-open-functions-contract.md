@@ -119,9 +119,20 @@ binding; this does not change the original interface identity or silently pass
 selection to unrelated modules.
 
 Selection requires the target interface to be visible by ordinary lexical or
-module binding rules and the contribution unit to be an exported member of the
-named module value. Private/non-exported contribution metadata is inaccessible.
-R20 adds no wildcard import or export splatting.
+module binding rules and the named module value to hold a contribution unit
+for exactly that interface. A module's contribution units live in its
+contribution table, keyed by the target interface identity of section 2.1; the
+table is reachable only through the explicit selection operation. A unit is not
+an ordinary binding: it cannot be read, called, rendered, or shadowed through
+`module.name`. R20 adds no wildcard import or export splatting.
+
+A module has at most one unit per target interface. Every contribution clause
+in a module for one interface, in source order, forms that unit, whichever
+import alias or re-export names the target, however many separate runs of
+statements declare them, and whether or not an alias is rebound between them.
+Two clauses with the same dispatch key in one unit are duplicates under
+section 6 even when they were declared in different runs. No contribution
+declaration can replace or discard another.
 
 Selecting the same contribution unit for the same target more than once is a
 duplicate-selection error, including selection through two aliases of one

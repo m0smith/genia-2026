@@ -20,6 +20,14 @@ def _interpreter_runtime() -> Any:
 
 
 class Env:
+    """A lexical scope: name bindings plus the module-level state of the root.
+
+    Lookups walk `parent` links. The root environment additionally owns the
+    module cache, autoload tables, and debug settings; a module's own Env owns
+    its R20 contribution table (`open_contributions`). Mutated in place during
+    evaluation.
+    """
+
     def __init__(
         self,
         parent: Optional["Env"] = None,
@@ -27,6 +35,12 @@ class Env:
         rebind_parent: bool | None = None,
         internal_access: bool | None = None,
     ):
+        """Create a scope under `parent` (None for a root).
+
+        `rebind_parent` controls whether assignment may rebind a parent
+        binding (default: only when a parent exists); `internal_access`
+        overrides the inherited permission to see internal prelude bindings.
+        """
         self.parent = parent
         self.values: dict[str, Any] = {}
         self.internal_values: dict[str, Any] = {}
@@ -48,6 +62,9 @@ class Env:
         # (contract §2.1). None for the entry/in-memory program environment;
         # `module_identity()` maps that to the deterministic "<entry>" id.
         self.module_id: str | None = (parent.module_id if parent is not None else None)
+        # R20 contract 4.2: this module's contribution units, keyed by target
+        # interface key. A table, not bindings, so units are never exports.
+        self.open_contributions: dict[tuple[str, str], Any] = {}
 
     def module_identity(self) -> str:
         """The deterministic, portable module/source-unit identity for this
@@ -224,6 +241,16 @@ class Env:
         raise FileNotFoundError(f"Module not found: {module_name}")
 
     def load_module(self, module_name: str, requester_filename: str | None = None) -> ModuleValue:
+        """Load and cache the module `module_name`, returning its ModuleValue.
+
+        Output: a cached value when already loaded; otherwise the module's
+        source is resolved (relative to `requester_filename`, the base
+        directory, then packaged modules), run once in its own Env under the
+        root, and its top-level bindings become the exports. Its R20
+        contribution table is copied onto the value but is never an export.
+        Failure: raises on an import cycle or a module that cannot be found.
+        Side effects: executes the module's top-level code once per root.
+        """
         runtime = _interpreter_runtime()
 
         root = self.root()
@@ -255,7 +282,7 @@ class Env:
                 internal_access=trusted,
             )
             exports = dict(module_env.values)
-            module_value = ModuleValue(module_name, exports, key)
+            module_value = ModuleValue(module_name, exports, key, dict(module_env.open_contributions))
             root.loaded_modules[module_name] = module_value
             return module_value
         finally:
