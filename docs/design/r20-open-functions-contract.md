@@ -90,6 +90,32 @@ Different fixed arities and different varargs minimum arities may coexist.
 Multiple clauses may share a callable shape when their dispatch keys are not
 duplicates.
 
+### 3.3 Header names of a grouped clause
+
+In a grouped clause, `name(h1, ..., hn) = (p1, ...) -> r1 | (q1, ...) -> r2`,
+the plain-identifier header names `h1 ... hn` are not bindings. Each arm lowers
+to an independent clause (section 3.1) whose only bindings are those its own
+pattern introduces. This differs from an ordinary grouped function, which binds
+the header names positionally, and it is deliberate: binding them would change
+the arm's dispatch key and shape.
+
+So that this difference can never silently change a program's meaning, a free
+reference in an arm's guard or result to a header name that the arm's own
+pattern does not bind is rejected as `open-function-header-capture(name, span)`.
+Without the rule such a reference would resolve to whatever outer or global
+binding of that name happens to exist, or fail only if and when the arm runs.
+A reference is free unless a binder inside the arm introduces the name: a nested
+lambda parameter, a nested case-arm pattern, or an earlier assignment in the
+same block.
+
+The rule is a whole-program check made before any program code runs, for base
+clauses and `extend` clauses alike. The following are unaffected: a header name
+the arm's pattern rebinds (the section 3.1 equivalence examples), a header name
+that no arm references, and any name that is not in the header. The author fixes
+a rejected program by renaming the header parameter or binding the name in the
+arm pattern; the contract introduces no implicit capture semantics and no new
+syntax.
+
 ## 4. Explicit cross-module contributions and visibility
 
 ### 4.1 Declaration is not selection
@@ -298,6 +324,7 @@ R20 requires these portable semantic diagnostic identities and parameters:
   provenances)`
 - `open-function-clause-ambiguity(interface_key, call_arity,
   candidate_provenances)`
+- `open-function-header-capture(name, span)`
 - existing `no-matching-function` and `no-matching-case` families where the
   dispatch algorithm specifies them
 

@@ -422,7 +422,10 @@ Required constraints:
   the clause header is a plain-identifier (optionally varargs) pattern and
   the body is exactly one `CaseExpr` or a single-expression `{ }` block
   containing one; this is the only place grouped and repeated local syntax
-  must normalize identically (contract §3.1).
+  must normalize identically (contract §3.1). The header names are not
+  bindings: a free reference in an arm's guard or result to one the arm's
+  pattern does not bind is a parse-stage `open-function-header-capture`
+  rejection (contract §3.3, `src/genia/open_header_capture.py`).
 - Nested/local-scope `open` declarations are rejected; R20 has no local
   open-interface scoping.
 - `extend <alias>.<name>(...)` requires `<alias>` to already be a bound
