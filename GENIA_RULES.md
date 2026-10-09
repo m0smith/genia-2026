@@ -446,6 +446,11 @@ Required constraints:
   continues in the one shared `eval_with_tco` trampoline, so the ordinary
   constant-stack tail-call guarantee holds for self and mutual recursion
   across open interfaces, linked views, and ordinary functions (contract §5.1).
+- Automatic `none`/`some` propagation for an open interface or linked view
+  is decided in `invoke_callable` over the clause records of the shape
+  stratum selected by the call's argument count (`_open_stratum_records`),
+  across the base and every selected unit, with the same predicates as an
+  ordinary function; clauses of other shapes never affect it (contract §5.2).
 - Declaration, import, and `use` are inert with respect to R20-added
   effects: no clause body executes and no lifecycle/resource/network
   activation occurs merely because an `open`/`extend`/`use` statement is
