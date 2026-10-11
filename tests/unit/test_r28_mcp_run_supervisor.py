@@ -32,6 +32,8 @@ pytestmark = pytest.mark.unit
 
 
 def _supervisor():
+    """Import the run supervisor module after asserting the E28-3 file exists."""
+
     assert RUN_CAPABILITY_PATH.is_file(), (
         "E28-3 not implemented: hosts/python/mcp_run_capability.py missing"
     )
@@ -39,11 +41,15 @@ def _supervisor():
 
 
 def _mux_module():
+    """Import the stdin multiplexer module after asserting it exists."""
+
     assert STDIN_MUX_PATH.is_file(), "E28-3 not implemented: hosts/python/mcp_stdin.py missing"
     return importlib.import_module("hosts.python.mcp_stdin")
 
 
 def _script(tmp_path, body):
+    """Write a fake worker script and return its Python command argv."""
+
     path = tmp_path / "fake_worker.py"
     path.write_text(textwrap.dedent(body), encoding="utf-8")
     return [sys.executable, "-B", str(path)]
@@ -56,6 +62,8 @@ GENEROUS_DEADLINE_MS = 120_000
 
 
 def _capability(argv, mux=None, **kwargs):
+    """Construct RunCapability with defaults suited for focused unit tests."""
+
     kwargs.setdefault("deadline_ms", GENEROUS_DEADLINE_MS)
     # Unit tests of unrelated behavior do not create kernel namespaces (many parallel
     # create/destroy cycles can stall a shared host); namespace tests opt in explicitly.
@@ -89,6 +97,8 @@ print(json.dumps({"status": "completed", "value": json.dumps(facts), "stdout": "
 
 
 def _facts(tmp_path, source="SOURCE-TEXT", **kwargs):
+    """Run the facts worker and decode its JSON value payload."""
+
     reply = json.loads(_capability(_script(tmp_path, FACTS), **kwargs)(source, lambda line: False))
     assert reply["status"] == "completed", reply
     return json.loads(reply["value"])
@@ -237,6 +247,8 @@ def fresh_probe(monkeypatch):
     calls = []
 
     def counting_probe():
+        """Record namespace probe invocations while pretending it succeeded."""
+
         calls.append(time.monotonic())
         return True
 
@@ -285,6 +297,8 @@ def test_probe_timeout_is_bounded_and_means_unavailable_not_an_error(monkeypatch
     seen = {}
 
     def hanging_run(command, **kwargs):
+        """Simulate a probe subprocess that times out."""
+
         seen["timeout"] = kwargs.get("timeout")
         raise sp.TimeoutExpired(command, kwargs.get("timeout"))
 
@@ -326,6 +340,8 @@ READY = 'import sys; sys.stderr.write("GENIA-WORKER-READY\\n"); sys.stderr.flush
 
 
 def _handshake_script(tmp_path, before_ready, after_ready):
+    """Create a fake handshaking worker with configurable pre/post-ready code."""
+
     body = f"""
 import sys, time
 {before_ready}
@@ -485,6 +501,8 @@ def test_strict_reap_check_sees_an_unreaped_zombie():
 
 
 def _read(path):
+    """Best-effort byte read used when probing optional worker artifacts."""
+
     try:
         return path.read_bytes()
     except OSError:
@@ -495,6 +513,8 @@ def _read(path):
 
 
 def _pipe_mux():
+    """Create a LineMux backed by an OS pipe and return it with the write fd."""
+
     mux_module = _mux_module()
     read_end, write_end = os.pipe()
     return mux_module.LineMux(read_end), write_end
@@ -524,6 +544,8 @@ time.sleep(60)
 
 
 def _wait_for(path, timeout=60):
+    """Wait until a marker path exists, failing with its path on timeout."""
+
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if path.exists():
@@ -538,6 +560,8 @@ def test_cancel_line_arriving_mid_run_cancels_and_other_lines_are_preserved(tmp_
     body = MARKER_WORKER.format(pre="")
 
     def after_worker_is_running():
+        """Inject cancellation only after the fake worker reports it is running."""
+
         _wait_for(marker)  # an observable condition, not a fixed sleep
         os.write(write_end, b"other-1\nCANCEL\nother-2\n")
 
@@ -600,6 +624,8 @@ def test_a_raising_predicate_is_not_a_cancel(tmp_path):
     os.write(write_end, b"x\n")
 
     def boom(line):
+        """A predicate failure must not be interpreted as cancellation."""
+
         raise RuntimeError("predicate failure")
 
     reply = json.loads(_capability(_script(tmp_path, GOOD_REPLY), mux)("1", boom))
@@ -664,6 +690,8 @@ def test_mux_applies_back_pressure_instead_of_unbounded_buffering():
 
 
 def _imports(path):
+    """Return top-level imported module names from a Python source file."""
+
     tree = ast.parse(path.read_text(encoding="utf-8"))
     names = set()
     for node in ast.walk(tree):

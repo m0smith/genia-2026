@@ -69,6 +69,8 @@ OS_ERROR = "raise OSError(errno.EINVAL, 'Invalid argument')"
 
 
 def _script(tmp_path, platform, rejected, raiser=VALUE_ERROR):
+    """Create a worker shim that rejects selected resource limits."""
+
     path = tmp_path / "rejecting_worker.py"
     path.write_text(
         textwrap.dedent(REJECTING_WORKER.format(platform=platform, rejected=tuple(rejected), raiser=raiser)),
@@ -78,12 +80,16 @@ def _script(tmp_path, platform, rejected, raiser=VALUE_ERROR):
 
 
 def _capability(script):
+    """Return a RunCapability that uses a custom worker shim."""
+
     from hosts.python.mcp_run_capability import RunCapability
 
     return RunCapability(worker_argv=[sys.executable, "-B", str(script)], handshake=True, isolated=False)
 
 
 def _status(capability, source):
+    """Run source through a capability and decode its worker status reply."""
+
     return json.loads(capability(source, lambda line: False))
 
 
@@ -120,6 +126,8 @@ def test_a_rejected_address_space_bound_on_darwin_does_not_skip_the_portable_lim
     applied = []
 
     def setrlimit(which, limits):
+        """Record portable limit application while rejecting Darwin RLIMIT_AS."""
+
         if which == resource.RLIMIT_AS:
             raise OSError(errno.EINVAL, "Invalid argument")
         applied.append((which, limits))
@@ -140,6 +148,8 @@ def test_linux_still_applies_the_address_space_bound_and_fails_if_it_cannot(monk
     seen = []
 
     def setrlimit(which, limits):
+        """Record attempted limits and fail the Linux address-space bound."""
+
         seen.append(which)
         if which == resource.RLIMIT_AS:
             raise OSError(errno.EINVAL, "Invalid argument")
@@ -161,6 +171,8 @@ def test_only_the_address_space_bound_is_tolerated_and_only_on_darwin():
 
 
 def _session(tmp_path, platform):
+    """Start a launcher session whose run worker simulates the named platform."""
+
     script = _script(tmp_path, platform, ["RLIMIT_AS"], OS_ERROR)
     return LauncherSession(
         command=[sys.executable, "-c", _HOST_CODE, str(SERVER_PATH), repository_revision(), str(script)],
@@ -204,6 +216,8 @@ def test_the_worker_names_an_internal_failure_on_its_own_stderr_only_when_asked(
     base = {"PYTHONPATH": os.pathsep.join([str(REPO_ROOT), str(REPO_ROOT / "src")]), "PYTHONUTF8": "1"}
 
     def run(extra):
+        """Run the rejecting worker with optional diagnostic environment."""
+
         return subprocess.run([sys.executable, "-B", str(script)], input=b"1", capture_output=True,
                               env=base | extra, cwd=str(tmp_path), check=False)
 
@@ -249,6 +263,8 @@ BACKENDS = ["proc", "ps"]
 
 @pytest.fixture(params=BACKENDS)
 def backend(request, monkeypatch):
+    """Force one process-inspection backend for each portable lifecycle test."""
+
     if request.param == "proc" and not Path("/proc/self/stat").exists():
         pytest.skip("no /proc on this platform (the macOS backend is `ps`)")
     monkeypatch.setenv("GENIA_R28_PROCESS_BACKEND", request.param)
@@ -256,6 +272,8 @@ def backend(request, monkeypatch):
 
 
 def _sleeper(cwd=None):
+    """Start a long-lived child process for process-table backend assertions."""
+
     return subprocess.Popen(
         [sys.executable, "-c", "import time; time.sleep(60)"],
         cwd=cwd, start_new_session=True, stdin=subprocess.DEVNULL,
@@ -263,6 +281,8 @@ def _sleeper(cwd=None):
 
 
 def _wait(condition, timeout=30):
+    """Poll a condition with a bounded timeout."""
+
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if condition():
@@ -380,6 +400,8 @@ def test_the_ps_backend_asks_for_untruncated_command_lines(monkeypatch):
     real_run = subprocess.run
 
     def spy(command, *args, **kwargs):
+        """Capture ps invocations while delegating to the real subprocess.run."""
+
         seen.append(list(command))
         return real_run(command, *args, **kwargs)
 
