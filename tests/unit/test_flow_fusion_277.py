@@ -1,3 +1,5 @@
+"""Flow fusion regression tests for fused map and filter pipelines."""
+
 import pytest
 
 from genia import make_global_env, run_source
@@ -30,22 +32,29 @@ def test_flow_map_filter_fusion_preserves_bounded_pulling_and_close():
     state = {"pulled": 0, "closed": 0}
 
     class ClosableCounter:
+        """Iterator that records bounded pulls and explicit close calls."""
+
         def __init__(self):
+            """Initialize the next integer to emit."""
             self._next = 0
 
         def __iter__(self):
+            """Return this object as its own iterator."""
             return self
 
         def __next__(self):
+            """Yield the next integer and record each upstream pull."""
             value = self._next
             self._next += 1
             state["pulled"] += 1
             return value
 
         def close(self):
+            """Record explicit upstream cleanup."""
             state["closed"] += 1
 
     def ticks():
+        """Produce a closeable Flow source for fusion pull accounting."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
     env.set("ticks", ticks)
@@ -70,25 +79,33 @@ def test_fused_flow_map_callback_error_propagates_and_closes_upstream():
     mapper_error = RuntimeError("boom from mapper")
 
     class ClosableCounter:
+        """Iterator that records pulls before mapper failure cleanup."""
+
         def __init__(self):
+            """Initialize the next integer to emit."""
             self._next = 0
 
         def __iter__(self):
+            """Return this object as its own iterator."""
             return self
 
         def __next__(self):
+            """Yield the next integer and remember its pulled value."""
             value = self._next
             self._next += 1
             state["pulled"].append(value)
             return value
 
         def close(self):
+            """Record explicit upstream cleanup."""
             state["closed"] += 1
 
     def ticks():
+        """Produce a closeable Flow source for mapper-error coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
     def boom_on_three(value):
+        """Raise the mapper sentinel error when the fused value is three."""
         if value == 3:
             raise mapper_error
         return value
@@ -118,25 +135,33 @@ def test_fused_flow_filter_callback_error_propagates_and_closes_upstream():
     predicate_error = RuntimeError("boom from predicate")
 
     class ClosableCounter:
+        """Iterator that records pulls before predicate failure cleanup."""
+
         def __init__(self):
+            """Initialize the next integer to emit."""
             self._next = 0
 
         def __iter__(self):
+            """Return this object as its own iterator."""
             return self
 
         def __next__(self):
+            """Yield the next integer and remember its pulled value."""
             value = self._next
             self._next += 1
             state["pulled"].append(value)
             return value
 
         def close(self):
+            """Record explicit upstream cleanup."""
             state["closed"] += 1
 
     def ticks():
+        """Produce a closeable Flow source for predicate-error coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
     def boom_predicate_on_three(value):
+        """Raise the predicate sentinel error when the fused value is three."""
         if value == 3:
             raise predicate_error
         return True
