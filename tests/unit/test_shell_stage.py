@@ -11,10 +11,12 @@ from genia.interpreter import GeniaOptionNone, GeniaOptionSome
 
 @pytest.fixture
 def env():
+    """Return a fresh global environment for each shell-stage test."""
     return make_global_env()
 
 
 def run(env, source):
+    """Evaluate Genia source in the supplied test environment."""
     return run_source(source, env)
 
 
@@ -24,6 +26,8 @@ def run(env, source):
 
 
 class TestShellStageHappyPath:
+    """Successful shell-stage pipeline behavior."""
+
     def test_string_through_cat(self, env):
         assert run(env, '"hello" |> $(cat)') == "hello"
 
@@ -73,13 +77,18 @@ class TestShellStageHappyPath:
 
 
 class TestShellStageStdinMaterialization:
+    """Pipeline value materialization into shell stdin."""
+
     def test_string_stdin(self, env):
+        """Materialize a string value as stdin."""
         assert run(env, '"hello" |> $(cat)') == "hello"
 
     def test_integer_stdin(self, env):
+        """Materialize an integer value as decimal text stdin."""
         assert run(env, '42 |> $(cat)') == "42"
 
     def test_float_stdin(self, env):
+        """Materialize a decimal value as text stdin."""
         assert run(env, '3.14 |> $(cat)') == "3.14"
 
     def test_bool_true_stdin(self, env):
@@ -119,6 +128,8 @@ class TestShellStageStdinMaterialization:
 
 
 class TestShellStageEmptyOutput:
+    """Empty shell stdout behavior."""
+
     def test_empty_stdout_returns_none(self, env):
         result = run(env, '"x" |> $(tr -d x)')
         assert isinstance(result, GeniaOptionNone)
@@ -136,6 +147,8 @@ class TestShellStageEmptyOutput:
 
 
 class TestShellStageOptionPropagation:
+    """Outcome propagation around shell pipeline stages."""
+
     def test_none_propagates_without_execution(self, env, tmp_path):
         """none(...) short-circuits — the shell command is not executed."""
         marker = tmp_path / "shell-stage-short-circuit-marker"
@@ -176,6 +189,8 @@ class TestShellStageOptionPropagation:
 
 
 class TestShellStageFailures:
+    """Shell-stage failure and placement diagnostics."""
+
     def test_nonzero_exit_raises_runtime_error(self, env):
         with pytest.raises(RuntimeError, match="command failed"):
             run(env, '"x" |> $(false)')
@@ -207,6 +222,8 @@ class TestShellStageFailures:
 
 
 class TestShellStageLexer:
+    """Lexer and parser edge cases for shell-stage syntax."""
+
     def test_balanced_parens_in_command(self, env):
         result = run(env, '"test" |> $(echo "(hello)")')
         assert "(hello)" in result
@@ -220,6 +237,7 @@ class TestShellStageLexer:
             run(env, '"x" |> $(   )')
 
     def test_unterminated_rejected(self, env):
+        """Reject an unterminated shell-stage command."""
         with pytest.raises(SyntaxError, match="Unterminated"):
             run(env, '"x" |> $(echo hi')
 
@@ -238,6 +256,8 @@ class TestShellStageLexer:
 
 
 class TestShellStageErrorQuality:
+    """Exception type and diagnostic format checks."""
+
     def test_runtime_error_type_on_nonzero(self, env):
         """Non-zero exit produces RuntimeError, not a generic Exception."""
         with pytest.raises(RuntimeError):
@@ -268,6 +288,8 @@ class TestShellStageErrorQuality:
 
 
 class TestShellStageRegressionCoverage:
+    """Regression coverage for non-shell pipeline behavior."""
+
     def test_ordinary_pipeline_still_works(self, env):
         src = """
         inc(x) = x + 1
