@@ -37,10 +37,12 @@ def test_host_builtin_registry_passes_required_coverage():
 # ---------------------------------------------------------------------------
 
 def ids(findings):
+    """Return rule identifiers from lint findings in observed order."""
     return [f.rule_id for f in findings]
 
 
 def has(findings, rule_id, severity=None):
+    """Return whether findings include a matching rule and severity."""
     for f in findings:
         if f.rule_id == rule_id:
             if severity is None or f.severity == severity:
@@ -53,7 +55,10 @@ def has(findings, rule_id, severity=None):
 # ---------------------------------------------------------------------------
 
 class TestPassingDocs:
+    """Passing examples for the accepted documentation shapes."""
+
     def test_short_doc(self):
+        """Accept a concise one-line docstring with final punctuation."""
         findings = lint_doc("Adds one to x.")
         assert findings == []
 
@@ -153,15 +158,20 @@ Parse rows from a flow.
 # ---------------------------------------------------------------------------
 
 class TestSummaryRequired:
+    """DOC001 coverage for missing summary text."""
+
     def test_empty_string(self):
+        """Reject an empty docstring as missing its summary."""
         findings = lint_doc("")
         assert has(findings, "DOC001", Severity.ERROR)
 
     def test_only_whitespace(self):
+        """Reject whitespace-only docstrings as missing summaries."""
         findings = lint_doc("   \n\n   ")
         assert has(findings, "DOC001", Severity.ERROR)
 
     def test_only_newlines(self):
+        """Reject newline-only docstrings as missing summaries."""
         findings = lint_doc("\n\n\n")
         assert has(findings, "DOC001", Severity.ERROR)
 
@@ -171,6 +181,8 @@ class TestSummaryRequired:
 # ---------------------------------------------------------------------------
 
 class TestSummaryShape:
+    """DOC002 coverage for summary style warnings."""
+
     def test_no_trailing_punctuation(self):
         findings = lint_doc("Adds one to x")
         assert has(findings, "DOC002", Severity.WARNING)
@@ -207,7 +219,10 @@ class TestSummaryShape:
 # ---------------------------------------------------------------------------
 
 class TestAllowedSections:
+    """DOC003 coverage for allowed and disallowed section headings."""
+
     def test_bad_heading(self):
+        """Reject a single unsupported section heading."""
         doc = """\
 Do something.
 
@@ -263,7 +278,10 @@ x
 # ---------------------------------------------------------------------------
 
 class TestNoHTML:
+    """DOC004 coverage for raw HTML in prose."""
+
     def test_html_tag(self):
+        """Reject an ordinary paired HTML tag outside code fences."""
         doc = """\
 Do something.
 
@@ -307,7 +325,10 @@ Do something.
 # ---------------------------------------------------------------------------
 
 class TestNoTables:
+    """DOC005 coverage for Markdown table syntax in prose."""
+
     def test_pipe_table(self):
+        """Reject pipe-table syntax outside code fences."""
         doc = """\
 Do something.
 
@@ -341,6 +362,8 @@ Do something.
 # ---------------------------------------------------------------------------
 
 class TestBehaviorMention:
+    """DOC006 coverage for behavior mentions hidden only in examples."""
+
     def test_none_only_in_fence(self):
         doc = """\
 Look up a key.
@@ -399,7 +422,10 @@ get("k", m)  # => none("missing-key")
 # ---------------------------------------------------------------------------
 
 class TestFenceSanity:
+    """DOC007 coverage for example code-fence structure."""
+
     def test_unbalanced_fence(self):
+        """Reject an examples section with an unclosed code fence."""
         doc = """\
 Do something.
 
@@ -480,6 +506,8 @@ b
 # ---------------------------------------------------------------------------
 
 class TestEdgeCases:
+    """Combined linting behavior for overlapping edge cases."""
+
     def test_blank_lines_before_summary(self):
         doc = "\n\n   \n  Summary line."
         findings = lint_doc(doc)
@@ -542,6 +570,7 @@ open block never closed
         assert has(findings, "DOC007")
 
     def test_combined_errors(self):
+        """Report multiple independent lint errors from one docstring."""
         doc = """\
    \n   \n\
 ## Internals
@@ -564,16 +593,21 @@ unclosed
 # ---------------------------------------------------------------------------
 
 class TestParsedDoc:
+    """parse_doc structure extraction coverage."""
+
     def test_summary_detection(self):
+        """Record summary text and its source line index."""
         doc = parse_doc("\n\nHello world.")
         assert doc.summary_text == "Hello world."
         assert doc.summary_line_idx == 2
 
     def test_section_detection(self):
+        """Collect allowed section headings in document order."""
         doc = parse_doc("Sum.\n\n## Arguments\n- x\n\n## Returns\n- y")
         assert doc.sections == ["## Arguments", "## Returns"]
 
     def test_fence_detection(self):
+        """Record fenced code block language and close position."""
         doc = parse_doc("Sum.\n\n```genia\ncode\n```")
         assert len(doc.fences) == 1
         assert doc.fences[0]["lang"] == "genia"
@@ -585,11 +619,15 @@ class TestParsedDoc:
 # ---------------------------------------------------------------------------
 
 class TestLintFindingStr:
+    """String rendering coverage for lint findings."""
+
     def test_with_line(self):
+        """Include line information when present."""
         f = LintFinding("DOC001", Severity.ERROR, "msg", line=3)
         assert str(f) == "[error] DOC001: line 3: msg"
 
     def test_without_line(self):
+        """Omit line information when the finding has no line."""
         f = LintFinding("DOC001", Severity.ERROR, "msg")
         assert str(f) == "[error] DOC001: msg"
 
@@ -599,6 +637,8 @@ class TestLintFindingStr:
 # ---------------------------------------------------------------------------
 
 class TestJSONOutput:
+    """CLI JSON output coverage for inline and file modes."""
+
     def test_json_inline_doc(self, capsys):
         rc = main(["--json", "Adds one to x."])
         captured = capsys.readouterr()
@@ -630,7 +670,10 @@ class TestJSONOutput:
 # ---------------------------------------------------------------------------
 
 class TestScanDir:
+    """CLI directory scanning coverage."""
+
     def test_scan_dir_no_genia_files(self, capsys, tmp_path):
+        """Report a clean outcome when a scan finds no Genia files."""
         rc = main(["--scan-dir", str(tmp_path)])
         captured = capsys.readouterr()
         assert "No .genia files" in captured.err
@@ -666,6 +709,8 @@ class TestScanDir:
 # ---------------------------------------------------------------------------
 
 class TestBindingExtraction:
+    """@doc binding-name extraction coverage."""
+
     def test_extract_binding_name(self, tmp_path):
         genia_file = tmp_path / "test.genia"
         genia_file.write_text('@doc "Adds one."\ninc(x) -> x + 1\n')
@@ -700,12 +745,16 @@ class TestBindingExtraction:
 # ---------------------------------------------------------------------------
 
 class TestFindingToDict:
+    """Dictionary serialization coverage for lint findings."""
+
     def test_basic(self):
+        """Serialize a finding that includes line information."""
         f = LintFinding("DOC001", Severity.ERROR, "msg", line=3)
         d = _finding_to_dict(f)
         assert d == {"rule_id": "DOC001", "severity": "error", "message": "msg", "line": 3}
 
     def test_no_line(self):
+        """Serialize a finding without adding an absent line key."""
         f = LintFinding("DOC002", Severity.WARNING, "warn")
         d = _finding_to_dict(f)
         assert d == {"rule_id": "DOC002", "severity": "warning", "message": "warn"}
