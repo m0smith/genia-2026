@@ -1,3 +1,5 @@
+"""Exercise Genia's stdout, stderr, stdin, and broken-pipe host sinks."""
+
 import io
 
 import pytest
@@ -8,38 +10,53 @@ from genia.utf8 import format_debug
 
 
 class RecordingStream:
+    """Capture writes and flushes from host sink plumbing."""
+
     def __init__(self):
+        """Create an empty recording stream with a flush counter."""
         self.parts: list[str] = []
         self.flush_count = 0
 
     def write(self, text: str) -> int:
+        """Record text and report the accepted character count."""
         self.parts.append(text)
         return len(text)
 
     def flush(self) -> None:
+        """Count flush attempts made against this stream."""
         self.flush_count += 1
 
     def getvalue(self) -> str:
+        """Return all text written to the stream so far."""
         return "".join(self.parts)
 
 
 class BrokenStdout:
+    """Stream double that fails every output operation with BrokenPipeError."""
+
     def write(self, text: str) -> int:
+        """Raise BrokenPipeError for writes to simulate a closed pipe."""
         raise BrokenPipeError()
 
     def flush(self) -> None:
+        """Raise BrokenPipeError for flushes to simulate a closed pipe."""
         raise BrokenPipeError()
 
 
 class InfiniteCountingStdin:
+    """Infinite stdin double that counts how many lines were pulled."""
+
     def __init__(self, line: str):
+        """Store the repeated line and reset the read counter."""
         self._line = line
         self.reads = 0
 
     def __iter__(self):
+        """Return this object as its own iterator."""
         return self
 
     def __next__(self):
+        """Return the configured line and count the read."""
         self.reads += 1
         return self._line
 
@@ -154,6 +171,7 @@ def test_repl_result_output_goes_to_stdout_interactive(monkeypatch):
     stderr = io.StringIO()
 
     def fake_input(prompt: str = "") -> str:
+        """Record interactive prompts and return scripted REPL input."""
         prompts.append(prompt)
         return next(inputs)
 
@@ -195,6 +213,7 @@ def test_repl_non_interactive_suppresses_banner_and_prompts(monkeypatch):
     stderr = io.StringIO()
 
     def fake_input(prompt: str = "") -> str:
+        """Serve piped REPL input while asserting prompts stay suppressed."""
         assert prompt == ""
         try:
             return next(inputs)
@@ -243,7 +262,9 @@ def test_broken_pipe_from_flow_effect_closes_generator_backed_upstream():
     state = {"pulled": 0, "closed": 0}
 
     def ticks():
+        """Build a flow whose generator reports pulls and closure."""
         def iterator():
+            """Yield increasing integers until downstream closes the flow."""
             try:
                 i = 0
                 while True:
