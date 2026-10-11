@@ -1,0 +1,29 @@
+name: error-r20-cross-module-extend-header-capture
+category: error
+description: R20 contract 3.3 the header-capture rule also applies to a grouped extend clause in a contributing module
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open get("mem", key) = "mem:" + key
+      - path: ext.genia
+        source: |
+          import base
+          extend base.get(db, key) = ("db", k) -> db + k
+      - path: main.genia
+        source: |
+          import base
+          import ext
+          1
+expected:
+  stdout: ""
+  stderr: "Error: open-function-header-capture: 'db' is a header name of 'get' and is not bound in this clause\n"
+  exit_code: 1
+notes: |
+  error_phase: parse
+  error_category: SyntaxError
+requires:
+  - open_functions
+  - multi_file_eval

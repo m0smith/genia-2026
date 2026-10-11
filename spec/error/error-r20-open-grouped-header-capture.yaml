@@ -1,0 +1,19 @@
+name: error-r20-open-grouped-header-capture
+category: error
+description: R20 contract 3.3 header-name capture is rejected before any program code runs, even when a global of that name exists
+input:
+  source: |
+    print("ran")
+    a = 7
+    open f(a, b) = (x, 0) -> a + 100 | (x, y) -> y
+    f(1, 0)
+expected:
+  stdout: ""
+  stderr: "Error: open-function-header-capture: 'a' is a header name of 'f' and is not bound in this clause\n"
+  exit_code: 1
+notes: |
+  error_phase: parse
+  error_category: SyntaxError
+
+requires:
+  - open_functions

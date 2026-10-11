@@ -1,0 +1,15 @@
+name: r20-open-grouped-header-name-rebound-by-arm
+category: eval
+description: R20 contract 3.3 a header name that the arm pattern rebinds is the arm's binder and is not rejected
+input:
+  source: |
+    open f(a, b) = (a, 0) -> a + 100 | (x, y) -> y
+
+    f(1, 0)
+expected:
+  stdout: "101\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

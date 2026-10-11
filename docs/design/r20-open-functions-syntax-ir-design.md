@@ -275,6 +275,34 @@ clauses interleaved with unrelated statements. It matches every example in
 the contract and roadmap, all of which write an open interface's clauses as
 one contiguous run.
 
+### 4.1 Header-capture check (contract §3.3)
+
+The check runs where the grouped body is flattened into per-arm clauses, because
+that is the only point at which the header names and the arms are both visible;
+it is a parse-stage `SyntaxError` carrying `open-function-header-capture`, so a
+rejected program executes nothing. Core IR is unchanged: no header-binder field
+and no as-pattern is added, and the flattened clauses are exactly those of today.
+
+For each arm, take the set `H` of header names minus the names the arm's pattern
+binds. If `H` is empty the arm is not examined. Otherwise walk the arm's guard
+and result in source order tracking a lexical scope and report the first
+reference to a name in `H` that is not shadowed:
+
+- a variable reference (including a call's function position) is a reference;
+- a lambda introduces its parameter-pattern names for its body;
+- a nested case expression introduces each arm's pattern names for that arm's
+  guard and result;
+- in a block, an assignment to a simple name introduces it for the later
+  expressions of that block (its right-hand side is checked before the name is
+  introduced);
+- quoted data is not a reference; only unquoted parts of a quasiquote are walked;
+- a nested named-function definition cannot occur in an expression, so none is
+  considered.
+
+The reported span is the offending reference's span. The check is independent of
+the host data structures, so a second host implements it over its own AST with the
+same scope rules; shared parse-stage and error specs are the portable evidence.
+
 ## 5. Runtime representation (informative — implemented in E20-3/E20-5)
 
 Not part of the portable Core IR contract, but recorded here so E20-3/E20-5

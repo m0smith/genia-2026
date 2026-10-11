@@ -1,0 +1,15 @@
+name: r20-open-grouped-header-name-unreferenced
+category: eval
+description: R20 contract 3.3 header names that no arm references are unaffected
+input:
+  source: |
+    open f(a, b) = (x, 0) -> x | (x, y) -> y
+
+    f(5, 0)
+expected:
+  stdout: "5\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

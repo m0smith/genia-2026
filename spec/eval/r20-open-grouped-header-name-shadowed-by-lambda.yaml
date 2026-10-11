@@ -1,0 +1,15 @@
+name: r20-open-grouped-header-name-shadowed-by-lambda
+category: eval
+description: R20 contract 3.3 a nested lambda parameter that reuses a header name shadows it and is not rejected
+input:
+  source: |
+    open f(a, b) = (x, 0) -> [x] |> map((a) -> a + 1) | (x, y) -> [y]
+
+    f(5, 0)
+expected:
+  stdout: "[6]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

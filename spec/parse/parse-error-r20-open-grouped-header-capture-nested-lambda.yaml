@@ -1,0 +1,14 @@
+name: parse-error-r20-open-grouped-header-capture-nested-lambda
+category: parse
+description: R20 contract 3.3 a reference inside a nested lambda that does not rebind the header name is still free
+input:
+  source: |
+    open h(a, b) = (x, 0) -> [x] |> map((v) -> v + a) | (x, y) -> [y]
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "open-function-header-capture: 'a' is a header name of 'h' and is not bound in this clause"
+
+requires:
+  - open_functions

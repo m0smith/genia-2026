@@ -1,0 +1,16 @@
+name: r20-open-grouped-outer-name-still-visible
+category: eval
+description: R20 contract 3.3 an outer name that is not a header name stays visible in an arm
+input:
+  source: |
+    k = 7
+    open f(a, b) = (x, 0) -> x + k | (x, y) -> y
+
+    f(1, 0)
+expected:
+  stdout: "8\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

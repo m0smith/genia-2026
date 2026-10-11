@@ -1,8 +1,19 @@
+"""Recursive-descent parser: Genia tokens to the surface AST.
+
+`Parser(tokens, source, filename).parse_program()` returns the program's AST
+nodes. Failures raise `SyntaxError` with a message that names the offending
+construct; there is no error recovery. The R20 open-function statements
+(`open`, repeated clauses, `extend`, `use`) are recognized here as soft
+keywords, and grouped open clauses are flattened here, including the contract
+section 3.3 header-name capture check.
+"""
+
 from __future__ import annotations
 
 import bisect
 from typing import Optional
 from .numeric_source import classify_numeric_literal
+from .open_header_capture import find_header_capture
 from .ast_nodes import (
     AnnotatedNode,
     Annotation,
@@ -93,6 +104,15 @@ def _number_node(tok, span) -> Number:
 
 
 class Parser:
+    """Parses one source text's token list into surface AST nodes.
+
+    Inputs: the lexer's tokens plus the source text and file name used for
+    span and position reporting. Output: `parse_program()` returns the
+    top-level nodes. Failure: raises `SyntaxError` on the first malformed
+    construct. Single-use: it advances an internal cursor and tracks the
+    names declared `open` in this module; it performs no evaluation or IO.
+    """
+
     def __init__(self, tokens: list[Token], source: str = "", filename: str = "<memory>"):
         self.tokens = tokens
         self.source = source
@@ -607,6 +627,12 @@ class Parser:
                 raise SyntaxError(
                     "open clause with a grouped case body requires plain identifier parameters "
                     f"(dispatch belongs in the case arms) at {header_tok.pos}"
+                )
+            capture = find_header_capture(pattern, case_expr.clauses)
+            if capture is not None:
+                raise SyntaxError(
+                    f"open-function-header-capture: {capture[0]!r} is a header name of "
+                    f"{header_tok.text.split('.')[-1]!r} and is not bound in this clause"
                 )
             return [CaseClause(arm.pattern, arm.guard, arm.result, span=arm.span) for arm in case_expr.clauses]
 

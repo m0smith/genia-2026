@@ -1023,6 +1023,8 @@ Core IR).
     ```
     evaluates to `6`, identically to the grouped spelling
     `open gcd(a, b) = (a, 0) -> a | (a, b) -> gcd(b, a % b)`.
+    Header names are not bindings; a free reference to one the arm's pattern
+    does not bind is rejected as `open-function-header-capture` (contract §3.3).
 - **Dispatch algorithm** (contract §5): given `n` arguments, if any
   participating clause has a fixed shape of arity `n`, only fixed clauses of
   arity `n` participate; otherwise every eligible varargs clause (minimum
@@ -1105,11 +1107,9 @@ Core IR).
   `docs/architecture/core-ir-portability.md`.
 - **Host capability.** The `open_functions` optional capability
   (`spec/manifest.json`; `docs/host-interop/HOST_CAPABILITY_MATRIX.md`) is
-  `Implemented` for Python; every R20 shared spec requires it, so a
-  non-conforming host reports these cases unsupported rather than silently
-  passing them.
-- **Known limitations** (see
-  `docs/analysis/r20-release-truth-audit.md` for the full accounting):
+  `Implemented` for Python; every R20 shared spec requires it, so
+  non-conforming hosts report them unsupported.
+- **Known limitations** (see `docs/analysis/r20-release-truth-audit.md`):
   - a grouped case-with-pipe body is auto-flattened only when the header
     pattern is plain identifiers and the body is exactly one `CaseExpr` (or
     a one-expression `{ }` block containing one); other combinations of a
@@ -1117,10 +1117,8 @@ Core IR).
   - `@doc`/`@meta`-style annotation attachment is not wired for `open`/
     `extend` declarations — interface metadata beyond the
     optional docstring position is a follow-up;
-  - cross-module behavior has Python-host real-file unit evidence and portable
-    shared eval/error cases that additionally require `multi_file_eval`;
-  - debug-hook wiring (`debug_hooks`/`debug_mode` propagation used by the
-    Python debug adapter) is not threaded through open-function dispatch.
+  - cross-module behavior also needs `multi_file_eval` for its shared cases;
+  - debug-hook wiring (`debug_hooks`/`debug_mode` propagation) is not threaded through open-function dispatch.
 ## 5) Case expressions and pattern matching
 <!-- anchor: state:pattern-matching -->
 
