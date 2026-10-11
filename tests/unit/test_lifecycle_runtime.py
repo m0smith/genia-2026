@@ -30,15 +30,23 @@ from genia.values import (
 
 
 def _invoke(fn, args):
+    """Invoke a lifecycle callback with the runtime's positional argument list."""
+
     return fn(*args)
 
 
 def _peer(name, enter, exit_):
+    """Build the peer map shape consumed by the lifecycle runtime."""
+
     return GeniaMap().put("name", symbol(name)).put("enter", enter).put("exit", exit_)
 
 
 def _ok_enter(value="ctx", calls=None, tag=None):
+    """Return an enter callback that records optional order and succeeds."""
+
     def enter(handle):
+        """Expose the configured context value for a peer entry."""
+
         if calls is not None:
             calls.append(f"{tag}.enter")
         return GeniaOptionSome(value)
@@ -47,7 +55,11 @@ def _ok_enter(value="ctx", calls=None, tag=None):
 
 
 def _ok_exit(calls=None, tag=None):
+    """Return an exit callback that records optional order and succeeds."""
+
     def exit_(handle, summary):
+        """Record exit ordering and accept the supplied summary."""
+
         if calls is not None:
             calls.append(f"{tag}.exit")
         return GeniaOptionSome("nil")
@@ -56,7 +68,11 @@ def _ok_exit(calls=None, tag=None):
 
 
 def _err_enter(reason="enter-fail", calls=None, tag=None):
+    """Return an enter callback that records optional order and fails."""
+
     def enter(handle):
+        """Report the configured enter failure reason."""
+
         if calls is not None:
             calls.append(f"{tag}.enter")
         return GeniaOptionErr(reason, GeniaMap())
@@ -65,7 +81,11 @@ def _err_enter(reason="enter-fail", calls=None, tag=None):
 
 
 def _err_exit(reason="exit-fail", calls=None, tag=None):
+    """Return an exit callback that records optional order and fails."""
+
     def exit_(handle, summary):
+        """Report the configured exit failure reason."""
+
         if calls is not None:
             calls.append(f"{tag}.exit")
         return GeniaOptionErr(reason, GeniaMap())
@@ -74,6 +94,8 @@ def _err_exit(reason="exit-fail", calls=None, tag=None):
 
 
 def _failure(result, key):
+    """Read one field from a lifecycle result's primary failure map."""
+
     return result.get("primary_failure").get(key)
 
 
@@ -98,6 +120,8 @@ def test_single_peer_enters_works_and_exits_in_order():
     peers = [_peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A"))]
 
     def work(handle):
+        """Record the work phase between entry and unwind."""
+
         calls.append("work")
         return "done"
 
@@ -116,6 +140,8 @@ def test_two_peers_reverse_unwind_order():
     ]
 
     def work(handle):
+        """Record the work phase after both peers enter."""
+
         calls.append("work")
 
     run_lifecycle_scope(peers, work, _invoke)
@@ -181,6 +207,8 @@ def test_work_raising_unwinds_all_entered_peers_and_is_primary():
     peers = [_peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A"))]
 
     def work(handle):
+        """Raise from work so the scope reports work as the primary failure."""
+
         raise RuntimeError("boom")
 
     result = run_lifecycle_scope(peers, work, _invoke)
@@ -248,6 +276,8 @@ def test_child_creation_during_enter_phase_is_rejected_but_distinct_from_expired
     attempts: dict[str, object] = {}
 
     def enter(handle):
+        """Try illegal child creation while the parent is still entering."""
+
         try:
             run_lifecycle_child(handle, [], lambda h: None, _invoke)
         except RuntimeError as error:
@@ -271,6 +301,8 @@ def test_child_creation_during_enter_phase_is_rejected_but_distinct_from_expired
 
 def test_child_completes_and_returns_result_to_parent_without_raising():
     def work(handle):
+        """Run a child scope and return its result map to the parent."""
+
         child_result = run_lifecycle_child(handle, [], lambda h: "child-value", _invoke)
         return child_result
 
@@ -284,9 +316,13 @@ def test_child_completes_and_returns_result_to_parent_without_raising():
 
 def test_child_failure_does_not_implicitly_fail_parent():
     def child_work(handle):
+        """Fail inside the child scope without escaping to the parent."""
+
         raise RuntimeError("child broke")
 
     def work(handle):
+        """Observe the child failure and complete the parent successfully."""
+
         child_result = run_lifecycle_child(handle, [], child_work, _invoke)
         assert child_result.get("status") == symbol("error")
         return "parent survived"
@@ -299,7 +335,11 @@ def test_child_failure_does_not_implicitly_fail_parent():
 
 def test_grandchild_nesting_two_levels_beyond_parent():
     def work(handle):
+        """Run a child that in turn runs a grandchild scope."""
+
         def child_work(child_handle):
+            """Return the grandchild's successful value to the parent work."""
+
             grandchild = run_lifecycle_child(child_handle, [], lambda gh: "leaf", _invoke)
             return grandchild.get("result").value
 
@@ -313,12 +353,18 @@ def test_grandchild_nesting_two_levels_beyond_parent():
 
 def test_context_read_through_from_child_to_parent():
     def enter(handle):
+        """Expose parent context for child read-through."""
+
         return GeniaOptionSome("parent-value")
 
     peers = [_peer("cfg", enter, _ok_exit())]
 
     def work(handle):
+        """Run a child scope that looks up the parent peer context."""
+
         def child_work(child_handle):
+            """Read the parent scope context from the child handle."""
+
             return lookup_lifecycle_context(child_handle, symbol("cfg"))
 
         child_result = run_lifecycle_child(handle, [], child_work, _invoke)
@@ -331,6 +377,8 @@ def test_context_read_through_from_child_to_parent():
 
 def test_context_lookup_absent_name_returns_none():
     def work(handle):
+        """Look up a missing context name during work."""
+
         return lookup_lifecycle_context(handle, symbol("missing"))
 
     result = run_lifecycle_scope([], work, _invoke)
@@ -342,15 +390,21 @@ def test_context_not_visible_to_an_earlier_peer_only_to_later_ones_and_work():
     seen_by_a = {}
 
     def enter_a(handle):
+        """Record that peer A cannot see peer B before B enters."""
+
         seen_by_a["b"] = lookup_lifecycle_context(handle, symbol("b"))
         return GeniaOptionSome("a-value")
 
     def enter_b(handle):
+        """Expose peer B context after peer A has already entered."""
+
         return GeniaOptionSome("b-value")
 
     peers = [_peer("a", enter_a, _ok_exit()), _peer("b", enter_b, _ok_exit())]
 
     def work(handle):
+        """Read peer B context after all peers have entered."""
+
         return lookup_lifecycle_context(handle, symbol("b"))
 
     result = run_lifecycle_scope(peers, work, _invoke)
@@ -378,6 +432,8 @@ def test_child_peer_name_cannot_shadow_ancestor_context():
     peers = [_peer("x", _ok_enter(), _ok_exit())]
 
     def work(handle):
+        """Attempt to attach a child peer that shadows ancestor context."""
+
         child_peers = [_peer("x", _ok_enter(), _ok_exit())]
         run_lifecycle_child(handle, child_peers, lambda h: None, _invoke)
         return "unreachable"
@@ -406,6 +462,8 @@ def test_peer_missing_required_field_is_rejected():
 
 def test_enter_must_return_some_or_err():
     def bad_enter(handle):
+        """Return a malformed non-Outcome enter value."""
+
         return "not-an-outcome"
 
     peers = [_peer("x", bad_enter, _ok_exit())]
@@ -416,6 +474,8 @@ def test_enter_must_return_some_or_err():
 
 def test_exit_must_return_some_or_err():
     def bad_exit(handle, summary):
+        """Return a malformed non-Outcome exit value."""
+
         return "not-an-outcome"
 
     peers = [_peer("x", _ok_enter(), bad_exit)]
@@ -426,6 +486,8 @@ def test_exit_must_return_some_or_err():
 
 def test_err_context_must_be_a_map_when_present():
     def enter_bad_context(handle):
+        """Return err context with the wrong runtime shape."""
+
         return GeniaOptionErr("boom", "not-a-map")
 
     peers = [_peer("x", enter_bad_context, _ok_exit())]
@@ -441,6 +503,8 @@ def test_stale_handle_after_completion_raises_on_context_lookup():
     captured = {}
 
     def work(handle):
+        """Capture a handle that will become stale after scope completion."""
+
         captured["handle"] = handle
         return "ok"
 
@@ -454,6 +518,8 @@ def test_stale_handle_after_completion_cannot_create_a_child():
     captured = {}
 
     def work(handle):
+        """Capture a completed root handle for later child-creation misuse."""
+
         captured["handle"] = handle
         return "ok"
 
@@ -483,6 +549,8 @@ def test_three_peers_enter_order_and_reverse_unwind_order():
     ]
 
     def work(handle):
+        """Record work after all three peers enter."""
+
         calls.append("work")
 
     result = run_lifecycle_scope(peers, work, _invoke)
@@ -496,16 +564,22 @@ def test_three_peer_context_visible_only_to_later_peers_and_work():
     seen: dict[str, object] = {}
 
     def enter_a(handle):
+        """Record peer A visibility before later peers enter."""
+
         seen["a_sees_b"] = lookup_lifecycle_context(handle, symbol("b"))
         seen["a_sees_c"] = lookup_lifecycle_context(handle, symbol("c"))
         return GeniaOptionSome("a-value")
 
     def enter_b(handle):
+        """Record peer B visibility after A and before C."""
+
         seen["b_sees_a"] = lookup_lifecycle_context(handle, symbol("a"))
         seen["b_sees_c"] = lookup_lifecycle_context(handle, symbol("c"))
         return GeniaOptionSome("b-value")
 
     def enter_c(handle):
+        """Record peer C visibility after both earlier peers."""
+
         seen["c_sees_a"] = lookup_lifecycle_context(handle, symbol("a"))
         seen["c_sees_b"] = lookup_lifecycle_context(handle, symbol("b"))
         return GeniaOptionSome("c-value")
@@ -600,7 +674,11 @@ def test_exit_primary_summary_never_carries_peer_context_for_any_peer():
     seen_summaries: list[tuple[str, list[str]]] = []
 
     def make_exit(tag):
+        """Build an exit callback that records the primary-summary keys."""
+
         def exit_(handle, summary):
+            """Capture summary keys without mutating the summary."""
+
             seen_summaries.append((tag, sorted(key for key, _value in summary.items())))
             return GeniaOptionSome("nil")
 
@@ -623,9 +701,13 @@ def test_exit_primary_summary_never_carries_peer_context_for_any_peer():
 
 def test_peer_cannot_mutate_another_peers_exposed_context():
     def enter_a(handle):
+        """Expose a persistent map as peer A's context."""
+
         return GeniaOptionSome(GeniaMap().put("count", 1))
 
     def enter_b(handle):
+        """Derive a changed copy of peer A context without mutating A."""
+
         a_ctx = lookup_lifecycle_context(handle, symbol("a")).value
         # GeniaMap.put is persistent: it returns a new map and never mutates
         # the map already stored as peer "a"'s exposed context. B can derive
@@ -636,6 +718,8 @@ def test_peer_cannot_mutate_another_peers_exposed_context():
     peers = [_peer("a", enter_a, _ok_exit()), _peer("b", enter_b, _ok_exit())]
 
     def work(handle):
+        """Read peer A context after peer B has derived its own copy."""
+
         return lookup_lifecycle_context(handle, symbol("a")).value.get("count")
 
     result = run_lifecycle_scope(peers, work, _invoke)
@@ -652,6 +736,8 @@ def test_three_peer_child_attachment_order_independent_of_ancestor_depth():
     ]
 
     def work(handle):
+        """Attach a three-peer child scope under a parent peer."""
+
         child_peers = [
             _peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A")),
             _peer("b", _ok_enter(calls=calls, tag="B"), _ok_exit(calls=calls, tag="B")),
@@ -693,6 +779,8 @@ def test_three_peer_child_attachment_order_independent_of_ancestor_depth():
 
 def test_element_scope_is_tagged_element_and_carries_reserved_context():
     def work(handle):
+        """Read the reserved element and index context entries."""
+
         elem = lookup_lifecycle_context(handle, symbol("element"))
         idx = lookup_lifecycle_context(handle, symbol("index"))
         return [elem, idx]
@@ -710,6 +798,8 @@ def test_element_scope_reserved_context_visible_inside_a_peers_own_enter():
     seen = {}
 
     def enter(handle):
+        """Read reserved element context during peer entry."""
+
         seen["element"] = lookup_lifecycle_context(handle, symbol("element"))
         seen["index"] = lookup_lifecycle_context(handle, symbol("index"))
         return GeniaOptionSome("ctx")
@@ -748,6 +838,8 @@ def test_element_scope_two_peers_enter_and_reverse_unwind_order():
     ]
 
     def work(handle):
+        """Record element-scope work between entry and unwind."""
+
         calls.append("work")
 
     run_lifecycle_element(peers, "row", 1, work, _invoke)
@@ -757,11 +849,15 @@ def test_element_scope_two_peers_enter_and_reverse_unwind_order():
 
 def test_element_scope_has_no_parent_and_does_not_leak_across_independent_calls():
     def enter_first(handle):
+        """Expose context only in the first independent element scope."""
+
         return GeniaOptionSome("only-in-first")
 
     first_peers = [_peer("only_first", enter_first, _ok_exit())]
 
     def work_second(handle):
+        """Try to read first-scope context from a second element scope."""
+
         return lookup_lifecycle_context(handle, symbol("only_first"))
 
     run_lifecycle_element(first_peers, "row-1", 1, lambda handle: None, _invoke)
@@ -772,6 +868,8 @@ def test_element_scope_has_no_parent_and_does_not_leak_across_independent_calls(
 
 def test_element_scope_work_failure_produces_element_scoped_result():
     def work(handle):
+        """Raise from element work so the element result records the failure."""
+
         raise RuntimeError("row broke")
 
     result = run_lifecycle_element([], "row", 1, work, _invoke)
@@ -786,6 +884,8 @@ def test_element_scope_stale_handle_after_completion_raises_on_context_lookup():
     captured = {}
 
     def work(handle):
+        """Capture a completed element handle for stale-handle assertions."""
+
         captured["handle"] = handle
         return "ok"
 
@@ -797,6 +897,8 @@ def test_element_scope_stale_handle_after_completion_raises_on_context_lookup():
 
 def test_element_scope_supports_a_nested_lifecycle_child():
     def work(handle):
+        """Run a child scope from inside an element scope."""
+
         child_result = run_lifecycle_child(handle, [], lambda h: "child-of-element", _invoke)
         return child_result.get("result").value
 
@@ -818,10 +920,14 @@ def test_element_scope_supports_a_nested_lifecycle_child():
 
 
 def _lifecycle_config():
+    """Return the real lifecycle_config builtin from a fresh global environment."""
+
     return make_global_env().get("lifecycle_config")
 
 
 def _provider(snapshot=None):
+    """Build a GeniaConfigProvider with a deterministic snapshot."""
+
     return GeniaConfigProvider((snapshot or {"KEY": "value"},))
 
 
@@ -846,6 +952,8 @@ def test_lifecycle_config_exposes_the_exact_provider_object_via_context():
     peer = _lifecycle_config()(provider)
 
     def work(handle):
+        """Read the config provider bound by lifecycle_config."""
+
         return lookup_lifecycle_context(handle, symbol("config"))
 
     result = run_lifecycle_scope([peer], work, _invoke)
@@ -860,8 +968,14 @@ def test_lifecycle_config_visible_to_grandchild():
     peer = _lifecycle_config()(provider)
 
     def work(handle):
+        """Run nested child scopes that read the inherited config provider."""
+
         def child_work(child_handle):
+            """Run a grandchild scope from the child handle."""
+
             def grandchild_work(gh):
+                """Read config context from the grandchild handle."""
+
                 return lookup_lifecycle_context(gh, symbol("config"))
 
             grandchild = run_lifecycle_child(child_handle, [], grandchild_work, _invoke)
@@ -891,6 +1005,8 @@ def test_lifecycle_config_second_attempt_in_child_scope_is_rejected():
     root_peer = lifecycle_config(provider)
 
     def work(handle):
+        """Try to bind config again in a child scope."""
+
         child_peer = lifecycle_config(provider)
         run_lifecycle_child(handle, [child_peer], lambda h: None, _invoke)
         return "unreachable"
@@ -911,6 +1027,8 @@ def test_lifecycle_config_sibling_scope_trees_may_each_bind_their_own():
     lifecycle_config = _lifecycle_config()
 
     def work(handle):
+        """Read whichever config provider the current sibling scope bound."""
+
         return lookup_lifecycle_context(handle, symbol("config"))
 
     result_a = run_lifecycle_scope([lifecycle_config(provider_a)], work, _invoke)
@@ -925,6 +1043,8 @@ def test_lifecycle_config_works_inside_an_element_scope_with_no_ancestor_chain()
     peer = _lifecycle_config()(provider)
 
     def work(handle):
+        """Read config context from an isolated element scope."""
+
         return lookup_lifecycle_context(handle, symbol("config"))
 
     result = run_lifecycle_element([peer], "row", 1, work, _invoke)
@@ -952,6 +1072,8 @@ def test_lifecycle_config_composes_with_at_least_two_other_peers():
     ]
 
     def work(handle):
+        """Record work and read config after ordinary peers have entered."""
+
         calls.append("work")
         return lookup_lifecycle_context(handle, symbol("config"))
 
