@@ -1,3 +1,5 @@
+"""Flow phase 1 behavior tests for lazy sources, terminals, and helpers."""
+
 import pytest
 
 from genia import make_global_env, run_source
@@ -6,9 +8,11 @@ from genia.utf8 import format_debug
 
 
 def make_number_flow_env(values):
+    """Return an environment with a reusable numeric Flow source."""
     env = make_global_env()
 
     def numbers():
+        """Produce a fresh Flow over the captured numeric values."""
         return GeniaFlow(lambda: iter(values), label="numbers")
 
     env.set("numbers", numbers)
@@ -16,7 +20,10 @@ def make_number_flow_env(values):
 
 
 class CloseTrackingCounter:
+    """Iterator that records pull and close counts for Flow cleanup tests."""
+
     def __init__(self, state, *, limit=100, close_error=None):
+        """Capture shared counters plus optional length and close failure."""
         self._state = state
         self._limit = limit
         self._close_error = close_error
@@ -24,9 +31,11 @@ class CloseTrackingCounter:
         self._closed = False
 
     def __iter__(self):
+        """Return this object as its own iterator."""
         return self
 
     def __next__(self):
+        """Yield the next integer while recording each upstream pull."""
         if self._next >= self._limit:
             raise StopIteration
         value = self._next
@@ -35,6 +44,7 @@ class CloseTrackingCounter:
         return value
 
     def close(self):
+        """Record one close operation and optionally raise a cleanup error."""
         if self._closed:
             return
         self._closed = True
@@ -44,10 +54,12 @@ class CloseTrackingCounter:
 
 
 def make_close_tracking_flow_env(*, limit=100, close_error=None):
+    """Return an environment and counters for a close-tracking Flow source."""
     env = make_global_env()
     state = {"pulled": 0, "closed": 0}
 
     def ticks():
+        """Produce a fresh close-tracking Flow for each Genia call."""
         return GeniaFlow(
             lambda: CloseTrackingCounter(state, limit=limit, close_error=close_error),
             label="ticks",
@@ -284,7 +296,9 @@ def test_take_zero_does_not_pull_upstream():
     state = {"pulled": 0}
 
     def ticks():
+        """Produce an infinite generator-backed Flow for zero-take checks."""
         def iterator():
+            """Yield increasing integers while recording each pull."""
             i = 0
             while True:
                 state["pulled"] += 1
@@ -311,7 +325,9 @@ def test_take_stops_without_overpulling_generator_backed_flow():
     state = {"pulled": 0}
 
     def ticks():
+        """Produce an infinite generator-backed Flow for bounded take checks."""
         def iterator():
+            """Yield increasing integers while recording each pull."""
             i = 0
             while True:
                 state["pulled"] += 1
@@ -330,7 +346,9 @@ def test_take_closes_generator_backed_upstream_on_early_stop():
     state = {"pulled": 0, "closed": 0}
 
     def ticks():
+        """Produce a generator-backed Flow with finally-based cleanup."""
         def iterator():
+            """Yield increasing integers and record generator finalization."""
             try:
                 i = 0
                 while True:
@@ -353,13 +371,18 @@ def test_take_fast_path_closes_closable_upstream_on_early_stop():
     state = {"pulled": 0, "closed": 0}
 
     class ClosableCounter:
+        """Iterator source whose explicit close records early termination."""
+
         def __init__(self):
+            """Initialize the next integer to emit."""
             self._next = 0
 
         def __iter__(self):
+            """Return this object as its own iterator."""
             return self
 
         def __next__(self):
+            """Yield the next integer and record each upstream pull."""
             if self._next >= 100:
                 raise StopIteration
             value = self._next
@@ -368,9 +391,11 @@ def test_take_fast_path_closes_closable_upstream_on_early_stop():
             return value
 
         def close(self):
+            """Record an explicit close from downstream Flow cleanup."""
             state["closed"] += 1
 
     def ticks():
+        """Produce a closeable Flow source for take early-stop coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
     env.set("ticks", ticks)
@@ -384,13 +409,18 @@ def test_map_fast_path_propagates_early_close_to_upstream():
     state = {"pulled": 0, "closed": 0}
 
     class ClosableCounter:
+        """Iterator source whose close should pass through map cleanup."""
+
         def __init__(self):
+            """Initialize the next integer to emit."""
             self._next = 0
 
         def __iter__(self):
+            """Return this object as its own iterator."""
             return self
 
         def __next__(self):
+            """Yield the next integer and record each upstream pull."""
             if self._next >= 100:
                 raise StopIteration
             value = self._next
@@ -399,9 +429,11 @@ def test_map_fast_path_propagates_early_close_to_upstream():
             return value
 
         def close(self):
+            """Record an explicit close from downstream Flow cleanup."""
             state["closed"] += 1
 
     def ticks():
+        """Produce a closeable Flow source for map early-stop coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
     env.set("ticks", ticks)
@@ -415,13 +447,18 @@ def test_filter_fast_path_propagates_early_close_to_upstream():
     state = {"pulled": 0, "closed": 0}
 
     class ClosableCounter:
+        """Iterator source whose close should pass through filter cleanup."""
+
         def __init__(self):
+            """Initialize the next integer to emit."""
             self._next = 0
 
         def __iter__(self):
+            """Return this object as its own iterator."""
             return self
 
         def __next__(self):
+            """Yield the next integer and record each upstream pull."""
             if self._next >= 100:
                 raise StopIteration
             value = self._next
@@ -430,9 +467,11 @@ def test_filter_fast_path_propagates_early_close_to_upstream():
             return value
 
         def close(self):
+            """Record an explicit close from downstream Flow cleanup."""
             state["closed"] += 1
 
     def ticks():
+        """Produce a closeable Flow source for filter early-stop coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
     env.set("ticks", ticks)
@@ -477,6 +516,7 @@ def test_primary_error_suppresses_finalization_error_during_map_cleanup():
     env, state = make_close_tracking_flow_env(close_error=RuntimeError("cleanup boom"))
 
     def boom(_item):
+        """Raise the primary error that should suppress cleanup failures."""
         raise RuntimeError("primary boom")
 
     env.set("boom", boom)
@@ -527,13 +567,18 @@ def test_scan_fast_path_propagates_early_close_to_upstream():
     state = {"pulled": 0, "closed": 0}
 
     class ClosableCounter:
+        """Iterator source whose close should pass through scan cleanup."""
+
         def __init__(self):
+            """Initialize the next integer to emit."""
             self._next = 0
 
         def __iter__(self):
+            """Return this object as its own iterator."""
             return self
 
         def __next__(self):
+            """Yield the next integer and record each upstream pull."""
             if self._next >= 100:
                 raise StopIteration
             value = self._next
@@ -542,9 +587,11 @@ def test_scan_fast_path_propagates_early_close_to_upstream():
             return value
 
         def close(self):
+            """Record an explicit close from downstream Flow cleanup."""
             state["closed"] += 1
 
     def ticks():
+        """Produce a closeable Flow source for scan early-stop coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
     env.set("ticks", ticks)
@@ -570,10 +617,12 @@ def test_stdin_flow_binding_is_lazy_and_stops_on_take():
     state = {"pulled": 0}
 
     def provider():
+        """Return stdin data lazily while recording provider activation."""
         nonlocal calls
         calls += 1
 
         def iterator():
+            """Yield stdin items while recording each consumed item."""
             for item in ["a", "b", "c", "d"]:
                 state["pulled"] += 1
                 yield item
@@ -889,6 +938,7 @@ def test_evolve_init_f_emits_init_without_calling_f():
     calls = {"count": 0}
 
     def counter(x):
+        """Count calls while returning the next integer state."""
         calls["count"] += 1
         return x + 1
 
@@ -903,6 +953,7 @@ def test_evolve_init_f_take_zero_does_not_call_f():
     calls = {"count": 0}
 
     def counter(x):
+        """Count calls while returning the next integer state."""
         calls["count"] += 1
         return x + 1
 
@@ -917,6 +968,7 @@ def test_evolve_init_f_f_called_n_minus_one_times_for_take_n():
     calls = {"count": 0}
 
     def counter(x):
+        """Count calls while returning the next integer state."""
         calls["count"] += 1
         return x + 1
 
