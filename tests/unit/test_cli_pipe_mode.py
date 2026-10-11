@@ -20,14 +20,17 @@ class CountingStdin:
     """Simulated stdin that records how many lines were read."""
 
     def __init__(self, lines: list[str]):
+        """Capture the finite lines served to the CLI stdin stream."""
         self._lines = list(lines)
         self.reads = 0
         self._index = 0
 
     def __iter__(self):
+        """Return this object as its own stdin iterator."""
         return self
 
     def __next__(self):
+        """Return the next line and record each read."""
         if self._index >= len(self._lines):
             raise StopIteration
         self.reads += 1
@@ -40,13 +43,16 @@ class InfiniteCountingStdin:
     """Stdin that yields the same line forever (for broken-pipe tests)."""
 
     def __init__(self, line: str):
+        """Capture the repeated line served by the stream."""
         self._line = line
         self.reads = 0
 
     def __iter__(self):
+        """Return this object as its own stdin iterator."""
         return self
 
     def __next__(self):
+        """Return the repeated line and record each read."""
         self.reads += 1
         return self._line
 
@@ -55,9 +61,11 @@ class BrokenStream:
     """A stream that raises BrokenPipeError on any write or flush."""
 
     def write(self, text: str) -> int:
+        """Raise BrokenPipeError for write attempts."""
         raise BrokenPipeError()
 
     def flush(self) -> None:
+        """Raise BrokenPipeError for flush attempts."""
         raise BrokenPipeError()
 
 
@@ -66,6 +74,8 @@ class BrokenStream:
 # ===========================================================================
 
 class TestExplicitStdinRejection:
+    """Pipe-mode diagnostics for explicit stdin use."""
+
     def test_bare_stdin_in_pipe_mode(self, monkeypatch, capsys):
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n"]))
 
@@ -101,7 +111,10 @@ class TestExplicitStdinRejection:
 # ===========================================================================
 
 class TestExplicitRunRejection:
+    """Pipe-mode diagnostics for explicit run use."""
+
     def test_trailing_run(self, monkeypatch, capsys):
+        """Reject explicit trailing run because pipe mode consumes implicitly."""
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n"]))
 
         exit_code = _main(["-p", "each(print) |> run"])
@@ -112,6 +125,7 @@ class TestExplicitRunRejection:
         assert "run is implicit in pipe mode" in captured.err
 
     def test_standalone_run(self, monkeypatch, capsys):
+        """Reject standalone run because pipe mode owns final consumption."""
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n"]))
 
         exit_code = _main(["-p", "run"])
@@ -135,6 +149,8 @@ class TestExplicitRunRejection:
 # ===========================================================================
 
 class TestNonFlowFinalResult:
+    """Pipe-mode diagnostics for stages that end as values."""
+
     def test_collect_produces_list_not_flow(self, monkeypatch, capsys):
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
 
@@ -163,6 +179,8 @@ class TestNonFlowFinalResult:
 # ===========================================================================
 
 class TestPerItemMisuse:
+    """Pipe-mode diagnostics for per-item functions used as Flow stages."""
+
     def test_parse_int_receives_flow(self, monkeypatch, capsys):
         monkeypatch.setattr("sys.stdin", CountingStdin(["42\n"]))
 
@@ -204,6 +222,8 @@ class TestPerItemMisuse:
 # ===========================================================================
 
 class TestReducerMisuse:
+    """Pipe-mode diagnostics for reducers used directly on a Flow."""
+
     def test_sum_receives_flow(self, monkeypatch, capsys):
         monkeypatch.setattr("sys.stdin", CountingStdin(["10\n", "20\n"]))
 
@@ -237,6 +257,8 @@ class TestReducerMisuse:
 # ===========================================================================
 
 class TestBrokenPipeStdout:
+    """Broken stdout behavior for pipe-mode output sinks."""
+
     def test_broken_stdout_exits_cleanly(self, monkeypatch):
         stderr = io.StringIO()
         monkeypatch.setattr("sys.stdin", InfiniteCountingStdin("hello\n"))
@@ -278,6 +300,8 @@ class TestBrokenPipeStdout:
 # ===========================================================================
 
 class TestBrokenPipeFlowPipeline:
+    """Broken stdout behavior through composed Flow stages."""
+
     def test_map_then_print_with_broken_pipe(self, monkeypatch):
         stderr = io.StringIO()
         monkeypatch.setattr("sys.stdin", InfiniteCountingStdin("hello\n"))
@@ -320,6 +344,8 @@ class TestBrokenPipeFlowPipeline:
 # ===========================================================================
 
 class TestStderrRobustness:
+    """Broken stderr behavior for pipe-mode error paths."""
+
     def test_broken_stderr_does_not_crash_on_error_report(self, monkeypatch):
         """If stderr is broken while reporting a pipe mode error, process
         should still exit cleanly without a Python traceback."""
@@ -350,13 +376,17 @@ class TestStderrRobustness:
 # ===========================================================================
 
 class TestPipeModeHappyPath:
+    """Successful pipe-mode executions and regression guards."""
+
     def test_pipe_mode_bypasses_main_dispatch(self, monkeypatch, capsys):
         original_make_global_env = make_global_env
 
         def make_env_with_failing_main(*args, **kwargs):
+            """Create an environment whose main would fail if dispatched."""
             env = original_make_global_env(*args, **kwargs)
 
             def should_not_run():
+                """Fail if pipe mode accidentally dispatches main."""
                 raise AssertionError("pipe mode should not dispatch main")
 
             env.set("main", should_not_run)
@@ -435,6 +465,8 @@ class TestPipeModeHappyPath:
 # ===========================================================================
 
 class TestFullProgramRejection:
+    """Pipe-mode rejection for full-program inputs."""
+
     def test_assignment_then_expr_is_rejected(self, monkeypatch, capsys):
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n"]))
 
@@ -459,6 +491,8 @@ class TestFullProgramRejection:
 # ===========================================================================
 
 class TestErrorMessageQuality:
+    """User-facing quality checks for pipe-mode diagnostics."""
+
     def test_errors_are_genia_facing_no_python_internals(self, monkeypatch, capsys):
         """Pipe mode errors must not expose Python internals."""
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n"]))
