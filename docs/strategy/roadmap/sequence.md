@@ -211,3 +211,47 @@ unnumbered R20 follow-up #1067 without introducing a new release number.
 Remediate existing gaps in bounded subsystem slices alongside roadmap work,
 starting with MCP. The entire legacy backlog does not block R29. This work
 does not reopen R28 or change language/runtime behavior.
+
+
+### Release-aligned documentation debt
+
+Scheduling decision [#1191](https://github.com/m0smith/genia-2026/issues/1191)
+keeps [#1101](https://github.com/m0smith/genia-2026/issues/1101) as the
+cross-repository completion owner. Initial policy/CI enforcement is delivered;
+remaining legacy remediation is scheduled alongside feature work, not as a
+separate cleanup campaign or a whole-backlog prerequisite for R29.
+
+| Release home | Owned tech-debt task | Maintained areas |
+|---|---|---|
+| R29–R31 | [#1192](https://github.com/m0smith/genia-2026/issues/1192) | Data/Flow/Seq/prelude/builtin/value helpers and related examples/tests |
+| R32, R35–R36 | [#1193](https://github.com/m0smith/genia-2026/issues/1193) | Providers/model/host adapters, resource IO, lifecycle and execution boundaries |
+| R33–R34, R42 | [#1194](https://github.com/m0smith/genia-2026/issues/1194) | Parser/evaluator diagnostics, debugger/editor/session, format and performance tooling |
+| R37–R38 | [#1195](https://github.com/m0smith/genia-2026/issues/1195) | Value lifetime, events/concurrency/message helpers and focused fixtures |
+| R39 | [#1196](https://github.com/m0smith/genia-2026/issues/1196) | Test/conformance harnesses, protocol adapters, CI/build/scripts and residual test/example debt |
+| R40 | [#1197](https://github.com/m0smith/genia-2026/issues/1197) | Protected values/authority/configuration and secret-focused fixtures |
+| R41 | [#1198](https://github.com/m0smith/genia-2026/issues/1198) | AST/Core IR/lowering/WIT, numeric/value foundations and residual routing audit |
+
+The release homes follow technical relevance, not numeric execution order:
+R40 and R42 remain independently scheduled. Each package covers both repositories
+where applicable. Shared files are routed by binding responsibility; no identity
+should be claimed by two active slices. Unclassified maintained debt routes to
+#1196 for evidence review, then moves to the applicable owner explicitly.
+
+At each release pre-flight, select one narrow coherent slice from its package,
+normally one source file or a closely coupled pair, favoring code already touched
+by release work. This is a default small work budget, not a quota of findings or
+permission to leave changed required bindings undocumented. New/changed code
+must satisfy the existing ratchet in its own change. Do not widen a slice merely
+to meet a count; unrelated debt does not delay feature acceptance.
+
+The release audit records selected identities, owner, merged PR/check evidence,
+remaining current baseline count and the next owned slice in the package issue.
+Carry-forward debt stays open with its reason and owner; it never becomes an
+implicit exemption or silently disappears. Existing exact baseline identities and
+fingerprints remain authoritative inventory; this table is scheduling only.
+
+#1198 performs the residual routing/quality review when R41 is active, not a
+blanket requirement to exhaust every legacy gap before R41 ships. Any residual
+work retains explicit follow-up ownership under #1101. Parent closure still
+requires actual remediation or approved per-binding exemptions plus skeptical
+prose-quality audit; releasing a feature or adding a schedule never closes debt.
