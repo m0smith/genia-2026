@@ -42,6 +42,9 @@ class Env:
         overrides the inherited permission to see internal prelude bindings.
         """
         self.parent = parent
+        # Lexical unit ownership is independent of provenance and write policy.
+        # Module construction replaces this inherited reference before evaluation.
+        self._unit_scope = parent.unit_scope() if parent is not None else self
         self.values: dict[str, Any] = {}
         self.internal_values: dict[str, Any] = {}
         self.binding_metadata: dict[str, GeniaMap] = {}
@@ -78,6 +81,34 @@ class Env:
         while env.parent is not None:
             env = env.parent
         return env
+
+    def runtime_scope(self) -> "Env":
+        """Return the existing structural root owning runtime state; never allocate."""
+        return self.root()
+
+    def entry_scope(self) -> "Env":
+        """Return the execution's entry owner, still the shared root during P1.
+
+        Caller-created roots use the same default. Evaluating source in a child
+        does not register that child as entry or alter lexical parentage.
+        """
+        return self.runtime_scope()
+
+    def unit_scope(self) -> "Env":
+        """Return the declaring top-level Env inherited by lexical descendants.
+
+        A loaded module owns itself; entry/prelude use root. The result is live
+        owner identity, not a snapshot, caller scope or module-id inference.
+        """
+        return self._unit_scope
+
+    def inspection_globals_scope(self) -> "Env":
+        """Return root for debugger globals, preserving P1's compatibility view.
+
+        A module's declaring unit is intentionally different from this view.
+        Unit-only inspection requires the separately gated P2 behavior change.
+        """
+        return self.runtime_scope()
 
     def get(self, name: str) -> Any:
         env: Env | None = self
@@ -282,6 +313,7 @@ class Env:
         root.loading_modules.add(module_name)
         try:
             module_env = Env(root, rebind_parent=False)
+            module_env._unit_scope = module_env
             module_env.debug_hooks = root.debug_hooks
             module_env.debug_mode = root.debug_mode
             # R20: canonical module identity is the requested/cached module
