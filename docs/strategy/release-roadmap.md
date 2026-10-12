@@ -221,4 +221,4 @@ The detailed dependency graph and its qualifications live in [`roadmap/sequence.
 
 ## Required infrastructure — maintained code documentation (#1101)
 
-Establish the standard and initial CI after R28, before new R29 implementation; coordinate with #1067 without a new release number. Remediate legacy gaps in bounded slices starting with MCP; the whole backlog does not block R29. See [the detailed sequence](roadmap/sequence.md).
+Policy/CI are delivered under #1101; legacy debt does not block R29. Tasks #1192–#1198 schedule small related slices and owned carry-forward: [details](roadmap/sequence.md#release-aligned-documentation-debt). Scheduling never closes unresolved debt.
