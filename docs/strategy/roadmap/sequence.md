@@ -181,6 +181,10 @@ R29 adds the explicit Sheet record-pipeline boundary. R30 deepens it into shaped
 
 After R32 is audited, heterogeneous real-provider proving (at minimum one client/server relational provider, one document or key/value provider, and one change-feed provider) is a separately gated follow-up release candidate rather than an implicit expansion of R32. MongoDB, DynamoDB, PostgreSQL through a standard adapter, ADBC, and Datomic are candidates, not roadmap commitments. See `docs/architecture/portable-data-store-survey.md`.
 
+### Flow count ergonomics follow-up (R29–R31, non-blocking)
+
+[#1208](https://github.com/m0smith/genia-2026/issues/1208) is a narrow follow-up alongside the R29–R31 data/Flow work, **not a gate for starting R29**. Verify existing `count` semantics and the surrounding pipeline before proposing any change; fix only evidenced gaps and preserve cross-host/shared-spec truth. R35's [shell-free listing/traversal acceptance case #1209](https://github.com/m0smith/genia-2026/issues/1209) reuses the established counting model. Neither ticket authorizes implementation or enlarges the release contract without pre-flight and phase gates.
+
 ## Storage, execution, and dogfooding arc
 
 R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 establishes the unified event/subscription spine before R38 defines portable actors, so actor observability can reuse events without reducing actor mailboxes to pub/sub. R39 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. R41 then packages the existing Core IR portability boundary as stable versioned artifacts. These releases consume prior equality, lifecycle, Flow, host-protocol, and authority boundaries rather than inventing local substitutes.
