@@ -1305,6 +1305,12 @@ _RERANK_ERROR_KINDS = _EMBED_ERROR_KINDS
 
 
 def _validate_rerank_config(value: Any) -> GeniaMap:
+    """Validate closed {id, timeout_ms} config, retaining its original map.
+
+    Require nonempty id and non-boolean integer milliseconds in 1..300000;
+    misuse raises TypeError before provider activation. The shared shape
+    guard keeps its existing embed-prefixed diagnostics.
+    """
     config = _embed_closed_map(value, {"id", "timeout_ms"}, "config")
     if not isinstance(config.get("id"), str) or config.get("id") == "":
         raise TypeError("rerank expected config id to be a non-empty string")
@@ -1322,6 +1328,14 @@ def _validate_rerank_config(value: Any) -> GeniaMap:
 
 
 def _validate_retrieved_chunks(value: Any) -> list[GeniaMap]:
+    """Validate an evidence list and return the same ordered list unchanged.
+
+    Reject protected inputs, wrong closed chunk/score shapes, invalid chunk
+    provenance and nonfinite scores with TypeError where checks complete.
+    Accept empty lists and repeated chunks. Exact Decimal/Rational scores
+    are supported; host-int finiteness checks may raise OverflowError. This
+    checks local shape, not membership in an index or citation correctness.
+    """
     if contains_protected(value):
         raise TypeError("protected-value: rerank-input")
     if not isinstance(value, list):
@@ -1340,6 +1354,12 @@ def _validate_retrieved_chunks(value: Any) -> list[GeniaMap]:
 
 
 def _validate_grounded_content(value: Any, label: str) -> GeniaMap:
+    """Validate a closed text/json content variant and retain its original map.
+
+    Text accepts any string, including empty; json requires a GeniaRepresented
+    value with the json facet. This helper checks the representation carrier,
+    not its payload JSON domain. Wrong shapes/kinds raise TypeError using label.
+    """
     if not isinstance(value, GeniaMap):
         raise TypeError(f"grounding expected {label} content map")
     kind = value.get("kind")
@@ -1364,7 +1384,14 @@ def _validate_grounded_content(value: Any, label: str) -> GeniaMap:
 def assemble_grounded_context(
     question: Any, content: Any, evidence_value: Any
 ) -> GeniaMap:
-    """Construct one exact E12 grounded context without a provider attempt."""
+    """Build closed question/content/evidence context without any provider call.
+
+    Reject protected inputs and require a nonempty question. Validate content
+    and ordered evidence, retaining their refs; empty evidence is valid.
+    Translate evidence TypeError diagnostics to grounding wording; other
+    host validation exceptions can propagate. No retrieval, model invocation
+    or citation policy participates in this ordinary composition helper.
+    """
 
     if contains_protected(question) or contains_protected(content) or contains_protected(
         evidence_value
@@ -1384,6 +1411,12 @@ def assemble_grounded_context(
 
 
 def _validate_grounded_context(value: Any) -> GeniaMap:
+    """Validate a closed context and reconstruct its outer map via the assembler.
+
+    Reject protected content and wrong keys with TypeError. Reuse question,
+    content and evidence contracts; preserve their values/order without a
+    provider attempt or deep copy.
+    """
     if contains_protected(value):
         raise TypeError("protected-value: grounding-input")
     if not isinstance(value, GeniaMap) or _keys(value) != {
@@ -1400,6 +1433,13 @@ def _validate_grounded_context(value: Any) -> GeniaMap:
 
 
 def _validate_grounded_response(value: Any) -> GeniaMap:
+    """Validate a closed R11 response and return it unchanged.
+
+    Require an assistant message with valid content, one allowed symbolic
+    finish reason and valid R11 usage. Shape/content failures raise TypeError;
+    usage ValueError is translated to TypeError. This consumes an existing
+    response and neither invokes a model nor verifies answer truth/citations.
+    """
     if not isinstance(value, GeniaMap) or _keys(value) != {
         "finish_reason",
         "message",
@@ -1430,7 +1470,15 @@ def _validate_grounded_response(value: Any) -> GeniaMap:
 
 
 def assemble_grounded_answer(context_value: Any, model_outcome: Any) -> Any:
-    """Assemble an answer only from one exact R11 successful Outcome."""
+    """Assemble exact answer/evidence/sources from an already supplied model Outcome.
+
+    Validate context first, then return None/Err Outcomes unchanged. Require
+    context-free Some with a valid closed R11 response otherwise, raising
+    TypeError on misuse. Return an ordinary map (not a new Some) retaining
+    answer content and ordered evidence. Deduplicate sources by exact
+    doc_id/offset/length in first-occurrence order, retaining source refs.
+    No model call, retry, hidden retrieval or citation validation is performed.
+    """
 
     context = _validate_grounded_context(context_value)
     if isinstance(model_outcome, (GeniaOptionNone, GeniaOptionErr)):
@@ -1456,10 +1504,18 @@ def assemble_grounded_answer(context_value: Any, model_outcome: Any) -> Any:
 
 
 def _rerank_invalid(stage: str) -> GeniaOptionErr:
+    """Build rerank-response-invalid with only a symbolic validation stage."""
     return GeniaOptionErr("rerank-response-invalid", _map(stage=symbol(stage)))
 
 
 def _valid_rerank_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
+    """Recognize only closed reranking-provider failure Outcomes.
+
+    Timeout context must match configured milliseconds; rate limiting uses
+    some(nonnegative integer) or exact retry-unavailable absence. Rejection
+    and transport failures require an allowed symbolic kind. Unknown reasons
+    and malformed contexts fail validation without inspecting raw exceptions.
+    """
     context = value.context
     if value.reason == "rerank-timeout":
         return (
@@ -1495,37 +1551,62 @@ def _valid_rerank_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
 
 
 class _FixtureRerankResult:
+    """Python-host observation wrapper holding unvalidated reranking results.
+
+    The reranker validates score and duplicate-aware chunk preservation before
+    exposing ordinary evidence; this wrapper alone does not establish success.
+    """
     __slots__ = ("results",)
 
     def __init__(self, results: Any):
+        """Retain results without validation or copying for later reranker checks."""
         self.results = results
 
 
 class GeniaRerankProvider:
-    """Opaque Python-host deterministic reranking capability."""
+    """Explicit opaque Python-host fixture capability for provider-backed reranking.
+
+    Owns a synchronous host handler and attempt count; adds no networking,
+    provider discovery, retries or runtime timeout timer.
+    """
 
     __slots__ = ("_handler", "_attempt_count")
 
     def __init__(self, handler: Callable[[GeniaMap, str, list[Any], str], Any]):
+        """Capture the host handler and initialize its attempt counter to zero.
+
+        The fixture factory validates callability; construction never invokes it.
+        """
         self._handler = handler
         self._attempt_count = 0
 
     @property
     def attempt_count(self) -> int:
+        """Return handler attempts, including calls whose handler raised."""
         return self._attempt_count
 
     def _attempt(
         self, config: GeniaMap, query: str, evidence: list[Any], credential: str
     ) -> Any:
+        """Count and call the handler once with config, query, evidence and secret.
+
+        Pass its observation through unchanged; exceptions reach the reranker
+        attempt normalizer. No retry, timer or evidence validation occurs here.
+        """
         self._attempt_count += 1
         return self._handler(config, query, evidence, credential)
 
     def __repr__(self) -> str:
+        """Render an opaque marker without exposing handler, state or secrets."""
         return "<rerank-provider>"
 
 
 class GeniaReranker:
-    """Ordinary two-argument provider-backed reranking callable."""
+    """Ordinary query/evidence callable preserving the exact duplicate-aware chunk multiset.
+
+    Uses one explicit Python fixture capability for nonempty evidence; provider
+    order and finite scores may change while text/source/metadata stay exact.
+    """
 
     __slots__ = ("_authority", "_config", "_credential", "_provider")
 
@@ -1536,12 +1617,30 @@ class GeniaReranker:
         credential: GeniaProtected,
         authority: GeniaDeclassificationAuthority,
     ):
+        """Capture provider/config/protected credential/authority without activation.
+
+        Use construct_rerank for public validation. Do not reveal credentials,
+        validate evidence or invoke the provider during capture.
+        """
         self._provider = provider
         self._config = config
         self._credential = credential
         self._authority = authority
 
     def __call__(self, query: Any, evidence_value: Any) -> Any:
+        """Validate query/evidence, then rerank with one authorized provider attempt.
+
+        Protected or empty/non-string query and malformed evidence raise before
+        any attempt; valid empty evidence returns some([]) without declassification.
+        For nonempty evidence, authority failures and non-string revealed secrets
+        raise directly. Handler exceptions become rerank-transport-failure(other);
+        recognized provider errors pass through. Success requires context-free
+        Some(_FixtureRerankResult) with closed chunk/score results matching each
+        input chunk occurrence exactly once. Preserve provider order and replace
+        scores, but retain exact input chunk refs. Invalid responses return
+        stage-specific errors where checks complete; later host validation
+        exceptions may propagate. No score sorting, retry or timer is added.
+        """
         if contains_protected(query):
             raise TypeError("protected-value: rerank-input")
         if not isinstance(query, str) or query == "":
@@ -1595,18 +1694,29 @@ class GeniaReranker:
         return GeniaOptionSome(normalized)
 
     def __repr__(self) -> str:
+        """Render as an ordinary function without exposing captured credentials."""
         return "<function>"
 
 
 def create_fixture_rerank_provider(
     handler: Callable[[GeniaMap, str, list[Any], str], Any],
 ) -> GeniaRerankProvider:
+    """Create an explicit opaque Python-host reranking fixture from a callable handler.
+
+    Raise TypeError for non-callable handlers. Pure Genia source cannot mint
+    this capability; construction performs no handler attempt or network IO.
+    """
     if not callable(handler):
         raise TypeError("fixture rerank provider expected a callable handler")
     return GeniaRerankProvider(handler)
 
 
 def create_fixture_rerank_result(results: Any) -> _FixtureRerankResult:
+    """Wrap results unchanged as a Python-host observation for later validation.
+
+    No shape, score or chunk-multiset checks occur here; the wrapper alone
+    does not produce a Genia-visible successful reranking Outcome.
+    """
     return _FixtureRerankResult(results)
 
 
@@ -1616,6 +1726,13 @@ def construct_rerank(
     credential: Any,
     authority: Any,
 ) -> GeniaReranker:
+    """Validate rerank/4 arguments and return an inert two-argument callable.
+
+    Require opaque rerank provider, valid closed config, protected credential
+    and declassification authority; misuse raises TypeError. Credential
+    payload and authority applicability are checked at invocation. No evidence
+    acquisition, secret revelation or provider attempt occurs here.
+    """
     if not isinstance(provider, GeniaRerankProvider):
         raise TypeError(
             "rerank expected a rerank provider capability, "
