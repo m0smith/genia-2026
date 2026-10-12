@@ -40,7 +40,7 @@ FAMILY_PATTERN = re.compile(
     r"^(represent|strip_representation|json_decode|json_encode|json_schema|.*_match)$"
 )
 
-_ENV_SET_NAME = re.compile(r'env\.set(?:_internal)?\(\s*"([A-Za-z_][A-Za-z0-9_?]*)"')
+_ENV_SET_NAME = re.compile(r'env\.set(?:_host)?(?:_internal)?\(\s*"([A-Za-z_][A-Za-z0-9_?]*)"')
 _PRELUDE_DEF_NAME = re.compile(r"(?m)^([a-zA-Z_][a-zA-Z0-9_?]*)\([^\n]*\)\s*(?:=|->)")
 
 
