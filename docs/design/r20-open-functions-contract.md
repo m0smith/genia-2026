@@ -288,11 +288,20 @@ preserves it for later unload/reload design but defines no unload/reload action.
 ### 7.2 Interface metadata ownership
 
 `@doc`, category, stability, deprecation, and other interface metadata belong to
-the single interface declaration. Repeated base clauses may repeat identical
-legacy doc text under the existing canonical-doc rule; conflicts fail.
-Contribution clauses cannot supply, replace, merge, or erase interface-level
-metadata. Clause-local annotations unsupported by the E20-1 design are rejected,
-not silently promoted to interface metadata.
+the single interface declaration. Contribution clauses cannot supply, replace,
+merge, or erase interface-level metadata. Clause-local annotations unsupported
+by the E20-1 design are rejected, not silently promoted to interface metadata.
+
+**No inline docstring position.** An open clause has no docstring position. A
+string literal after `=` is always the clause's executable body, in the
+repeated, grouped, and `extend` spellings alike, and a further expression
+following it on the same line is a separate top-level statement exactly as it
+is for any other body. An open interface therefore has no documentation until
+interface-level metadata support is contracted; `doc(name)` reports it missing.
+The `docstring` field of the open-function Core IR node is reserved and is not
+populated by lowering. Treating any string-then-expression shape as
+documentation would change the meaning of programs that are valid today, so it
+requires its own approved rule and is not implied by this contract.
 
 ### 7.3 Introspection contract
 
