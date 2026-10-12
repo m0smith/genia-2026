@@ -1,3 +1,8 @@
+# Flow prelude: lazy Flow stages and the rules(..) dispatcher. Intermediate values are
+# passed as parameters or inlined rather than assigned, because an assignment inside
+# a prelude function would overwrite a same-named top-level binding of the caller
+# (issue #1205).
+
 @doc """Create a Flow from `stdin`, an incoming Flow, or a list of strings.
 
 ## Arguments
@@ -346,12 +351,10 @@ step_halt() = rule_halt()
 @category "flow"
 step_step(record, ctx, out) = rule_step(record, ctx, out)
 
+@doc "Internal: decide whether the last argument of `rules(..)` is an immediate Flow to run the staged rules over, or return a reusable stage."
+@meta {stability: "internal"}
 rules_dispatch(args) =
-  (args) ? rules_immediate_flow?(args) == true -> {
-    flow = rules_last_arg(args)
-    fns = rules_drop_last(args)
-    rules_stage(_rules_prepare(fns))(flow)
-  } |
+  (args) ? rules_immediate_flow?(args) == true -> rules_stage(_rules_prepare(rules_drop_last(args)))(rules_last_arg(args)) |
   (args) -> rules_stage(_rules_prepare(args))
 
 rules_immediate_flow?(args) =
@@ -397,14 +400,17 @@ rules_apply_result(result, rest, record, ctx, out, rule_index) =
     concat("returned ", concat(_flow_debug(result), "; expected none(...) or some(result)"))
   )
 
+@doc "Internal: apply one `some(result)` map from a rule: update record and ctx, append emitted values, and continue unless the rule halted."
+@meta {stability: "internal"}
 rules_apply_some(result_map, rest, record, ctx, out, rule_index) =
-  (result_map, rest, record, ctx, out, rule_index) ? rules_map?(result_map) == true -> {
-    next_record = rules_result_record(result_map, record)
-    next_ctx = rules_result_ctx(result_map, ctx)
-    emitted = rules_result_emit(result_map, rule_index)
-    halted = rules_result_halt(result_map, rule_index)
-    rules_apply_next(rest, next_record, next_ctx, [..out, ..emitted], halted, rule_index)
-  } |
+  (result_map, rest, record, ctx, out, rule_index) ? rules_map?(result_map) == true -> rules_apply_next(
+    rest,
+    rules_result_record(result_map, record),
+    rules_result_ctx(result_map, ctx),
+    [..out, ..rules_result_emit(result_map, rule_index)],
+    rules_result_halt(result_map, rule_index),
+    rule_index
+  ) |
   (result_map, _, _, _, _, rule_index) -> _rules_error(
     rule_index,
     concat("returned some(result) with ", concat(_flow_debug(result_map), "; expected a map"))

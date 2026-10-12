@@ -1,3 +1,8 @@
+# Actor prelude: actors are cell-backed message processors. Local bindings in these
+# definitions must not reuse a name a caller could have at top level (issue #1205):
+# assignment updates the nearest existing binding, and prelude frames share the
+# runtime root with the entry program, so values are passed as parameters instead.
+
 @doc """Create an actor with initial state and a message handler.
 
 The handler shape is `handler(state, msg, ctx) -> effect`.
@@ -44,11 +49,11 @@ For fire-and-forget sends, any reply value is discarded.
 Raises if the actor has already failed or stopped.
 """
 @category "actor"
-actor_send(a, msg) = {
-  h = a("_handler")
-  c = a("_cell")
-  cell_send(c, (state) -> _actor_validate_effect(h(state, msg, {}), c))
-}
+actor_send(a, msg) = _actor_send_to(a("_handler"), a("_cell"), msg)
+
+@doc "Internal: send `msg` to actor cell `c` and validate the handler `h` effect; helper of `actor_send` that receives `h` and `c` as parameters so no local binding can overwrite a caller's top-level name."
+@meta {stability: "internal"}
+_actor_send_to(h, c, msg) = cell_send(c, (state) -> _actor_validate_effect(h(state, msg, {}), c))
 
 @doc """Send a message and wait for a reply (synchronous request-reply).
 
@@ -71,10 +76,11 @@ The response value from the handler's `["reply", new_state, response]` effect,
 or the new state from `["ok", new_state]`.
 """
 @category "actor"
-actor_call(a, msg) = {
-  h = a("_handler")
-  c = a("_cell")
-  reply = ref()
+actor_call(a, msg) = _actor_call_with(a("_handler"), a("_cell"), msg, ref())
+
+@doc "Internal: send `msg` to actor cell `c` with handler `h`, then wait on `reply`; helper of `actor_call` that receives its values as parameters so no local binding can overwrite a caller's top-level name."
+@meta {stability: "internal"}
+_actor_call_with(h, c, msg, reply) = {
   cell_send(c, (state) -> _actor_call_update(h, msg, reply, state, c))
   ref_get(reply)
 }

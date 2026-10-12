@@ -35,6 +35,12 @@ EXPECTED_TESTS = [
 
 @pytest.fixture(scope="module")
 def native_results():
+    """Run the native isolation file once and return `(exit_code, outcomes, output)`.
+
+    `outcomes` maps each native test name to `PASS`, `FAIL`, or `ERROR`, parsed
+    from the native runner's per-test lines; `output` is the runner's full text,
+    kept so a failing case shows exactly what the runner reported.
+    """
     import contextlib
     import io
 
