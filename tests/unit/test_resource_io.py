@@ -58,7 +58,7 @@ def test_resource_ref_unicode_path_stored_verbatim():
 def test_write_then_read_text_roundtrip(tmp_path):
     out_file = tmp_path / "hello.txt"
     env = _env()
-    env.set("out_path", str(out_file))
+    env.set_host("out_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -74,7 +74,7 @@ def test_write_then_read_text_roundtrip(tmp_path):
 def test_write_text_returns_ref_on_success(tmp_path):
     out_file = tmp_path / "out.txt"
     env = _env()
-    env.set("out_path", str(out_file))
+    env.set_host("out_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -90,7 +90,7 @@ def test_write_text_returns_ref_on_success(tmp_path):
 def test_write_text_overwrites_existing_content(tmp_path):
     out_file = tmp_path / "overwrite.txt"
     env = _env()
-    env.set("out_path", str(out_file))
+    env.set_host("out_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -108,7 +108,7 @@ def test_read_text_empty_file_returns_empty_string(tmp_path):
     empty_file = tmp_path / "empty.txt"
     empty_file.write_text("", encoding="utf-8")
     env = _env()
-    env.set("file_path", str(empty_file))
+    env.set_host("file_path", str(empty_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -122,7 +122,7 @@ def test_read_text_empty_file_returns_empty_string(tmp_path):
 def test_read_text_missing_file_returns_not_found(tmp_path):
     missing = tmp_path / "missing.txt"
     env = _env()
-    env.set("missing_path", str(missing))
+    env.set_host("missing_path", str(missing), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -137,7 +137,7 @@ def test_read_text_missing_file_returns_not_found(tmp_path):
 def test_write_text_to_nonexistent_directory_returns_write_error(tmp_path):
     out_file = tmp_path / "no_dir" / "file.txt"
     env = _env()
-    env.set("out_path", str(out_file))
+    env.set_host("out_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -214,7 +214,7 @@ def test_read_text_unsupported_backend_returns_resource_unsupported():
 def test_write_then_read_bytes_roundtrip(tmp_path):
     out_file = tmp_path / "data.bin"
     env = _env()
-    env.set("out_path", str(out_file))
+    env.set_host("out_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -231,7 +231,7 @@ def test_write_then_read_bytes_roundtrip(tmp_path):
 def test_read_bytes_missing_file_returns_not_found(tmp_path):
     missing = tmp_path / "missing.bin"
     env = _env()
-    env.set("missing_path", str(missing))
+    env.set_host("missing_path", str(missing), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -246,7 +246,7 @@ def test_read_bytes_missing_file_returns_not_found(tmp_path):
 def test_write_bytes_returns_ref_on_success(tmp_path):
     out_file = tmp_path / "data.bin"
     env = _env()
-    env.set("out_path", str(out_file))
+    env.set_host("out_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -267,7 +267,7 @@ def test_write_bytes_returns_ref_on_success(tmp_path):
 def test_delete_nonexistent_file_returns_nil(tmp_path):
     missing = tmp_path / "never_existed.txt"
     env = _env()
-    env.set("file_path", str(missing))
+    env.set_host("file_path", str(missing), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -282,7 +282,7 @@ def test_delete_nonexistent_file_returns_nil(tmp_path):
 def test_delete_returns_nil_none_on_success(tmp_path):
     out_file = tmp_path / "to_delete.txt"
     env = _env()
-    env.set("file_path", str(out_file))
+    env.set_host("file_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -299,7 +299,7 @@ def test_delete_returns_nil_none_on_success(tmp_path):
 def test_delete_then_read_returns_not_found(tmp_path):
     out_file = tmp_path / "to_delete.txt"
     env = _env()
-    env.set("file_path", str(out_file))
+    env.set_host("file_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -323,8 +323,8 @@ def test_copy_source_content_to_dest(tmp_path):
     src_file = tmp_path / "src.txt"
     dst_file = tmp_path / "dst.txt"
     env = _env()
-    env.set("src_path", str(src_file))
-    env.set("dst_path", str(dst_file))
+    env.set_host("src_path", str(src_file), visibility="entry-only")
+    env.set_host("dst_path", str(dst_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -343,8 +343,8 @@ def test_copy_returns_to_ref_on_success(tmp_path):
     src_file = tmp_path / "src.txt"
     dst_file = tmp_path / "dst.txt"
     env = _env()
-    env.set("src_path", str(src_file))
-    env.set("dst_path", str(dst_file))
+    env.set_host("src_path", str(src_file), visibility="entry-only")
+    env.set_host("dst_path", str(dst_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -363,8 +363,8 @@ def test_copy_missing_source_returns_not_found(tmp_path):
     src_file = tmp_path / "missing_src.txt"
     dst_file = tmp_path / "dst.txt"
     env = _env()
-    env.set("src_path", str(src_file))
-    env.set("dst_path", str(dst_file))
+    env.set_host("src_path", str(src_file), visibility="entry-only")
+    env.set_host("dst_path", str(dst_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -380,8 +380,8 @@ def test_copy_overwrites_existing_dest(tmp_path):
     src_file = tmp_path / "src.txt"
     dst_file = tmp_path / "dst.txt"
     env = _env()
-    env.set("src_path", str(src_file))
-    env.set("dst_path", str(dst_file))
+    env.set_host("src_path", str(src_file), visibility="entry-only")
+    env.set_host("dst_path", str(dst_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -405,7 +405,7 @@ def test_copy_overwrites_existing_dest(tmp_path):
 def test_resource_meta_existing_file_has_exists_true(tmp_path):
     out_file = tmp_path / "meta.txt"
     env = _env()
-    env.set("file_path", str(out_file))
+    env.set_host("file_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -423,7 +423,7 @@ def test_resource_meta_existing_file_size_matches_content(tmp_path):
     content = "hello meta"
     out_file = tmp_path / "meta.txt"
     env = _env()
-    env.set("file_path", str(out_file))
+    env.set_host("file_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -439,7 +439,7 @@ def test_resource_meta_existing_file_size_matches_content(tmp_path):
 def test_resource_meta_existing_file_backend_is_fs(tmp_path):
     out_file = tmp_path / "meta.txt"
     env = _env()
-    env.set("file_path", str(out_file))
+    env.set_host("file_path", str(out_file), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -455,7 +455,7 @@ def test_resource_meta_existing_file_backend_is_fs(tmp_path):
 def test_resource_meta_missing_file_exists_is_false(tmp_path):
     missing = tmp_path / "missing.txt"
     env = _env()
-    env.set("file_path", str(missing))
+    env.set_host("file_path", str(missing), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -470,7 +470,7 @@ def test_resource_meta_missing_file_exists_is_false(tmp_path):
 def test_resource_meta_missing_file_has_no_size_key(tmp_path):
     missing = tmp_path / "missing.txt"
     env = _env()
-    env.set("file_path", str(missing))
+    env.set_host("file_path", str(missing), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -491,7 +491,7 @@ def test_resource_meta_missing_file_has_no_size_key(tmp_path):
 def test_discover_returns_a_flow(tmp_path):
     (tmp_path / "a.txt").write_text("A")
     env = _env()
-    env.set("root_path", str(tmp_path))
+    env.set_host("root_path", str(tmp_path), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -506,7 +506,7 @@ def test_discover_flow_items_have_uri_and_backend_keys(tmp_path):
     (tmp_path / "a.txt").write_text("A")
     (tmp_path / "b.txt").write_text("B")
     env = _env()
-    env.set("root_path", str(tmp_path))
+    env.set_host("root_path", str(tmp_path), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -529,7 +529,7 @@ def test_discover_does_not_emit_directories(tmp_path):
     sub.mkdir()
     (sub / "c.txt").write_text("C")
     env = _env()
-    env.set("root_path", str(tmp_path))
+    env.set_host("root_path", str(tmp_path), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -548,7 +548,7 @@ def test_discover_empty_directory_collects_to_empty_list(tmp_path):
     empty_dir = tmp_path / "empty"
     empty_dir.mkdir()
     env = _env()
-    env.set("root_path", str(empty_dir))
+    env.set_host("root_path", str(empty_dir), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -562,7 +562,7 @@ def test_discover_empty_directory_collects_to_empty_list(tmp_path):
 def test_discover_flow_is_single_use(tmp_path):
     (tmp_path / "a.txt").write_text("A")
     env = _env()
-    env.set("root_path", str(tmp_path))
+    env.set_host("root_path", str(tmp_path), visibility="entry-only")
     with pytest.raises(RuntimeError, match="already been consumed"):
         run_source(
             """
@@ -578,7 +578,7 @@ def test_discover_flow_is_single_use(tmp_path):
 def test_discover_nonexistent_root_returns_not_found(tmp_path):
     missing_dir = tmp_path / "does_not_exist"
     env = _env()
-    env.set("root_path", str(missing_dir))
+    env.set_host("root_path", str(missing_dir), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -607,7 +607,7 @@ def test_discover_pipeline_read_all_text(tmp_path):
     (tmp_path / "x.txt").write_text("hello")
     (tmp_path / "y.txt").write_text("world")
     env = _env()
-    env.set("root_path", str(tmp_path))
+    env.set_host("root_path", str(tmp_path), visibility="entry-only")
     result = run_source(
         """
         import resource as res
@@ -722,7 +722,7 @@ def test_existing_read_file_still_works(tmp_path):
     f = tmp_path / "existing.txt"
     f.write_text("legacy", encoding="utf-8")
     env = _env()
-    env.set("fpath", str(f))
+    env.set_host("fpath", str(f), visibility="entry-only")
     result = run_source("read_file(fpath)", env)
     assert result == "legacy"
 
@@ -730,6 +730,6 @@ def test_existing_read_file_still_works(tmp_path):
 def test_existing_write_file_still_works(tmp_path):
     f = tmp_path / "out.txt"
     env = _env()
-    env.set("fpath", str(f))
+    env.set_host("fpath", str(f), visibility="entry-only")
     run_source('write_file(fpath, "legacy")', env)
     assert f.read_text(encoding="utf-8") == "legacy"

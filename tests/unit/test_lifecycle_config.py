@@ -44,7 +44,7 @@ def test_lifecycle_config_view_matches_hand_threaded_provider():
 def test_lifecycle_config_secret_view_matches_hand_threaded_provider_and_redacts():
     provider = GeniaConfigProvider(({"OPENAI_TOKEN": "payload"},))
     env = make_global_env([])
-    env.set("provider", provider)
+    env.set_host("provider", provider, visibility="entry-only")
     src = """
     peer = lifecycle_config(provider)
     outcome = lifecycle_scope([peer], (root) -> {

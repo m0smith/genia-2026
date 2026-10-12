@@ -57,7 +57,7 @@ def test_flow_map_filter_fusion_preserves_bounded_pulling_and_close():
         """Produce a closeable Flow source for fusion pull accounting."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
 
     assert run_source(
         """
@@ -110,8 +110,8 @@ def test_fused_flow_map_callback_error_propagates_and_closes_upstream():
             raise mapper_error
         return value
 
-    env.set("ticks", ticks)
-    env.set("boom_on_three", boom_on_three)
+    env.set_host("ticks", ticks, visibility="entry-only")
+    env.set_host("boom_on_three", boom_on_three, visibility="entry-only")
 
     with pytest.raises(RuntimeError, match="boom from mapper") as exc_info:
         run_source(
@@ -166,8 +166,8 @@ def test_fused_flow_filter_callback_error_propagates_and_closes_upstream():
             raise predicate_error
         return True
 
-    env.set("ticks", ticks)
-    env.set("boom_predicate_on_three", boom_predicate_on_three)
+    env.set_host("ticks", ticks, visibility="entry-only")
+    env.set_host("boom_predicate_on_three", boom_predicate_on_three, visibility="entry-only")
 
     with pytest.raises(RuntimeError, match="boom from predicate") as exc_info:
         run_source(

@@ -77,7 +77,7 @@ def test_validate_each_preserves_upstream_err_without_calling_validator():
     def fail_if_called(value):
         raise AssertionError(f"validator should not receive upstream err: {value!r}")
 
-    env.set("fail_if_called", fail_if_called)
+    env.set_host("fail_if_called", fail_if_called, visibility="entry-only")
 
     result = run_source(
         """
@@ -97,7 +97,7 @@ def test_validate_each_preserves_upstream_none_without_calling_validator():
     def fail_if_called(value):
         raise AssertionError(f"validator should not receive upstream none: {value!r}")
 
-    env.set("fail_if_called", fail_if_called)
+    env.set_host("fail_if_called", fail_if_called, visibility="entry-only")
 
     result = run_source(
         """
@@ -291,8 +291,8 @@ def test_validate_each_flow_is_lazy_until_consumed():
         state["validated"] += 1
         return GeniaOptionSome(value * 10)
 
-    env.set("counted_source", counted_source)
-    env.set("validator", validator)
+    env.set_host("counted_source", counted_source, visibility="entry-only")
+    env.set_host("validator", validator, visibility="entry-only")
 
     result = run_source("validate_each(counted_source(), validator)", env)
 
@@ -318,8 +318,8 @@ def test_validate_each_flow_non_outcome_validator_result_fails_when_consumed():
         state["validated"] += 1
         return value
 
-    env.set("counted_source", counted_source)
-    env.set("invalid", invalid)
+    env.set_host("counted_source", counted_source, visibility="entry-only")
+    env.set_host("invalid", invalid, visibility="entry-only")
 
     result = run_source("validate_each(counted_source(), invalid)", env)
 
