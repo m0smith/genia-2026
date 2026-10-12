@@ -1501,7 +1501,14 @@ class Evaluator:
             return module_value
         if isinstance(node, IrOpenFuncDef):
             if node.name in self.env.values:
-                raise OpenFunctionRedeclarationError((self.env.module_identity(), node.name))
+                held = self.env.values[node.name]
+                if isinstance(held, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+                    existing = "open interface"
+                elif isinstance(held, GeniaFunctionGroup):
+                    existing = "ordinary function"
+                else:
+                    existing = "non-function value"
+                raise OpenFunctionRedeclarationError((self.env.module_identity(), node.name), existing)
             clauses = [
                 OpenClauseRecord(clause.pattern, clause.guard, clause.result, self.env, clause.span)
                 for clause in node.clauses

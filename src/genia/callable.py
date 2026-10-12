@@ -454,14 +454,21 @@ class OpenFunctionError(TypeError):
 
 
 class OpenFunctionRedeclarationError(OpenFunctionError):
-    """An open interface was declared again in its owning module."""
-    def __init__(self, interface_key: tuple[str, str]):
-        """Store interface provenance and the redeclaration diagnostic; do not raise here."""
+    """An open interface was declared over a name that is already bound."""
+    def __init__(self, interface_key: tuple[str, str], existing: str = "open interface"):
+        """Store interface provenance and the redeclaration diagnostic; do not raise here.
+
+        `existing` says what already holds the name: "open interface" (the
+        default), "ordinary function", or "non-function value"; only the
+        wording depends on it, the identity prefix is always the same."""
         module_id, name = interface_key
-        super().__init__(
-            f"open-function-redeclaration: {name!r} is already declared open in module {module_id!r}"
-        )
+        phrase = {
+            "open interface": "already declared open",
+            "ordinary function": "already defined as an ordinary function",
+        }.get(existing, "already bound to a non-function value")
+        super().__init__(f"open-function-redeclaration: {name!r} is {phrase} in module {module_id!r}")
         self.interface_key = interface_key
+        self.existing = existing
 
 
 class OpenFunctionTargetNotOpenError(OpenFunctionError):
@@ -472,25 +479,42 @@ class OpenFunctionTargetNotOpenError(OpenFunctionError):
         self.target = target
 
 
-def _format_open_span(span: Optional[SourceSpan]) -> str:
-    """Normalized, host-neutral span rendering (contract §8): a Genia
-    source label and line, never a raw host dataclass repr."""
+def _format_open_span(span: Optional[SourceSpan], module_identity: str = "<entry>") -> str:
+    """Normalized, host-neutral span rendering (contract §8).
+
+    The entry program keeps the source label it was given; a clause declared in
+    an imported module renders as that module's identity, so a resolved
+    filesystem path never appears. Never a raw host dataclass repr."""
     if span is None:
         return "<unknown>"
+    if module_identity != "<entry>":
+        return f"{module_identity}:{span.line}"
     return f"{span.filename}:{span.line}"
 
 
 class OpenFunctionDuplicateClauseError(OpenFunctionError):
     """Two clauses in one unit share an alpha-normalized dispatch key."""
-    def __init__(self, interface_key: tuple[str, str], unit_key: Any, shape: tuple, first_span: Any, duplicate_span: Any):
-        """Retain interface/unit/shape and both spans; render spans as filename:line.
+    def __init__(
+        self,
+        interface_key: tuple[str, str],
+        unit_key: Any,
+        shape: tuple,
+        first_span: Any,
+        duplicate_span: Any,
+        first_module: str = "<entry>",
+        duplicate_module: str = "<entry>",
+    ):
+        """Retain interface/unit/shape and both spans; render spans by source label or module identity.
 
-        Callers supply validated provenance and shape; do not inspect clause bodies."""
+        `first_module`/`duplicate_module` are the declaring module identities of
+        the two clauses. Callers supply validated provenance and shape; do not
+        inspect clause bodies."""
         module_id, name = interface_key
         super().__init__(
             "open-function-duplicate-clause: "
             f"{name} in unit {unit_key!r} has two clauses with an identical dispatch key "
-            f"shape={shape!r} (first at {_format_open_span(first_span)}, duplicate at {_format_open_span(duplicate_span)})"
+            f"shape={shape!r} (first at {_format_open_span(first_span, first_module)}, "
+            f"duplicate at {_format_open_span(duplicate_span, duplicate_module)})"
         )
         self.interface_key = interface_key
         self.unit_key = unit_key
@@ -555,12 +579,23 @@ class OpenFunctionClauseAmbiguityError(OpenFunctionError):
 
 class OpenFunctionNoMatchingFunctionError(OpenFunctionError):
     """No clause shape accepts the call argument count."""
-    def __init__(self, interface_key: tuple[str, str], call_arity: int):
-        """Store interface/arity with the existing No matching function diagnostic family."""
+    def __init__(self, interface_key: tuple[str, str], call_arity: int, available: Optional[list] = None):
+        """Store interface/arity with the existing No matching function diagnostic family.
+
+        `available` is the distinct clause shapes (`("fixed", n)` or
+        `("varargs", n)`); when given they are listed in the ordinary-function
+        format, fixed shapes first (`Available: f/1, f/2+`)."""
         module_id, name = interface_key
-        super().__init__(f"No matching function: {name}/{call_arity}")
+        text = f"No matching function: {name}/{call_arity}"
+        if available:
+            listed = ", ".join(
+                f"{name}/{n}{'+' if kind == 'varargs' else ''}" for kind, n in sorted(available)
+            )
+            text += f". Available: {listed}"
+        super().__init__(text)
         self.interface_key = interface_key
         self.call_arity = call_arity
+        self.available = list(available or [])
 
 
 class OpenFunctionNoMatchingCaseError(OpenFunctionError):
@@ -691,7 +726,13 @@ def _check_no_duplicate_clauses(interface_key: tuple[str, str], unit_key: Any, r
         existing = seen.get(record.dispatch_key)
         if existing is not None:
             raise OpenFunctionDuplicateClauseError(
-                interface_key, unit_key, record.dispatch_key[0], existing.span, record.span
+                interface_key,
+                unit_key,
+                record.dispatch_key[0],
+                existing.span,
+                record.span,
+                existing.closure.module_identity(),
+                record.closure.module_identity(),
             )
         seen[record.dispatch_key] = record
 
@@ -772,7 +813,9 @@ def _dispatch_open(interface_key: tuple[str, str], participating_units: list[tup
             provenances = sorted({str(participating_units[ui][1]) for ui, _ in varargs_eligible})
             raise OpenFunctionVarargsAmbiguityError(interface_key, n, shapes, provenances)
         if not varargs_eligible:
-            raise OpenFunctionNoMatchingFunctionError(interface_key, n)
+            raise OpenFunctionNoMatchingFunctionError(
+                interface_key, n, sorted({r.dispatch_key[0] for _, r in all_entries})
+            )
         participating_entries = varargs_eligible
 
     candidates: list[tuple[int, Any, tuple[OpenClauseRecord, dict]]] = []

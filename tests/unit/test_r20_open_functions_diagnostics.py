@@ -22,12 +22,17 @@ from genia.interpreter import run_source
 
 
 def _write(tmp_path: Path, name: str, text: str) -> Path:
+    """Write `<name>.genia` under `tmp_path` and return its path."""
     path = tmp_path / f"{name}.genia"
     path.write_text(text, encoding="utf-8")
     return path
 
 
 def _run(tmp_path: Path, source: str):
+    """Run `source` as the entry program `main.genia` beside the module files in `tmp_path`.
+
+    Imports resolve relative to that file; the program's value is returned and
+    any Genia error propagates."""
     return run_source(source, make_global_env(), filename=str(tmp_path / "main.genia"))
 
 
