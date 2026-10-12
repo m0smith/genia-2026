@@ -18,5 +18,5 @@ Implementation uses inspection_globals_scope() for globals/:env and
 entry_scope() for the initial logical frame; locals stay frame-local.
 
 Verification: focused seam/P1-A/debug foundation/debug stdio/P1-C suites:
-24 passed. Ruff and whitespace checked. Central baseline cleanup and broad
-regression belong to P1-H integration. Issue #1067 remains open.
+24 passed. Ruff and whitespace checked. Five resolved baseline entries removed; code-documentation checker passes
+against P1-C. Broad regression belongs to P1-H integration. Issue #1067 remains open.
