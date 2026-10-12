@@ -72,10 +72,17 @@ else:
 # ---------------------------------------------------------------------------
 
 class DebugHooks:
+    """No-op debugger observer interface; overrides receive live environments.
+
+    The evaluator decides when hooks run. Callback failures propagate; these
+    methods do not alter results themselves.
+    """
     def before_node(self, node: IrNode, env: Env) -> None:  # noqa: ARG002
+        """Observe the node/environment before evaluation; default does nothing."""
         pass
 
     def after_node(self, node: IrNode, env: Env, result: Any) -> None:  # noqa: ARG002
+        """Observe the evaluated node result; default does nothing."""
         pass
 
     def on_function_enter(
@@ -85,6 +92,7 @@ class DebugHooks:
         env: Env,
         span: SourceSpan | None,
     ) -> None:  # noqa: ARG002
+        """Observe a function frame after binding arguments; default does nothing."""
         pass
 
     def on_function_exit(
@@ -94,6 +102,7 @@ class DebugHooks:
         env: Env,
         span: SourceSpan | None,
     ) -> None:  # noqa: ARG002
+        """Observe successful body output, possibly TailCall; default does nothing."""
         pass
 
 
@@ -101,12 +110,17 @@ NOOP_DEBUG_HOOKS = DebugHooks()
 
 
 def _maybe_close_iterable(iterable: Any) -> None:
+    """Invoke a callable close attribute if present; lookup/close failures propagate."""
     close = getattr(iterable, "close", None)
     if callable(close):
         close()
 
 
 def _finalize_iterable(iterable: Any, *, primary_error: bool) -> None:
+    """Close the iterable, suppressing Exception only when a primary error exists.
+
+    Otherwise cleanup failures propagate. BaseException is never suppressed.
+    """
     if primary_error:
         try:
             _maybe_close_iterable(iterable)
@@ -117,22 +131,29 @@ def _finalize_iterable(iterable: Any, *, primary_error: bool) -> None:
 
 
 class _FusedStage:
+    """Internal marker for supported fused map/filter stage descriptors."""
     pass
 
 
 @dataclass(frozen=True)
 class _MapStage(_FusedStage):
+    """Immutable mapper descriptor; construction does not validate or invoke the callback."""
     mapper: Callable[[Any], Any]
     label = "map"
 
 
 @dataclass(frozen=True)
 class _FilterStage(_FusedStage):
+    """Immutable predicate descriptor; truthy determines inclusion only when pulled."""
     predicate: Callable[[Any], Any]
     label = "filter"
 
 
 def _preserve_fused_callback_error(exc: Exception) -> None:
+    """Best-effort mutate an exception with the pipeline-preservation marker.
+
+    Suppress Exception if setting the attribute fails; do not replace the error.
+    """
     try:
         setattr(exc, "_genia_preserve_pipeline_error", True)
     except Exception:
@@ -140,11 +161,27 @@ def _preserve_fused_callback_error(exc: Exception) -> None:
 
 
 class _FusedFlow(GeniaFlow):
+    """Lazy single-use Flow applying ordered map/filter stages over one upstream.
+
+    Construction does not consume source. The final stage supplies the label;
+    upstream supplies early-close policy. Callers provide supported descriptors.
+    """
     def __init__(self, upstream: GeniaFlow, stages: list[_FusedStage]):
+        """Capture upstream and copy a nonempty stage list into a lazy Flow factory.
+
+        Do not invoke callbacks or consume upstream here. Empty stages fail during
+        label selection; upstream close policy is inherited.
+        """
         self._upstream = upstream
         self._stages = list(stages)
 
         def _iterator() -> Any:
+            """Consume upstream once and transform only demanded items in stage order.
+
+            Map replaces current data; a false filter skips later stages for that item.
+            Tag and re-raise callback Exceptions. Follow upstream close policy, preserving
+            a primary Exception over cleanup Exception.
+            """
             items = upstream.consume()
             primary_error = False
             try:
@@ -183,6 +220,11 @@ class _FusedFlow(GeniaFlow):
 
 
 def _append_fused_stage(source: GeniaFlow, stage: _FusedStage) -> _FusedFlow:
+    """Construct a lazy fused Flow, flattening an existing chain without consuming it.
+
+    Copy stage order and reuse original upstream; do not mutate source.
+    Underlying Flow single-use ownership still applies.
+    """
     if isinstance(source, _FusedFlow):
         return _FusedFlow(source._upstream, source._stages + [stage])
     return _FusedFlow(source, [stage])
@@ -194,12 +236,22 @@ def _append_fused_stage(source: GeniaFlow, stage: _FusedStage) -> _FusedFlow:
 
 @dataclass
 class GeniaFunctionGroup:
+    """Mutable ordinary function container keyed by required arity.
+
+    Adding rejects duplicate arities/conflicting docs; metadata merges separately.
+    Direct calls resolve entries without dispatcher absence guards or autoloads.
+    """
     name: str
     functions: dict[int, "GeniaFunction"] = field(default_factory=dict)
     docstring: str | None = None
     metadata: GeniaMap = field(default_factory=lambda: GeniaMap())
 
     def add_clause(self, fn: "GeniaFunction") -> None:
+        """Reject duplicate arity, merge compatible documentation, then store the function.
+
+        TypeError on duplicate/conflicting docs leaves the new entry unstored.
+        Metadata is not merged here.
+        """
         existing = self.functions.get(fn.arity)
         if existing is not None:
             raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
@@ -207,6 +259,10 @@ class GeniaFunctionGroup:
         self.functions[fn.arity] = fn
 
     def _merge_docstring(self, candidate: str | None) -> None:
+        """Ignore None, adopt first text, or require exact equality with existing text.
+
+        Conflicting documentation raises TypeError without replacing existing text.
+        """
         if candidate is None:
             return
         if self.docstring is None:
@@ -218,24 +274,35 @@ class GeniaFunctionGroup:
             )
 
     def merge_metadata(self, metadata: GeniaMap) -> None:
+        """Replace metadata with the governed merged map; merge errors propagate."""
         self.metadata = _merge_metadata_maps(self.metadata, metadata)
 
     def __iter__(self):
+        """Iterate stored arities in dictionary insertion order, not sorted order."""
         return iter(self.functions)
 
     def __getitem__(self, key: int) -> "GeniaFunction":
+        """Return an arity entry or raise KeyError when absent."""
         return self.functions[key]
 
     def get(self, key: int) -> "GeniaFunction | None":
+        """Return an arity entry or Python None when absent."""
         return self.functions.get(key)
 
     def values(self):
+        """Return the live dictionary view of stored function entries."""
         return self.functions.values()
 
     def sorted_arities(self) -> list[int]:
+        """Return a fresh ascending list of stored arities."""
         return sorted(self.functions)
 
     def __call__(self, *args: Any) -> Any:
+        """Invoke exact arity first, otherwise the sole eligible ordinary varargs entry.
+
+        Multiple varargs or no entry raise TypeError. This direct host path does not
+        apply invoke_callable None guards, autoloading or result normalization.
+        """
         arity = len(args)
         exact = self.get(arity)
         if exact is not None:
@@ -261,6 +328,12 @@ class GeniaFunctionGroup:
 
 @dataclass
 class GeniaFunction:
+    """Ordinary function retaining required/rest names, Core IR body and lexical closure.
+
+    Construction does not evaluate or validate the body. Calling uses the
+    trampoline with stored debug/internal-access settings and binds excess
+    arguments to a fresh rest list.
+    """
     name: str
     params: list[str]
     rest_param: str | None
@@ -274,12 +347,18 @@ class GeniaFunction:
 
     @property
     def arity(self) -> int:
+        """Return the required parameter count, excluding the rest parameter."""
         return len(self.params)
 
     def __call__(self, *args: Any) -> Any:
+        """Run the trampoline with stored debug settings; arity/body/hook failures propagate.
+
+        Direct host invocation does not apply invoke_callable None argument guards.
+        """
         return eval_with_tco(self, args, debug_hooks=self.debug_hooks, debug_mode=self.debug_mode)
 
     def __repr__(self) -> str:
+        """Render function name/required arity and + for rest parameters, without evaluation."""
         if self.rest_param is None:
             return f"<function {self.name}/{self.arity}>"
         return f"<function {self.name}/{self.arity}+>"
@@ -287,6 +366,11 @@ class GeniaFunction:
 
 @dataclass
 class TailCall:
+    """Deferred callee/argument tuple for the next trampoline iteration.
+
+    Construction neither invokes nor validates the callee and transfers no
+    resource ownership.
+    """
     fn: Any
     args: tuple[Any, ...]
 
@@ -876,14 +960,21 @@ _SOME_AWARE_PUBLIC_FUNCTIONS = _NONE_AWARE_PUBLIC_FUNCTIONS
 
 
 def _pattern_explicitly_handles_none(pattern: IrPattern) -> bool:
+    """Delegate None-awareness classification to the shared pattern matcher."""
     return pattern_explicitly_handles_none(pattern)
 
 
 def _pattern_explicitly_handles_some(pattern: IrPattern) -> bool:
+    """Delegate Some-awareness classification to the shared pattern matcher."""
     return pattern_explicitly_handles_some(pattern)
 
 
 def _callable_case_explicitly_handles_none(body: IrNode) -> bool:
+    """Recognize explicit None or Some handling in a final IrCase.
+
+    For a block recurse only into its last expression; other forms return False.
+    Do not evaluate guards or bodies.
+    """
     if isinstance(body, IrCase):
         return any(
             _pattern_explicitly_handles_none(clause.pattern) or _pattern_explicitly_handles_some(clause.pattern)
@@ -895,6 +986,10 @@ def _callable_case_explicitly_handles_none(body: IrNode) -> bool:
 
 
 def _callable_case_explicitly_handles_some(body: IrNode) -> bool:
+    """Recognize Some handling in a final IrCase or final block expression.
+
+    Other forms return False; guards/bodies are not evaluated.
+    """
     if isinstance(body, IrCase):
         return any(_pattern_explicitly_handles_some(clause.pattern) for clause in body.clauses)
     if isinstance(body, IrBlock) and body.exprs:
@@ -939,10 +1034,18 @@ def _body_delegates_to_option_aware(body: IrNode, closure: Optional[Env] = None)
 
 
 def _function_explicitly_handles_none(fn: GeniaFunction) -> bool:
+    """Classify final case patterns or Option-aware delegation without invoking the function.
+
+    Closure lookup does not autoload.
+    """
     return _callable_case_explicitly_handles_none(fn.body) or _body_delegates_to_option_aware(fn.body, fn.closure)
 
 
 def _function_explicitly_handles_some(fn: GeniaFunction) -> bool:
+    """Classify Some case patterns or Option-aware delegation without invoking the function.
+
+    Closure lookup does not autoload.
+    """
     return _callable_case_explicitly_handles_some(fn.body) or _body_delegates_to_option_aware(fn.body, fn.closure)
 
 
@@ -1069,10 +1172,21 @@ def invoke_callable(
 ) -> Any:
     """Dispatch a Genia callable value with evaluated args.
 
-    Dispatch order: none-guard → GeniaFunctionGroup → GeniaMap → str → callable.
-    Returns TailCall when tail_position=True for GeniaFunctionGroup and plain-callable
-    paths. The autoload_resolver callback is consulted at most once for
-    GeniaFunctionGroup when arity resolution initially fails.
+    Unless propagation is skipped or the callee is absence-aware, return the
+    first None Outcome argument unchanged before resolution. This helper does
+    not unwrap Some arguments or implement pipeline-wide Err propagation.
+
+    Groups recognize named Flow map/filter/take/drop adapters first, returning
+    lazy Flows. Otherwise prefer exact arity then one eligible varargs entry;
+    ambiguity raises TypeError. Consult autoload_resolver at most once for an
+    unresolved IrVar callee; it must return a compatible group or None.
+
+    Tail-position group calls defer only GeniaFunction targets; generic callable
+    calls defer via TailCall. Non-tail function results normalize legacy absence.
+    Map lookup/string-key projection return values/defaults immediately without
+    tail deferral, require one or two arguments, and string projection requires
+    GeniaMap. Noncallables raise TypeError; callback/body/resolver failures
+    propagate. Arguments have already been evaluated.
     """
     if not skip_none_propagation:
         first_none = next((arg for arg in args if is_none(arg)), None)
@@ -1118,6 +1232,11 @@ def invoke_callable(
                     raise TypeError("take expected an integer count as first argument")
 
                 def _take_iterator() -> Any:
+                    """Consume source once and yield at most count items without an extra pull.
+
+                    Nonpositive counts consume the Flow but pull no items. Follow source close
+                    policy, preserving primary Exception over cleanup Exception.
+                    """
                     items = source.consume()
                     if count <= 0:
                         if source.close_on_early_termination:
@@ -1150,6 +1269,11 @@ def invoke_callable(
                     raise TypeError("drop expected an integer count as first argument")
 
                 def _drop_iterator() -> Any:
+                    """Consume source once, skip positive count items, then yield the remainder.
+
+                    Nonpositive counts skip nothing. Follow source close policy, preserving
+                    primary Exception over cleanup Exception.
+                    """
                     items = source.consume()
                     upstream = iter(items)
                     primary_error = False
@@ -1175,6 +1299,11 @@ def invoke_callable(
         arity = len(args)
 
         def _resolve_target(functions: GeniaFunctionGroup, call_arity: int) -> Any:
+            """Return exact arity or a sole eligible varargs entry; return None if absent.
+
+            Multiple varargs raise TypeError with sorted candidates. No autoloading,
+            invocation or mutation occurs.
+            """
             exact = functions.get(call_arity)
             if exact is not None:
                 return exact
