@@ -19,6 +19,7 @@ Failing gate: `dfbfaa3`, three expected failures before migration. Implementatio
 server/config/route/CORS descriptor discovery. It creates no new scopes.
 
 Verification: focused CLI/native/serve/pipe plus seam tests: 106 passed.
-Ruff and whitespace passed. Required source docstrings added; resolved central
-baseline entries and broad regression are owned by P1-H integration.
+Ruff and whitespace passed. Required source docstrings added and six resolved baseline entries removed.
+Code-documentation checker passes against P1-B; broad regression belongs to
+P1-H integration.
 PR #1214 is unmerged and stacked on P1-B #1211. Issue #1067 stays open.
