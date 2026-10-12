@@ -303,6 +303,17 @@ The reported span is the offending reference's span. The check is independent of
 the host data structures, so a second host implements it over its own AST with the
 same scope rules; shared parse-stage and error specs are the portable evidence.
 
+### 4.2 No docstring position (contract §7.2)
+
+The open-clause parser performs no docstring detection: the body of a clause is
+parsed as an ordinary expression, so a leading string literal is the body and a
+following expression on the same line is the next statement. This differs from an
+ordinary function definition, which treats a leading string as documentation when
+an expression follows it. The difference is intentional and unchanged here: moving
+open clauses to the ordinary rule would re-read programs that are valid today.
+`OpenFuncDef.docstring` and `IrOpenFuncDef.docstring` are therefore reserved and
+always absent; no Core IR change is made.
+
 ## 5. Runtime representation (informative — implemented in E20-3/E20-5)
 
 Not part of the portable Core IR contract, but recorded here so E20-3/E20-5
