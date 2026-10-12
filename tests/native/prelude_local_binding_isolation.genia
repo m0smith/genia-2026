@@ -1,0 +1,134 @@
+# Issue #1205 (child of #1067): prelude functions must not overwrite the
+# caller's top-level bindings.
+#
+# Lexical assignment updates the nearest existing binding, and prelude function
+# frames close over the same root the entry program uses, so a prelude-local
+# assignment used to replace a same-spelled user binding. Every name below was
+# once assigned inside a prelude function. The user bindings are defined once at
+# the top level; each test calls one prelude function and then checks that none
+# of them changed.
+
+import web
+
+h = "user-h"
+c = "user-c"
+reply = "user-reply"
+body = "user-body"
+parts = "user-parts"
+canonical = "user-canonical"
+chars = "user-chars"
+option_chars = "user-option_chars"
+inline_value = "user-inline_value"
+flow = "user-flow"
+fns = "user-fns"
+emitted = "user-emitted"
+halted = "user-halted"
+next_ctx = "user-next_ctx"
+next_record = "user-next_record"
+handler = "user-handler"
+
+spec = {flags: ["v", "x"], options: ["name", "o"], aliases: {}}
+
+# cli_parse returns [opts, positionals]; a list is not callable, so destructure.
+@doc "Return the options map of a `cli_parse` result (`[opts, positionals]`), since a list is not callable."
+parsed_opts(result) = ([found, _]) -> found
+
+@doc "After `actor_send`, the caller's top-level `h` and `c` are unchanged."
+@test "actor_send leaves h and c"
+actor_send_leaves_h_and_c() = {
+  worker = actor(0, (s, m, ctx) -> ["ok", s])
+  actor_send(worker, "x")
+  actor_stop(worker)
+  assert_eq(h, "user-h")
+  assert_eq(c, "user-c")
+}
+
+@doc "After `actor_call` returns its answer, the caller's top-level `h`, `c`, and `reply` are unchanged."
+@test "actor_call leaves h c and reply"
+actor_call_leaves_h_c_and_reply() = {
+  worker = actor(0, (s, m, ctx) -> ["reply", s, "pong"])
+  answer = actor_call(worker, "ping")
+  actor_stop(worker)
+  assert_eq(answer, "pong")
+  assert_eq(h, "user-h")
+  assert_eq(c, "user-c")
+  assert_eq(reply, "user-reply")
+}
+
+@doc "Parsing `--name=x` leaves the caller's top-level `body`, `parts`, and `canonical` unchanged."
+@test "cli long option with value leaves body parts and canonical"
+cli_long_option_with_value_leaves_body_parts_and_canonical() = {
+  parsed = cli_parse(["--name=x"], spec)
+  assert_eq(parsed_opts(parsed)("name"), "x")
+  assert_eq(body, "user-body")
+  assert_eq(parts, "user-parts")
+  assert_eq(canonical, "user-canonical")
+}
+
+@doc "Parsing a long flag leaves the caller's top-level `body`, `parts`, and `canonical` unchanged."
+@test "cli long flag leaves body parts and canonical"
+cli_long_flag_leaves_body_parts_and_canonical() = {
+  parsed = cli_parse(["--v"], spec)
+  assert_eq(parsed_opts(parsed)("v"), true)
+  assert_eq(body, "user-body")
+  assert_eq(parts, "user-parts")
+  assert_eq(canonical, "user-canonical")
+}
+
+@doc "Parsing a single short flag leaves the caller's top-level `body`, `chars`, and `canonical` unchanged."
+@test "cli short flag leaves body chars and canonical"
+cli_short_flag_leaves_body_chars_and_canonical() = {
+  parsed = cli_parse(["-v"], spec)
+  assert_eq(parsed_opts(parsed)("v"), true)
+  assert_eq(body, "user-body")
+  assert_eq(chars, "user-chars")
+  assert_eq(canonical, "user-canonical")
+}
+
+@doc "Parsing a group of short flags leaves the caller's top-level `chars`, `option_chars`, and `canonical` unchanged."
+@test "cli short flag group leaves chars option_chars and canonical"
+cli_short_flag_group_leaves_chars_option_chars_and_canonical() = {
+  parsed = cli_parse(["-vx"], spec)
+  assert_eq(parsed_opts(parsed)("x"), true)
+  assert_eq(chars, "user-chars")
+  assert_eq(option_chars, "user-option_chars")
+  assert_eq(canonical, "user-canonical")
+}
+
+@doc "Parsing `-ofile` leaves the caller's top-level `chars`, `option_chars`, `canonical`, and `inline_value` unchanged."
+@test "cli short option with inline value leaves canonical and inline_value"
+cli_short_option_with_inline_value_leaves_canonical_and_inline_value() = {
+  parsed = cli_parse(["-ofile"], spec)
+  assert_eq(parsed_opts(parsed)("o"), "file")
+  assert_eq(chars, "user-chars")
+  assert_eq(option_chars, "user-option_chars")
+  assert_eq(canonical, "user-canonical")
+  assert_eq(inline_value, "user-inline_value")
+}
+
+@doc "Running `rules(fn, flow)` leaves the caller's top-level `flow` and `fns` unchanged."
+@test "rules with an immediate flow leaves flow and fns"
+rules_with_an_immediate_flow_leaves_flow_and_fns() = {
+  staged = rules((r, ctx) -> some({emit: [r]}), ["1", "2"] |> lines)
+  assert_eq(staged |> collect, ["1", "2"])
+  assert_eq(flow, "user-flow")
+  assert_eq(fns, "user-fns")
+}
+
+@doc "Applying a `some(result)` rule leaves the caller's top-level `emitted`, `halted`, `next_ctx`, and `next_record` unchanged."
+@test "rules applying some leaves emitted halted next_ctx and next_record"
+rules_applying_some_leaves_emitted_halted_next_ctx_and_next_record() = {
+  out = rules((r, ctx) -> some({emit: [r]}), ["1", "2"] |> lines) |> collect
+  assert_eq(out, ["1", "2"])
+  assert_eq(emitted, "user-emitted")
+  assert_eq(halted, "user-halted")
+  assert_eq(next_ctx, "user-next_ctx")
+  assert_eq(next_record, "user-next_record")
+}
+
+@doc "Guard: `web.route_request` leaves the caller's top-level `handler` unchanged; `web` is a module, so this was never exposed."
+@test "web route_request leaves handler"
+web_route_request_leaves_handler() = {
+  served = web.route_request([])
+  assert_eq(handler, "user-handler")
+}

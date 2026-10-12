@@ -1,3 +1,8 @@
+# CLI prelude: argument parsing implemented in Genia. Intermediate values are passed
+# as parameters or inlined rather than assigned, because an assignment inside a
+# prelude function would overwrite a same-named top-level binding of the caller
+# (issue #1205).
+
 @doc """Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
 
 ## Arguments
@@ -120,27 +125,28 @@ cli_parse_token(chars, token, rest, spec, opts, positionals_rev) =
     true
   )
 
-cli_parse_long(token, rest, spec, opts, positionals_rev) = {
-  body = cli_strip_prefix("--", token)
-  parts = split(body, "=")
-  cli_parse_long_parts(parts, rest, spec, opts, positionals_rev)
-}
+@doc "Internal: parse one `--name[=value]` token by splitting it on `=`; continues in `cli_parse_long_parts`."
+@meta {stability: "internal"}
+cli_parse_long(token, rest, spec, opts, positionals_rev) =
+  cli_parse_long_parts(split(cli_strip_prefix("--", token), "="), rest, spec, opts, positionals_rev)
 
+@doc "Internal: apply the canonical alias to a split long option and record its value or continue with a following value."
+@meta {stability: "internal"}
 cli_parse_long_parts(parts, rest, spec, opts, positionals_rev) =
-  ([name, value, ..more], rest, spec, opts, positionals_rev) -> {
-    canonical = cli_alias(cli_spec_aliases(spec), name)
-    cli_parse_from(
-      rest,
-      spec,
-      cli_put(opts, canonical, join("=", [value, ..more])),
-      positionals_rev,
-      true
-    )
-  } |
-  ([name], rest, spec, opts, positionals_rev) -> {
-    canonical = cli_alias(cli_spec_aliases(spec), name)
-    cli_parse_long_name(canonical, rest, spec, opts, positionals_rev)
-  }
+  ([name, value, ..more], rest, spec, opts, positionals_rev) -> cli_parse_from(
+    rest,
+    spec,
+    cli_put(opts, cli_alias(cli_spec_aliases(spec), name), join("=", [value, ..more])),
+    positionals_rev,
+    true
+  ) |
+  ([name], rest, spec, opts, positionals_rev) -> cli_parse_long_name(
+    cli_alias(cli_spec_aliases(spec), name),
+    rest,
+    spec,
+    opts,
+    positionals_rev
+  )
 
 cli_parse_long_name(name, rest, spec, opts, positionals_rev) =
   (name, [next, ..rest], spec, opts, positionals_rev) ? cli_should_consume_next(
@@ -160,21 +166,35 @@ cli_parse_long_name(name, rest, spec, opts, positionals_rev) =
     true
   )
 
-cli_parse_short(token, rest, spec, opts, positionals_rev) = {
-  body = cli_strip_prefix("-", token)
-  chars = _cli_chars(body)
-  cli_parse_short_chars(chars, body, rest, spec, opts, positionals_rev)
-}
+@doc "Internal: parse one `-x` token by stripping the prefix; continues in `cli_parse_short_body`."
+@meta {stability: "internal"}
+cli_parse_short(token, rest, spec, opts, positionals_rev) =
+  cli_parse_short_body(cli_strip_prefix("-", token), rest, spec, opts, positionals_rev)
 
+@doc "Internal: split a short-option token body into characters and dispatch on a single option or a group."
+@meta {stability: "internal"}
+cli_parse_short_body(body, rest, spec, opts, positionals_rev) =
+  cli_parse_short_chars(_cli_chars(body), body, rest, spec, opts, positionals_rev)
+
+@doc "Internal: dispatch a short-option token on one character or a group of characters."
+@meta {stability: "internal"}
 cli_parse_short_chars(chars, body, rest, spec, opts, positionals_rev) =
-  ([char], _, rest, spec, opts, positionals_rev) -> {
-    canonical = cli_alias(cli_spec_aliases(spec), char)
-    cli_parse_short_name(canonical, rest, spec, opts, positionals_rev)
-  } |
-  (chars, body, rest, spec, opts, positionals_rev) -> {
-    option_chars = cli_group_option_chars(chars, cli_spec_options(spec), cli_spec_aliases(spec), [])
-    cli_parse_short_group(chars, option_chars, body, rest, spec, opts, positionals_rev)
-  }
+  ([char], _, rest, spec, opts, positionals_rev) -> cli_parse_short_name(
+    cli_alias(cli_spec_aliases(spec), char),
+    rest,
+    spec,
+    opts,
+    positionals_rev
+  ) |
+  (chars, body, rest, spec, opts, positionals_rev) -> cli_parse_short_group(
+    chars,
+    cli_group_option_chars(chars, cli_spec_options(spec), cli_spec_aliases(spec), []),
+    body,
+    rest,
+    spec,
+    opts,
+    positionals_rev
+  )
 
 cli_parse_short_name(name, rest, spec, opts, positionals_rev) =
   (name, [next, ..rest], spec, opts, positionals_rev) ? cli_should_consume_next(
@@ -213,12 +233,18 @@ cli_parse_short_group(chars, option_chars, body, rest, spec, opts, positionals_r
   ) |
   (_, _, body, _, _, _, _) -> _cli_value_error(concat("cli_parse ambiguous short option group: -", body))
 
+@doc "Internal: parse a short group whose single option character carries an inline value."
+@meta {stability: "internal"}
 cli_parse_short_option_group(chars, option_char, body, rest, spec, opts, positionals_rev) =
-  ([option_char, ..inline_chars], option_char, _, rest, spec, opts, positionals_rev) -> {
-    canonical = cli_alias(cli_spec_aliases(spec), option_char)
-    inline_value = join("", inline_chars)
-    cli_parse_short_option_value(canonical, option_char, inline_value, rest, spec, opts, positionals_rev)
-  } |
+  ([option_char, ..inline_chars], option_char, _, rest, spec, opts, positionals_rev) -> cli_parse_short_option_value(
+    cli_alias(cli_spec_aliases(spec), option_char),
+    option_char,
+    join("", inline_chars),
+    rest,
+    spec,
+    opts,
+    positionals_rev
+  ) |
   (_, _, body, _, _, _, _) -> _cli_value_error(concat("cli_parse ambiguous short option group: -", body))
 
 cli_parse_short_option_value(name, option_char, inline_value, rest, spec, opts, positionals_rev) =
@@ -235,6 +261,8 @@ cli_parse_short_option_value(name, option_char, inline_value, rest, spec, opts, 
   } |
   (_, option_char, "", [], _, _, _) -> _cli_value_error(concat("cli_parse missing value for -", option_char))
 
+@doc "Internal: record each character of a group of short flags as `true`, applying aliases."
+@meta {stability: "internal"}
 cli_parse_short_flags(chars, rest, spec, opts, positionals_rev) =
   ([], rest, spec, opts, positionals_rev) -> cli_parse_from(
     rest,
@@ -243,17 +271,26 @@ cli_parse_short_flags(chars, rest, spec, opts, positionals_rev) =
     positionals_rev,
     true
   ) |
-  ([char, ..rest_chars], rest, spec, opts, positionals_rev) -> {
-    canonical = cli_alias(cli_spec_aliases(spec), char)
-    cli_parse_short_flags(rest_chars, rest, spec, cli_put(opts, canonical, true), positionals_rev)
-  }
+  ([char, ..rest_chars], rest, spec, opts, positionals_rev) -> cli_parse_short_flags(
+    rest_chars,
+    rest,
+    spec,
+    cli_put(opts, cli_alias(cli_spec_aliases(spec), char), true),
+    positionals_rev
+  )
 
+@doc "Internal: collect, in order, the characters of a short group that name an option rather than a flag."
+@meta {stability: "internal"}
 cli_group_option_chars(chars, options, aliases, acc) =
   ([], _, _, acc) -> reverse(acc) |
-  ([char, ..rest], options, aliases, acc) -> {
-    canonical = cli_alias(aliases, char)
-    cli_group_option_chars_step(char, canonical, rest, options, aliases, acc)
-  }
+  ([char, ..rest], options, aliases, acc) -> cli_group_option_chars_step(
+    char,
+    cli_alias(aliases, char),
+    rest,
+    options,
+    aliases,
+    acc
+  )
 
 cli_group_option_chars_step(char, canonical, rest, options, aliases, acc) =
   (char, canonical, rest, options, aliases, acc) ? map_has?(options, canonical) == true -> cli_group_option_chars(
