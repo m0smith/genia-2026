@@ -10,9 +10,14 @@ Implements docs/design/r22-exact-numeric-runtime-contract.md:
 - section 6 (exact arithmetic), E22-3: `+`, `-`, `*`, and unary negation
   across the full `Integer < Decimal < Rational` promotion lattice.
 
-`/` and `%` (section 7/8, E22-4), Float64 (E22-5/E22-6), and comparison/
-equality integration (E22-7) are later slices -- see the class-level
-docstrings below for exactly what each type does and does not support yet.
+Division and floor remainder (E22-4), explicit Float64 conversions and
+mixed-domain detection (E22-5/E22-6), and numeric ordering (E22-7) are also
+implemented here. The evaluator owns operator dispatch and mixed-domain
+rejection; equality.py owns Genia mathematical equality and map-key buckets.
+Python dunder equality/hashes below are limited host integration, not that
+complete language relation. Decimal and Rational construction assume validated
+host integer inputs; factories and helpers document their narrower checks.
+The private resource bound and test seam do not define portable numeric limits.
 
 Display/debug text for GeniaDecimal/GeniaRational, plus `format_float64`
 below, implement docs/design/r23-numeric-representation-interchange-
@@ -62,7 +67,9 @@ def _numeric_resource_limit_test_seam(max_bits: int):
 
     Not reachable from Genia source and not part of any public API. See
     contract section 11's own allowance for a private test seam whose
-    threshold does not become public Genia semantics.
+    threshold does not become public Genia semantics. Restores the previous
+    module-global bound even if the body raises. This is not thread-local;
+    callers must avoid overlapping uses in concurrent tests.
     """
     global _max_magnitude_bits
     previous = _max_magnitude_bits
@@ -74,6 +81,11 @@ def _numeric_resource_limit_test_seam(max_bits: int):
 
 
 def _check_resource_limit(*magnitudes: int) -> None:
+    """Raise NumericResourceLimitError when any integer magnitude exceeds the private bit bound.
+
+    Callers supply integers; signs do not affect bit_length. This host guard is
+    not numeric overflow or a portable bound on the mathematical domain.
+    """
     for value in magnitudes:
         if value.bit_length() > _max_magnitude_bits:
             raise NumericResourceLimitError("numeric-resource-limit")
@@ -146,6 +158,13 @@ class GeniaDecimal:
         # zeros), which is exactly the kind of expensive operation this
         # bound exists to gate -- bit_length() is cheap regardless of
         # magnitude, so this pre-check never itself does the expensive work.
+        """Initialize immutable canonical coefficient/exponent fields from host integers.
+
+        Check both raw inputs against the private resource bound before decimal-text
+        canonicalization. Zero becomes (0, 0); trailing coefficient zeros shift into
+        the exponent. Caller-side type validation is required; no float conversion
+        or public input coercion is performed.
+        """
         _check_resource_limit(coefficient, exponent)
         coefficient, exponent = _canonicalize(coefficient, exponent)
         object.__setattr__(self, "coefficient", coefficient)
@@ -178,6 +197,7 @@ class GeniaDecimal:
         return self.coefficient, 10 ** (-self.exponent)
 
     def is_zero(self) -> bool:
+        """Test the canonical coefficient for exact zero, without expanding the exponent."""
         return self.coefficient == 0
 
     # -- same-kind / Integer-interop arithmetic (see module docstring) --
@@ -188,6 +208,12 @@ class GeniaDecimal:
     # GeniaRational's reflected method via Python's normal binary-operator
     # protocol, rather than handled in this class.
     def __add__(self, other):
+        """Add an Integer/Decimal exactly, retaining Decimal kind even for integral results.
+
+        Return NotImplemented for Rational so its reflected operator owns promotion.
+        Other types (including bool/Float64) raise TypeError; resource failures
+        propagate from fraction expansion or result construction.
+        """
         if isinstance(other, GeniaRational):
             return NotImplemented
         return _decimal_binop(self, other, lambda a, b: a + b)
@@ -195,16 +221,32 @@ class GeniaDecimal:
     __radd__ = __add__
 
     def __sub__(self, other):
+        """Subtract Integer/Decimal exactly; delegate Rational promotion with NotImplemented.
+
+        Other operand types raise TypeError. Decimal kind is retained, and resource
+        failures propagate from expansion or construction.
+        """
         if isinstance(other, GeniaRational):
             return NotImplemented
         return _decimal_binop(self, other, lambda a, b: a - b)
 
     def __rsub__(self, other):
+        """Compute Integer/Decimal minus this Decimal, preserving operand order.
+
+        Rational receives NotImplemented; other unsupported inputs raise TypeError.
+        The result remains Decimal and resource failures propagate.
+        """
         if isinstance(other, GeniaRational):
             return NotImplemented
         return _decimal_binop(_as_decimal(other), self, lambda a, b: a - b)
 
     def __mul__(self, other):
+        """Multiply Integer/Decimal coefficients exactly and add exponents.
+
+        Retain Decimal kind; Rational receives NotImplemented for reflected
+        promotion. Unsupported types raise TypeError and result resource failures
+        propagate.
+        """
         if isinstance(other, GeniaRational):
             return NotImplemented
         return _decimal_mul(self, other)
@@ -212,12 +254,21 @@ class GeniaDecimal:
     __rmul__ = __mul__
 
     def __neg__(self):
+        """Construct a canonical Decimal with negated coefficient; resource failures propagate."""
         return GeniaDecimal(-self.coefficient, self.exponent)
 
     def __pos__(self):
+        """Return this immutable Decimal unchanged, preserving object identity."""
         return self
 
     def __eq__(self, other):
+        """Provide limited host equality for canonical Decimal fields and selected Integers.
+
+        Decimal comparison uses the canonical field pair. Non-bool Integers match
+        only a zero exponent/coefficient pair or canonical zero. Other kinds return
+        NotImplemented. This is not the Genia mathematical equality relation;
+        equality.py handles cross-kind equality and integral Decimal reconciliation.
+        """
         if isinstance(other, GeniaDecimal):
             return self.coefficient == other.coefficient and self.exponent == other.exponent
         if isinstance(other, int) and not isinstance(other, bool):
@@ -225,11 +276,21 @@ class GeniaDecimal:
         return NotImplemented
 
     def __hash__(self):
+        """Hash a host type-tagged canonical field tuple, not a Genia numeric map-key bucket.
+
+        Use equality.py for language map-key reconciliation across equal kinds.
+        """
         return hash((GeniaDecimal, self.coefficient, self.exponent))
 
     # E22-7 (contract section 10): ordering recognizes Integer, Decimal,
     # Rational, and Float64 (the exact/Float64 bridge). See numeric_order.
     def __lt__(self, other):
+        """Test whether this value is less than the other numeric value.
+
+        Delegate exact/Float64 comparison to numeric_order without rounding the
+        exact operand. NaN yields False; a TypeError becomes NotImplemented for
+        Python operator fallback. Resource-limit failures propagate.
+        """
         try:
             order = numeric_order(self, other)
         except TypeError:
@@ -237,6 +298,12 @@ class GeniaDecimal:
         return False if order is None else order < 0
 
     def __le__(self, other):
+        """Test whether this value is less than or equal to the other numeric value.
+
+        Delegate exact/Float64 comparison to numeric_order without rounding the
+        exact operand. NaN yields False; a TypeError becomes NotImplemented for
+        Python operator fallback. Resource-limit failures propagate.
+        """
         try:
             order = numeric_order(self, other)
         except TypeError:
@@ -244,6 +311,12 @@ class GeniaDecimal:
         return False if order is None else order <= 0
 
     def __gt__(self, other):
+        """Test whether this value is greater than the other numeric value.
+
+        Delegate exact/Float64 comparison to numeric_order without rounding the
+        exact operand. NaN yields False; a TypeError becomes NotImplemented for
+        Python operator fallback. Resource-limit failures propagate.
+        """
         try:
             order = numeric_order(self, other)
         except TypeError:
@@ -251,6 +324,12 @@ class GeniaDecimal:
         return False if order is None else order > 0
 
     def __ge__(self, other):
+        """Test whether this value is greater than or equal to the other numeric value.
+
+        Delegate exact/Float64 comparison to numeric_order without rounding the
+        exact operand. NaN yields False; a TypeError becomes NotImplemented for
+        Python operator fallback. Resource-limit failures propagate.
+        """
         try:
             order = numeric_order(self, other)
         except TypeError:
@@ -259,12 +338,18 @@ class GeniaDecimal:
 
     def __repr__(self) -> str:
         # R23 contract section 2.2: canonical Decimal display/debug atom.
+        """Return the R23 canonical Decimal atom using fixed/scientific exponent rules."""
         return _canonical_decimal_text(self.coefficient, self.exponent)
 
     __str__ = __repr__
 
 
 def _as_decimal(value) -> GeniaDecimal:
+    """Preserve Decimal identity or construct an exact Decimal from a non-bool Integer.
+
+    Other kinds raise TypeError; Integer construction can raise the private
+    resource-limit failure. No Rational/Float64 conversion is attempted.
+    """
     if isinstance(value, GeniaDecimal):
         return value
     if isinstance(value, int) and not isinstance(value, bool):
@@ -273,6 +358,12 @@ def _as_decimal(value) -> GeniaDecimal:
 
 
 def _decimal_binop(left, right, op):
+    """Apply an integer operation to aligned Integer/Decimal fractions and return Decimal.
+
+    op is the caller-supplied numerator addition/subtraction operation. Both
+    operands must be Integer/Decimal, excluding bool; other types raise TypeError.
+    Fraction expansion, callback and result-construction failures propagate.
+    """
     if isinstance(right, bool) or (not isinstance(right, (GeniaDecimal, int))):
         raise TypeError("unsupported operand type for exact Decimal arithmetic")
     left_d = _as_decimal(left)
@@ -292,6 +383,11 @@ def _decimal_binop(left, right, op):
 
 
 def _decimal_mul(left, right):
+    """Multiply Integer/Decimal fields without expanding powers of ten.
+
+    Reject other kinds (including bool) with TypeError; constructor resource
+    failures propagate. The canonical result retains Decimal kind.
+    """
     if isinstance(right, bool) or (not isinstance(right, (GeniaDecimal, int))):
         raise TypeError("unsupported operand type for exact Decimal arithmetic")
     left_d = _as_decimal(left)
@@ -300,6 +396,11 @@ def _decimal_mul(left, right):
 
 
 def _log10(power_of_ten: int) -> int:
+    """Count divisions by ten for a caller-guaranteed positive power of ten.
+
+    Returns zero for one. This helper does not validate its precondition and is
+    not a general integer logarithm.
+    """
     n = power_of_ten
     exp = 0
     while n > 1:
@@ -334,6 +435,11 @@ def make_decimal_from_payload(coefficient: str, exponent: str) -> GeniaDecimal:
 
 
 def _gcd(a: int, b: int) -> int:
+    """Return the positive Euclidean gcd of host integers, with (0, 0) mapped to one.
+
+    The nonzero fallback supports fraction reduction; input types are assumed
+    validated by callers.
+    """
     a, b = abs(a), abs(b)
     while b:
         a, b = b, a % b
@@ -355,6 +461,11 @@ class GeniaRational:
     denominator: int
 
     def __eq__(self, other):
+        """Compare canonical numerator/denominator fields with another host Rational.
+
+        Other kinds receive NotImplemented; equality.py owns Genia cross-kind
+        mathematical equality rather than this limited Python dunder.
+        """
         if isinstance(other, GeniaRational):
             return (
                 self.numerator == other.numerator
@@ -363,11 +474,13 @@ class GeniaRational:
         return NotImplemented
 
     def __hash__(self):
+        """Hash a type-tagged canonical host fraction tuple; Genia map keys use equality.py."""
         return hash((GeniaRational, self.numerator, self.denominator))
 
     def __repr__(self) -> str:
         # R23 contract section 2.3: canonical Rational display/debug atom
         # (`<numerator>/<denominator>`, no spaces, display == debug).
+        """Return numerator/denominator without spaces, assuming canonical construction."""
         return f"{self.numerator}/{self.denominator}"
 
     __str__ = __repr__
@@ -377,17 +490,37 @@ class GeniaRational:
     # GeniaDecimal, and GeniaRational operands directly rather than
     # delegating anywhere -- see module docstring and _to_exact_fraction.
     def __add__(self, other):
+        """Add exact-family operands and reduce to Rational or denominator-one Integer.
+
+        Unsupported operands return NotImplemented; expansion/resource failures
+        propagate. No Float64 coercion occurs.
+        """
         return _rational_binop(self, other, lambda a, b: a + b)
 
     __radd__ = __add__
 
     def __sub__(self, other):
+        """Subtract an exact-family operand and reduce the result, collapsing integral values.
+
+        Unsupported operands return NotImplemented; expansion/resource failures
+        propagate.
+        """
         return _rational_binop(self, other, lambda a, b: a - b)
 
     def __rsub__(self, other):
+        """Compute an exact-family operand minus this Rational in the original order.
+
+        Reduce and collapse integral results; unsupported operands return
+        NotImplemented and resource failures propagate.
+        """
         return _rational_binop(other, self, lambda a, b: a - b)
 
     def __mul__(self, other):
+        """Multiply exact-family fractions, reduce, and collapse denominator-one results.
+
+        Unsupported operands return NotImplemented; expansion/resource failures
+        propagate.
+        """
         return _rational_mul(self, other)
 
     __rmul__ = __mul__
@@ -396,14 +529,25 @@ class GeniaRational:
         # Negating the numerator alone preserves the gcd(numerator,
         # denominator) == 1 and denominator > 0 invariants, so direct
         # construction (bypassing rational_from_integers) is still canonical.
+        """Return a Rational with negated numerator, preserving the canonical invariant.
+
+        For an already canonical instance this needs no new reduction/resource check.
+        """
         return GeniaRational(-self.numerator, self.denominator)
 
     def __pos__(self):
+        """Return this immutable Rational unchanged, preserving object identity."""
         return self
 
     # E22-7 (contract section 10): ordering recognizes Integer, Decimal,
     # Rational, and Float64 (the exact/Float64 bridge). See numeric_order.
     def __lt__(self, other):
+        """Test whether this value is less than the other numeric value.
+
+        Delegate exact/Float64 comparison to numeric_order without rounding the
+        exact operand. NaN yields False; a TypeError becomes NotImplemented for
+        Python operator fallback. Resource-limit failures propagate.
+        """
         try:
             order = numeric_order(self, other)
         except TypeError:
@@ -411,6 +555,12 @@ class GeniaRational:
         return False if order is None else order < 0
 
     def __le__(self, other):
+        """Test whether this value is less than or equal to the other numeric value.
+
+        Delegate exact/Float64 comparison to numeric_order without rounding the
+        exact operand. NaN yields False; a TypeError becomes NotImplemented for
+        Python operator fallback. Resource-limit failures propagate.
+        """
         try:
             order = numeric_order(self, other)
         except TypeError:
@@ -418,6 +568,12 @@ class GeniaRational:
         return False if order is None else order <= 0
 
     def __gt__(self, other):
+        """Test whether this value is greater than the other numeric value.
+
+        Delegate exact/Float64 comparison to numeric_order without rounding the
+        exact operand. NaN yields False; a TypeError becomes NotImplemented for
+        Python operator fallback. Resource-limit failures propagate.
+        """
         try:
             order = numeric_order(self, other)
         except TypeError:
@@ -425,6 +581,12 @@ class GeniaRational:
         return False if order is None else order > 0
 
     def __ge__(self, other):
+        """Test whether this value is greater than or equal to the other numeric value.
+
+        Delegate exact/Float64 comparison to numeric_order without rounding the
+        exact operand. NaN yields False; a TypeError becomes NotImplemented for
+        Python operator fallback. Resource-limit failures propagate.
+        """
         try:
             order = numeric_order(self, other)
         except TypeError:
@@ -453,6 +615,12 @@ def _to_exact_fraction(value: Any) -> tuple[int, int]:
 
 
 def _rational_binop(left: Any, right: Any, op) -> Any:
+    """Apply an integer operation to cross-multiplied exact-family fraction numerators.
+
+    Return a reduced Rational or denominator-one Integer. TypeError during
+    operand fraction conversion becomes NotImplemented; callback, resource and
+    construction failures propagate. op is supplied by arithmetic dunders.
+    """
     try:
         ln, ld = _to_exact_fraction(left)
         rn, rd = _to_exact_fraction(right)
@@ -462,6 +630,11 @@ def _rational_binop(left: Any, right: Any, op) -> Any:
 
 
 def _rational_mul(left: Any, right: Any) -> Any:
+    """Multiply exact-family fractions and reduce to Rational or an integral Integer.
+
+    TypeError during operand conversion becomes NotImplemented; resource and
+    construction failures propagate.
+    """
     try:
         ln, ld = _to_exact_fraction(left)
         rn, rd = _to_exact_fraction(right)
@@ -477,7 +650,9 @@ def rational_from_integers(numerator: int, denominator: int) -> "int | GeniaRati
     is positive (sign carried by numerator), and a reduced denominator of
     1 collapses to a plain Integer rather than a GeniaRational. Raises
     TypeError deterministically for a zero denominator; callers are
-    expected to have already validated both arguments are Integers.
+    expected to have already validated both arguments are Integers. Raw and
+    reduced magnitudes are checked against the private host resource bound;
+    NumericResourceLimitError propagates rather than becoming an Outcome.
     """
     if denominator == 0:
         raise TypeError("rational expected a nonzero denominator")
@@ -507,6 +682,11 @@ def is_exact_numeric(value: Any) -> bool:
 
 
 def _exact_is_zero(value: Any) -> bool:
+    """Recognize zero Integers/Decimals, excluding bool and other kinds.
+
+    Assume Rational instances are canonical and nonzero because the factory
+    collapses zero fractions to Integer; this is not a general numeric validator.
+    """
     if isinstance(value, bool):
         return False
     if isinstance(value, int):
@@ -844,7 +1024,10 @@ def stable_json_decimal(value: Any) -> bool:
     rather than going through `to_float64` itself, so this function can
     distinguish overflow/underflow (both simply `False` here) from a
     genuinely representable value without `to_float64`'s own
-    caller-facing `OverflowError`.
+    caller-facing `OverflowError`. Input must be GeniaDecimal (other kinds
+    raise TypeError); fraction-expansion resource failures propagate rather
+    than returning False. This predicate establishes only numeric stability,
+    not acceptance of an enclosing JSON value.
     """
     if not isinstance(value, GeniaDecimal):
         raise TypeError(
