@@ -99,8 +99,8 @@ The following fields are omitted from the normalized portable IR when empty or a
 | `IrAssign` | `annotations` | assignment has annotations |
 | `IrCaseClause` | `guard` | clause has a guard expression |
 | `IrImport` | `alias` | import uses `as` alias |
-| `IrOpenFuncDef` | `docstring` | open interface has a docstring |
-| `IrOpenFuncDef` | `annotations` | open interface has annotations |
+| `IrOpenFuncDef` | `docstring` | reserved; lowering never sets it (open clauses have no docstring position, R20 contract 7.2) |
+| `IrOpenFuncDef` | `annotations` | reserved; lowering never sets it (prefix annotations on open declarations are rejected) |
 
 ## Executable Validation
 

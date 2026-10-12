@@ -1059,10 +1059,8 @@ Core IR).
     `import`) that resolves `<base-alias>.<name>`, resolves each named
     contribution module's unit for that exact interface, and binds `<name>` in the *current* module to the resulting
     immutable linked view. No wildcard/implicit selection.
-  - Ordinary `import` alone never selects a contribution: importing a
-    contribution-bearing module without an explicit `use` leaves the base
-    interface (and any other module's already-linked view)
-    unaffected.
+  - Ordinary `import` alone never selects a contribution; the base interface
+    and other modules' linked views are unaffected.
   - Interface/contribution identity is the pair (canonical cached module
     name, exported name), the identity `Env.load_module` caches modules under. Import alias, file path, and host object address
     are never part of this identity, so two aliases of the same cached
@@ -1073,8 +1071,7 @@ Core IR).
   - Selecting a module with no matching contribution unit, or a closed
     function/non-function, is `open-function-incompatible-contribution`.
   - Declaration, import, and `use` perform no lifecycle activation, resource
-    acquisition, IO, or clause-body execution; a body runs only after a
-    successful call dispatches to it.
+    acquisition, IO, or clause-body execution.
 - **Tail calls** (contract §5.1). A tail call out of a selected clause — to any
   open interface, linked view, or ordinary function — is an ordinary tail call
   (section 8): self and mutual recursion run in constant stack via the shared
@@ -1085,9 +1082,10 @@ Core IR).
   documentation available."), and every participating unit's clauses in
   deterministic order — the base unit first (labelled by its declaring
   module identity), then each contribution unit by its own, clauses within a unit by lexical ordinal. `doc(name)`
-  returns the interface's own docstring; contribution clauses cannot supply,
-  replace, or erase interface-level documentation. No host object or Python
-  representation is exposed.
+  returns the interface's documentation, which is missing for an open
+  interface: a string after `=` is always the clause body, not a docstring.
+  Contribution clauses cannot supply, replace, or erase interface-level
+  documentation. No host object or Python representation is exposed.
 - **Diagnostics.** `open-function-redeclaration`,
   `open-function-target-not-open`, `open-function-duplicate-clause`,
   `open-function-duplicate-selection`,
@@ -1114,9 +1112,8 @@ Core IR).
     pattern is plain identifiers and the body is exactly one `CaseExpr` (or
     a one-expression `{ }` block containing one); other combinations of a
     non-trivial header with a case body are rejected;
-  - `@doc`/`@meta`-style annotation attachment is not wired for `open`/
-    `extend` declarations — interface metadata beyond the
-    optional docstring position is a follow-up;
+  - `@doc`/`@meta` annotation attachment is not wired for `open`/`extend`
+    declarations, so an open interface has no documentation (a follow-up);
   - cross-module behavior also needs `multi_file_eval` for its shared cases;
   - debug-hook wiring (`debug_hooks`/`debug_mode` propagation) is not threaded through open-function dispatch.
 ## 5) Case expressions and pattern matching

@@ -79,6 +79,10 @@ R20_EVAL_SPECS = [
     "r20-open-grouped-header-name-unreferenced.yaml",
     "r20-open-grouped-header-name-shadowed-by-lambda.yaml",
     "r20-open-grouped-outer-name-still-visible.yaml",
+    # Contract 7.2 / issue #1067 (F1 open docstring position): pins existing semantics.
+    "r20-open-string-body-is-the-body.yaml",
+    "r20-open-string-followed-by-expression-is-body-and-statement.yaml",
+    "r20-open-string-body-is-not-interface-documentation.yaml",
 ]
 
 R20_ERROR_SPECS = [

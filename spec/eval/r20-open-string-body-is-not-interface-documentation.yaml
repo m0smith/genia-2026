@@ -1,0 +1,16 @@
+name: r20-open-string-body-is-not-interface-documentation
+category: eval
+description: R20 an open interface has no inline docstring, so a string body does not become its documentation
+input:
+  source: |
+    open f(0) = "body"
+
+    doc("f")
+expected:
+  stdout: "none(\"missing-doc\", {name: \"f\"})\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions
+  - doc_help

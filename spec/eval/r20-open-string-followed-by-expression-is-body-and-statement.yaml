@@ -1,0 +1,15 @@
+name: r20-open-string-followed-by-expression-is-body-and-statement
+category: eval
+description: R20 an open clause has no docstring position, so a string followed by another expression on the same line is the body plus a separate top-level statement
+input:
+  source: |
+    open f(0) = "body" 1
+
+    [f(0)]
+expected:
+  stdout: "[\"body\"]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions
