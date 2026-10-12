@@ -33,3 +33,17 @@ def test_numeric_host_status_retains_partial_claims_and_resource_gaps():
     assert re.search(r"Genia checkout: `[0-9a-f]{40}`", status)
     assert re.search(r"C\+\+ checkout: `[0-9a-f]{40}`", status)
     assert "6402e668ae85a1e7efe94b3ac3d51f233b730ca4" in status
+
+
+def test_numeric_host_status_evidence_names_resolve_to_shared_cases():
+    """Named evidence must refer to real shared cases; it proves no new behavior."""
+    from tools.spec_runner.loader import discover_specs
+
+    specs, invalid = discover_specs()
+    assert not invalid
+    names = {spec.name for spec in specs}
+    status = read_text("docs/host-interop/numeric-host-status.md")
+    cited = set(re.findall(r"`(r2[23]-[a-z0-9-]+)`", status))
+    assert cited and cited <= names, cited - names
+    json_cases = [spec for spec in specs if spec.name.startswith("r23-json-")]
+    assert json_cases and all("json_strict" in spec.requires for spec in json_cases)

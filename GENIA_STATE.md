@@ -121,6 +121,9 @@ Scaffolded or planned, not implemented as hosts:
   functions, Ref/Cell/local Process, a scripted REPL, Bytes/UTF-8 and strict JSON data bridges, Flow phase 1, and `genia -p` pipe mode, each
   declared `supported` only for the shared cases carrying the matching `requires:` capability. It is not Python feature parity; pinned
   evidence and gaps live in `docs/releases/R24.md` through `R27.md`, `spec/known_host_gaps.json`, and the host parity gate.
+  - **Numeric subset:** exact-family arithmetic, explicit Float64 conversion/comparison, selected rendering/field-format and strict
+    numeric JSON have bounded case evidence; this is not full R22/R23 parity. Resource guards and some misuse/cross-surfaces remain
+    gaps. See [numeric host status](docs/host-interop/numeric-host-status.md) and sections 9.21/9.32.
   - **Scripted REPL:** one environment retained across complete submissions, normalized failure reporting, recovery; interactive
     prompt/banner/history stays host-local.
   - **Data bridge contract** (`docs/design/r26-cpp-data-bridge-contract.md`): `bytes_utf8` (`utf8_decode` for well-formed UTF-8 only; `<bytes N>`
@@ -3264,8 +3267,10 @@ injection, scheduler, concurrent peer or element execution, HTTP methods beyond 
 
 Current-state digest of former sections 9.21-9.31 (ticket-by-ticket text is preserved verbatim, as non-authoritative
 provenance, in `docs/state-record/numeric-r21-r23-records.md`). Contracts: `docs/design/r21-numeric-source-portable-representation-contract.md`
-and `docs/design/r22-exact-numeric-runtime-contract.md`; release pages `docs/releases/R21.md` and `R22.md`. Python reference
-host only; no C++ implementation. Rendering and JSON of these values are in section 9.32.
+and `docs/design/r22-exact-numeric-runtime-contract.md`; release pages `docs/releases/R21.md` and `R22.md`. Python remains
+the full-language reference host; the later R24 floor implements a bounded C++ numeric subset, not full R22 parity.
+Concrete case evidence and retained resource/misuse/cross-surface gaps are in
+[`numeric host status`](docs/host-interop/numeric-host-status.md). Rendering and JSON are in section 9.32.
 
 LANGUAGE CONTRACT:
 
@@ -3318,14 +3323,17 @@ LANGUAGE CONTRACT:
   and Rational.
 
 Explicit limitations: no Rational literal syntax, Float64 suffix or raw-bit syntax, public NaN construction, arbitrary-precision
-JSON transport, locale-sensitive formatting, or C++ implementation.
+JSON transport or locale-sensitive formatting. The bounded C++ implementation does not imply arbitrary-precision
+Decimal exponent parity, the Python numeric resource guard, or full numeric misuse/cross-surface support.
 
 ## 9.32) R23 numeric rendering and JSON interchange (digest; Experimental)
 
 Current-state digest of former sections 9.32-9.37 (ticket-by-ticket text is preserved verbatim, as non-authoritative
 provenance, in `docs/state-record/numeric-r21-r23-records.md`). Contract:
 `docs/design/r23-numeric-representation-interchange-contract.md`; audit: `docs/analysis/r23-release-truth-audit.md`; release
-page `docs/releases/R23.md`. R23 is complete. Python reference host only; no C++ implementation. It changes no R22
+page `docs/releases/R23.md`. R23 is complete on the Python reference host. Later hosts implement only evidenced subsets:
+the bounded C++ R24 numeric rendering/field-format surface and R26 strict JSON bridge are described in
+[`numeric host status`](docs/host-interop/numeric-host-status.md), not full R23 parity. This digest changes no R22
 arithmetic, equality, or comparison.
 
 LANGUAGE CONTRACT:
@@ -3370,7 +3378,8 @@ LANGUAGE CONTRACT:
   `"decimal"`, `"float64"`) and no raw Python class or exception text.
 
 Explicit limitations: no arbitrary-precision JSON-number transport, no new JSON dialect, no locale-sensitive formatting, no new
-general formatting language, no Rational literal syntax, and no C++ implementation.
+general formatting language or Rational literal syntax. C++ remains bounded: first-class `Format` Values and
+compatibility JSON are outside its numeric claim; strict numeric JSON evidence does not establish broader cross-surface support.
 
 ## 9.38) Provider-composition proofs P8 and P9 (digest; evidence only)
 
