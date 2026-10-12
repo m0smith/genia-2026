@@ -121,6 +121,7 @@ Scaffolded or planned, not implemented as hosts:
   functions, Ref/Cell/local Process, a scripted REPL, Bytes/UTF-8 and strict JSON data bridges, Flow phase 1, and `genia -p` pipe mode, each
   declared `supported` only for the shared cases carrying the matching `requires:` capability. It is not Python feature parity; pinned
   evidence and gaps live in `docs/releases/R24.md` through `R27.md`, `spec/known_host_gaps.json`, and the host parity gate.
+  - **Numeric subset:** see [bounded numeric support and gaps](https://github.com/m0smith/genia-2026/blob/main/docs/host-interop/numeric-host-status.md), sections 9.21/9.32.
   - **Scripted REPL:** one environment retained across complete submissions, normalized failure reporting, recovery; interactive
     prompt/banner/history stays host-local.
   - **Data bridge contract** (`docs/design/r26-cpp-data-bridge-contract.md`): `bytes_utf8` (`utf8_decode` for well-formed UTF-8 only; `<bytes N>`
@@ -3259,10 +3260,10 @@ injection, scheduler, concurrent peer or element execution, HTTP methods beyond 
 
 ## 9.21) R21/R22 exact numeric model (digest; Experimental)
 
-Current-state digest of former sections 9.21-9.31 (ticket-by-ticket text is preserved verbatim, as non-authoritative
-provenance, in `docs/state-record/numeric-r21-r23-records.md`). Contracts: `docs/design/r21-numeric-source-portable-representation-contract.md`
-and `docs/design/r22-exact-numeric-runtime-contract.md`; release pages `docs/releases/R21.md` and `R22.md`. Python reference
-host only; no C++ implementation. Rendering and JSON of these values are in section 9.32.
+Provenance: `docs/state-record/numeric-r21-r23-records.md` (non-authoritative). Contracts:
+`docs/design/r21-numeric-source-portable-representation-contract.md`, `docs/design/r22-exact-numeric-runtime-contract.md`.
+Python remains the reference host; [bounded C++ numeric support and gaps](https://github.com/m0smith/genia-2026/blob/main/docs/host-interop/numeric-host-status.md)
+are not full R22 parity. Rendering/JSON: section 9.32.
 
 LANGUAGE CONTRACT:
 
@@ -3309,21 +3310,19 @@ LANGUAGE CONTRACT:
   Decimal coefficient/exponent or Rational numerator/denominator beyond a private bound (default 14,000 bits) raises the
   deterministic `numeric-resource-limit` error before any expensive work; the bound does not apply to plain Integer arithmetic,
   which stays unbounded, and its value is a host/test detail, not Genia semantics.
-- **Cross-surface recognition.** Quoted and quasiquoted numeric literals materialize the same runtime kind as ordinary evaluation;
-  `self_evaluating?`/metacircular `eval` treats Decimal and Rational as self-evaluating; Sheets CSV rendering, format-spec
-  numerics, shell-stage stdin materialization, JSON Schema `"number"` matching, and R12 finite-score validation recognize Decimal
-  and Rational.
+- **Cross-surface recognition.** Quoting/quasiquoting preserves numeric kinds; `self_evaluating?`/metacircular `eval` treats
+  Decimal/Rational as self-evaluating. Sheets CSV, numeric format specs, shell-stage stdin, JSON Schema `"number"` matching
+  and R12 finite-score validation recognize them.
 
-Explicit limitations: no Rational literal syntax, Float64 suffix or raw-bit syntax, public NaN construction, arbitrary-precision
-JSON transport, locale-sensitive formatting, or C++ implementation.
+Explicit limitations: no Rational literal, Float64 suffix/raw-bit syntax, public NaN construction, arbitrary-precision JSON or locale-sensitive formatting.
+Bounded C++ gaps include Decimal exponents, resource guards, misuse diagnostics and cross-surfaces.
 
 ## 9.32) R23 numeric rendering and JSON interchange (digest; Experimental)
 
-Current-state digest of former sections 9.32-9.37 (ticket-by-ticket text is preserved verbatim, as non-authoritative
-provenance, in `docs/state-record/numeric-r21-r23-records.md`). Contract:
-`docs/design/r23-numeric-representation-interchange-contract.md`; audit: `docs/analysis/r23-release-truth-audit.md`; release
-page `docs/releases/R23.md`. R23 is complete. Python reference host only; no C++ implementation. It changes no R22
-arithmetic, equality, or comparison.
+Provenance: `docs/state-record/numeric-r21-r23-records.md` (non-authoritative). Contract:
+`docs/design/r23-numeric-representation-interchange-contract.md`; release: `docs/releases/R23.md`; audit: `docs/analysis/r23-release-truth-audit.md`.
+R23 is complete on Python; [bounded C++ rendering/strict JSON](https://github.com/m0smith/genia-2026/blob/main/docs/host-interop/numeric-host-status.md)
+is not full R23 parity. R22 arithmetic/equality/comparison are unchanged.
 
 LANGUAGE CONTRACT:
 
@@ -3366,8 +3365,8 @@ LANGUAGE CONTRACT:
 - **Diagnostics.** Numeric and JSON failure paths in these surfaces carry portable type names (for example `"rational"`,
   `"decimal"`, `"float64"`) and no raw Python class or exception text.
 
-Explicit limitations: no arbitrary-precision JSON-number transport, no new JSON dialect, no locale-sensitive formatting, no new
-general formatting language, no Rational literal syntax, and no C++ implementation.
+Explicit limitations: no arbitrary-precision JSON transport, new JSON dialect, locale-sensitive/general formatting language or Rational literals.
+First-class `Format` and compatibility JSON remain outside bounded C++ numeric support.
 
 ## 9.38) Provider-composition proofs P8 and P9 (digest; evidence only)
 
