@@ -1,4 +1,11 @@
-"""Experimental portable R12 document chunk and provenance boundary."""
+"""Experimental R12 chunk provenance and explicit retrieval-provider boundaries.
+
+LANGUAGE CONTRACT: existing ordinary values, callables and Outcomes follow
+GENIA_STATE.md and the R12 retrieval/grounding contract. Chunking uses no provider.
+PYTHON REFERENCE HOST: opaque deterministic embedding/index/retrieval/reranking
+fixtures are explicit host capabilities; this module adds no networking, retries,
+provider discovery or public grounding builtin.
+"""
 
 from __future__ import annotations
 
@@ -47,6 +54,10 @@ _JSON_MAX_NESTING = 128
 
 
 def _map(**values: Any) -> GeniaMap:
+    """Build an ordinary Genia map with string keys in keyword insertion order.
+
+    Values are retained unchanged; this helper does not validate their shapes.
+    """
     result = GeniaMap()
     for key, value in values.items():
         result = result.put(key, value)
@@ -54,6 +65,10 @@ def _map(**values: Any) -> GeniaMap:
 
 
 def _keys(value: GeniaMap) -> set[str] | None:
+    """Return the exact string-key set, or None when any key is not a string.
+
+    This is a closed-shape check, not a value or JSON-domain validator.
+    """
     keys: set[str] = set()
     for key, _ in value.items():
         if not isinstance(key, str):
@@ -63,6 +78,11 @@ def _keys(value: GeniaMap) -> set[str] | None:
 
 
 def _closed_map(value: Any, expected: set[str], label: str) -> GeniaMap:
+    """Require the exact chunk-related map shape and return the original value.
+
+    Non-map inputs and missing, extra or non-string keys raise TypeError with
+    chunk-scoped diagnostics; member values are validated by callers.
+    """
     if not isinstance(value, GeniaMap):
         raise TypeError(f"chunk expected {label} map, received {_runtime_type_name(value)}")
     if _keys(value) != expected:
@@ -71,6 +91,11 @@ def _closed_map(value: Any, expected: set[str], label: str) -> GeniaMap:
 
 
 def _embed_closed_map(value: Any, expected: set[str], label: str) -> GeniaMap:
+    """Require an exact embedding-related map shape, preserving the original map.
+
+    Raise TypeError with embed-scoped diagnostics for wrong map type or keys.
+    Index and later provider validators also reuse this shape guard.
+    """
     if not isinstance(value, GeniaMap):
         raise TypeError(f"embed expected {label} map, received {_runtime_type_name(value)}")
     if _keys(value) != expected:
@@ -79,6 +104,13 @@ def _embed_closed_map(value: Any, expected: set[str], label: str) -> GeniaMap:
 
 
 def _valid_json_value(value: Any, depth: int = 0) -> bool:
+    """Check the metadata JSON domain without converting or unwrapping values.
+
+    Accept nil, booleans, safe-range integers, finite host floats, scalar
+    strings, lists and string-keyed Genia maps. Reject symbols, surrogates,
+    other runtime values and container nesting beyond 128 levels. Decimal
+    and Rational are not accepted by this existing metadata predicate.
+    """
     if _is_nil_none(value) or isinstance(value, bool):
         return True
     if isinstance(value, int):
@@ -105,6 +137,12 @@ def _valid_json_value(value: Any, depth: int = 0) -> bool:
 
 
 def _validate_document(value: Any) -> GeniaMap:
+    """Validate the closed {id, meta, text} document and return it unchanged.
+
+    Require a nonempty string id, string text (possibly empty), and exactly
+    one json representation of a map in the metadata JSON domain. Invalid
+    shape or members raise TypeError before a chunker is invoked.
+    """
     document = _closed_map(value, {"id", "meta", "text"}, "document")
     document_id = document.get("id")
     if not isinstance(document_id, str) or document_id == "":
@@ -123,6 +161,11 @@ def _validate_document(value: Any) -> GeniaMap:
 
 
 def _span_coordinates(value: Any, text_length: int) -> tuple[int, int] | None:
+    """Return valid (offset, length) in Unicode code points, otherwise None.
+
+    Require a closed span map with non-boolean integer offset >= 0 and
+    length > 0 wholly within text_length; no text or provenance is acquired.
+    """
     if not isinstance(value, GeniaMap) or _keys(value) != {"length", "offset"}:
         return None
     offset = value.get("offset")
@@ -137,6 +180,12 @@ def _span_coordinates(value: Any, text_length: int) -> tuple[int, int] | None:
 
 
 def _valid_chunk(value: Any) -> bool:
+    """Check closed chunk/provenance shapes without reconstructing the document.
+
+    Require nonempty text and doc_id, nonnegative offset, positive length
+    equal to the text code-point count, and json-represented object metadata.
+    This cannot prove the text equals a slice of an unavailable source document.
+    """
     if not isinstance(value, GeniaMap) or _keys(value) != {"meta", "source", "text"}:
         return False
     text = value.get("text")
@@ -172,7 +221,16 @@ def construct_chunks(
     is_callable: Callable[[Any], bool],
     invoke: Callable[[Any, list[Any]], Any],
 ) -> GeniaOptionSome | GeniaOptionErr:
-    """Validate one document, invoke one chunker, and own chunk construction."""
+    """Validate a document, call its chunker once, and construct owned provenance.
+
+    The callback receives only document text and must return a list of closed
+    offset/length spans measured in Unicode code points. Preserve span order,
+    including overlap and duplicates, and the exact represented metadata;
+    some([]) is valid. Document/callable misuse, callback exceptions and
+    non-list results raise directly. The first malformed or out-of-bounds
+    span returns chunk-invalid with its zero-based index, without partial
+    success. No provider, credential or declassification participates.
+    """
 
     document = _validate_document(document_value)
     if not is_callable(chunker):
@@ -220,6 +278,11 @@ _EMBED_ERROR_KINDS = {
 
 
 def _validate_embed_config(value: Any) -> GeniaMap:
+    """Validate and retain closed {id, space, timeout_ms} embedding config.
+
+    id and space must be nonempty strings; timeout_ms is a non-boolean
+    integer in 1..300000. Invalid config raises TypeError; no provider runs.
+    """
     config = _embed_closed_map(value, {"id", "space", "timeout_ms"}, "config")
     if not isinstance(config.get("id"), str) or config.get("id") == "":
         raise TypeError("embed expected config id to be a non-empty string")
@@ -237,6 +300,13 @@ def _validate_embed_config(value: Any) -> GeniaMap:
 
 
 def _validate_embedding_input(value: Any) -> tuple[str, Any] | GeniaOptionErr:
+    """Validate explicit query/chunk input and return its kind and exact identity.
+
+    Protected content, wrong closed shape, invalid kind or empty query text
+    raise TypeError before declassification. Invalid chunk content instead
+    returns chunk-invalid at document stage. Query identity is text; chunk
+    identity is the original chunk, including provenance and metadata.
+    """
     if contains_protected(value):
         raise TypeError("protected-value: embed-input")
     if not isinstance(value, GeniaMap):
@@ -260,10 +330,21 @@ def _validate_embedding_input(value: Any) -> tuple[str, Any] | GeniaOptionErr:
 
 
 def _embed_invalid(stage: str) -> GeniaOptionErr:
+    """Build embed-response-invalid with a symbolic validation stage only.
+
+    No raw provider response or exception details enter the Outcome context.
+    """
     return GeniaOptionErr("embed-response-invalid", _map(stage=symbol(stage)))
 
 
 def _valid_embed_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
+    """Accept only closed embedding-provider failure Outcomes.
+
+    Timeout must match configured milliseconds; rate-limit context carries
+    some(nonnegative integer) or the exact unavailable-retry absence.
+    Rejection/transport failures require one allowed symbolic kind. Unknown
+    reasons or malformed contexts are rejected, without inspecting exception text.
+    """
     context = value.context
     if value.reason == "embed-timeout":
         return (
@@ -299,6 +380,15 @@ def _valid_embed_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
 
 
 def _validate_embedding(value: Any, configured_space: str) -> tuple[list[Any], int] | GeniaOptionErr:
+    """Validate closed provider embedding and return its unchanged vector and dims.
+
+    Require a nonempty finite int/float vector excluding booleans, matching
+    positive integer dimensions, and the exact configured space string.
+    Shape/member checks that complete return stage-specific
+    embed-response-invalid Outcomes. Host numeric validation exceptions can
+    propagate: math.isfinite may raise OverflowError for an enormous host int.
+    This does not calculate vectors or infer compatibility from dimension alone.
+    """
     if not isinstance(value, GeniaMap) or _keys(value) != {"dims", "space", "vector"}:
         return _embed_invalid("provider_response")
     vector = value.get("vector")
@@ -328,18 +418,29 @@ class GeniaEmbedProvider:
     __slots__ = ("_handler", "_attempt_count")
 
     def __init__(self, handler: Callable[[GeniaMap, GeniaMap, str], Any]):
+        """Capture a host handler and initialize the attempt counter to zero.
+
+        The host fixture factory validates callability; construction performs no IO.
+        """
         self._handler = handler
         self._attempt_count = 0
 
     @property
     def attempt_count(self) -> int:
+        """Return attempted handler calls, including calls that raised exceptions."""
         return self._attempt_count
 
     def _attempt(self, config: GeniaMap, value: GeniaMap, credential: str) -> Any:
+        """Count and invoke one host handler with config, input and revealed credential.
+
+        Return its observation unchanged and let exceptions reach the embedder
+        normalizer. This method adds no timeout enforcement, retry or networking.
+        """
         self._attempt_count += 1
         return self._handler(config, value, credential)
 
     def __repr__(self) -> str:
+        """Return an opaque provider marker without exposing its handler or state."""
         return "<embed-provider>"
 
 
@@ -355,12 +456,26 @@ class GeniaEmbedder:
         credential: GeniaProtected,
         authority: GeniaDeclassificationAuthority,
     ):
+        """Capture provider, validated config, protected credential and authority.
+
+        Use construct_embed for public validation. Capture is inert: no credential
+        is revealed and no provider attempt occurs until this callable is invoked.
+        """
         self._provider = provider
         self._config = config
         self._credential = credential
         self._authority = authority
 
     def __call__(self, value: Any) -> Any:
+        """Validate one explicit input before revealing a credential for one attempt.
+
+        Declassification failures and non-string credentials raise directly.
+        Handler exceptions become embed-transport-failure(other); valid provider
+        errors pass through and malformed Outcomes become embed-response-invalid.
+        Success must preserve exact input identity and valid configured-space
+        vectors; return some(embedded chunk/query) retaining that identity. No
+        retry, implicit query embedding, timeout timer or network adapter is added.
+        """
         validated = _validate_embedding_input(value)
         if isinstance(validated, GeniaOptionErr):
             return validated
@@ -403,12 +518,18 @@ class GeniaEmbedder:
         return GeniaOptionSome(_map(chunk=identity, embedding=normalized_embedding))
 
     def __repr__(self) -> str:
+        """Render as an ordinary function without revealing captured credentials."""
         return "<function>"
 
 
 def create_fixture_embed_provider(
     handler: Callable[[GeniaMap, GeniaMap, str], Any],
 ) -> GeniaEmbedProvider:
+    """Create an explicit opaque Python-reference-host embedding fixture.
+
+    Require a callable handler or raise TypeError. Source cannot construct
+    this capability; the factory adds no ambient binding or network adapter.
+    """
     if not callable(handler):
         raise TypeError("fixture embed provider expected a callable handler")
     return GeniaEmbedProvider(handler)
@@ -420,6 +541,13 @@ def construct_embed(
     credential: Any,
     authority: Any,
 ) -> GeniaEmbedder:
+    """Validate and capture the four embed/4 arguments without a provider attempt.
+
+    Require an opaque embedding provider, valid closed config, protected
+    credential and declassification authority, raising TypeError for misuse.
+    Credential payload and authority applicability are checked on invocation
+    by the existing declassification boundary, not by this inert constructor.
+    """
     if not isinstance(provider, GeniaEmbedProvider):
         raise TypeError(
             "embed expected an embed provider capability, "
