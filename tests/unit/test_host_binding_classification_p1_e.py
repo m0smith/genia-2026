@@ -139,3 +139,15 @@ def test_maintained_host_installers_do_not_bypass_required_classification():
             if isinstance(receiver, ast.Name) and receiver.id == "env" and node.func.attr in {"set", "set_internal", "register_autoload"}:
                 bypasses.append(f"{path.relative_to(repo)}:{node.lineno}:{node.func.attr}")
     assert bypasses == [], "Unclassified host injections: " + ", ".join(bypasses)
+
+
+def test_harness_injection_sites_have_explicit_classes():
+    bypasses = []
+    for path in sorted(ROOT.rglob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+                continue
+            receiver = node.func.value
+            if isinstance(receiver, ast.Name) and receiver.id in {"env", "root"} and node.func.attr in {"set", "set_internal", "register_autoload"}:
+                bypasses.append(f"{path.relative_to(ROOT)}:{node.lineno}:{node.func.attr}")
+    assert bypasses == [], "Unclassified harness injections: " + ", ".join(bypasses)
