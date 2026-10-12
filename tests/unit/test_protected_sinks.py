@@ -1,3 +1,8 @@
+"""Python protected sink rejection, declassification and sentinel-free diagnostics.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import io
 
 import pytest
@@ -16,6 +21,10 @@ PURPOSE = "PROTECTED_PURPOSE_SENTINEL_592"
 
 
 def _env_with_protected(*, stdout=None, stderr=None):
+    """Return a runtime and protected carrier backed by explicit literal configuration.
+
+    Optional streams capture sink output; install the carrier entry-only without
+    revealing it or acquiring external configuration."""
     env = make_global_env(stdout_stream=stdout, stderr_stream=stderr)
     protected = run_source(
         "provider = config_provider([{kind: quote(values), values: {"

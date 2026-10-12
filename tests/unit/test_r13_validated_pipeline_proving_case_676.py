@@ -1,3 +1,8 @@
+"""Python configuration-view fixtures composed through validated record pipelines.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 import pytest

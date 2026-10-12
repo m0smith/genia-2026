@@ -1,3 +1,8 @@
+"""Explicit Python chunker callbacks verifying exact chunk metadata and source provenance.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import pytest
 
 from genia.builtins import make_global_env
@@ -21,6 +26,10 @@ def _document(text="hello", *, meta=None):
 
 
 def _run_with_chunker(chunker, document=None):
+    """Run chunk/2 with explicit entry-only chunker/document fixtures.
+
+    Use the default test document when omitted and return the unchanged Genia
+    result; chunker invocation and errors remain observable by the test."""
     env = make_global_env([])
     env.set_host("chunker_fixture", chunker, visibility="entry-only")
     env.set_host("document_fixture", document if document is not None else _document(), visibility="entry-only")

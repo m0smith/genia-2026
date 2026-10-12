@@ -1,3 +1,8 @@
+"""Python file/ZIP bridge callbacks and Flow pipeline IO using temporary paths.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import zipfile
 
 from genia import make_global_env, run_source

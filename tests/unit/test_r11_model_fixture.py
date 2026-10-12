@@ -1,3 +1,8 @@
+"""Deterministic Python model-provider attempts, Outcomes, validation and protected sinks.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import pytest
 
 from genia.builtins import make_global_env
@@ -58,6 +63,10 @@ def _request():
 
 
 def _fixture_env(result):
+    """Return an offline model runtime, fixed-response fixture and audit list.
+
+    Explicit literal configuration produces protected credentials and matching
+    authority; provider invocation remains under test control."""
     from genia.model import create_fixture_model_provider
 
     env = make_global_env([])
@@ -84,6 +93,7 @@ def _fixture_env(result):
 
 
 def _env_with(env, **values):
+    """Install each supplied fixture entry-only in-place and return the runtime."""
     for key, value in values.items():
         env.set_host(key, value, visibility="entry-only")
     return env

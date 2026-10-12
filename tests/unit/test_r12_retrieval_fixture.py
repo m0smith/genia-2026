@@ -1,3 +1,8 @@
+"""Offline Python retrieval from explicit index/query fixtures with separate authorities.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import math
 
 import pytest
@@ -66,6 +71,10 @@ def _retrieved(chunk, score):
 
 
 def _env(handler, corpus=None):
+    """Return runtime, index/retrieve providers and their separate audit lists.
+
+    Build an offline index from supplied/default corpus, then install its handle
+    and explicit query embedding entry-only; no real storage/network is acquired."""
     from genia.retrieval import (
         create_fixture_index_provider,
         create_fixture_index_result,

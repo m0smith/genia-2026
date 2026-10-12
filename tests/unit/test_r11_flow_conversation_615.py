@@ -1,3 +1,8 @@
+"""Offline model fixtures proving application-owned list/Flow conversation composition.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 from genia.builtins import make_global_env
@@ -33,6 +38,10 @@ def _response(text="fixture reply"):
 
 
 def _env(handler):
+    """Return an offline model runtime and fixture for the supplied response handler.
+
+    Install protected credentials and matching authority entry-only; construction
+    does not call the handler or start conversation state."""
     env = make_global_env([])
     provider = run_source(
         'config_provider([{kind: quote(values), values: {KEY: "secret"}}]) '

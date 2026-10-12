@@ -1,3 +1,8 @@
+"""Python callback/Flow fixtures exercising validation demand and Outcome preservation.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import pytest
 
 from genia import make_global_env, run_source

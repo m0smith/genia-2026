@@ -1,3 +1,8 @@
+"""Python-host fixture proving configuration/secret composition with validated pipelines.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 import pytest

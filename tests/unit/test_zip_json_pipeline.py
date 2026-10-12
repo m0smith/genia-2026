@@ -1,3 +1,8 @@
+"""Python ZIP/JSON bridge composition with explicit temporary archive and bytes fixtures.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import zipfile
 
 import pytest

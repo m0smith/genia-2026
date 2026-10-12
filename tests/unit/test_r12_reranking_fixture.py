@@ -1,3 +1,8 @@
+"""Offline Python rerank-provider ordering and duplicate-aware evidence preservation.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import math
 
 import pytest
@@ -41,6 +46,10 @@ def _retrieved(chunk, score):
 
 
 def _env(handler):
+    """Return an offline rerank runtime, provider fixture and audit list.
+
+    Install protected literal credentials and matching authority entry-only;
+    the response handler is invoked only by the test-owned call."""
     from genia.retrieval import create_fixture_rerank_provider
 
     env = make_global_env([])

@@ -1,3 +1,8 @@
+"""Python protected configuration acquisition and sentinel-free rendering boundaries.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import threading
 
 import pytest

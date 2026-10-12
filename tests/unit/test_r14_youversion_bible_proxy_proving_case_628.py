@@ -154,6 +154,10 @@ config = resolve_bible_config(provider) |> unwrap_or(none)
 
 
 def _inject_authority(env):
+    """Install entry-only authorized outbound fixture and return its audit list.
+
+    Authority is minted explicitly from the existing provider, wrapped as some,
+    and remains host-only; no HTTP attempt occurs during injection."""
     audits: list[dict] = []
     authority = create_declassification_authority(
         env.get("provider"), [symbol(PURPOSE)], audits.append

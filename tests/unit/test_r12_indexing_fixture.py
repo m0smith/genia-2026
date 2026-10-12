@@ -1,3 +1,8 @@
+"""Offline Python index-provider compatibility handles and protected credential authority.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import copy
 
 import pytest
@@ -50,6 +55,10 @@ def _embedded(text="hello", vector=None, dims=None, space=SPACE, doc_id="doc-1")
 
 
 def _env(handler):
+    """Return an offline index runtime, handler fixture and audit list.
+
+    Explicit protected literal credentials and matching authority are installed
+    entry-only; construction does not execute an indexing attempt."""
     from genia.retrieval import create_fixture_index_provider
 
     env = make_global_env([])
@@ -75,6 +84,7 @@ def _env(handler):
 
 
 def _env_with(env, name, value):
+    """Install one named entry-only fixture in-place and return the runtime."""
     env.set_host(name, value, visibility="entry-only")
     return env
 

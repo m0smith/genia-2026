@@ -1,3 +1,8 @@
+"""Offline Python embedding provider identity, validation and authorized credential use.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import math
 
 import pytest
@@ -55,6 +60,10 @@ def _chunk_response(chunk=None, **embedding):
 
 
 def _env(handler):
+    """Return an offline embedding runtime, handler fixture and audit list.
+
+    Acquire a protected literal credential and install matching authority and
+    provider fixtures entry-only without invoking the handler."""
     from genia.retrieval import create_fixture_embed_provider
 
     env = make_global_env([])

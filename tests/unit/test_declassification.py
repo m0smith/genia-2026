@@ -1,3 +1,8 @@
+"""Python protected-carrier authority checks, authorized sinks and sentinel non-leakage.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import copy
 
 import pytest

@@ -1,3 +1,8 @@
+"""Offline Python model fixtures in an Outcome-aware validated record pipeline.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 import pytest
@@ -45,6 +50,10 @@ def _response(text):
 
 
 def _env(handler, *, matching_authority=True):
+    """Return an offline model runtime, fixture and audit list for the handler.
+
+    matching_authority=False deliberately uses another provider authority; all
+    host fixture injections stay entry-only without changing R10 checks."""
     env = make_global_env([])
     provider = run_source(
         'config_provider([{kind: quote(values), values: {'
