@@ -34,7 +34,8 @@ N/A — design/process only. Current runtime maturity and host claims unchanged.
 3. Shared evidence: existing CLI/import/open/reflection cases must be retained;
    future P2/P3 semantic cases use R16 multi-file inputs. No specs added now.
 4. Applicability: existing `multi_file_eval`, `open_functions`, `doc_help`,
-   `cli_main`, `repl`, `cli_pipe_mode`; no new capability proposed.
+   `cli_file_mode`, `cli_command_mode`, `repl`, `cli_pipe_mode`; no new
+   capability proposed. Main dispatch has no standalone `cli_main` capability.
 5. Hosts: Python consumer preparation; C++ has unsupported modules/reflection,
    so no C++ implementation change now. Local checkout `8720440` is older
    evidence, not a claim about latest remote C++ main.

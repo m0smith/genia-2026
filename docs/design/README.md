@@ -7,6 +7,7 @@ See GENIA_STATE.md for actual behavior.
 
 ## Topics
 
+- [F2 P1 consumer preparation](f2-p1-consumer-preparation.md) — proposed design for issue #1067: scope consumers, host injection classification, shadowing/reflection decisions and temporary-fallback removal; no implementation authorization.
 - **00-patterns.md** — Pattern matching as the core model; templates, named patterns, and binding.
 - **01-reefinement.md** — Refinement templates for value constraints (e.g., NaturalNumber = n when n >= 0).
 - **02-open-shapes.md** — Open shape templates for flexible, partial structure (e.g., {name, email}).
