@@ -345,6 +345,12 @@ def _emit_error(env: Env, message: str) -> None:
 
 
 def repl() -> None:
+    """Evaluate persistent input and host colon commands until quit or EOF.
+
+    :env renders the sorted inspection compatibility view (root during P1).
+    Interactive stdin adds prompts/banner; scripted input keeps output clean.
+    Evaluation errors are reported to stderr and permit subsequent input.
+    """
     env = make_global_env([])
     # Banner and prompts are host-local terminal cosmetics (see
     # docs/design/r26-cpp-repl-contract.md section 3); a non-interactive
@@ -374,8 +380,9 @@ def repl() -> None:
             env.get("help")()
             continue
         if not buf and line.strip() == ":env":
-            for k in sorted(env.values):
-                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(env.values[k])}")
+            inspection = env.inspection_globals_scope()
+            for k in sorted(inspection.values):
+                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(inspection.values[k])}")
             continue
         buf += line + "\n"
         if not is_complete(buf):
