@@ -565,6 +565,12 @@ _INDEX_ERROR_KINDS = _EMBED_ERROR_KINDS
 
 
 def _validate_index_config(value: Any) -> GeniaMap:
+    """Validate closed {id, timeout_ms} config and retain the original map.
+
+    Require a nonempty string id and non-boolean integer milliseconds in
+    1..300000; misuse raises TypeError before any provider attempt. The
+    shared shape guard retains its existing embed-scoped diagnostics.
+    """
     config = _embed_closed_map(value, {"id", "timeout_ms"}, "config")
     if not isinstance(config.get("id"), str) or config.get("id") == "":
         raise TypeError("index expected config id to be a non-empty string")
@@ -580,14 +586,25 @@ def _validate_index_config(value: Any) -> GeniaMap:
 
 
 def _index_invalid(stage: str) -> GeniaOptionErr:
+    """Return index-response-invalid with only a symbolic validation stage."""
     return GeniaOptionErr("index-response-invalid", _map(stage=symbol(stage)))
 
 
 def _embedding_invalid(stage: str) -> GeniaOptionErr:
+    """Return embedding-invalid with only a symbolic corpus validation stage."""
     return GeniaOptionErr("embedding-invalid", _map(stage=symbol(stage)))
 
 
 def _validate_index_corpus(value: Any) -> tuple[str, int] | GeniaOptionErr:
+    """Check a nonempty embedded-chunk list and return common (space, dims).
+
+    Protected input, wrong list shape and wrong embedded-chunk keys raise
+    TypeError. Invalid chunk/vector/dimension/space checks that complete
+    return diagnostic Outcomes; conflicting corpus dimensions or spaces
+    return index-embedding-incompatible. Finite int/float vectors exclude
+    booleans; math.isfinite can raise OverflowError for enormous host ints.
+    Validation neither copies inputs nor calls a provider.
+    """
     if contains_protected(value):
         raise TypeError("protected-value: index-input")
     if not isinstance(value, list) or not value:
@@ -637,6 +654,13 @@ def _validate_index_corpus(value: Any) -> tuple[str, int] | GeniaOptionErr:
 
 
 def _valid_index_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
+    """Recognize only the closed indexing-provider failure Outcomes.
+
+    Require matching configured timeout milliseconds, a nonnegative integer
+    retry-after Some or exact unavailable-retry None, or an allowed symbolic
+    rejection/transport kind. Unknown reasons and malformed contexts fail
+    validation; no raw exception text is consumed.
+    """
     context = value.context
     if value.reason == "index-timeout":
         return (
@@ -672,14 +696,26 @@ def _valid_index_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
 
 
 class _FixtureIndexResult:
+    """Host-only successful-index observation wrapping an uninterpreted backend ref.
+
+    The indexer converts this wrapper to an opaque compatibility-bearing handle;
+    the wrapper itself is not a Genia-visible value or a persistence API.
+    """
     __slots__ = ("backend_ref",)
 
     def __init__(self, backend_ref: Any):
+        """Retain the supplied backend reference unchanged, without validating or copying it."""
         self.backend_ref = backend_ref
 
 
 class GeniaIndexHandle:
-    """Opaque host-produced index compatibility handle."""
+    """Opaque index handle retaining provider identity, embedding compatibility and chunks.
+
+    Produced by the indexer after validation and a successful fixture attempt.
+    Backend refs and chunk references remain host-owned details; this carrier
+    adds no IO, persistence or cleanup protocol. Comparison, hashing and copying
+    raise TypeError, and rendering exposes only an opaque marker.
+    """
 
     __slots__ = (
         "__backend_ref",
@@ -697,6 +733,11 @@ class GeniaIndexHandle:
         backend_ref: Any,
         corpus_chunks: tuple[Any, ...],
     ):
+        """Capture compatibility identity, space, dims, backend ref and corpus tuple.
+
+        This internal constructor trusts the indexer validation and retains refs
+        without deep copying. It acquires no backend resource or provider authority.
+        """
         self.__compatibility_identity = compatibility_identity
         self.__space = space
         self.__dims = dims
@@ -704,40 +745,64 @@ class GeniaIndexHandle:
         self.__corpus_chunks = corpus_chunks
 
     def __eq__(self, other: object) -> bool:
+        """Reject equality comparison with TypeError, regardless of the other operand."""
         raise TypeError("index handles cannot be compared")
 
     def __hash__(self) -> int:
+        """Reject hashing with TypeError; handles are not ordinary map keys."""
         raise TypeError("index handles cannot be hashed")
 
     def __copy__(self) -> Any:
+        """Reject shallow copying with TypeError; no duplicate handle is created."""
         raise TypeError("index handles cannot be copied")
 
     def __deepcopy__(self, memo: Any) -> Any:
+        """Reject deep copying with TypeError without traversing the supplied memo."""
         raise TypeError("index handles cannot be copied")
 
     def __repr__(self) -> str:
+        """Return an opaque index-handle marker without revealing backend or corpus."""
         return "<index-handle>"
 
 
 class GeniaIndexProvider:
-    """Opaque Python-host deterministic indexing capability."""
+    """Explicit opaque Python-reference-host fixture capability for one indexing attempt.
+
+    Owns a unique pairing identity and attempted-call counter. Handler execution
+    is synchronous; no retry, timeout timer or network adapter is implemented here.
+    """
 
     __slots__ = ("_compatibility_identity", "_handler", "_attempt_count")
 
     def __init__(self, handler: Callable[[GeniaMap, list[Any], str], Any]):
+        """Capture the host handler, start counting at zero and allocate pairing identity.
+
+        The fixture factory validates callability; construction never invokes it.
+        """
         self._handler = handler
         self._attempt_count = 0
         self._compatibility_identity = object()
 
     @property
     def attempt_count(self) -> int:
+        """Return handler attempts, including attempts whose handler raised."""
         return self._attempt_count
 
     def _attempt(self, config: GeniaMap, corpus: list[Any], credential: str) -> Any:
+        """Count and invoke the handler once with original config/corpus and revealed secret.
+
+        Return the observation unchanged; exceptions are normalized by the indexer.
+        This hook supplies no retry, timer or backend resource management.
+        """
         self._attempt_count += 1
         return self._handler(config, corpus, credential)
 
     def _handle_is_compatible_for_test(self, handle: Any, space: str, dims: int) -> bool:
+        """Check handle type, this exact provider identity, space and dimensions.
+
+        Python fixture evidence hook only: return False on mismatch; do not inspect
+        backend contents, attempt retrieval or establish cross-host compatibility.
+        """
         return (
             isinstance(handle, GeniaIndexHandle)
             and handle._GeniaIndexHandle__compatibility_identity is self._compatibility_identity
@@ -746,16 +811,26 @@ class GeniaIndexProvider:
         )
 
     def _backend_ref_for_test(self, handle: Any) -> Any:
+        """Expose a handle backend ref to Python fixture tests without copying it.
+
+        Require only handle type, raising TypeError otherwise; this hook does not
+        check that the handle belongs to this provider and is not source-visible.
+        """
         if not isinstance(handle, GeniaIndexHandle):
             raise TypeError("expected index handle")
         return handle._GeniaIndexHandle__backend_ref
 
     def __repr__(self) -> str:
+        """Return an opaque index-provider marker without exposing handler or identity."""
         return "<index-provider>"
 
 
 class GeniaIndexer:
-    """Ordinary one-argument indexing callable."""
+    """Ordinary one-argument index callable over a captured Python fixture capability.
+
+    Construction is inert; invocation validates the corpus before declassification
+    and one provider attempt. See __call__ for Outcome versus exception boundaries.
+    """
 
     __slots__ = ("_authority", "_config", "_credential", "_provider")
 
@@ -766,12 +841,27 @@ class GeniaIndexer:
         credential: GeniaProtected,
         authority: GeniaDeclassificationAuthority,
     ):
+        """Capture provider, config, protected credential and authority without activation.
+
+        Use construct_index for public validation. Neither reveal the secret nor
+        inspect the corpus or invoke the provider during capture.
+        """
         self._provider = provider
         self._config = config
         self._credential = credential
         self._authority = authority
 
     def __call__(self, corpus: Any) -> Any:
+        """Validate a corpus, declassify its credential, then make one indexing attempt.
+
+        Pre-attempt validation and authority errors can propagate; invalid corpus
+        content may return an Outcome. A revealed non-string credential raises
+        TypeError. Handler exceptions become index-transport-failure(other), valid
+        provider errors pass through, and malformed observations become
+        index-response-invalid. Context-free Some(_FixtureIndexResult) produces
+        some(handle) carrying provider identity, validated space/dims and a tuple
+        of chunk references in corpus order; no deep copy, retry or timer is added.
+        """
         validated = _validate_index_corpus(corpus)
         if isinstance(validated, GeniaOptionErr):
             return validated
@@ -804,18 +894,29 @@ class GeniaIndexer:
         )
 
     def __repr__(self) -> str:
+        """Render as an ordinary function without revealing captured credentials or provider."""
         return "<function>"
 
 
 def create_fixture_index_provider(
     handler: Callable[[GeniaMap, list[Any], str], Any],
 ) -> GeniaIndexProvider:
+    """Create an explicit opaque Python-host indexing fixture from a callable handler.
+
+    Raise TypeError for non-callable handlers. Pure Genia source cannot mint
+    this capability; construction performs no indexing or network IO.
+    """
     if not callable(handler):
         raise TypeError("fixture index provider expected a callable handler")
     return GeniaIndexProvider(handler)
 
 
 def create_fixture_index_result(backend_ref: Any) -> _FixtureIndexResult:
+    """Wrap an arbitrary backend reference as a successful Python fixture observation.
+
+    Retain the reference unchanged without indexing, validation or resource
+    acquisition; the indexer requires this wrapper inside a context-free Some.
+    """
     return _FixtureIndexResult(backend_ref)
 
 
@@ -825,6 +926,13 @@ def construct_index(
     credential: Any,
     authority: Any,
 ) -> GeniaIndexer:
+    """Validate the four index/4 arguments and return an inert indexing callable.
+
+    Require an opaque index provider, valid closed config, protected credential
+    and declassification authority; misuse raises TypeError. Credential payload
+    and authority applicability are checked only at invocation. No corpus,
+    secret revelation, provider call or backend ownership is acquired here.
+    """
     if not isinstance(provider, GeniaIndexProvider):
         raise TypeError(
             "index expected an index provider capability, "
