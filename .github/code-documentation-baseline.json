@@ -1881,7 +1881,6 @@
     "tests/doc/test_semantic_doc_sync.py::binding::CountingStdin.__next__": "a39c9439b1914be427b7c68c9b3916012babfda95a147fdfe302197056d22ca6",
     "tests/doc/test_semantic_doc_sync.py::binding::normalize": "e0b14ae235ff2f6c326084a13d63c24c71ddc9fe86dcfe7298aacd2a1f0ee8d9",
     "tests/doc/test_semantic_doc_sync.py::binding::read_text": "ec912cb0b2147de1f9749347f1a289a5eca41769fe671dc7620d72aba1e7323f",
-    "tests/doc/test_semantic_doc_sync.py::module::<module>": "59cdee8ff0a0b015609028aabf91cab971cea3e13958885f23d5f59de212fb9a",
     "tests/doc/test_seq_contract_docs.py::binding::assert_contains_all": "99f26f2ac0df95af54d972707c125b732cb3d033e5a77376b6c55408e9493e05",
     "tests/doc/test_seq_contract_docs.py::binding::normalize": "e0b14ae235ff2f6c326084a13d63c24c71ddc9fe86dcfe7298aacd2a1f0ee8d9",
     "tests/doc/test_seq_contract_docs.py::binding::read_text": "ec912cb0b2147de1f9749347f1a289a5eca41769fe671dc7620d72aba1e7323f",

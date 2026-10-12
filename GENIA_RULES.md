@@ -718,7 +718,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - views add no cache, fallback, precedence, default, conversion, Template validation, ambient lookup, named access, syntax, Core IR, lifecycle binding, or host capability; misuse diagnostics must not expose captured or requested names, identity, purpose, or values.
 - `protected_match("secret", value)` returns `some(value)` with the exact protected subject; ordinary/non-secret values return `none("representation-mismatch")`; other facets are runtime misuse.
 - generic `represent`, `representation_match`, and `strip_representation` must reject the reserved `secret` facet.
-- protected equality uses provider identity, purpose, and carried-value equality without revealing them; protected values must not be map keys.
+- Protected equality observes carrier identity only: aliases of the same carrier compare equal, while independently acquired carriers compare unequal even with the same provider/purpose and equal payloads. Ordinary equality never compares protected payloads; protected values must not be map keys.
 - transport preserves exact protected leaves without tainting containers; unsupported ordinary derivation uses existing type failure.
 - diagnostic renderers recursively substitute exactly `<protected>`; this redaction does not authorize output.
 - Format replacements, output sinks, JSON encoding, Sheet CSV rendering, resource writes, HTTP responses, and ordinary host conversion must reject recursively before effects; `json_encode` returns `err("protected-value", {operation: "json-encode"})`.

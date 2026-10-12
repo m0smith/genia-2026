@@ -1,3 +1,8 @@
+"""Guard maintained documentation against current semantic facts and contradictions.
+
+These text/registry checks complement executable runtime evidence; passing them
+does not establish semantic completeness or cross-host conformance.
+"""
 from __future__ import annotations
 
 import json
@@ -91,6 +96,61 @@ def test_authoritative_docs_capture_the_one_equality_relation() -> None:
         assert "not user-overloadable" in lowered or "non-user-overloadable" in lowered, (
             f"{label} must state that == is not user-overloadable"
         )
+
+
+def _assert_protected_equality_truth(text: str, label: str) -> None:
+    """Reject payload-comparing protected claims even beside valid identity wording.
+
+    Reuse the existing R18 semantic fact; inspect whole maintained surfaces so
+    a correct central equality section cannot mask a stale configuration section.
+    This bounded wording guard does not attempt general natural-language proof.
+    """
+    normalized = normalize(text)
+    forbidden = (
+        r"protected(?:-value)? equality (?:uses|follows) [^.]{0,180}"
+        r"(?:provider identity|carried-value equality|payload equality)",
+        r"equality between two protected values [^.]{0,180}"
+        r"follows (?:carried-value|payload) equality",
+    )
+    for claim in forbidden:
+        assert re.search(claim, normalized) is None, (
+            f"{label} contains obsolete protected payload/provider equality"
+        )
+    fact_clause = "protected equality observes carrier identity only"
+    assert fact_clause in normalize(FACTS["r18_equality_relation"])
+    assert re.search(
+        r"(?:protected(?:-value)? equality observes|protected carriers compare|"
+        r"equality between two protected values (?:is permitted and )?observes) "
+        r"carrier identity only",
+        normalized,
+    ), f"{label} must retain the existing R18 carrier-identity-only contract"
+
+
+@pytest.mark.parametrize(
+    "relpath",
+    ("GENIA_STATE.md", "GENIA_RULES.md",
+     "docs/design/r10-configuration-protected-value-contract.md"),
+)
+def test_maintained_protected_equality_claims_match_r18(relpath: str) -> None:
+    """Guard current STATE/RULES/R10 truth without rewriting historical provenance."""
+    _assert_protected_equality_truth(read_text(relpath), relpath)
+
+
+@pytest.mark.parametrize(
+    "obsolete",
+    (
+        "protected equality uses provider identity, purpose, and carried-value "
+        "equality without revealing them",
+        "Equality between two protected values is permitted and follows carried-value\n"
+        "  equality without exposing either payload",
+        "protected-value equality follows payload equality",
+    ),
+)
+def test_protected_equality_guard_rejects_restored_stale_claim(obsolete: str) -> None:
+    """A correct identity sentence cannot offset a restored obsolete claim."""
+    current = "Protected equality observes carrier identity only."
+    with pytest.raises(AssertionError, match="obsolete protected payload/provider equality"):
+        _assert_protected_equality_truth(current + "\n" + obsolete, "mutation fixture")
 
 
 def test_authoritative_docs_capture_pipeline_option_contract() -> None:
