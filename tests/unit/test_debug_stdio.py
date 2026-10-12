@@ -1,6 +1,14 @@
+"""Python stdio debugger observations, including pre-isolation F2 scope views.
+
+Globals currently show the shared root even for a module-declared function.
+These host-tool observations must not be mistaken for future D3 unit visibility.
+"""
+
 import io
 import json
 from pathlib import Path
+
+import pytest
 
 from genia.interpreter import run_debug_stdio
 
@@ -126,3 +134,100 @@ def test_output_event_is_emitted(tmp_path: Path):
     assert code == 0
     outputs = [event for event in events if event.get("event") == "output"]
     assert outputs and outputs[0]["output"] == "hello\n"
+
+
+@pytest.mark.parametrize("origin", ["entry", "module", "module_nested"])
+def test_function_globals_are_shared_root_and_locals_are_frame_bindings(tmp_path: Path, origin):
+    """Pin root globals across entry, module and nested module call frames."""
+    body = "probe(parameter) = {\n  local_marker = parameter\n  local_marker\n}\n"
+    if origin == "entry":
+        source = "entry_marker = 17\n" + body + "probe(23)\n"
+        stop_file = tmp_path / "program.genia"
+        stop_line = 3
+    else:
+        stop_file = tmp_path / "scope_fixture.genia"
+        if origin == "module":
+            module_source = "module_marker = 41\n" + body
+            invocation = "scope_fixture.probe(23)\n"
+            stop_line = 3
+        else:
+            module_source = (
+                "module_marker = 41\n"
+                "probe(parameter, captured) = {\n"
+                "  local_marker = parameter\n"
+                "  local_marker + captured\n"
+                "}\n"
+                "wrapper(captured) = {\n"
+                "  result = probe(23, captured)\n"
+                "  result\n"
+                "}\n"
+            )
+            invocation = "scope_fixture.wrapper(11)\n"
+            stop_line = 3
+        stop_file.write_text(module_source, encoding="utf-8")
+        source = "entry_marker = 17\nimport scope_fixture\n" + invocation
+
+    code, events, stderr = run_session(tmp_path, source, [
+        {"command": "setBreakpoints", "breakpoints": [{"file": str(stop_file.resolve()), "line": stop_line}]},
+        {"command": "continue"},
+        {"command": "stackTrace"},
+        {"command": "variables", "scope": "locals"},
+        {"command": "variables", "scope": "globals"},
+        {"command": "disconnect"},
+    ])
+
+    assert code == 0, stderr
+    assert stderr == ""
+    stops = stopped_events(events)
+    assert stops[-1]["reason"] == "breakpoint"
+    assert Path(stops[-1]["file"]).resolve() == stop_file.resolve()
+    assert stops[-1]["line"] == stop_line
+    stack = next(event for event in events if event.get("responseTo") == "stackTrace")
+    assert stack["frames"][0]["name"] == "probe"
+    assert stack["frames"][0]["id"] == stops[-1]["frameId"]
+    assert stack["frames"][0]["id"] != stack["frames"][-1]["id"]
+    locals_response, globals_response = [event for event in events if event.get("responseTo") == "variables"]
+    expected_locals = [{"name": "parameter", "value": "23", "type": "number"}]
+    if origin == "module_nested":
+        expected_locals.insert(0, {"name": "captured", "value": "11", "type": "number"})
+        assert [frame["name"] for frame in stack["frames"][:2]] == ["probe", "wrapper"]
+    assert locals_response["variables"] == expected_locals
+    globals_rows = globals_response["variables"]
+    assert [row["name"] for row in globals_rows] == sorted(row["name"] for row in globals_rows)
+    globals_by_name = {row["name"]: row for row in globals_rows}
+    assert globals_by_name["entry_marker"] == {"name": "entry_marker", "value": "17", "type": "number"}
+    assert {"stdout", "stderr", "doc", "meta", "help"} <= globals_by_name.keys()
+    assert {"parameter", "local_marker", "module_marker", "captured"}.isdisjoint(globals_by_name)
+    if origin == "entry":
+        assert globals_by_name["probe"]["type"] == "function"
+    else:
+        assert "scope_fixture" in globals_by_name
+        assert {"probe", "wrapper"}.isdisjoint(globals_by_name)
+
+
+def test_prelude_frame_globals_include_entry_bindings_after_autoload(tmp_path: Path):
+    """Prelude inspection currently shares root globals; locals stay in its frame."""
+    source = "entry_marker = 17\ncount([1, 2])\n"
+    code, events, stderr = run_session(tmp_path, source, [
+        {"command": "setBreakpoints", "breakpoints": [{"file": str((tmp_path / "program.genia").resolve()), "line": 2}]},
+        {"command": "continue"},
+        {"command": "stepIn"},
+        {"command": "stackTrace"},
+        {"command": "variables", "scope": "locals"},
+        {"command": "variables", "scope": "globals"},
+        {"command": "disconnect"},
+    ])
+    assert code == 0
+    assert stderr == ""
+    assert stopped_events(events)[-1]["reason"] == "step"
+    assert "std/prelude/list.genia" in stopped_events(events)[-1]["file"]
+    stack = next(event for event in events if event.get("responseTo") == "stackTrace")
+    assert stack["frames"][0]["name"] == "count"
+    locals_response, globals_response = [event for event in events if event.get("responseTo") == "variables"]
+    locals_by_name = {row["name"]: row for row in locals_response["variables"]}
+    assert "entry_marker" not in locals_by_name
+    assert any(row["value"] == "[1, 2]" for row in locals_by_name.values())
+    globals_by_name = {row["name"]: row for row in globals_response["variables"]}
+    assert globals_by_name["entry_marker"]["value"] == "17"
+    assert globals_by_name["count"]["type"] == "function"
+    assert locals_by_name.keys().isdisjoint(globals_by_name)

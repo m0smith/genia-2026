@@ -2101,7 +2101,6 @@
     "tests/unit/test_debug_foundation.py::module::<module>": "2bc3d210e6368b6b8f42805e28a0184d76771932e0361e8ac863c532263e2d76",
     "tests/unit/test_debug_stdio.py::binding::run_session": "f6b1a8660ee2e074647746376738895f06b413bbdb18f1d03ff6bad4e19351c2",
     "tests/unit/test_debug_stdio.py::binding::stopped_events": "7c4d7129362e98b6d42ece5f2e9276ecba32dde13fa9e05196d6c6cf306dde46",
-    "tests/unit/test_debug_stdio.py::module::<module>": "f4fd725332eef02e353ffe506e4d3240409335db33cb3c2a7bd824268ebc122b",
     "tests/unit/test_declassification.py::binding::_assert_no_secret": "1f6982f09bcf436c4a66831194c86ddb22296f5dd1e7616f6c4956a7baad8b79",
     "tests/unit/test_declassification.py::binding::_provider_and_token": "a62463749877d6d37e16b49648855ef69f5e1953690d32d930b0675a1845e526",
     "tests/unit/test_declassification.py::binding::test_audit_failure_fails_closed_and_authority_factory_is_not_source_visible.broken_audit": "810865cf3f4d0d221bf4babd7401a2acb70a309707fd9a42ca50e5b17aed38f0",
