@@ -384,7 +384,9 @@ def _validate_embedding(value: Any, configured_space: str) -> tuple[list[Any], i
 
     Require a nonempty finite int/float vector excluding booleans, matching
     positive integer dimensions, and the exact configured space string.
-    Invalid members return stage-specific embed-response-invalid Outcomes.
+    Shape/member checks that complete return stage-specific
+    embed-response-invalid Outcomes. Host numeric validation exceptions can
+    propagate: math.isfinite may raise OverflowError for an enormous host int.
     This does not calculate vectors or infer compatibility from dimension alone.
     """
     if not isinstance(value, GeniaMap) or _keys(value) != {"dims", "space", "vector"}:
