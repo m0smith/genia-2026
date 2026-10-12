@@ -160,6 +160,13 @@ Two clauses with the same dispatch key in one unit are duplicates under
 section 6 even when they were declared in different runs. No contribution
 declaration can replace or discard another.
 
+`use` binds the view under the interface's name in the current module like any
+other binding. If that name already held an ordinary function in the module, the
+binding is replaced and nothing is diagnosed. This is the behavior at the time
+of writing, recorded as an explicit compatibility decision rather than a
+guarantee; changing it would reject programs that run today and needs its own
+approved rule.
+
 Selecting the same contribution unit for the same target more than once is a
 duplicate-selection error, including selection through two aliases of one
 cached module. Selecting a unit for a different interface, a closed function,
@@ -340,7 +347,24 @@ R20 requires these portable semantic diagnostic identities and parameters:
 Lists of shapes and provenance are sorted by the portable provenance ordering;
 argument values use Genia safe debug rendering. Raw host object identities,
 exception text, unordered-map iteration, absolute path accidents, and protected
-payloads must not appear. E20's failing error specs must pin the exact CLI text
+payloads must not appear.
+
+**Content, not wording.** A diagnostic's identity and the context named above
+are the contract; its English wording is host-local, and hosts need not match
+each other's prose. Each diagnostic must nonetheless carry its context
+accurately and must never describe the wrong cause. In particular:
+
+- a source span names the source label of the entry program or the module
+  identity of an imported module, plus the line; a filesystem path of an
+  imported module is never a span;
+- a call whose argument count matches no clause shape (`no-matching-function`)
+  names the interface, the call arity, and the available shapes, as the
+  existing ordinary-function diagnostic does;
+- declaring an interface over a name that already holds something else is
+  `open-function-redeclaration` and says which: an open interface, an ordinary
+  function, or a non-function value; and
+- defining an ordinary function over a name bound to a linked open view says
+  that the name holds an open interface view, not a non-function value. E20's failing error specs must pin the exact CLI text
 before runtime implementation; the identities and parameter order above are
 already contractual.
 
