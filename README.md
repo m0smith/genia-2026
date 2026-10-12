@@ -939,6 +939,10 @@ gcd(48, 18)
   function, a linked view, or an ordinary function) are proper tail calls, so
   mutual recursion across them runs in constant stack space on the Python
   reference host
+- interface documentation and metadata go on the `open` declaration with
+  `@doc`/`@meta` (for example `@doc "Counts things."` before `open f(0) = ...`);
+  repeated clauses, `extend`, and `use` cannot carry annotations, and a string
+  after `=` is always the clause body
 - see `docs/design/r20-open-functions-contract.md` and `GENIA_STATE.md`
   section 4.7 for the full semantics, diagnostics, and known limitations of
   this Experimental release
