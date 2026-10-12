@@ -950,6 +950,12 @@ _RETRIEVE_ERROR_KINDS = _EMBED_ERROR_KINDS
 
 
 def _validate_retrieve_config(value: Any) -> GeniaMap:
+    """Validate closed {id, timeout_ms} config and return the original map.
+
+    Require nonempty string id and non-boolean integer milliseconds in
+    1..300000; invalid input raises TypeError before provider activation.
+    The reused shape guard keeps its existing embed-prefixed diagnostics.
+    """
     config = _embed_closed_map(value, {"id", "timeout_ms"}, "config")
     if not isinstance(config.get("id"), str) or config.get("id") == "":
         raise TypeError("retrieve expected config id to be a non-empty string")
@@ -967,6 +973,13 @@ def _validate_retrieve_config(value: Any) -> GeniaMap:
 
 
 def _validate_query_embedding(value: Any) -> tuple[str, int]:
+    """Validate an explicit closed query embedding and return (space, dims).
+
+    Protected input, empty text, wrong shapes, nonfinite int/float vectors,
+    boolean components and mismatched dimensions raise TypeError when their
+    checks complete. math.isfinite can raise OverflowError on enormous host
+    ints. No query embedding is calculated and no provider is invoked.
+    """
     if contains_protected(value):
         raise TypeError("protected-value: retrieve-input")
     query = _embed_closed_map(value, {"embedding", "text"}, "query embedding")
@@ -1003,10 +1016,18 @@ def _validate_query_embedding(value: Any) -> tuple[str, int]:
 
 
 def _retrieve_invalid(stage: str) -> GeniaOptionErr:
+    """Return retrieve-response-invalid with a symbolic stage, not raw provider data."""
     return GeniaOptionErr("retrieve-response-invalid", _map(stage=symbol(stage)))
 
 
 def _valid_retrieve_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
+    """Recognize closed provider failure Outcomes with concern-specific contexts.
+
+    Timeout must match configured milliseconds. Rate limiting requires
+    some(nonnegative integer) or exact unavailable-retry absence. Rejection
+    and transport failures require an allowed symbolic kind; malformed
+    contexts and unknown reasons fail this predicate.
+    """
     context = value.context
     if value.reason == "retrieve-timeout":
         return (
@@ -1042,14 +1063,24 @@ def _valid_retrieve_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
 
 
 class _FixtureRetrieveResult:
+    """Python-host observation wrapper retaining unvalidated evidence results.
+
+    The retriever validates this payload before producing ordinary evidence;
+    the wrapper alone does not establish order, scores or indexed provenance.
+    """
     __slots__ = ("results",)
 
     def __init__(self, results: Any):
+        """Retain results unchanged; shape and provenance are checked by the retriever."""
         self.results = results
 
 
 class GeniaRetrieveProvider:
-    """Opaque Python-host deterministic retrieval capability."""
+    """Explicit opaque Python-host fixture paired with one indexing-provider identity.
+
+    Runs a supplied synchronous retrieval handler; this carrier adds no implicit
+    embedding, network adapter, retries or runtime timeout timer.
+    """
 
     __slots__ = ("_attempt_count", "_compatibility_identity", "_handler")
 
@@ -1058,12 +1089,18 @@ class GeniaRetrieveProvider:
         compatibility_identity: object,
         handler: Callable[[GeniaMap, Any, GeniaMap, int, str], Any],
     ):
+        """Capture pairing identity and handler, initializing the attempt count to zero.
+
+        The fixture factory validates the index-provider/handler arguments.
+        Construction performs no lookup, authority use or provider call.
+        """
         self._compatibility_identity = compatibility_identity
         self._handler = handler
         self._attempt_count = 0
 
     @property
     def attempt_count(self) -> int:
+        """Return handler attempts including calls whose handler raised exceptions."""
         return self._attempt_count
 
     def _attempt(
@@ -1074,15 +1111,25 @@ class GeniaRetrieveProvider:
         k: int,
         credential: str,
     ) -> Any:
+        """Count and call the handler once with config, backend ref, query, k and secret.
+
+        Pass arguments and observation through unchanged; exceptions reach the
+        retriever attempt normalizer. No retry or timeout enforcement occurs here.
+        """
         self._attempt_count += 1
         return self._handler(config, backend_ref, query, k, credential)
 
     def __repr__(self) -> str:
+        """Render an opaque provider marker without exposing handler or pairing identity."""
         return "<retrieve-provider>"
 
 
 class GeniaRetriever:
-    """Ordinary three-argument retrieval callable."""
+    """Ordinary handle/query/k callable preserving exact indexed evidence occurrences.
+
+    Captures an explicit Python fixture capability; see __call__ for validation,
+    compatibility, authority, failure and absence boundaries.
+    """
 
     __slots__ = ("_authority", "_config", "_credential", "_provider")
 
@@ -1093,12 +1140,33 @@ class GeniaRetriever:
         credential: GeniaProtected,
         authority: GeniaDeclassificationAuthority,
     ):
+        """Capture provider/config/protected credential/authority without activation.
+
+        Use construct_retrieve for public argument validation; no secret revelation
+        or provider attempt occurs during capture.
+        """
         self._provider = provider
         self._config = config
         self._credential = credential
         self._authority = authority
 
     def __call__(self, handle: Any, query: Any, k: Any) -> Any:
+        """Validate explicit query embedding, k and handle before one authorized attempt.
+
+        Require integer k in 1..1000 excluding booleans. Query/k/handle misuse
+        raises; pairing identity, space or dimension mismatches return respective
+        compatibility errors before declassification. Authority failures and
+        non-string revealed credentials raise directly. Handler exceptions become
+        retrieve-transport-failure(other); recognized provider errors pass through.
+        Context-free Some(_FixtureRetrieveResult) must contain at most k closed
+        chunk/score results. Preserve provider order and finite backend-native
+        scores; match each chunk to one unused equal indexed occurrence and
+        return the exact indexed chunk reference, retaining text/source/metadata.
+        Malformed observations yield stage-specific errors where validation
+        completes; later host validation exceptions may propagate. Empty valid
+        results return none("retrieval-no-results"). No implicit embedding,
+        score sorting, citation policy, retry or timer is added.
+        """
         space, dims = _validate_query_embedding(query)
         if isinstance(k, bool) or not isinstance(k, int) or k < 1 or k > 1000:
             raise TypeError("retrieve expected k to be an integer in 1..1000")
@@ -1177,6 +1245,7 @@ class GeniaRetriever:
         return GeniaOptionSome(normalized)
 
     def __repr__(self) -> str:
+        """Render as an ordinary function without exposing authority or credentials."""
         return "<function>"
 
 
@@ -1184,6 +1253,12 @@ def create_fixture_retrieve_provider(
     index_provider: Any,
     handler: Callable[[GeniaMap, Any, GeniaMap, int, str], Any],
 ) -> GeniaRetrieveProvider:
+    """Create a Python-host retrieval fixture paired to an explicit index provider.
+
+    Require GeniaIndexProvider and callable handler or raise TypeError. Share
+    that provider exact pairing identity, allowing its compatible handles;
+    source cannot mint this capability. No handler attempt occurs here.
+    """
     if not isinstance(index_provider, GeniaIndexProvider):
         raise TypeError("fixture retrieve provider expected an index provider")
     if not callable(handler):
@@ -1192,6 +1267,11 @@ def create_fixture_retrieve_provider(
 
 
 def create_fixture_retrieve_result(results: Any) -> _FixtureRetrieveResult:
+    """Wrap results unchanged as a Python-host observation for later validation.
+
+    This factory does not check evidence, limit, score or provenance and does
+    not itself produce a successful Genia-visible retrieval Outcome.
+    """
     return _FixtureRetrieveResult(results)
 
 
@@ -1201,6 +1281,13 @@ def construct_retrieve(
     credential: Any,
     authority: Any,
 ) -> GeniaRetriever:
+    """Validate retrieve/4 arguments and return an inert three-argument callable.
+
+    Require opaque retrieve provider, valid closed config, protected credential
+    and declassification authority, raising TypeError on misuse. Query/handle
+    compatibility and authority applicability are checked at invocation; no
+    backend access or secret revelation happens during construction.
+    """
     if not isinstance(provider, GeniaRetrieveProvider):
         raise TypeError(
             "retrieve expected a retrieve provider capability, "
