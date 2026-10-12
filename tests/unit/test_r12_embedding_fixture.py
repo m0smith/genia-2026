@@ -64,7 +64,7 @@ def _env(handler):
         "}}]) |> unwrap_or(none)",
         env,
     )
-    env.set("provider_fixture", provider)
+    env.set_host("provider_fixture", provider, visibility="entry-only")
     credential = run_source(
         f'secret_get(provider_fixture, "{KEY}", quote(embed_call)) |> unwrap_or(none)',
         env,
@@ -74,9 +74,9 @@ def _env(handler):
         provider, [symbol("embed_call")], audits.append
     )
     fixture = create_fixture_embed_provider(handler)
-    env.set("embed_provider_fixture", fixture)
-    env.set("embed_credential_fixture", credential)
-    env.set("embed_authority_fixture", authority)
+    env.set_host("embed_provider_fixture", fixture, visibility="entry-only")
+    env.set_host("embed_credential_fixture", credential, visibility="entry-only")
+    env.set_host("embed_authority_fixture", authority, visibility="entry-only")
     return env, fixture, audits
 
 
@@ -120,7 +120,7 @@ def test_chunk_embedding_preserves_exact_chunk_and_metadata_identity():
     env, fixture, audits = _env(
         lambda _config, _input, _credential: GeniaOptionSome(_chunk_response(chunk))
     )
-    env.set("chunk_fixture", chunk)
+    env.set_host("chunk_fixture", chunk, visibility="entry-only")
 
     result = run_source(
         _source("{kind: quote(chunk), chunk: chunk_fixture}"), env
@@ -205,7 +205,7 @@ def test_protected_ordinary_input_is_rejected_without_attempt():
     env, fixture, audits = _env(
         lambda _config, _input, _credential: GeniaOptionSome(_query_response())
     )
-    env.set("protected_text_fixture", env.get("embed_credential_fixture"))
+    env.set_host("protected_text_fixture", env.get("embed_credential_fixture"), visibility="entry-only")
     with pytest.raises(TypeError, match="protected-value: embed-input"):
         run_source(
             _source("{kind: quote(query), text: protected_text_fixture}"), env
@@ -318,12 +318,12 @@ def test_authority_mismatch_prevents_attempt():
         lambda _config, _input, _credential: GeniaOptionSome(_query_response())
     )
     provider = env.get("provider_fixture")
-    env.set(
+    env.set_host(
         "embed_authority_fixture",
         create_declassification_authority(
             provider, [symbol("model_call")], audits.append
         ),
-    )
+     visibility="entry-only")
     with pytest.raises(TypeError, match="authority does not permit"):
         run_source(_source(QUERY_SOURCE), env)
     assert fixture.attempt_count == 0

@@ -57,7 +57,7 @@ def _env(transport, *, purpose="model_call", authority_provider=None):
 
 def _set(env, **values):
     for key, value in values.items():
-        env.set(key, value)
+        env.set_host(key, value, visibility="entry-only")
     return env
 
 

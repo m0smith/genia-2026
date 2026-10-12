@@ -82,8 +82,8 @@ def test_matching_authority_declassifies_at_fixture_boundary_and_returns_ordinar
         )
         or "accepted",
     )
-    env.set("authority_fixture", authority)
-    env.set("outbound_fixture", outbound)
+    env.set_host("authority_fixture", authority, visibility="entry-only")
+    env.set_host("outbound_fixture", outbound, visibility="entry-only")
 
     result = run_source(
         "authorized_outbound(authority_fixture, provider, fixture_records)", env
@@ -112,13 +112,13 @@ def test_authority_mismatch_is_non_revealing_and_prevents_outbound_call(mismatch
     authority = create_declassification_authority(
         authority_provider, [symbol(allowed_purpose)], events.append
     )
-    env.set("authority_fixture", authority)
-    env.set(
+    env.set_host("authority_fixture", authority, visibility="entry-only")
+    env.set_host(
         "outbound_fixture",
         _wrap_python_host_callable(
             "fixture", "validated_outbound", lambda *_args: calls.append(True)
         ),
-    )
+     visibility="entry-only")
 
     with pytest.raises(TypeError, match="does not permit protected value") as excinfo:
         run_source(
@@ -134,12 +134,12 @@ def test_authority_mismatch_is_non_revealing_and_prevents_outbound_call(mismatch
 def test_protected_host_submission_and_provider_failure_are_effect_free_and_normalized():
     env, _ = _load_example()
     calls = []
-    env.set(
+    env.set_host(
         "rejecting_fixture",
         _wrap_python_host_callable(
             "fixture", "reject_protected", lambda *_args: calls.append(True)
         ),
-    )
+     visibility="entry-only")
 
     with pytest.raises(TypeError, match="protected-value") as excinfo:
         run_source(

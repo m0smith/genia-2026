@@ -52,7 +52,7 @@ def _env(handler, *, matching_authority=True):
         "}}]) |> unwrap_or(none)",
         env,
     )
-    env.set("pipeline_config_provider_fixture", provider)
+    env.set_host("pipeline_config_provider_fixture", provider, visibility="entry-only")
     credential = run_source(
         f'secret_get(pipeline_config_provider_fixture, "{KEY}", quote(model_call)) '
         "|> unwrap_or(none)",
@@ -70,9 +70,9 @@ def _env(handler, *, matching_authority=True):
         authority_provider, [symbol("model_call")], audits.append
     )
     fixture = create_fixture_model_provider(handler)
-    env.set("model_provider_fixture", fixture)
-    env.set("model_credential_fixture", credential)
-    env.set("model_authority_fixture", authority)
+    env.set_host("model_provider_fixture", fixture, visibility="entry-only")
+    env.set_host("model_credential_fixture", credential, visibility="entry-only")
+    env.set_host("model_authority_fixture", authority, visibility="entry-only")
     return env, fixture, audits
 
 

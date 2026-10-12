@@ -158,7 +158,7 @@ def _inject_authority(env):
     authority = create_declassification_authority(
         env.get("provider"), [symbol(PURPOSE)], audits.append
     )
-    env.set("authority_fixture", GeniaOptionSome(authority))
+    env.set_host("authority_fixture", GeniaOptionSome(authority), visibility="entry-only")
     return audits
 
 

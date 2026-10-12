@@ -24,7 +24,7 @@ def _env_with_protected(*, stdout=None, stderr=None):
         f'secret_get(provider, "{KEY}", quote({PURPOSE})) |> unwrap_or(none)',
         env,
     )
-    env.set("protected_fixture", protected)
+    env.set_host("protected_fixture", protected, visibility="entry-only")
     return env, protected
 
 
@@ -113,7 +113,7 @@ def test_sheet_csv_rejects_with_structural_position_only():
 def test_resource_write_rejects_before_creating_or_writing_file(tmp_path):
     target = tmp_path / "protected.txt"
     env, _ = _env_with_protected()
-    env.set("target_path", str(target))
+    env.set_host("target_path", str(target), visibility="entry-only")
 
     result = run_source(
         'import resource as res\n'

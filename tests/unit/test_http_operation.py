@@ -310,7 +310,7 @@ def test_http_operation_reports_the_first_invalid_field_in_declared_order():
 def test_http_operation_protected_header_redacts_under_display_and_debug():
     provider = GeniaConfigProvider(({"API_KEY": "super-secret-value"},))
     env = make_global_env([])
-    env.set("provider", provider)
+    env.set_host("provider", provider, visibility="entry-only")
     src = """
     key = unwrap_or(none, secret_get(provider, "API_KEY", quote(http_send)))
     op = http_operation(quote(get), "https://api.example.com", "/v1/things", {authorization: key}, {}, none("no-body"))

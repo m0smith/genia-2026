@@ -76,16 +76,16 @@ def _fixture_env(result):
         provider, [symbol("model_call")], audits.append
     )
     fixture = create_fixture_model_provider(lambda config, request, secret: result)
-    env.set("provider_fixture", provider)
-    env.set("model_provider_fixture", fixture)
-    env.set("model_credential_fixture", credential)
-    env.set("model_authority_fixture", authority)
+    env.set_host("provider_fixture", provider, visibility="entry-only")
+    env.set_host("model_provider_fixture", fixture, visibility="entry-only")
+    env.set_host("model_credential_fixture", credential, visibility="entry-only")
+    env.set_host("model_authority_fixture", authority, visibility="entry-only")
     return env, fixture, audits
 
 
 def _env_with(env, **values):
     for key, value in values.items():
-        env.set(key, value)
+        env.set_host(key, value, visibility="entry-only")
     return env
 
 
@@ -184,7 +184,7 @@ def test_fixture_exception_becomes_non_sensitive_transport_failure_once():
         raise RuntimeError(f"provider exploded {KEY} {PAYLOAD}")
 
     fixture = create_fixture_model_provider(fail)
-    env.set("model_provider_fixture", fixture)
+    env.set_host("model_provider_fixture", fixture, visibility="entry-only")
     result = run_source(_model_source(VALID_REQUEST_SOURCE), env)
     assert format_display(result) == 'err("model-transport-failure", {kind: other})'
     assert fixture.attempt_count == 1

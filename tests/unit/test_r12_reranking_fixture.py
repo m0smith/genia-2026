@@ -50,7 +50,7 @@ def _env(handler):
         "}}]) |> unwrap_or(none)",
         env,
     )
-    env.set("config_provider_fixture", config_provider)
+    env.set_host("config_provider_fixture", config_provider, visibility="entry-only")
     credential = run_source(
         f'secret_get(config_provider_fixture, "{KEY}", quote(rerank_call)) |> unwrap_or(none)',
         env,
@@ -60,9 +60,9 @@ def _env(handler):
         config_provider, [symbol("rerank_call")], audits.append
     )
     provider = create_fixture_rerank_provider(handler)
-    env.set("rerank_provider_fixture", provider)
-    env.set("rerank_credential_fixture", credential)
-    env.set("rerank_authority_fixture", authority)
+    env.set_host("rerank_provider_fixture", provider, visibility="entry-only")
+    env.set_host("rerank_credential_fixture", credential, visibility="entry-only")
+    env.set_host("rerank_authority_fixture", authority, visibility="entry-only")
     return env, provider, audits
 
 
@@ -92,7 +92,7 @@ def test_success_reorders_and_rescores_exact_chunks_once():
         )
 
     env, provider, audits = _env(handler)
-    env.set("evidence_fixture", evidence)
+    env.set_host("evidence_fixture", evidence, visibility="entry-only")
     result = run_source(_source(), env)
 
     assert isinstance(result, GeniaOptionSome)
@@ -123,7 +123,7 @@ def test_repeated_exact_chunk_occurrences_preserve_multiplicity():
     env, provider, audits = _env(
         lambda *_args: GeniaOptionSome(create_fixture_rerank_result(output))
     )
-    env.set("evidence_fixture", evidence)
+    env.set_host("evidence_fixture", evidence, visibility="entry-only")
     result = run_source(_source(), env)
     assert isinstance(result, GeniaOptionSome)
     assert [item.get("chunk") for item in result.value] == [repeated, repeated, other]
@@ -133,7 +133,7 @@ def test_repeated_exact_chunk_occurrences_preserve_multiplicity():
 
 def test_empty_valid_evidence_short_paths_without_declassification_or_attempt():
     env, provider, audits = _env(lambda *_args: pytest.fail("must not attempt"))
-    env.set("evidence_fixture", [])
+    env.set_host("evidence_fixture", [], visibility="entry-only")
     result = run_source(_source(), env)
     assert isinstance(result, GeniaOptionSome) and result.value == []
     assert provider.attempt_count == 0
@@ -167,7 +167,7 @@ def test_constructor_is_inert_and_capability_is_opaque():
 )
 def test_invalid_constructor_config_is_inert(config, message):
     env, provider, audits = _env(lambda *_args: None)
-    env.set("evidence_fixture", [])
+    env.set_host("evidence_fixture", [], visibility="entry-only")
     with pytest.raises(TypeError, match=message):
         run_source(_source(config=config), env)
     assert provider.attempt_count == 0
@@ -187,7 +187,7 @@ def test_invalid_constructor_config_is_inert(config, message):
 )
 def test_invalid_invocation_precedes_declassification(query, evidence, message):
     env, provider, audits = _env(lambda *_args: None)
-    env.set("valid_chunk_fixture", _chunk())
+    env.set_host("valid_chunk_fixture", _chunk(), visibility="entry-only")
     with pytest.raises(TypeError, match=message):
         run_source(_source(query=query, evidence=evidence), env)
     assert provider.attempt_count == 0
@@ -196,7 +196,7 @@ def test_invalid_invocation_precedes_declassification(query, evidence, message):
 
 def test_protected_evidence_is_rejected_before_attempt():
     env, provider, audits = _env(lambda *_args: None)
-    env.set("protected_fixture", env.get("rerank_credential_fixture"))
+    env.set_host("protected_fixture", env.get("rerank_credential_fixture"), visibility="entry-only")
     with pytest.raises(TypeError, match="protected-value: rerank-input"):
         run_source(_source(evidence="[protected_fixture]"), env)
     assert provider.attempt_count == 0
@@ -235,7 +235,7 @@ def test_protected_evidence_is_rejected_before_attempt():
 )
 def test_exact_provider_errors_are_preserved(observation, expected):
     env, provider, audits = _env(lambda *_args: observation)
-    env.set("evidence_fixture", [_retrieved(_chunk(), 0.5)])
+    env.set_host("evidence_fixture", [_retrieved(_chunk(), 0.5)], visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == expected
     assert provider.attempt_count == 1
@@ -265,7 +265,7 @@ def _success(results):
 def test_malformed_or_non_preserving_success_is_result_invalid(make_results):
     chunk = _chunk()
     env, provider, audits = _env(lambda *_args: _success(make_results(chunk)))
-    env.set("evidence_fixture", [_retrieved(chunk, 0.5)])
+    env.set_host("evidence_fixture", [_retrieved(chunk, 0.5)], visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == (
         'err("rerank-response-invalid", {stage: result})'
@@ -286,7 +286,7 @@ def test_malformed_or_non_preserving_success_is_result_invalid(make_results):
 )
 def test_malformed_observation_is_provider_response_invalid(observation):
     env, provider, audits = _env(lambda *_args: observation)
-    env.set("evidence_fixture", [_retrieved(_chunk(), 0.5)])
+    env.set_host("evidence_fixture", [_retrieved(_chunk(), 0.5)], visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == (
         'err("rerank-response-invalid", {stage: provider_response})'
@@ -302,7 +302,7 @@ def test_provider_exception_is_transport_failure_without_retry_or_leak():
         raise RuntimeError(f"provider exploded {KEY} {PAYLOAD} {CONFIG_ID}")
 
     env, provider, audits = _env(fail)
-    env.set("evidence_fixture", [_retrieved(_chunk(), 0.5)])
+    env.set_host("evidence_fixture", [_retrieved(_chunk(), 0.5)], visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == (
         'err("rerank-transport-failure", {kind: other})'
@@ -315,14 +315,14 @@ def test_provider_exception_is_transport_failure_without_retry_or_leak():
 
 def test_authority_mismatch_prevents_attempt():
     env, provider, audits = _env(lambda *_args: None)
-    env.set("evidence_fixture", [_retrieved(_chunk(), 0.5)])
+    env.set_host("evidence_fixture", [_retrieved(_chunk(), 0.5)], visibility="entry-only")
     config_provider = env.get("config_provider_fixture")
-    env.set(
+    env.set_host(
         "rerank_authority_fixture",
         create_declassification_authority(
             config_provider, [symbol("retrieve_call")], audits.append
         ),
-    )
+     visibility="entry-only")
     with pytest.raises(TypeError, match="authority does not permit"):
         run_source(_source(), env)
     assert provider.attempt_count == 0

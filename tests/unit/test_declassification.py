@@ -39,8 +39,8 @@ def test_matching_authority_reveals_once_and_records_non_sensitive_success():
     authority = create_declassification_authority(
         provider, [symbol(PURPOSE)], events.append
     )
-    env.set("authority_fixture", authority)
-    env.set("token_fixture", token)
+    env.set_host("authority_fixture", authority, visibility="entry-only")
+    env.set_host("token_fixture", token, visibility="entry-only")
 
     result = run_source("declassify(authority_fixture, token_fixture)", env)
 
@@ -66,8 +66,8 @@ def test_valid_but_mismatched_authority_fails_closed_and_audits(mismatch):
         authority = create_declassification_authority(
             provider, [symbol("different_use")], events.append
         )
-    env.set("authority_fixture", authority)
-    env.set("token_fixture", token)
+    env.set_host("authority_fixture", authority, visibility="entry-only")
+    env.set_host("token_fixture", token, visibility="entry-only")
 
     with pytest.raises(TypeError, match="does not permit protected value") as excinfo:
         run_source("declassify(authority_fixture, token_fixture)", env)
@@ -84,8 +84,8 @@ def test_invalid_authority_and_non_protected_value_are_non_revealing_misuse():
     authority = create_declassification_authority(
         provider, [symbol(PURPOSE)], events.append
     )
-    env.set("token_fixture", token)
-    env.set("authority_fixture", authority)
+    env.set_host("token_fixture", token, visibility="entry-only")
+    env.set_host("authority_fixture", authority, visibility="entry-only")
 
     with pytest.raises(TypeError, match="expected a declassification authority"):
         run_source('declassify("ordinary", token_fixture)', env)
@@ -102,7 +102,7 @@ def test_authority_is_opaque_noncopyable_and_rejected_by_data_boundaries():
     authority = create_declassification_authority(
         provider, [symbol(PURPOSE)], lambda event: None
     )
-    env.set("authority_fixture", authority)
+    env.set_host("authority_fixture", authority, visibility="entry-only")
 
     assert format_display(authority) == "<declassification-authority>"
     assert format_debug(authority) == "<declassification-authority>"
@@ -129,8 +129,8 @@ def test_narrow_host_boundary_receives_only_explicitly_declassified_payload():
     authority = create_declassification_authority(
         provider, [symbol(PURPOSE)], events.append
     )
-    env.set("authority_fixture", authority)
-    env.set("token_fixture", token)
+    env.set_host("authority_fixture", authority, visibility="entry-only")
+    env.set_host("token_fixture", token, visibility="entry-only")
 
     ordinary = run_source("declassify(authority_fixture, token_fixture)", env)
     result = _wrap_python_host_callable(
@@ -152,8 +152,8 @@ def test_audit_failure_fails_closed_and_authority_factory_is_not_source_visible(
     authority = create_declassification_authority(
         provider, [symbol(PURPOSE)], broken_audit
     )
-    env.set("authority_fixture", authority)
-    env.set("token_fixture", token)
+    env.set_host("authority_fixture", authority, visibility="entry-only")
+    env.set_host("token_fixture", token, visibility="entry-only")
 
     with pytest.raises(RuntimeError, match="audit unavailable") as excinfo:
         run_source("declassify(authority_fixture, token_fixture)", env)

@@ -109,18 +109,18 @@ def test_matching_authority_reveals_and_attempts_once_only_at_injected_boundary(
     provider = env.get("provider")
     audits = []
     calls = []
-    env.set(
+    env.set_host(
         "authority_fixture",
         create_declassification_authority(provider, [symbol(PURPOSE)], audits.append),
-    )
-    env.set(
+     visibility="entry-only")
+    env.set_host(
         "outbound_fixture",
         _wrap_python_host_callable(
             "fixture",
             "r13_outbound",
             lambda *args: calls.append(args) or "accepted",
         ),
-    )
+     visibility="entry-only")
 
     result = run_source(
         "authorized_outbound(authority_fixture, provider, fixture_records)", env
@@ -145,16 +145,16 @@ def test_authority_mismatch_is_non_revealing_and_prevents_outbound(mismatch):
     purpose = PURPOSE if mismatch == "provider" else "different_purpose"
     audits = []
     calls = []
-    env.set(
+    env.set_host(
         "authority_fixture",
         create_declassification_authority(authority_provider, [symbol(purpose)], audits.append),
-    )
-    env.set(
+     visibility="entry-only")
+    env.set_host(
         "outbound_fixture",
         _wrap_python_host_callable(
             "fixture", "r13_outbound", lambda *_args: calls.append(True)
         ),
-    )
+     visibility="entry-only")
 
     with pytest.raises(TypeError, match="does not permit protected value") as excinfo:
         run_source("authorized_outbound(authority_fixture, provider, fixture_records)", env)
@@ -181,12 +181,12 @@ def test_provider_failure_and_protected_direct_submission_are_effect_free():
 
     env, _, _ = _env()
     _load(env)
-    env.set(
+    env.set_host(
         "rejecting_fixture",
         _wrap_python_host_callable(
             "fixture", "reject_protected", lambda *_args: calls.append(True)
         ),
-    )
+     visibility="entry-only")
     with pytest.raises(TypeError, match="protected-value") as excinfo:
         run_source("rejecting_fixture(protected_credential(provider) |> unwrap_or(none))", env)
     assert calls == []

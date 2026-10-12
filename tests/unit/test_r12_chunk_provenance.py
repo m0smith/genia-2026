@@ -22,8 +22,8 @@ def _document(text="hello", *, meta=None):
 
 def _run_with_chunker(chunker, document=None):
     env = make_global_env([])
-    env.set("chunker_fixture", chunker)
-    env.set("document_fixture", document if document is not None else _document())
+    env.set_host("chunker_fixture", chunker, visibility="entry-only")
+    env.set_host("document_fixture", document if document is not None else _document(), visibility="entry-only")
     return run_source("chunk(chunker_fixture, document_fixture)", env)
 
 
