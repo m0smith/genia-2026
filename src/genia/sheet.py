@@ -11,6 +11,10 @@ from .configuration import contains_declassification_authority, contains_protect
 
 
 def _sheet_error(message: str) -> TypeError:
+    """Construct a TypeError marked to retain its diagnostic through pipeline handling.
+
+    Return rather than raise it; callers supply already-safe diagnostic text.
+    """
     exc = TypeError(message)
     setattr(exc, "_genia_preserve_pipeline_error", True)
     return exc
@@ -18,23 +22,43 @@ def _sheet_error(message: str) -> TypeError:
 
 @dataclass(frozen=True)
 class GeniaSheet:
+    """Frozen Python container for ordered columns, tuple cell sequences and row count.
+
+    LANGUAGE CONTRACT: Sheet transformations return new values without changing
+    source rows/columns; stored values and their ordinary identity are preserved.
+    PYTHON REFERENCE HOST: freezing is shallow. Cells/names remain references;
+    direct host construction does not validate names, lengths or row_count.
+    Callers must supply validated column tuples and a consistent nonnegative count.
+    Use public construction helpers rather than treating this as a validating API.
+    """
     columns: tuple[tuple[Any, tuple[Any, ...]], ...]
     row_count: int
 
     @property
     def column_names(self) -> tuple[Any, ...]:
+        """Return a fresh tuple of exact column-name references in stored order."""
         return tuple(name for name, _ in self.columns)
 
     @property
     def column_count(self) -> int:
+        """Return stored column count without validating cell lengths or row_count."""
         return len(self.columns)
 
     @property
     def name_to_values(self) -> dict[Any, tuple[Any, ...]]:
+        """Build a fresh canonical-name dictionary sharing stored value tuples.
+
+        Use Genia map-key identity, not host raw-name equality; canonicalization errors
+        propagate. Valid Sheets have unique names; direct invalid storage is not repaired.
+        """
         return {_freeze_column_name(name): values for name, values in self.columns}
 
 
 def _display_column_name(name: Any) -> str:
+    """Render symbols by name and strings verbatim for existing column diagnostics.
+
+    Other values use repr; callers first validate names through the legal-key boundary.
+    """
     if isinstance(name, GeniaSymbol):
         return name.name
     if isinstance(name, str):
@@ -80,12 +104,26 @@ def _freeze_column_name(name: Any) -> Any:
 
 
 def _ensure_sheet(value: Any, operation: str) -> GeniaSheet:
+    """Return the same Sheet instance or raise marked operation-specific TypeError.
+
+    Check host type only; do not revalidate direct-host column storage.
+    """
     if not isinstance(value, GeniaSheet):
         raise _sheet_error(f"{operation} expected a Sheet")
     return value
 
 
 def make_sheet(columns_value: Any) -> GeniaSheet:
+    """Validate a list of [name, values] pairs and build a new ordered Sheet.
+
+    Reject recursively detected declassification authority before shape validation.
+    Names use legal Genia map-key identity and must be unique; values must be lists
+    of equal length. Raise marked TypeError on malformed shape, duplicates or lengths;
+    name-key failures follow _freeze_column_name, including protected-name rejection.
+    Copy outer column/value lists into tuples while retaining exact name/cell references;
+    protected cells remain opaque stored leaves. Empty columns yield zero rows/columns.
+    No cell coercion, callback, IO or mutation of input containers occurs.
+    """
     if contains_declassification_authority(columns_value):
         raise _sheet_error("declassification authority cannot be stored in a Sheet")
     if not isinstance(columns_value, list):
@@ -120,16 +158,26 @@ def make_sheet(columns_value: Any) -> GeniaSheet:
 
 
 def sheet_shape(sheet_value: Any) -> list[list[Any]]:
+    """Return fresh [[rows symbol, row_count], [columns symbol, column_count]] lists.
+
+    Require a Sheet; misuse raises marked TypeError without consuming or changing it.
+    """
     sheet = _ensure_sheet(sheet_value, "shape")
     return [[symbol("rows"), sheet.row_count], [symbol("columns"), sheet.column_count]]
 
 
 def sheet_columns(sheet_value: Any) -> list[Any]:
+    """Return a fresh list of exact names in Sheet column order; non-Sheet raises TypeError."""
     sheet = _ensure_sheet(sheet_value, "columns")
     return list(sheet.column_names)
 
 
 def sheet_rows(sheet_value: Any) -> list[list[list[Any]]]:
+    """Materialize fresh ordered row lists containing fresh [name, cell] pairs.
+
+    Require a Sheet; retain exact name/cell references and row/column order.
+    Zero-column storage yields one empty row per retained row_count. No coercion or IO.
+    """
     sheet = _ensure_sheet(sheet_value, "rows")
     return [
         [[name, values[index]] for name, values in sheet.columns]
@@ -138,6 +186,14 @@ def sheet_rows(sheet_value: Any) -> list[list[list[Any]]]:
 
 
 def row_get_value(row_value: Any, column_name: Any) -> Any:
+    """Return the first Genia-equal named cell from a list of [name, value] pairs.
+
+    Validate row type and target name, then entries only until the first match.
+    A later malformed/duplicate entry after success is not inspected. Name
+    canonicalization failures propagate; malformed visited entry or missing name
+    raises Sheet TypeError with existing index/name diagnostic. Return exact cell
+    without copying, unwrapping Outcomes or requiring a Sheet.
+    """
     if not isinstance(row_value, list):
         raise _sheet_error("row_get expected a row (list of [name, value] pairs)")
 
@@ -156,6 +212,13 @@ def row_get_value(row_value: Any, column_name: Any) -> Any:
 
 
 def sheet_select(names_value: Any, sheet_value: Any) -> GeniaSheet:
+    """Build a Sheet sharing requested columns in requested name order.
+
+    Require Sheet and list of unique legal names; canonical identity resolves each
+    lookup and missing/duplicate names raise Sheet TypeError. Retain requested name
+    references and original value tuples/count; selecting [] preserves row_count
+    even though the new Sheet has zero columns. Source is not mutated.
+    """
     sheet = _ensure_sheet(sheet_value, "select")
     if not isinstance(names_value, list):
         raise _sheet_error("select expected a list of column names")
@@ -176,6 +239,14 @@ def sheet_select(names_value: Any, sheet_value: Any) -> GeniaSheet:
 
 
 def sheet_where(predicate: Any, sheet_value: Any, invoke: Callable[[Any, list[Any]], Any]) -> GeniaSheet:
+    """Eagerly filter rows in order using one invocation per row and a strict boolean.
+
+    Require Sheet/callable predicate; invoke receives (predicate, [fresh row]).
+    Non-bool result raises marked TypeError; callback failures propagate and no
+    partial Sheet is returned, though callback effects are not rolled back.
+    Return new column tuples with exact kept cells and original names/order.
+    No rows means no callbacks; source storage is not mutated.
+    """
     sheet = _ensure_sheet(sheet_value, "where")
     if not callable(predicate):
         raise _sheet_error("where expected a function")
@@ -197,6 +268,15 @@ def sheet_where(predicate: Any, sheet_value: Any, invoke: Callable[[Any, list[An
 
 
 def sheet_derive(name: Any, function: Any, sheet_value: Any, invoke: Callable[[Any, list[Any]], Any]) -> GeniaSheet:
+    """Eagerly append one new legal-name column from one callback invocation per row.
+
+    Require Sheet/callable and a name absent under Genia column identity, validating
+    these before callbacks. invoke receives (function, [fresh row]); store returned
+    values exactly, including Outcomes, without coercion or unwrapping. Existing
+    column tuples/count are shared unchanged. Callback failures propagate with no
+    partial Sheet; callback effects are not rolled back. No rows means no calls.
+    This helper does not re-run make_sheet validation over callback results.
+    """
     sheet = _ensure_sheet(sheet_value, "derive")
     if not callable(function):
         raise _sheet_error("derive expected a function")
@@ -210,6 +290,14 @@ def sheet_derive(name: Any, function: Any, sheet_value: Any, invoke: Callable[[A
 
 
 def _csv_scalar_text(value: Any, location: str) -> str:
+    """Render one CSV scalar, rejecting recursively detected protection first.
+
+    Nil absence renders empty, strings retain content, symbols use names and booleans
+    use true/false. Integer/host float/GeniaDecimal/GeniaRational use existing str
+    rendering; this is report formatting, not a new numeric interchange boundary.
+    Composite/non-nil Outcome/other values raise marked TypeError with supplied
+    structural location and governed runtime type, excluding payload text. No IO.
+    """
     if contains_protected(value):
         raise _sheet_error(f"protected-value: render-csv {location}")
     if _is_nil_none(value):
@@ -228,12 +316,24 @@ def _csv_scalar_text(value: Any, location: str) -> str:
 
 
 def _escape_csv_field(text: str) -> str:
+    """Quote fields containing comma, double quote, CR or LF and double embedded quotes.
+
+    Caller supplies text; otherwise preserve every character, including whitespace.
+    """
     if any(character in text for character in (",", '"', "\n", "\r")):
         return '"' + text.replace('"', '""') + '"'
     return text
 
 
 def render_sheet_csv(sheet_value: Any) -> str:
+    """Return CSV report text in stored column/row order without output or mutation.
+
+    Require Sheet. Zero columns return empty text, regardless of row_count. Otherwise
+    render one header plus every row, comma-separated with LF after every record.
+    Use _csv_scalar_text/escaping, retaining whitespace and rejecting protected or
+    unsupported headers/cells with zero-based structural locations. Raise TypeError
+    without returning partial text; no output sink or implicit Outcome unwrapping.
+    """
     sheet = _ensure_sheet(sheet_value, "render_csv")
     if sheet.column_count == 0:
         return ""
@@ -260,6 +360,17 @@ def render_sheet_csv(sheet_value: Any) -> str:
 
 
 def collect_sheet_records(records: list[Any]) -> GeniaSheet:
+    """Build a Sheet from an already-materialized list of homogeneous GeniaMap records.
+
+    Caller owns Seq validation/consumption and any boundary guards before this helper;
+    this function neither consumes Flow nor delegates to make_sheet. Empty list
+    yields zero rows/columns. First map key order/raw keys define columns; later maps
+    must have the same key set, ignoring their order. Preserve cell references and
+    Outcome field values without coercion/unwrapping; copy structural storage to tuples.
+    Non-map item, missing key or extra key raises marked TypeError with index/name
+    and no partial result. A top-level Outcome is not a map. No input mutation,
+    column union/padding/defaults or independent authority scan occurs here.
+    """
     if not records:
         return GeniaSheet((), 0)
 
