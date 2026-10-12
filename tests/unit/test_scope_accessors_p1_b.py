@@ -16,6 +16,7 @@ class ScopeRecorder(DebugHooks):
     """Retain evaluated scopes to check ownership without changing execution."""
 
     def __init__(self):
+        """Keep separate frame and expression-scope observations for each run."""
         self.frames = []
         self.node_scopes = []
 

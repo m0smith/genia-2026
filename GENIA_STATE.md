@@ -2918,6 +2918,16 @@ Core IR shape currently includes:
   - these optimized nodes are not the minimal Core IR portability contract
 ## 9) Debug/runtime tooling
 
+**PYTHON REFERENCE HOST (internal scope access, no language change):**
+`Env.runtime_scope()` and `Env.entry_scope()` return the existing shared root;
+entry evaluation still creates no child scope. `Env.unit_scope()` returns the
+loaded declaring module's top-level Env or root for entry/prelude, inherited by
+lexical descendants independently of provenance strings. The live owner objects
+retain their bindings and metadata. `Env.inspection_globals_scope()` returns
+root even for module frames, preserving the current debugger compatibility view.
+These Python APIs implement consumer preparation, not module/entry isolation or
+evaluation-bound reflection.
+
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
 - `help(name)` displays named-function metadata when available:
