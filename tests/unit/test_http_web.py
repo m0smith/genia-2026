@@ -69,8 +69,8 @@ def _finish_server(thread: threading.Thread, outcome: dict[str, object]):
 def test_serve_http_plain_text_response():
     port = _free_port()
     env = make_global_env([])
-    env.set("host", "127.0.0.1")
-    env.set("port", port)
+    env.set_host("host", "127.0.0.1", visibility="entry-only")
+    env.set_host("port", port, visibility="entry-only")
 
     source = """
 import web
@@ -102,8 +102,8 @@ serve_http(
 def test_serve_http_json_response_and_request_body_parsing():
     port = _free_port()
     env = make_global_env([])
-    env.set("host", "127.0.0.1")
-    env.set("port", port)
+    env.set_host("host", "127.0.0.1", visibility="entry-only")
+    env.set_host("port", port, visibility="entry-only")
 
     source = """
 import web
@@ -151,8 +151,8 @@ serve_http(
 def test_serve_http_emits_headers_composed_by_with_headers():
     port = _free_port()
     env = make_global_env([])
-    env.set("host", "127.0.0.1")
-    env.set("port", port)
+    env.set_host("host", "127.0.0.1", visibility="entry-only")
+    env.set_host("port", port, visibility="entry-only")
 
     source = """
 import web
@@ -191,8 +191,8 @@ serve_http(
 def test_serve_http_cors_preflight_then_json_request():
     port = _free_port()
     env = make_global_env([])
-    env.set("host", "127.0.0.1")
-    env.set("port", port)
+    env.set_host("host", "127.0.0.1", visibility="entry-only")
+    env.set_host("port", port, visibility="entry-only")
 
     source = """
 import web
@@ -301,8 +301,8 @@ def test_with_headers_validation_stops_at_first_contract_error():
 def test_serve_http_request_map_includes_client_and_raw_text_body():
     port = _free_port()
     env = make_global_env([])
-    env.set("host", "127.0.0.1")
-    env.set("port", port)
+    env.set_host("host", "127.0.0.1", visibility="entry-only")
+    env.set_host("port", port, visibility="entry-only")
 
     source = """
 import web
@@ -352,8 +352,8 @@ serve_http(
 def test_serve_http_json_body_parse_failure_stays_in_request_body_as_absence():
     port = _free_port()
     env = make_global_env([])
-    env.set("host", "127.0.0.1")
-    env.set("port", port)
+    env.set_host("host", "127.0.0.1", visibility="entry-only")
+    env.set_host("port", port, visibility="entry-only")
 
     source = """
 import web
@@ -399,8 +399,8 @@ serve_http(
 def test_serve_http_route_request_returns_not_found_response():
     port = _free_port()
     env = make_global_env([])
-    env.set("host", "127.0.0.1")
-    env.set("port", port)
+    env.set_host("host", "127.0.0.1", visibility="entry-only")
+    env.set_host("port", port, visibility="entry-only")
 
     source = """
 import web
@@ -431,8 +431,8 @@ serve_http(
 def test_serve_http_invalid_handler_result_returns_500():
     port = _free_port()
     env = make_global_env([])
-    env.set("host", "127.0.0.1")
-    env.set("port", port)
+    env.set_host("host", "127.0.0.1", visibility="entry-only")
+    env.set_host("port", port, visibility="entry-only")
 
     source = """
 import web

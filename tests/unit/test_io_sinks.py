@@ -277,7 +277,7 @@ def test_broken_pipe_from_flow_effect_closes_generator_backed_upstream():
         return GeniaFlow(iterator, label="ticks")
 
     env = make_global_env(stdout_stream=BrokenStdout(), stderr_stream=io.StringIO())
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
 
     with pytest.raises(GeniaQuietBrokenPipe):
         run_source("ticks() |> each(print) |> run", env)

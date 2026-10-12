@@ -151,3 +151,15 @@ def test_harness_injection_sites_have_explicit_classes():
             if isinstance(receiver, ast.Name) and receiver.id in {"env", "root"} and node.func.attr in {"set", "set_internal", "register_autoload"}:
                 bypasses.append(f"{path.relative_to(ROOT)}:{node.lineno}:{node.func.attr}")
     assert bypasses == [], "Unclassified harness injections: " + ", ".join(bypasses)
+
+
+def test_protected_worker_bootstrap_keeps_explicit_entry_only_fixture_class():
+    from tests.fixtures.r28_mcp_conformance import PROTECTED_WORKER
+
+    calls = [node for node in ast.walk(ast.parse(PROTECTED_WORKER))
+             if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+             and isinstance(node.func.value, ast.Name) and node.func.value.id == "env"]
+    assert len(calls) == 1
+    assert calls[0].func.attr == "set_host"
+    assert calls[0].args[0].value == "CARRIER"
+    assert next(keyword.value.value for keyword in calls[0].keywords if keyword.arg == "visibility") == "entry-only"

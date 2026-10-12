@@ -1,3 +1,8 @@
+"""Python module loading, alias caching, exports and lexical assignment boundaries.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import pytest
 
 from genia import make_global_env, run_source
@@ -146,7 +151,7 @@ def test_duplicate_import_does_not_re_evaluate_module(tmp_path):
     )
     env = make_global_env([])
     counter = env.get("ref")(0)
-    env.set("counter", counter)
+    env.set_host("counter", counter, visibility="runtime-public")
     result = run_source(
         """
         import counter_mod
@@ -240,7 +245,7 @@ def test_import_disallowed_host_module_arbitrary_name(run):
 def test_module_top_level_assignment_does_not_rebind_root_name(tmp_path):
     (tmp_path / "iso_mod.genia").write_text("x = 99", encoding="utf-8")
     env = make_global_env([])
-    env.set("x", 1)
+    env.set_host("x", 1, visibility="entry-only")
     run_source(
         "import iso_mod",
         env,

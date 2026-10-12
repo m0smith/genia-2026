@@ -1,3 +1,8 @@
+"""Prelude autoload paths, missing-file failures and recursion on the Python host.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 import pytest
@@ -80,7 +85,7 @@ def test_autoload_same_file_loads_helper_too():
 
 def test_autoload_missing_file():
     env = make_global_env([])
-    env.register_autoload("ghost", 1, "src/genia/std/prelude/does_not_exist.genia")
+    env.register_host_autoload("ghost", 1, "src/genia/std/prelude/does_not_exist.genia", visibility="runtime-public")
     with pytest.raises(FileNotFoundError):
         run_source("ghost(1)", env)
 
@@ -103,7 +108,7 @@ def test_autoload_mutual_tail_recursion_works(tmp_path: Path):
     )
 
     env = make_global_env([])
-    env.register_autoload("a", 1, str((std / "a.genia").resolve()))
-    env.register_autoload("b", 1, str((std / "b.genia").resolve()))
+    env.register_host_autoload("a", 1, str((std / "a.genia").resolve()), visibility="runtime-public")
+    env.register_host_autoload("b", 1, str((std / "b.genia").resolve()), visibility="runtime-public")
 
     assert run_source("a(5000)", env) == 0
