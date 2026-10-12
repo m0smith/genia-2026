@@ -3445,7 +3445,12 @@ def make_global_env(
             ]
         )
 
-    def help_fn(*args: Any) -> None:
+    def _help_in_scope(lookup_env: Env, *args: Any) -> None:
+        """Render help using explicit lexical lookup while retaining captured runtime catalogue and output sink.
+
+        Accepts zero or one target; string lookup may autoload. Function and
+        runtime-name rendering and misuse errors retain the public help contract.
+        """
         if len(args) > 1:
             raise TypeError(f"help expected 0 or 1 args, got {len(args)}")
         if len(args) == 1:
@@ -3453,10 +3458,10 @@ def make_global_env(
             original_name: str | None = target if isinstance(target, str) else None
             if isinstance(target, str):
                 try:
-                    target = env.get(target)
+                    target = lookup_env.get(target)
                 except NameError:
-                    if env.try_autoload(target, 0):
-                        target = env.get(target)
+                    if lookup_env.try_autoload(target, 0):
+                        target = lookup_env.get(target)
                     else:
                         _emit_help(_describe_missing_help_name(target))
                         return
@@ -3471,24 +3476,27 @@ def make_global_env(
                     target.name,
                     functions={target.arity: target},
                     docstring=target.docstring,
-                    metadata=env.get_metadata(target.name),
+                    metadata=lookup_env.get_metadata(target.name),
                 )
                 _emit_help(_describe_function_group(singleton))
                 return
             if original_name is not None:
-                _emit_help(_describe_runtime_name(original_name, target, env.get_metadata(original_name)))
+                _emit_help(_describe_runtime_name(original_name, target, lookup_env.get_metadata(original_name)))
                 return
             raise TypeError("help expected a function name or named function")
 
         _emit_help(_describe_help_overview())
 
-    def doc_fn(*args: Any) -> Any:
-        """`doc(name)`: the documentation string for the bound name, or `none("missing-doc")`.
+    def help_fn(*args: Any) -> None:
+        """Render help through the legacy root-bound callable and captured output sink."""
+        return _help_in_scope(env, *args)
 
-        Precedence is `@doc` binding metadata, then a function group's legacy
-        docstring; an R20 open interface or linked view reports the interface's
-        own `@doc` (a view reports its base's). Raises TypeError for a wrong
-        argument count or a non-string name. Autoloads a prelude name once.
+    def _doc_in_scope(lookup_env: Env, *args: Any) -> Any:
+        """Resolve documentation in the supplied lexical Env, including autoload.
+
+        Binding metadata precedes legacy docstrings; open interfaces own their
+        docs. Missing documentation returns the existing Outcome; invalid
+        argument count or non-string names raise TypeError.
         """
         if len(args) != 1:
             raise TypeError(f"doc expected 1 arg, got {len(args)}")
@@ -3496,17 +3504,17 @@ def make_global_env(
         if not isinstance(name, str):
             raise TypeError(f"doc expected a string name, received {_runtime_type_name(name)}")
         try:
-            env.get(name)
+            lookup_env.get(name)
         except NameError:
-            if env.try_autoload(name, 0):
-                env.get(name)
+            if lookup_env.try_autoload(name, 0):
+                lookup_env.get(name)
             else:
                 return make_none("missing-doc", GeniaMap().put("name", name))
-        metadata = env.get_metadata(name)
+        metadata = lookup_env.get_metadata(name)
         doc_text = _metadata_doc(metadata)
         if doc_text is not None:
             return doc_text
-        target = env.get(name)
+        target = lookup_env.get(name)
         if isinstance(target, GeniaFunctionGroup) and target.docstring is not None:
             return target.docstring
         if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
@@ -3520,6 +3528,40 @@ def make_global_env(
                 return owner.docstring
         return make_none("missing-doc", GeniaMap().put("name", name))
 
+    def doc_fn(*args: Any) -> Any:
+        """`doc(name)`: the documentation string for the bound name, or `none("missing-doc")`.
+
+        Precedence is `@doc` binding metadata, then a function group's legacy
+        docstring; an R20 open interface or linked view reports the interface's
+        own `@doc` (a view reports its base's). Raises TypeError for a wrong
+        argument count or a non-string name. Autoloads a prelude name once.
+        """
+        return _doc_in_scope(env, *args)
+
+    def _meta_in_scope(lookup_env: Env, *args: Any) -> Any:
+        """Resolve metadata in the supplied lexical Env, including autoload.
+
+        Open views retain interface-owned metadata. Missing names return the
+        existing Outcome; invalid argument count or names raise TypeError.
+        """
+        if len(args) != 1:
+            raise TypeError(f"meta expected 1 arg, got {len(args)}")
+        name = args[0]
+        if not isinstance(name, str):
+            raise TypeError(f"meta expected a string name, received {_runtime_type_name(name)}")
+        try:
+            lookup_env.get(name)
+        except NameError:
+            if lookup_env.try_autoload(name, 0):
+                lookup_env.get(name)
+            else:
+                return make_none("missing-meta", GeniaMap().put("name", name))
+        target = lookup_env.get(name)
+        if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+            # R20 contract 7.2.1: interface metadata is owned by the interface.
+            return (target.base if isinstance(target, GeniaLinkedOpenFunction) else target).metadata
+        return lookup_env.get_metadata(name)
+
     def meta_fn(*args: Any) -> Any:
         """`meta(name)`: the metadata map attached to the bound name, or `none("missing-meta")`.
 
@@ -3528,23 +3570,7 @@ def make_global_env(
         binding metadata. Raises TypeError for a wrong argument count or a
         non-string name. Autoloads a prelude name once.
         """
-        if len(args) != 1:
-            raise TypeError(f"meta expected 1 arg, got {len(args)}")
-        name = args[0]
-        if not isinstance(name, str):
-            raise TypeError(f"meta expected a string name, received {_runtime_type_name(name)}")
-        try:
-            env.get(name)
-        except NameError:
-            if env.try_autoload(name, 0):
-                env.get(name)
-            else:
-                return make_none("missing-meta", GeniaMap().put("name", name))
-        target = env.get(name)
-        if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
-            # R20 contract 7.2.1: interface metadata is owned by the interface.
-            return (target.base if isinstance(target, GeniaLinkedOpenFunction) else target).metadata
-        return env.get_metadata(name)
+        return _meta_in_scope(env, *args)
 
     def ref_fn(*args: Any) -> GeniaRef:
         if len(args) == 0:

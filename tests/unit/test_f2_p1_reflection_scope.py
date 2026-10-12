@@ -52,3 +52,15 @@ def test_reflection_alias_and_module_argument_keep_root_binding(name):
         assert "root documentation" in "".join(outputs)
         assert "child documentation" not in "".join(outputs)
     assert child.get("reflection_alias") is public
+
+
+@pytest.mark.parametrize("name", ["doc", "meta", "help"])
+def test_explicit_lookup_helper_keeps_autoload_runtime_owned(name):
+    root = make_global_env([], output_handler=lambda text: None)
+    child = Env(root)
+    helper = inspect.getclosurevars(root.get(name)).nonlocals[f"_{name}_in_scope"]
+    assert "map_put" not in root.values
+    helper(child, "map_put")
+    assert "map_put" in root.values
+    assert "map_put" not in child.values
+    assert child.get("map_put") is root.get("map_put")

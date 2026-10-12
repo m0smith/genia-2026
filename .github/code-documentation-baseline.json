@@ -844,7 +844,6 @@
     "src/genia/builtins.py::binding::make_global_env.get_fn": "743a727de9294aca4f7bf557bd95f0756744e7fcb87d9342d7169accf283eab3",
     "src/genia/builtins.py::binding::make_global_env.get_option_fn": "15de819019d49e3bf721e1a4c3644b5d467c5cfb2fd172b1f70bbc84a988ece3",
     "src/genia/builtins.py::binding::make_global_env.head_fn": "4178fad3eca6bdd8df6a74e3dc859b9acc7ad2cba1b87b8e8ccd4f6cd552f3b2",
-    "src/genia/builtins.py::binding::make_global_env.help_fn": "b1e283ae56e2e72c0d43c13142d157e814a60125b6721cbd9600a822fba4abc3",
     "src/genia/builtins.py::binding::make_global_env.http_operation_fn": "209f9adef6a9d6d87e71ce07f3daba474b350d0b94e4497aa153568abc9a0ad8",
     "src/genia/builtins.py::binding::make_global_env.http_send_fn": "4c7931067cd6851d48beff3402bfb1f7e485018f5aeefe576fa21e1a66d1d985",
     "src/genia/builtins.py::binding::make_global_env.input_fn": "176925f870287fa746da6aa290e9f2cdc61f8fa9a84f821657dd14d66f38ee65",
