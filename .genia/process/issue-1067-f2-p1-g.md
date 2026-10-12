@@ -16,7 +16,7 @@ assertions inspect R; module aliases/program assignments inspect E. Current E/R
 identity and generated reference output are unchanged.
 
 Verification: 224 fixture/Flow/runtime-presence checks passed; focused consumer,
-module, documentation and MCP suites run separately. Generated reference --check
+module, documentation and MCP suites passed (283 tests). Generated reference --check
 passed. Prelude documentation coverage: 24 files, 286 doc strings, zero errors or
 warnings. Ruff passed for changed tooling and the new gate. An initial invocation
 of lint_doc without --scan-dir exposed the existing missing-argument IndexError;
