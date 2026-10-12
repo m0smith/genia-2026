@@ -1,0 +1,15 @@
+name: r20-open-string-body-is-the-body
+category: eval
+description: R20 a string literal after `=` in an open clause is the clause's executable body, never documentation
+input:
+  source: |
+    open f(0) = "doc"
+
+    [f(0)]
+expected:
+  stdout: "[\"doc\"]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions
