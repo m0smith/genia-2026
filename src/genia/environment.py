@@ -135,6 +135,14 @@ class Env:
             env = env.parent
 
     def define_function(self, fn: Any, *, metadata: GeniaMap | None = None) -> None:
+        """Add the named function `fn` to this scope's function group.
+
+        Creates the group when the name is unbound, otherwise adds a clause to
+        the existing group and merges `metadata`. Raises TypeError when the name
+        already holds something that is not an ordinary function group: an open
+        interface or linked view is named as such, anything else is reported as
+        a non-function value. A duplicate arity shape is rejected by the group.
+        """
         GeniaFunctionGroup = _interpreter_runtime().GeniaFunctionGroup
 
         existing = self.values.get(fn.name)
@@ -146,6 +154,13 @@ class Env:
             self.set(fn.name, group, assignable=True, metadata=group.metadata)
             return
         if not isinstance(existing, GeniaFunctionGroup):
+            from . import callable as _callable
+
+            if isinstance(existing, (_callable.GeniaOpenFunction, _callable.GeniaLinkedOpenFunction)):
+                raise TypeError(
+                    f"Cannot define function {fn.name}/{fn.arity}: name is bound to an open function "
+                    "interface or linked view, which an ordinary definition cannot replace"
+                )
             raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
         if metadata is not None:
             existing.merge_metadata(metadata)

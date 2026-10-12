@@ -456,6 +456,12 @@ Required constraints:
   stratum selected by the call's argument count (`_open_stratum_records`),
   across the base and every selected unit, with the same predicates as an
   ordinary function; clauses of other shapes never affect it (contract §5.2).
+- Open-function diagnostics are specified by identity and context, not
+  wording: a span names the entry source label or an imported module's
+  identity (never a path), an arity miss lists the available shapes, and a
+  redeclaration or ordinary definition names what already holds the name
+  (contract §8). `use` over an ordinary function replaces it undiagnosed, a
+  recorded compatibility decision (contract §4.2).
 - Declaration, import, and `use` are inert with respect to R20-added
   effects: no clause body executes and no lifecycle/resource/network
   activation occurs merely because an `open`/`extend`/`use` statement is

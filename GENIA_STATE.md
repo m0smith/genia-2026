@@ -1061,7 +1061,8 @@ Core IR).
     contribution module's unit for that exact interface, and binds `<name>` in the *current* module to the resulting
     immutable linked view. No wildcard/implicit selection.
   - Ordinary `import` alone never selects a contribution; the base interface
-    and other modules' linked views are unaffected.
+    and other modules' linked views are unaffected. `use` over an
+    ordinary function replaces it undiagnosed (contract §4.2).
   - Interface/contribution identity is the pair (canonical cached module
     name, exported name), the identity `Env.load_module` caches modules under. Import alias, file path, and host object address
     are never part of this identity, so two aliases of the same cached
@@ -1082,9 +1083,9 @@ Core IR).
   the interface name, its declaration span, effective documentation (or "No
   documentation available."), and every participating unit's clauses in
   deterministic order — the base unit first (labelled by its declaring
-  module identity), then each contribution unit by its own, clauses within a unit by lexical ordinal. `doc(name)`
-  returns the interface's documentation, which is missing for an open
-  interface: a string after `=` is always the clause body, not a docstring.
+  module identity), then contribution units by theirs, clauses by lexical ordinal. `doc(name)`
+  reports an open interface's documentation as missing: a string after `=`
+  is the clause body.
   Contribution clauses cannot supply, replace, or erase interface-level
   documentation. No host object or Python representation is exposed.
 - **Diagnostics.** `open-function-redeclaration`,
@@ -1094,8 +1095,9 @@ Core IR).
   `open-function-varargs-ambiguity`, and `open-function-clause-ambiguity` are
   raised as `TypeError` subclasses (`src/genia/callable.py`) with the
   contract parameters; a pattern/shape miss reuses the existing
-  `No matching function` / `No matching case` diagnostic families. Spans
-  render as plain `filename:line`, not a host object repr.
+  `No matching function` (with available shapes) / `No matching case`
+  families. Spans name the entry source label or imported module identity,
+  never a path; wording is host-local (contract §8).
 - **Core IR.** Three new portable node types —
   `IrOpenFuncDef(name, clauses, docstring, annotations)`,
   `IrOpenContribution(target_module_alias, target_name, clauses)`, and
