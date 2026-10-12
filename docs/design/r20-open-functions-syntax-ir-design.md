@@ -313,6 +313,24 @@ an expression follows it. The difference is intentional and unchanged here: movi
 open clauses to the ordinary rule would re-read programs that are valid today.
 `OpenFuncDef.docstring` and `IrOpenFuncDef.docstring` are therefore reserved and
 always absent; no Core IR change is made.
+### 4.3 Diagnostic context (contract §8)
+
+Python-host realization, no Core IR or grammar change:
+
+- `_format_open_span` takes the clause record's declaring module identity
+  (`record.closure.module_identity()`). The entry program (`"<entry>"`) keeps
+  the source label it was given; an imported module renders as
+  `<module identity>:<line>`, so a resolved filesystem path never appears.
+- `OpenFunctionNoMatchingFunctionError` receives the distinct clause shapes the
+  dispatch inspected and renders them in the ordinary-function format
+  (`f/1`, `f/2+`, fixed shapes first).
+- `OpenFunctionRedeclarationError` takes an optional description of the existing
+  binding (open interface, ordinary function, non-function value); the evaluator
+  supplies it when a declaration meets a name that is already bound. The
+  identity prefix is unchanged.
+- `Env.define_function` words its refusal by the existing binding: a linked open
+  view or open interface is named as such instead of "non-function value".
+- `use` over an ordinary function is not diagnosed (compatibility decision).
 
 ## 5. Runtime representation (informative — implemented in E20-3/E20-5)
 
