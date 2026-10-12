@@ -1614,7 +1614,7 @@ All Sheet operations return new Sheet values. Existing Sheet values are never mu
 
 - accepts only a Sheet and performs no I/O; compose the returned string with existing `write` or `writeln` when output is required
 - emits headers in Sheet column order and data records in Sheet row order
-- converts string contents unchanged, symbols to their names, integers/floats to display text, booleans to `true`/`false`, and nil to an empty field; other headers/cells, including non-nil Outcome values and composite values, are runtime misuse errors
+- converts string contents unchanged, symbols to their names, Integer, Decimal, Rational, and Float64 numbers to existing scalar text, booleans to `true`/`false`, and nil to an empty field; other headers/cells, including non-nil Outcome values and composite values, are runtime misuse errors
 - separates fields with `,` and records with `\n`; fields containing comma, double quote, newline, or carriage return are double-quoted and embedded double quotes are doubled; other content, including whitespace, is preserved
 - a zero-column Sheet renders as `""`; a Sheet with columns always includes a header and ends every record, including the final record, with `\n`
 - preserves Sheet immutability and does not make Sheets Seq-compatible or implicitly unwrap Outcome values
@@ -1638,7 +1638,7 @@ Returns `[[rows, 3], [columns, 2]]`.
 Error behavior:
 
 - non-Sheet value passed to a Sheet-only operation: `TypeError`
-- unequal column lengths at construction: `TypeError` with column name
+- unequal column lengths at construction: `TypeError("sheet expected all columns to have equal length")`; no column name is included
 - duplicate column names at construction or in `select`: `TypeError`
 - missing column in `select`: `TypeError` naming the column
 - non-boolean predicate result in `where`: `TypeError`

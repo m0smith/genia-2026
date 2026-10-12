@@ -1731,7 +1731,7 @@ report = collect_sheet(map_get(validated, "clean"))
 - `render_csv(sheet)` returns CSV text for an immutable Sheet and performs no I/O
 - headers use Sheet column order and records use Sheet row order; a non-zero-column result ends every record with `\n`
 - commas, double quotes, newlines, and carriage returns trigger CSV double-quoting; embedded double quotes are doubled and other whitespace is preserved
-- string, symbol, integer, float, boolean, and nil fields are supported; nil is an empty field, while composite and non-nil Outcome fields fail with a zero-based row/column diagnostic
+- string, symbol, Integer, Decimal, Rational, Float64, boolean, and nil fields are supported; numbers use existing scalar text without coercion; nil is an empty field, while composite and non-nil Outcome fields fail with a zero-based row/column diagnostic
 - a zero-column Sheet returns `""`; use existing `write(stdout, render_csv(report))` to emit the result
 
 ```genia
