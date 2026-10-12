@@ -1,0 +1,19 @@
+name: r20-open-meta-annotation-attaches-interface-metadata
+category: eval
+description: R20 contract 7.2.1 a @meta annotation on the open declaration is the interface metadata, and an undecorated open interface has empty metadata
+input:
+  source: |
+    @meta {category: "demo", since: "1.0"}
+    open f(0) = "zero"
+
+    open g(0) = "zero"
+
+    [meta("f"), meta("g")]
+expected:
+  stdout: "[{category: \"demo\", since: \"1.0\"}, {}]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions
+  - doc_help

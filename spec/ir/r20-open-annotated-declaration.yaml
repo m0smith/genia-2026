@@ -1,0 +1,32 @@
+name: r20-open-annotated-declaration
+category: ir
+description: R20 contract 7.2.1 an annotated open declaration lowers to IrOpenFuncDef carrying the annotation list; no new node
+input:
+  source: |
+    @doc "Adds one"
+    open f(0) = 1
+expected:
+  ir:
+    - node: IrOpenFuncDef
+      name: f
+      clauses:
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+              - node: IrPatLiteral
+                value: 0
+          result:
+            node: IrLiteral
+            value:
+              kind: integer
+              digits: "1"
+      annotations:
+        - node: IrAnnotation
+          name: doc
+          value:
+            node: IrLiteral
+            value: Adds one
+
+requires:
+  - open_functions
