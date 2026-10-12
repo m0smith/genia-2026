@@ -123,7 +123,7 @@ Scaffolded or planned, not implemented as hosts:
   evidence and gaps live in `docs/releases/R24.md` through `R27.md`, `spec/known_host_gaps.json`, and the host parity gate.
   - **Numeric subset:** exact-family arithmetic, explicit Float64 conversion/comparison, selected rendering/field-format and strict
     numeric JSON have bounded case evidence; this is not full R22/R23 parity. Resource guards and some misuse/cross-surfaces remain
-    gaps. See [numeric host status](docs/host-interop/numeric-host-status.md) and sections 9.21/9.32.
+    gaps. See [numeric host status](https://github.com/m0smith/genia-2026/blob/main/docs/host-interop/numeric-host-status.md) and sections 9.21/9.32.
   - **Scripted REPL:** one environment retained across complete submissions, normalized failure reporting, recovery; interactive
     prompt/banner/history stays host-local.
   - **Data bridge contract** (`docs/design/r26-cpp-data-bridge-contract.md`): `bytes_utf8` (`utf8_decode` for well-formed UTF-8 only; `<bytes N>`
@@ -3270,7 +3270,7 @@ provenance, in `docs/state-record/numeric-r21-r23-records.md`). Contracts: `docs
 and `docs/design/r22-exact-numeric-runtime-contract.md`; release pages `docs/releases/R21.md` and `R22.md`. Python remains
 the full-language reference host; the later R24 floor implements a bounded C++ numeric subset, not full R22 parity.
 Concrete case evidence and retained resource/misuse/cross-surface gaps are in
-[`numeric host status`](docs/host-interop/numeric-host-status.md). Rendering and JSON are in section 9.32.
+[`numeric host status`](https://github.com/m0smith/genia-2026/blob/main/docs/host-interop/numeric-host-status.md). Rendering and JSON are in section 9.32.
 
 LANGUAGE CONTRACT:
 
@@ -3333,7 +3333,7 @@ provenance, in `docs/state-record/numeric-r21-r23-records.md`). Contract:
 `docs/design/r23-numeric-representation-interchange-contract.md`; audit: `docs/analysis/r23-release-truth-audit.md`; release
 page `docs/releases/R23.md`. R23 is complete on the Python reference host. Later hosts implement only evidenced subsets:
 the bounded C++ R24 numeric rendering/field-format surface and R26 strict JSON bridge are described in
-[`numeric host status`](docs/host-interop/numeric-host-status.md), not full R23 parity. This digest changes no R22
+[`numeric host status`](https://github.com/m0smith/genia-2026/blob/main/docs/host-interop/numeric-host-status.md), not full R23 parity. This digest changes no R22
 arithmetic, equality, or comparison.
 
 LANGUAGE CONTRACT:
