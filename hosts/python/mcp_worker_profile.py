@@ -141,15 +141,15 @@ DENIED_NAMES = frozenset(DENIED_BINDINGS | {name for name, _arity in DENIED_AUTO
 
 def prune_environment(env) -> None:
     """Remove every binding and autoload that is not explicitly allowed."""
-    for name in list(env.values):
+    runtime = env.runtime_scope()
+    for name in list(runtime.values):
         if name not in ALLOWED_BINDINGS:
-            del env.values[name]
-            env.binding_metadata.pop(name, None)
-    root = env.root()
-    for key in list(root.autoloads):
+            del runtime.values[name]
+            runtime.binding_metadata.pop(name, None)
+    for key in list(runtime.autoloads):
         if key not in ALLOWED_AUTOLOADS:
-            del root.autoloads[key]
-            root.trusted_autoloads.discard(key)
+            del runtime.autoloads[key]
+            runtime.trusted_autoloads.discard(key)
 
 
 def policy_violation(nodes) -> bool:

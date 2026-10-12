@@ -343,5 +343,5 @@ def test_fixture_factory_and_global_environment_are_narrow():
         "embed_retry",
         "embed_batch",
     ):
-        assert name not in env.values
-    assert "index" in env.values
+        assert name not in env.runtime_scope().values
+    assert "index" in env.runtime_scope().values

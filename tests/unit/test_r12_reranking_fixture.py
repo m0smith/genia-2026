@@ -335,7 +335,7 @@ def test_fixture_factory_and_global_environment_are_narrow():
     with pytest.raises(TypeError, match="callable handler"):
         create_fixture_rerank_provider(42)
     env = make_global_env([])
-    assert "rerank" in env.values
+    assert "rerank" in env.runtime_scope().values
     for name in (
         "rerank_provider_fixture",
         "rerank_credential_fixture",
@@ -343,4 +343,4 @@ def test_fixture_factory_and_global_environment_are_narrow():
         "rerank_retry",
         "rerank_local",
     ):
-        assert name not in env.values
+        assert name not in env.runtime_scope().values

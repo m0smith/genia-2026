@@ -20,7 +20,7 @@ from genia.values import GeniaFlow, GeniaMap  # noqa: F401 (GeniaMap used in tes
 def _get_ensure_seq_compatible():
     """Obtain the internal _ensure_seq_compatible helper via internal_values."""
     env = make_global_env()
-    root = env.root()
+    root = env.runtime_scope()
     fn = root.internal_values.get("_ensure_seq_compatible")
     assert fn is not None, (
         "_ensure_seq_compatible must be registered via env.set_internal — "
@@ -34,14 +34,14 @@ class TestEnsureSeqCompatibleExists:
 
     def test_ensure_seq_compatible_is_registered_as_internal(self):
         env = make_global_env()
-        root = env.root()
+        root = env.runtime_scope()
         assert "_ensure_seq_compatible" in root.internal_values, (
             "_ensure_seq_compatible must be registered via env.set_internal"
         )
 
     def test_ensure_seq_compatible_is_callable(self):
         env = make_global_env()
-        root = env.root()
+        root = env.runtime_scope()
         fn = root.internal_values.get("_ensure_seq_compatible")
         assert callable(fn), "_ensure_seq_compatible must be a callable"
 
