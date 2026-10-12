@@ -1,0 +1,1662 @@
+{
+  "bindings": {
+    "Format": "runtime-public",
+    "__r18_conformance_test_only_nan": "runtime-public",
+    "_absence_context": "runtime-public",
+    "_absence_meta": "runtime-public",
+    "_absence_reason": "runtime-public",
+    "_actor_call_update": "runtime-public",
+    "_actor_validate_effect": "runtime-public",
+    "_assemble_grounded_answer": "runtime-public",
+    "_assemble_grounded_context": "runtime-public",
+    "_byte_length": "runtime-public",
+    "_cell_alive?": "runtime-public",
+    "_cell_error": "runtime-public",
+    "_cell_failed?": "runtime-public",
+    "_cell_get": "runtime-public",
+    "_cell_new": "runtime-public",
+    "_cell_send": "runtime-public",
+    "_cell_status": "runtime-public",
+    "_cell_stop": "runtime-public",
+    "_cell_with_state": "runtime-public",
+    "_clear_screen": "runtime-public",
+    "_cli_chars": "runtime-public",
+    "_cli_flag?": "runtime-public",
+    "_cli_option": "runtime-public",
+    "_cli_option_or": "runtime-public",
+    "_cli_spec": "runtime-public",
+    "_cli_type_error": "runtime-public",
+    "_cli_value_error": "runtime-public",
+    "_concat": "runtime-public",
+    "_contains": "runtime-public",
+    "_cors": "runtime-public",
+    "_diagnostic_error": "runtime-public",
+    "_diagnostic_skipped": "runtime-public",
+    "_ends_with": "runtime-public",
+    "_err": "runtime-public",
+    "_execution_process": "runtime-public",
+    "_find": "runtime-public",
+    "_flat_map_some": "runtime-public",
+    "_flow?": "runtime-public",
+    "_flow_debug": "runtime-public",
+    "_flush": "runtime-public",
+    "_format": "runtime-public",
+    "_format_compose": "runtime-public",
+    "_get": "runtime-public",
+    "_get?": "runtime-public",
+    "_http_send": "runtime-public",
+    "_is_empty": "runtime-public",
+    "_is_none?": "runtime-public",
+    "_is_some?": "runtime-public",
+    "_join": "runtime-public",
+    "_json_decode": "runtime-public",
+    "_json_encode": "runtime-public",
+    "_json_parse": "runtime-public",
+    "_json_schema": "runtime-public",
+    "_json_stringify": "runtime-public",
+    "_keep_some": "runtime-public",
+    "_keep_some_else": "runtime-public",
+    "_lines": "runtime-public",
+    "_lower": "runtime-public",
+    "_map_count": "runtime-public",
+    "_map_get": "runtime-public",
+    "_map_has?": "runtime-public",
+    "_map_items": "runtime-public",
+    "_map_new": "runtime-public",
+    "_map_put": "runtime-public",
+    "_map_remove": "runtime-public",
+    "_map_some": "runtime-public",
+    "_merge": "runtime-public",
+    "_meta_define": "runtime-public",
+    "_meta_empty_env": "runtime-public",
+    "_meta_eval_error": "runtime-public",
+    "_meta_extend": "runtime-public",
+    "_meta_host_apply": "runtime-public",
+    "_meta_lookup": "runtime-public",
+    "_meta_match_error": "runtime-public",
+    "_meta_match_pattern_env": "runtime-public",
+    "_meta_set": "runtime-public",
+    "_move_cursor": "runtime-public",
+    "_none?": "runtime-public",
+    "_or_else": "runtime-public",
+    "_or_else_with": "runtime-public",
+    "_pairs_error": "runtime-public",
+    "_parse_csv_row": "runtime-public",
+    "_parse_int": "runtime-public",
+    "_parse_jsonl_record": "runtime-public",
+    "_pipe_run": "runtime-public",
+    "_process_alive?": "runtime-public",
+    "_process_error": "runtime-public",
+    "_process_failed?": "runtime-public",
+    "_rand": "runtime-public",
+    "_rand_int": "runtime-public",
+    "_rand_int_seeded": "runtime-public",
+    "_rand_seeded": "runtime-public",
+    "_read_file": "runtime-public",
+    "_reduce_error": "runtime-public",
+    "_ref": "runtime-public",
+    "_ref_get": "runtime-public",
+    "_ref_is_set": "runtime-public",
+    "_ref_set": "runtime-public",
+    "_ref_update": "runtime-public",
+    "_render_grid": "runtime-public",
+    "_resource_capabilities": "runtime-public",
+    "_resource_copy": "runtime-public",
+    "_resource_delete": "runtime-public",
+    "_resource_discover": "runtime-public",
+    "_resource_meta": "runtime-public",
+    "_resource_read_bytes": "runtime-public",
+    "_resource_read_text": "runtime-public",
+    "_resource_write_bytes": "runtime-public",
+    "_resource_write_text": "runtime-public",
+    "_restart_cell": "runtime-public",
+    "_rng": "runtime-public",
+    "_rules_error": "runtime-public",
+    "_rules_kernel": "runtime-public",
+    "_rules_prepare": "runtime-public",
+    "_send": "runtime-public",
+    "_send_annotated": "runtime-public",
+    "_seq_type_error": "runtime-public",
+    "_serve_http": "runtime-public",
+    "_some": "runtime-public",
+    "_some?": "runtime-public",
+    "_spawn": "runtime-public",
+    "_split": "runtime-public",
+    "_split_whitespace": "runtime-public",
+    "_starts_with": "runtime-public",
+    "_sum": "runtime-public",
+    "_syntax_error": "runtime-public",
+    "_syntax_self_evaluating": "runtime-public",
+    "_syntax_symbol_expr": "runtime-public",
+    "_tee": "runtime-public",
+    "_then_find": "runtime-public",
+    "_then_first": "runtime-public",
+    "_then_get": "runtime-public",
+    "_then_nth": "runtime-public",
+    "_trim": "runtime-public",
+    "_trim_end": "runtime-public",
+    "_trim_start": "runtime-public",
+    "_unwrap_or": "runtime-public",
+    "_upper": "runtime-public",
+    "_validate_each": "runtime-public",
+    "_validate_field": "runtime-public",
+    "_validate_optional": "runtime-public",
+    "_validate_record": "runtime-public",
+    "_validate_required": "runtime-public",
+    "_with_headers": "runtime-public",
+    "_write": "runtime-public",
+    "_write_file": "runtime-public",
+    "_writeln": "runtime-public",
+    "_zip": "runtime-public",
+    "_zip_read": "runtime-public",
+    "_zip_write": "runtime-public",
+    "accumulate": "runtime-public",
+    "alternatives": "runtime-public",
+    "apply_raw": "runtime-public",
+    "argv": "runtime-public",
+    "assert_eq": "runtime-public",
+    "assert_true": "runtime-public",
+    "car": "runtime-public",
+    "cdr": "runtime-public",
+    "chunk": "runtime-public",
+    "collect_sheet": "runtime-public",
+    "collect_validated": "runtime-public",
+    "columns": "runtime-public",
+    "config_args": "runtime-public",
+    "config_get": "runtime-public",
+    "config_get_or": "runtime-public",
+    "config_provider": "runtime-public",
+    "config_standard": "runtime-public",
+    "config_view": "runtime-public",
+    "cons": "runtime-public",
+    "debug_repr": "runtime-public",
+    "declassify": "runtime-public",
+    "default_field": "runtime-public",
+    "derive": "runtime-public",
+    "display": "runtime-public",
+    "doc": "runtime-public",
+    "e": "runtime-public",
+    "embed": "runtime-public",
+    "entry_bytes": "runtime-public",
+    "entry_json": "runtime-public",
+    "entry_name": "runtime-public",
+    "exact": "runtime-public",
+    "exact_shape": "runtime-public",
+    "exact_shape_match": "runtime-public",
+    "false": "runtime-public",
+    "float64": "runtime-public",
+    "force": "runtime-public",
+    "format_tag": "runtime-public",
+    "format_template": "runtime-public",
+    "help": "runtime-public",
+    "http_operation": "runtime-public",
+    "index": "runtime-public",
+    "input": "runtime-public",
+    "lifecycle_child": "runtime-public",
+    "lifecycle_config": "runtime-public",
+    "lifecycle_context": "runtime-public",
+    "lifecycle_repeat": "runtime-public",
+    "lifecycle_scope": "runtime-public",
+    "log": "runtime-public",
+    "meta": "runtime-public",
+    "model": "runtime-public",
+    "nil": "runtime-public",
+    "none": "runtime-public",
+    "null?": "runtime-public",
+    "open_shape": "runtime-public",
+    "open_shape_match": "runtime-public",
+    "pair?": "runtime-public",
+    "pi": "runtime-public",
+    "print": "runtime-public",
+    "protected_match": "runtime-public",
+    "rational": "runtime-public",
+    "recursive_template": "runtime-public",
+    "refinement": "runtime-public",
+    "refinement_match": "runtime-public",
+    "render_csv": "runtime-public",
+    "represent": "runtime-public",
+    "representation_match": "runtime-public",
+    "rerank": "runtime-public",
+    "retrieve": "runtime-public",
+    "row_get": "runtime-public",
+    "rows": "runtime-public",
+    "secret_get": "runtime-public",
+    "secret_get_or": "runtime-public",
+    "secret_view": "runtime-public",
+    "select": "runtime-public",
+    "set_entry_bytes": "runtime-public",
+    "shape": "runtime-public",
+    "sheet": "runtime-public",
+    "sleep": "runtime-public",
+    "stderr": "runtime-public",
+    "stdin": "runtime-public",
+    "stdin_keys": "runtime-public",
+    "stdout": "runtime-public",
+    "strip_representation": "runtime-public",
+    "template_description": "runtime-public",
+    "template_schema": "runtime-public",
+    "true": "runtime-public",
+    "update_entry_bytes": "runtime-public",
+    "utf8_decode": "runtime-public",
+    "utf8_encode": "runtime-public",
+    "where": "runtime-public",
+    "zip_entries": "runtime-public"
+  },
+  "internal": {
+    "_as_seq": "runtime-public",
+    "_collect": "runtime-public",
+    "_each": "runtime-public",
+    "_ensure_seq_compatible": "runtime-public",
+    "_evolve": "runtime-public",
+    "_run": "runtime-public",
+    "_scan": "runtime-public",
+    "_seq_reduce": "runtime-public",
+    "_seq_transform": "runtime-public"
+  },
+  "autoloads": [
+    {
+      "name": "abs",
+      "arity": 1,
+      "path": "std/prelude/math.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "absence_context",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "absence_meta",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "absence_reason",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor",
+      "arity": 2,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_alive?",
+      "arity": 1,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_call",
+      "arity": 2,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_error",
+      "arity": 1,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_failed?",
+      "arity": 1,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_restart",
+      "arity": 2,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_send",
+      "arity": 2,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_state",
+      "arity": 1,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_status",
+      "arity": 1,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "actor_stop",
+      "arity": 1,
+      "path": "std/prelude/actor.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "any?",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "append",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "application_expr?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "apply",
+      "arity": 2,
+      "path": "std/prelude/fn.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "as_seq",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "assignment_expr?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "assignment_name",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "assignment_value",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "awk_count",
+      "arity": 2,
+      "path": "std/prelude/awk.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "awk_filter",
+      "arity": 2,
+      "path": "std/prelude/awk.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "awk_map",
+      "arity": 2,
+      "path": "std/prelude/awk.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "awkify",
+      "arity": 2,
+      "path": "std/prelude/awk.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "block_expr?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "block_expressions",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "branch_body",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "branch_guard",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "branch_has_guard?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "branch_pattern",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "byte_length",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_alive?",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_error",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_failed?",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_get",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_send",
+      "arity": 2,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_state",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_status",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_stop",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cell_with_state",
+      "arity": 1,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "clear_screen",
+      "arity": 0,
+      "path": "std/prelude/io.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cli_flag?",
+      "arity": 2,
+      "path": "std/prelude/cli.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cli_option",
+      "arity": 2,
+      "path": "std/prelude/cli.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cli_option_or",
+      "arity": 3,
+      "path": "std/prelude/cli.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cli_parse",
+      "arity": 1,
+      "path": "std/prelude/cli.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "cli_parse",
+      "arity": 2,
+      "path": "std/prelude/cli.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "collect",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "compose",
+      "arity": 1,
+      "path": "std/prelude/fn.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "concat",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "contains",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "count",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "dec",
+      "arity": 1,
+      "path": "std/prelude/math.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "define",
+      "arity": 3,
+      "path": "std/prelude/eval.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "diagnostic_error",
+      "arity": 4,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "diagnostic_field",
+      "arity": 1,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "diagnostic_reason",
+      "arity": 1,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "diagnostic_skipped",
+      "arity": 4,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "drop",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "each",
+      "arity": 2,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "empty?",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "empty_env",
+      "arity": 0,
+      "path": "std/prelude/eval.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "ends_with",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "err",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "eval",
+      "arity": 2,
+      "path": "std/prelude/eval.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "evolve",
+      "arity": 2,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "extend",
+      "arity": 3,
+      "path": "std/prelude/eval.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "fields",
+      "arity": 1,
+      "path": "std/prelude/awk.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "filter",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "find",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "find_opt",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "first",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "first_opt",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "flat_map_some",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "flush",
+      "arity": 1,
+      "path": "std/prelude/io.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "format",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "format_compose",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "get",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "get?",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "head",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "head",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "inc",
+      "arity": 1,
+      "path": "std/prelude/math.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "inspect",
+      "arity": 1,
+      "path": "std/prelude/fn.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "is_empty",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "is_none?",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "is_some?",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "join",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "json_decode",
+      "arity": 1,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "json_encode",
+      "arity": 1,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "json_parse",
+      "arity": 1,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "json_pretty",
+      "arity": 1,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "json_schema",
+      "arity": 1,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "json_stringify",
+      "arity": 1,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "keep_some",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "keep_some",
+      "arity": 2,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "keep_some_else",
+      "arity": 2,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "keep_some_else",
+      "arity": 3,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "lambda_body",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "lambda_expr?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "lambda_params",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "last",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "length",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "lines",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "list",
+      "arity": 0,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "lookup",
+      "arity": 2,
+      "path": "std/prelude/eval.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "lower",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_count",
+      "arity": 1,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_get",
+      "arity": 2,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_has?",
+      "arity": 2,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_item_key",
+      "arity": 1,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_item_value",
+      "arity": 1,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_items",
+      "arity": 1,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_keys",
+      "arity": 1,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_new",
+      "arity": 0,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_put",
+      "arity": 3,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_remove",
+      "arity": 2,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_some",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "map_values",
+      "arity": 1,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "match_branches",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "match_expr?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "max",
+      "arity": 2,
+      "path": "std/prelude/math.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "merge",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "merge",
+      "arity": 2,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "min",
+      "arity": 2,
+      "path": "std/prelude/math.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "mod",
+      "arity": 2,
+      "path": "std/prelude/math.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "move_cursor",
+      "arity": 2,
+      "path": "std/prelude/io.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "nil?",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "none?",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "nth",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "nth_opt",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "operands",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "operator",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "or_else",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "or_else_with",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "pairs",
+      "arity": 2,
+      "path": "std/prelude/map.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "parse_csv_row",
+      "arity": 1,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "parse_csv_row",
+      "arity": 2,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "parse_int",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "parse_int",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "parse_jsonl_record",
+      "arity": 1,
+      "path": "std/prelude/json.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "process_alive?",
+      "arity": 1,
+      "path": "std/prelude/process.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "quasiquoted_expr?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "quoted_expr?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rand",
+      "arity": 0,
+      "path": "std/prelude/random.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rand",
+      "arity": 1,
+      "path": "std/prelude/random.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rand_flow",
+      "arity": 1,
+      "path": "std/prelude/random.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rand_int",
+      "arity": 1,
+      "path": "std/prelude/random.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rand_int",
+      "arity": 2,
+      "path": "std/prelude/random.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rand_int_flow",
+      "arity": 2,
+      "path": "std/prelude/random.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "range",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "range",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "range",
+      "arity": 3,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "read_file",
+      "arity": 1,
+      "path": "std/prelude/file.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "reduce",
+      "arity": 3,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "ref",
+      "arity": 0,
+      "path": "std/prelude/ref.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "ref",
+      "arity": 1,
+      "path": "std/prelude/ref.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "ref_get",
+      "arity": 1,
+      "path": "std/prelude/ref.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "ref_is_set",
+      "arity": 1,
+      "path": "std/prelude/ref.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "ref_set",
+      "arity": 2,
+      "path": "std/prelude/ref.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "ref_update",
+      "arity": 2,
+      "path": "std/prelude/ref.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "refine",
+      "arity": 0,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "render_grid",
+      "arity": 1,
+      "path": "std/prelude/io.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rest",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "restart_cell",
+      "arity": 2,
+      "path": "std/prelude/cell.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "reverse",
+      "arity": 1,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rng",
+      "arity": 1,
+      "path": "std/prelude/random.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rule_ctx",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rule_emit",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rule_emit_many",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rule_halt",
+      "arity": 0,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rule_set",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rule_skip",
+      "arity": 0,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rule_step",
+      "arity": 3,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "rules",
+      "arity": 0,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "run",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "scan",
+      "arity": 2,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "scan",
+      "arity": 3,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "self_evaluating?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "send",
+      "arity": 2,
+      "path": "std/prelude/process.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "set",
+      "arity": 3,
+      "path": "std/prelude/eval.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "some",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "some?",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "spawn",
+      "arity": 1,
+      "path": "std/prelude/process.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "split",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "split_whitespace",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "starts_with",
+      "arity": 2,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "step_ctx",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "step_emit",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "step_emit_many",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "step_halt",
+      "arity": 0,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "step_set",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "step_skip",
+      "arity": 0,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "step_step",
+      "arity": 3,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "stream_cons",
+      "arity": 2,
+      "path": "std/prelude/stream.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "stream_filter",
+      "arity": 2,
+      "path": "std/prelude/stream.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "stream_head",
+      "arity": 1,
+      "path": "std/prelude/stream.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "stream_map",
+      "arity": 2,
+      "path": "std/prelude/stream.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "stream_tail",
+      "arity": 1,
+      "path": "std/prelude/stream.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "stream_take",
+      "arity": 2,
+      "path": "std/prelude/stream.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "sum",
+      "arity": 1,
+      "path": "std/prelude/math.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "symbol_expr?",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "tagged_list?",
+      "arity": 2,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "take",
+      "arity": 2,
+      "path": "std/prelude/list.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "tap",
+      "arity": 2,
+      "path": "std/prelude/fn.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "tee",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "text_of_quotation",
+      "arity": 1,
+      "path": "std/prelude/syntax.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "then_find",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "then_first",
+      "arity": 1,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "then_get",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "then_nth",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "trace",
+      "arity": 2,
+      "path": "std/prelude/fn.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "trim",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "trim_end",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "trim_start",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "unwrap_or",
+      "arity": 2,
+      "path": "std/prelude/option.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "upper",
+      "arity": 1,
+      "path": "std/prelude/string.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "validate_each",
+      "arity": 2,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "validate_field",
+      "arity": 4,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "validate_optional",
+      "arity": 2,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "validate_optional",
+      "arity": 3,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "validate_record",
+      "arity": 2,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "validate_record",
+      "arity": 3,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "validate_required",
+      "arity": 2,
+      "path": "std/prelude/validation.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "write",
+      "arity": 2,
+      "path": "std/prelude/io.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "write_file",
+      "arity": 2,
+      "path": "std/prelude/file.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "writeln",
+      "arity": 2,
+      "path": "std/prelude/io.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "zip",
+      "arity": 1,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "zip",
+      "arity": 2,
+      "path": "std/prelude/flow.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "zip_read",
+      "arity": 1,
+      "path": "std/prelude/file.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "zip_write",
+      "arity": 1,
+      "path": "std/prelude/file.genia",
+      "visibility": "runtime-public"
+    },
+    {
+      "name": "zip_write",
+      "arity": 2,
+      "path": "std/prelude/file.genia",
+      "visibility": "runtime-public"
+    }
+  ]
+}
