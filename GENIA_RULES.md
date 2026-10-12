@@ -462,6 +462,11 @@ Required constraints:
   redeclaration or ordinary definition names what already holds the name
   (contract §8). `use` over an ordinary function replaces it undiagnosed, a
   recorded compatibility decision (contract §4.2).
+- Interface metadata is `@doc`/`@meta` on the `open` declaration only: the
+  interface is its single immutable owner, a duplicate of either is rejected
+  before anything runs, and annotations on repeated, `extend`, or `use`
+  clauses are rejected (contract §7.2.1). `doc`/`meta`/`help` read the
+  interface's own metadata, so a linked view reports its base's.
 - Declaration, import, and `use` are inert with respect to R20-added
   effects: no clause body executes and no lifecycle/resource/network
   activation occurs merely because an `open`/`extend`/`use` statement is

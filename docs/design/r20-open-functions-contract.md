@@ -310,6 +310,49 @@ populated by lowering. Treating any string-then-expression shape as
 documentation would change the meaning of programs that are valid today, so it
 requires its own approved rule and is not implied by this contract.
 
+#### 7.2.1 Interface metadata on the declaration
+
+The only source of interface metadata is the annotation list written
+immediately before the statement that begins with `open`: the interface
+declaration. Exactly two annotations are accepted there, with their ordinary
+meanings and value checks: `@doc` (a string) and `@meta` (a map). `@meta` is how
+category, stability, since, and deprecation facts are attached. Every other
+annotation (`@since`, `@deprecated`, `@category`, `@test`, `@route`, `@server`,
+`@cors`, `@get`, `@post`) is rejected on an open declaration, and so is any
+annotation before a repeated clause, an `extend` clause, or a `use` statement.
+Nothing about this is a docstring: a string after `=` stays the clause body
+(section 7.2 above).
+
+- **One owner.** The interface owns its metadata; clauses, contribution units,
+  and linked views do not. The metadata is fixed when the declaration is
+  evaluated and is immutable afterwards. No later statement in any module can add
+  to, replace, merge into, or erase it.
+- **Duplicates.** At most one `@doc` and at most one `@meta` may annotate one
+  declaration. A second of either is a deterministic error that names the
+  annotation and the interface; it is never resolved by letting the later one win
+  or by merging. This is deliberately stricter than the ordinary-function rule,
+  because the interface, not a clause, is the single authoritative owner.
+- **Order of effect.** Annotation values are evaluated once, in the declaring
+  module, before the interface is bound. A failing annotation leaves the name
+  unbound and the interface undeclared.
+- **Linked views and other modules.** A linked view carries no metadata of its
+  own: `doc`, `meta`, and `help` of a view report the base interface's metadata,
+  wherever the view is bound and however the base was reached (import alias,
+  re-export, or `use`). A contributing module cannot supply or alter it.
+- **No metadata, no change.** An undecorated open interface behaves exactly as
+  before: its documentation is missing and its metadata is the empty map.
+- **Shape of `meta`.** `meta(name)` is the map the same annotations produce on an
+  ordinary function, so a `@doc` string also appears under `doc` and `@meta`
+  entries follow it in annotation order.
+- **Introspection.** `help` shows the interface `@doc` as its effective
+  documentation and the same category/stability/since/deprecated summary lines it
+  shows for an ordinary function. Clause provenance is never part of the metadata.
+
+Core IR is unchanged: the declaration node's existing optional annotation list
+carries the two annotations. Hosts that do not support annotations on open
+declarations must reject the program or report it unsupported; they must not
+ignore the annotations.
+
 ### 7.3 Introspection contract
 
 `help(interface-or-linked-view)` must retain the interface name, callable shapes,

@@ -1509,6 +1509,13 @@ class Evaluator:
                 else:
                     existing = "non-function value"
                 raise OpenFunctionRedeclarationError((self.env.module_identity(), node.name), existing)
+            # Contract 7.2.1: evaluate interface metadata once, before the
+            # interface exists, so a failing annotation leaves nothing bound.
+            interface_metadata = (
+                self.eval_annotations(node.annotations, target_name=node.name, target_kind="open_function")
+                if node.annotations
+                else GeniaMap()
+            )
             clauses = [
                 OpenClauseRecord(clause.pattern, clause.guard, clause.result, self.env, clause.span)
                 for clause in node.clauses
@@ -1518,6 +1525,7 @@ class Evaluator:
                 self.env.module_identity(),
                 clauses,
                 docstring=node.docstring,
+                metadata=interface_metadata,
                 span=node.span,
             )
             self.env.set(node.name, open_fn, assignable=True)

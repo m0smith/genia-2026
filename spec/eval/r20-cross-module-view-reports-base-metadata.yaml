@@ -1,0 +1,31 @@
+name: r20-cross-module-view-reports-base-metadata
+category: eval
+description: R20 contract 7.2.1 a linked view reports the base interface's metadata in the consuming module, and a contributing module cannot change it
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          @doc "Looks a value up."
+          @meta {category: "store"}
+          open get("mem", store, key) = "mem:" + key
+      - path: ext.genia
+        source: |
+          import base
+          extend base.get("db", db, key) = "db:" + key
+      - path: main.genia
+        source: |
+          import base
+          import ext
+          use get from base with ext
+
+          [doc("get"), meta("get"), get("db", 1, "k")]
+expected:
+  stdout: "[\"Looks a value up.\", {doc: \"Looks a value up.\", category: \"store\"}, \"db:k\"]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - open_functions
+  - multi_file_eval
+  - doc_help

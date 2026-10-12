@@ -1084,10 +1084,14 @@ Core IR).
   documentation available."), and every participating unit's clauses in
   deterministic order — the base unit first (labelled by its declaring
   module identity), then contribution units by theirs, clauses by lexical ordinal. `doc(name)`
-  reports an open interface's documentation as missing: a string after `=`
-  is the clause body.
-  Contribution clauses cannot supply, replace, or erase interface-level
-  documentation. No host object or Python representation is exposed.
+  returns the declaration's `@doc` (missing without one: a string after `=` is
+  the clause body). Contribution clauses cannot supply, replace, or erase
+  interface-level documentation. No host object or Python representation is
+  exposed.
+- **Interface metadata** (contract §7.2.1). `@doc` and `@meta`, at most one
+  each, on the `open` declaration are the interface's immutable metadata,
+  reported by `doc`/`meta`/`help` for it and any linked view. Other
+  annotations, and any on a repeated, `extend`, or `use` clause, are rejected.
 - **Diagnostics.** `open-function-redeclaration`,
   `open-function-target-not-open`, `open-function-duplicate-clause`,
   `open-function-duplicate-selection`,
@@ -1111,12 +1115,9 @@ Core IR).
   `Implemented` for Python; every R20 shared spec requires it, so
   non-conforming hosts report them unsupported.
 - **Known limitations** (see `docs/analysis/r20-release-truth-audit.md`):
-  - a grouped case-with-pipe body is auto-flattened only when the header
-    pattern is plain identifiers and the body is exactly one `CaseExpr` (or
-    a one-expression `{ }` block containing one); other combinations of a
-    non-trivial header with a case body are rejected;
-  - `@doc`/`@meta` annotation attachment is not wired for `open`/`extend`
-    declarations, so an open interface has no documentation (a follow-up);
+  - a grouped case-with-pipe body is flattened only for a plain-identifier
+    header and exactly one `CaseExpr` (or a one-expression `{ }` block holding
+    one); other header/case-body combinations are rejected;
   - cross-module behavior also needs `multi_file_eval` for its shared cases;
   - debug-hook wiring (`debug_hooks`/`debug_mode` propagation) is not threaded through open-function dispatch.
 ## 5) Case expressions and pattern matching

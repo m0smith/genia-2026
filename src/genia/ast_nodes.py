@@ -280,6 +280,10 @@ class OpenFuncDef(Node):
     clauses: list[CaseClause]
     docstring: str | None
     span: SourceSpan | None = None
+    # True when the first clause carried the `open` keyword (the interface
+    # declaration); False for a bare repeated clause. Only a declaration may
+    # carry interface metadata annotations (contract 7.2.1).
+    is_declaration: bool = False
 
 
 @dataclass

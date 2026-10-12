@@ -1,0 +1,18 @@
+name: r20-open-doc-annotation-documents-the-interface
+category: eval
+description: R20 contract 7.2.1 a @doc annotation on the open declaration is the interface documentation, and repeated clauses after it still join the same interface
+input:
+  source: |
+    @doc "Counts things."
+    open f(0) = "zero"
+    f(n) = "many"
+
+    [doc("f"), f(0), f(5)]
+expected:
+  stdout: "[\"Counts things.\", \"zero\", \"many\"]\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions
+  - doc_help

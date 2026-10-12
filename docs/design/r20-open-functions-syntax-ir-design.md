@@ -332,6 +332,33 @@ Python-host realization, no Core IR or grammar change:
   view or open interface is named as such instead of "non-function value".
 - `use` over an ordinary function is not diagnosed (compatibility decision).
 
+### 4.4 Interface metadata annotations (contract §7.2.1)
+
+Python-host realization; Core IR and grammar are unchanged.
+
+- **Parser.** The AST `OpenFuncDef` records whether its first clause carried the
+  `open` keyword (`is_declaration`). A contiguous run still merges into one node,
+  and the merge now looks through an `AnnotatedNode` whose target is the same
+  open interface, so `@doc(...)\nopen f(0) = ...` followed by bare clauses is one
+  annotated interface.
+- **Lowering.** An annotated open declaration lowers to `IrOpenFuncDef` with its
+  `annotations` populated (the field already exists and is already normalized in
+  shared IR). Before that it rejects, at parse stage and before anything runs:
+  an annotation other than `@doc`/`@meta`; a second `@doc` or `@meta`; and any
+  annotation whose target is a repeated clause (`is_declaration` false), an
+  `extend`, or a `use`.
+- **Evaluation.** `IrOpenFuncDef` evaluates its annotations once, in the
+  declaring module, through the existing annotation evaluator (`@doc` string,
+  `@meta` map) before the interface is created, and stores the resulting map on
+  the interface value (`GeniaOpenFunction.metadata`). That value is the single
+  owner: a linked view and every alias of it read the base's map, and no other
+  statement writes it.
+- **Introspection.** `doc(name)`, `meta(name)` and `help(name)` for an open
+  interface or linked view read the interface's own metadata, not a per-name
+  binding copy, so they agree in every module that holds the base or a view.
+- **C++.** The bounded C++ host's parser does not accept annotations; programs
+  using them are reported unsupported, which satisfies "must not ignore them".
+
 ## 5. Runtime representation (informative — implemented in E20-3/E20-5)
 
 Not part of the portable Core IR contract, but recorded here so E20-3/E20-5

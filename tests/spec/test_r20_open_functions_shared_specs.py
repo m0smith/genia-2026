@@ -46,6 +46,7 @@ R20_IR_SPECS = [
     "r20-extend-contribution.yaml",
     "r20-use-selection.yaml",
     "r20-open-varargs-shape.yaml",
+    "r20-open-annotated-declaration.yaml",
 ]
 
 R20_EVAL_SPECS = [
@@ -83,6 +84,10 @@ R20_EVAL_SPECS = [
     "r20-open-string-body-is-the-body.yaml",
     "r20-open-string-followed-by-expression-is-body-and-statement.yaml",
     "r20-open-string-body-is-not-interface-documentation.yaml",
+    # Contract 7.2.1 / issue #1067: interface metadata on the open declaration.
+    "r20-open-doc-annotation-documents-the-interface.yaml",
+    "r20-open-meta-annotation-attaches-interface-metadata.yaml",
+    "r20-cross-module-view-reports-base-metadata.yaml",
 ]
 
 R20_ERROR_SPECS = [
@@ -120,10 +125,11 @@ def test_r20_multi_file_cases_require_language_and_transport_capabilities() -> N
         if "cross-module" in name
     ]:
         directory = EVAL_DIR if fname in R20_EVAL_SPECS else ERROR_DIR
-        assert load_spec(directory / fname).requires == (
-            "open_functions",
-            "multi_file_eval",
-        )
+        # A cross-module case always needs the language capability and the
+        # transport capability; it may add capabilities for builtins it
+        # observes (for example `doc_help` for `doc`/`meta`).
+        requires = load_spec(directory / fname).requires
+        assert requires[:2] == ("open_functions", "multi_file_eval")
 
 
 @pytest.mark.parametrize("fname", R20_PARSE_SPECS)
