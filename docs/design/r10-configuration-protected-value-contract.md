@@ -162,9 +162,11 @@ nominal class or a generic facet registry.
 - Secret acquisition creates exactly one outer protected layer. Nested or
   duplicate protected layers are invalid public states.
 - A protected value is unequal to ordinary and generic represented values.
-- Equality between two protected values is permitted and follows carried-value
-  equality without exposing either payload. Protected values are not valid map
-  keys.
+- Equality between two protected values observes carrier identity only (R18):
+  aliases of the same carrier compare equal; independently acquired carriers
+  compare unequal even with the same provider/purpose and equal payloads.
+  Ordinary equality never compares protected payloads. Protected values are not
+  valid map keys.
 
 A named Template may define the conceptual secret pattern without new syntax:
 
