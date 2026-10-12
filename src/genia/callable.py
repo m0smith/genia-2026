@@ -454,7 +454,9 @@ class OpenFunctionError(TypeError):
 
 
 class OpenFunctionRedeclarationError(OpenFunctionError):
+    """An open interface was declared again in its owning module."""
     def __init__(self, interface_key: tuple[str, str]):
+        """Store interface provenance and the redeclaration diagnostic; do not raise here."""
         module_id, name = interface_key
         super().__init__(
             f"open-function-redeclaration: {name!r} is already declared open in module {module_id!r}"
@@ -463,7 +465,9 @@ class OpenFunctionRedeclarationError(OpenFunctionError):
 
 
 class OpenFunctionTargetNotOpenError(OpenFunctionError):
+    """An extension target is not an open interface."""
     def __init__(self, target: Any):
+        """Retain target and render its repr in the diagnostic; construction does not raise."""
         super().__init__(f"open-function-target-not-open: {target!r} is not an open function interface")
         self.target = target
 
@@ -477,7 +481,11 @@ def _format_open_span(span: Optional[SourceSpan]) -> str:
 
 
 class OpenFunctionDuplicateClauseError(OpenFunctionError):
+    """Two clauses in one unit share an alpha-normalized dispatch key."""
     def __init__(self, interface_key: tuple[str, str], unit_key: Any, shape: tuple, first_span: Any, duplicate_span: Any):
+        """Retain interface/unit/shape and both spans; render spans as filename:line.
+
+        Callers supply validated provenance and shape; do not inspect clause bodies."""
         module_id, name = interface_key
         super().__init__(
             "open-function-duplicate-clause: "
@@ -492,7 +500,9 @@ class OpenFunctionDuplicateClauseError(OpenFunctionError):
 
 
 class OpenFunctionDuplicateSelectionError(OpenFunctionError):
+    """The same contribution unit was selected twice for one interface."""
     def __init__(self, interface_key: tuple[str, str], unit_key: Any):
+        """Retain interface/unit provenance and build the duplicate-selection diagnostic."""
         super().__init__(
             f"open-function-duplicate-selection: contribution {unit_key!r} is already selected for {interface_key!r}"
         )
@@ -501,7 +511,9 @@ class OpenFunctionDuplicateSelectionError(OpenFunctionError):
 
 
 class OpenFunctionIncompatibleContributionError(OpenFunctionError):
+    """A selected contribution does not target the expected open interface."""
     def __init__(self, expected_interface_key: tuple[str, str], actual_target: Any):
+        """Retain expected interface and actual target and format the incompatibility diagnostic."""
         super().__init__(
             "open-function-incompatible-contribution: "
             f"expected a contribution targeting {expected_interface_key!r}, got {actual_target!r}"
@@ -511,7 +523,11 @@ class OpenFunctionIncompatibleContributionError(OpenFunctionError):
 
 
 class OpenFunctionVarargsAmbiguityError(OpenFunctionError):
+    """Eligible clauses have more than one distinct varargs minimum."""
     def __init__(self, interface_key: tuple[str, str], call_arity: int, shapes: list, provenances: list):
+        """Retain supplied shapes/provenances and render sorted copies for deterministic text.
+
+        Inputs must be sortable; construction does not mutate their lists."""
         module_id, name = interface_key
         super().__init__(
             f"open-function-varargs-ambiguity: {name}/{call_arity} matches more than one varargs shape "
@@ -524,7 +540,9 @@ class OpenFunctionVarargsAmbiguityError(OpenFunctionError):
 
 
 class OpenFunctionClauseAmbiguityError(OpenFunctionError):
+    """More than one unit supplies a matching clause in the selected stratum."""
     def __init__(self, interface_key: tuple[str, str], call_arity: int, candidate_provenances: list):
+        """Retain supplied candidate provenance; sort a copy for diagnostic rendering."""
         module_id, name = interface_key
         super().__init__(
             f"open-function-clause-ambiguity: {name}/{call_arity} matched clauses in more than one unit "
@@ -536,7 +554,9 @@ class OpenFunctionClauseAmbiguityError(OpenFunctionError):
 
 
 class OpenFunctionNoMatchingFunctionError(OpenFunctionError):
+    """No clause shape accepts the call argument count."""
     def __init__(self, interface_key: tuple[str, str], call_arity: int):
+        """Store interface/arity with the existing No matching function diagnostic family."""
         module_id, name = interface_key
         super().__init__(f"No matching function: {name}/{call_arity}")
         self.interface_key = interface_key
@@ -544,7 +564,11 @@ class OpenFunctionNoMatchingFunctionError(OpenFunctionError):
 
 
 class OpenFunctionNoMatchingCaseError(OpenFunctionError):
+    """The selected shape stratum has no matching pattern/guard candidate."""
     def __init__(self, interface_key: tuple[str, str], call_arity: int, args: tuple[Any, ...]):
+        """Store interface/arity and render args using governed evaluator diagnostics.
+
+        Arguments are used for text, not retained as an exception attribute."""
         module_id, name = interface_key
         if __package__ in (None, ""):
             from genia.evaluator import _format_args_for_diagnostic
@@ -613,6 +637,9 @@ def _structural_key(node: Any, binder_index: dict[str, int]) -> Any:
 
 
 def _clause_shape(pattern: IrPattern) -> tuple[str, int]:
+    """Return fixed arity or the final-rest minimum for a lowered tuple pattern.
+
+    Callers supply well-formed IR; an absent items field yields fixed arity zero."""
     items = getattr(pattern, "items", None)
     if items and type(items[-1]).__name__ == "IrPatRest":
         return ("varargs", len(items) - 1)
@@ -620,6 +647,10 @@ def _clause_shape(pattern: IrPattern) -> tuple[str, int]:
 
 
 def _open_dispatch_key(pattern: IrPattern, guard: Optional[IrNode]) -> tuple:
+    """Build the shape/pattern/guard key, ignoring spans and alpha-renaming binders.
+
+    Only pattern-bound names are normalized; free names remain significant.
+    Body and closure are excluded; no guard or pattern is evaluated."""
     order: list[str] = []
     _collect_pattern_binders(pattern, order)
     binder_index = {name: i for i, name in enumerate(order)}
@@ -644,10 +675,17 @@ class OpenClauseRecord:
     dispatch_key: tuple = field(init=False)
 
     def __post_init__(self) -> None:
+        """Cache the duplicate-detection key without evaluating pattern, guard or body.
+
+        Callers must keep pattern/guard consistent with this cached key afterward."""
         self.dispatch_key = _open_dispatch_key(self.pattern, self.guard)
 
 
 def _check_no_duplicate_clauses(interface_key: tuple[str, str], unit_key: Any, records: list[OpenClauseRecord]) -> None:
+    """Reject the first repeated cached dispatch key within one unit.
+
+    Raise OpenFunctionDuplicateClauseError with both source spans; do not mutate
+    records, compare bodies, or check duplicates across different units."""
     seen: dict[tuple, OpenClauseRecord] = {}
     for record in records:
         existing = seen.get(record.dispatch_key)
@@ -659,6 +697,11 @@ def _check_no_duplicate_clauses(interface_key: tuple[str, str], unit_key: Any, r
 
 
 def _first_unit_match(records: list[OpenClauseRecord], args: tuple[Any, ...]) -> Optional[tuple[OpenClauseRecord, dict]]:
+    """Return the first matching record and bindings in supplied lexical order.
+
+    Match in each record closure; evaluate a matched guard in a fresh child Env.
+    False guards continue; return Python None on exhaustion. Never execute bodies.
+    Matcher/guard failures propagate, including PatternOutcomeError."""
     if __package__ in (None, ""):
         from genia.evaluator import Evaluator
     else:
@@ -679,6 +722,10 @@ def _first_unit_match(records: list[OpenClauseRecord], args: tuple[Any, ...]) ->
 
 
 def _invoke_open_clause(record: OpenClauseRecord, bindings: dict) -> Any:
+    """Evaluate one selected body in tail position in a fresh child of its closure.
+
+    Bind supplied matcher results locally; return value or TailCall unchanged.
+    Body failures propagate. This helper neither selects clauses nor trampolines."""
     if __package__ in (None, ""):
         from genia.evaluator import Evaluator
     else:
@@ -690,11 +737,22 @@ def _invoke_open_clause(record: OpenClauseRecord, bindings: dict) -> Any:
 
 
 def _dispatch_open(interface_key: tuple[str, str], participating_units: list[tuple[str, Any, list[OpenClauseRecord]]], args: tuple[Any, ...]) -> Any:
-    """The contract §5 dispatch algorithm: shape stratum, then unit-local
-    first match, then across-unit exactly-one-candidate selection. Import
-    order and contribution-selection order never appear in this function —
-    only `participating_units` order (irrelevant to the result) and each
-    unit's own clause order (relevant, per unit, per contract §4.3)."""
+    """Select a shape, find one candidate per unit, then execute exactly one body.
+
+    Fixed arity excludes varargs even when fixed patterns miss. Otherwise one
+    eligible varargs minimum is required, with no largest-minimum preference.
+    Preserve each unit's lexical first-match order; multiple matching units
+    raise clause ambiguity, never resolved by specificity or selection order.
+
+    Matchers and guards run before body selection. Convert PatternOutcomeError
+    from unit matching to its Outcome; other matcher/guard/body errors propagate.
+    No eligible shape raises NoMatchingFunction; no candidate raises NoMatchingCase.
+    Return body value or TailCall, leaving trampoline execution to the caller.
+
+    Callers supply compatible, unique units with construction-time duplicate
+    checks already complete. Successful clause selection is order-independent;
+    this helper does not promise guard effect or failure evaluation order.
+    """
     n = len(args)
     all_entries: list[tuple[int, OpenClauseRecord]] = []
     for unit_index, (_role, _unit_key, records) in enumerate(participating_units):
@@ -748,9 +806,13 @@ class GeniaOpenContributionUnit:
     clauses: list[OpenClauseRecord] = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        """Validate same-unit duplicate keys at construction; no body execution.
+
+        Target compatibility is checked by linking, not by this constructor."""
         _check_no_duplicate_clauses(self.target_interface_key, self.declaring_module_id, self.clauses)
 
     def __repr__(self) -> str:
+        """Render module and target name without exposing or executing clause bodies."""
         return f"<open contribution {self.declaring_module_id} -> {self.target_interface_key[1]}>"
 
 
@@ -767,13 +829,18 @@ class GeniaOpenFunction:
     span: Optional[SourceSpan] = None
 
     def __post_init__(self) -> None:
+        """Reject duplicate base dispatch keys at construction, without invoking clauses."""
         _check_no_duplicate_clauses(self.interface_key, "base", self.clauses)
 
     @property
     def interface_key(self) -> tuple[str, str]:
+        """Return canonical declaring-module/name provenance supplied by module construction."""
         return (self.module_id, self.name)
 
     def _dispatch_once(self, args: tuple[Any, ...]) -> Any:
+        """Dispatch only base clauses once; return a value or deferred TailCall.
+
+        Shape/pattern/ambiguity/body failures follow _dispatch_open; no trampoline here."""
         return _dispatch_open(self.interface_key, [("base", "base", self.clauses)], args)
 
     def __call__(self, *args: Any) -> Any:
@@ -786,6 +853,7 @@ class GeniaOpenFunction:
         return eval_with_tco(self, args)
 
     def __repr__(self) -> str:
+        """Render the interface name without evaluating or exposing its clauses."""
         return f"<open function {self.name}>"
 
 
@@ -793,16 +861,27 @@ class GeniaOpenFunction:
 class GeniaLinkedOpenFunction:
     """R20 immutable linked view: one base GeniaOpenFunction plus an
     explicitly selected, order-irrelevant tuple of contribution units
-    (contract §4.2, §4.3)."""
+    (contract §4.2, §4.3).
+
+    LANGUAGE CONTRACT: selection is immutable from Genia source.
+    PYTHON REFERENCE HOST: this dataclass is not frozen; module/linking code owns
+    construction and validates targets/duplicate selections before dispatch.
+    Do not mutate its base, units or referenced clause records afterward.
+    """
 
     base: GeniaOpenFunction
     units: tuple[GeniaOpenContributionUnit, ...] = ()
 
     @property
     def interface_key(self) -> tuple[str, str]:
+        """Return the base interface key; selection does not create a new provenance key."""
         return self.base.interface_key
 
     def _dispatch_once(self, args: tuple[Any, ...]) -> Any:
+        """Dispatch base and explicitly selected units once, without mutating selection.
+
+        Callers supply already-validated compatible, unique units. Return value or
+        TailCall; shape/pattern/ambiguity/body failures follow _dispatch_open."""
         participating: list[tuple[str, Any, list[OpenClauseRecord]]] = [("base", "base", self.base.clauses)]
         for unit in self.units:
             participating.append(("contribution", unit.declaring_module_id, unit.clauses))
@@ -818,10 +897,14 @@ class GeniaLinkedOpenFunction:
         return eval_with_tco(self, args)
 
     def __repr__(self) -> str:
+        """Render base name and linked marker without invoking or listing contributions."""
         return f"<open function {self.base.name} (linked)>"
 
 
 def _all_open_clause_records(fn: Any) -> list[OpenClauseRecord]:
+    """Return a fresh list of record references: base first, then supplied unit order.
+
+    Return an empty list for other values; do not select, sort, copy or mutate records."""
     if isinstance(fn, GeniaOpenFunction):
         return list(fn.clauses)
     if isinstance(fn, GeniaLinkedOpenFunction):
