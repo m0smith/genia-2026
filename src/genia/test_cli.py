@@ -1,3 +1,5 @@
+"""Python-host native test discovery, registration and CLI report orchestration."""
+
 from __future__ import annotations
 
 import ast
@@ -74,9 +76,13 @@ def make_test_env(
     fixture_bindings: dict[str, Any] | None = None,
     **global_env_kwargs: Any,
 ) -> tuple[Any, list[TestUnit]]:
+    """Create a host test environment with entry-owned legacy registration.
+
+    Fixtures and test() retain their existing entry visibility during P1.
+    """
     tests: list[TestUnit] = []
     env = make_global_env(cli_args=[], **global_env_kwargs)
-    setattr(env, "_native_test_units", tests)
+    setattr(env.entry_scope(), "_native_test_units", tests)
 
     for name, value in (fixture_bindings or {}).items():
         env.set(name, value)
@@ -90,6 +96,8 @@ def make_test_env(
 
 
 def discover_test_units(env: Any) -> list[TestUnit]:
+    """Combine entry registrations and annotations, rejecting duplicate names."""
+    env = env.entry_scope()
     return validate_unique_test_names([
         *list(getattr(env, "_native_test_units", [])),
         *discover_annotated_test_units(env),
@@ -163,6 +171,11 @@ def _has_discovery_error(test_unit: TestUnit) -> bool:
 
 
 def discover_annotated_test_units(env: Any) -> list[TestUnit]:
+    """Read entry-local annotation metadata in binding order, recording misuse.
+
+    Imported module annotations are not entry tests; no bodies execute here.
+    """
+    env = env.entry_scope()
     test_units: list[TestUnit] = []
     for name, value in env.values.items():
         metadata = env.binding_metadata.get(name)

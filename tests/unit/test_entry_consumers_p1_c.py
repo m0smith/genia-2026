@@ -39,6 +39,7 @@ def test_serve_discovery_receives_entry_owner(tmp_path, monkeypatch):
     seen = []
 
     def discover(_nodes, env, **_kwargs):
+        """Capture the host owner supplied by serve orchestration."""
         seen.append(env)
         return SimpleNamespace(binding=None, diagnostics=[])
 

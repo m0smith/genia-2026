@@ -488,6 +488,8 @@ def _select_execution_mode(
 
 
 def _resolve_program_result(run_result: Any, env: Env) -> Any:
+    """Dispatch entry main/1 before main/0, preserving the source result if absent."""
+    env = env.entry_scope()
     main_group = env.values.get("main")
     if not isinstance(main_group, GeniaFunctionGroup):
         return run_result
@@ -512,6 +514,11 @@ def _format_serve_diagnostic(diagnostic: Any) -> str:
 
 
 def _run_serve_file(program_path: str) -> int:
+    """Evaluate the file and discover descriptors in its P1 entry owner.
+
+    Activate one assembled server without dispatching main; report startup or
+    lifecycle failure as exit status 1. Entry still aliases root during P1.
+    """
     from .server_config_binding import (
         discover_entry_file_server_config_binding,
     )
@@ -532,14 +539,15 @@ def _run_serve_file(program_path: str) -> int:
         assert_portable_core_ir(ir_nodes)
         Evaluator(env).eval_program(ir_nodes)
 
+        entry_env = env.entry_scope()
         server_result = discover_entry_file_server_config_binding(
             ir_nodes,
-            env,
+            entry_env,
             entry_source_identity=resolved_path,
         )
         route_result = discover_entry_file_route_bindings(
             ir_nodes,
-            env,
+            entry_env,
             entry_source_identity=resolved_path,
         )
         diagnostics = list(server_result.diagnostics)
@@ -547,7 +555,7 @@ def _run_serve_file(program_path: str) -> int:
         if server_result.binding is not None:
             cors_result = discover_entry_file_cors_binding(
                 ir_nodes,
-                env,
+                entry_env,
                 entry_source_identity=resolved_path,
                 server_declaration_name=server_result.binding.declaration_name,
                 server_source_index=server_result.binding.source_index,
