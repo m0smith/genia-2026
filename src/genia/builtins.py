@@ -3288,10 +3288,17 @@ def make_global_env(
         if span_text is not None:
             lines.append(f"Defined at {span_text}")
         lines.append("")
-        if open_fn.docstring is not None:
-            lines.append(render_markdown_docstring(open_fn.docstring))
+        interface_doc = _metadata_doc(open_fn.metadata)
+        if interface_doc is None:
+            interface_doc = open_fn.docstring
+        if interface_doc is not None:
+            lines.append(render_markdown_docstring(interface_doc))
         else:
             lines.append("No documentation available.")
+        metadata_lines = _metadata_summary_lines(open_fn.metadata)
+        if metadata_lines:
+            lines.append("")
+            lines.extend(metadata_lines)
         lines.append("")
         lines.append(f"base ({open_fn.module_id}):")
         for ordinal, record in enumerate(open_fn.clauses, start=1):
@@ -3476,6 +3483,13 @@ def make_global_env(
         _emit_help(_describe_help_overview())
 
     def doc_fn(*args: Any) -> Any:
+        """`doc(name)`: the documentation string for the bound name, or `none("missing-doc")`.
+
+        Precedence is `@doc` binding metadata, then a function group's legacy
+        docstring; an R20 open interface or linked view reports the interface's
+        own `@doc` (a view reports its base's). Raises TypeError for a wrong
+        argument count or a non-string name. Autoloads a prelude name once.
+        """
         if len(args) != 1:
             raise TypeError(f"doc expected 1 arg, got {len(args)}")
         name = args[0]
@@ -3495,13 +3509,25 @@ def make_global_env(
         target = env.get(name)
         if isinstance(target, GeniaFunctionGroup) and target.docstring is not None:
             return target.docstring
-        if isinstance(target, GeniaLinkedOpenFunction) and target.base.docstring is not None:
-            return target.base.docstring
-        if isinstance(target, GeniaOpenFunction) and target.docstring is not None:
-            return target.docstring
+        if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+            # R20 contract 7.2.1: the interface is the single owner of its
+            # documentation; a linked view reports the base's.
+            owner = target.base if isinstance(target, GeniaLinkedOpenFunction) else target
+            owner_doc = _metadata_doc(owner.metadata)
+            if owner_doc is not None:
+                return owner_doc
+            if owner.docstring is not None:
+                return owner.docstring
         return make_none("missing-doc", GeniaMap().put("name", name))
 
     def meta_fn(*args: Any) -> Any:
+        """`meta(name)`: the metadata map attached to the bound name, or `none("missing-meta")`.
+
+        An R20 open interface or linked view returns the interface's own
+        metadata map (a view returns its base's); other names return their
+        binding metadata. Raises TypeError for a wrong argument count or a
+        non-string name. Autoloads a prelude name once.
+        """
         if len(args) != 1:
             raise TypeError(f"meta expected 1 arg, got {len(args)}")
         name = args[0]
@@ -3514,6 +3540,10 @@ def make_global_env(
                 env.get(name)
             else:
                 return make_none("missing-meta", GeniaMap().put("name", name))
+        target = env.get(name)
+        if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+            # R20 contract 7.2.1: interface metadata is owned by the interface.
+            return (target.base if isinstance(target, GeniaLinkedOpenFunction) else target).metadata
         return env.get_metadata(name)
 
     def ref_fn(*args: Any) -> GeniaRef:

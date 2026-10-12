@@ -341,6 +341,9 @@ Nothing about this is a docstring: a string after `=` stays the clause body
   re-export, or `use`). A contributing module cannot supply or alter it.
 - **No metadata, no change.** An undecorated open interface behaves exactly as
   before: its documentation is missing and its metadata is the empty map.
+- **Shape of `meta`.** `meta(name)` is the map the same annotations produce on an
+  ordinary function, so a `@doc` string also appears under `doc` and `@meta`
+  entries follow it in annotation order.
 - **Introspection.** `help` shows the interface `@doc` as its effective
   documentation and the same category/stability/since/deprecated summary lines it
   shows for an ordinary function. Clause provenance is never part of the metadata.

@@ -76,13 +76,9 @@ def test_help_shows_the_interface_documentation_and_metadata_lines(capsys):
     assert "Category: demo" in out
 
 
-def test_a_view_in_another_module_reports_the_base_metadata_and_not_its_own(tmp_path):
+def test_a_view_in_another_module_reports_the_base_metadata_and_not_its_own(tmp_path, capsys):
     _write(tmp_path, "base", '@doc "Base doc."\nopen get("mem", s, k) = "m"\n')
     _write(tmp_path, "ext", 'import base\nextend base.get("db", d, k) = "d"\n')
-    _write(
-        tmp_path,
-        "consumer",
-        'import base\nimport ext\nuse get from base with ext\nowner = doc("get")\n',
-    )
-    result = _run('import consumer\nconsumer.owner\n', tmp_path)
-    assert result == "Base doc."
+    _write(tmp_path, "consumer", "import base\nimport ext\nuse get from base with ext\n")
+    _run("import consumer\nhelp(consumer.get)\n", tmp_path)
+    assert "Base doc." in capsys.readouterr().out

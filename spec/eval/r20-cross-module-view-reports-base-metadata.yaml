@@ -22,7 +22,7 @@ input:
 
           [doc("get"), meta("get"), get("db", 1, "k")]
 expected:
-  stdout: "[\"Looks a value up.\", {category: \"store\"}, \"db:k\"]\n"
+  stdout: "[\"Looks a value up.\", {doc: \"Looks a value up.\", category: \"store\"}, \"db:k\"]\n"
   stderr: ""
   exit_code: 0
 requires:

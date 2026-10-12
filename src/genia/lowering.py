@@ -1,3 +1,11 @@
+"""Lowering: surface AST nodes to portable Core IR.
+
+`lower_program(nodes)` / `lower_node(node)` translate parser output into the Core
+IR consumed by the evaluator, optimizer, and host normalizers. Lowering is pure
+and also performs the parse-stage checks that depend on a whole declaration, such
+as which annotations an R20 open declaration may carry (contract 7.2.1).
+"""
+
 from __future__ import annotations
 
 from typing import Iterable
@@ -220,6 +228,14 @@ def _flatten_pipeline_ast(node: Node) -> tuple[Node, list[Node]]:
 
 
 def lower_node(node: Node) -> IrNode:
+    """Lower one surface AST node (recursively) to its Core IR node.
+
+    An `AnnotatedNode` lowers its target with the annotations attached; the
+    allowed targets are assignments, named functions, named patterns, and R20
+    open declarations (only `@doc`/`@meta`, at most once each). Failure:
+    raises `SyntaxError` for an annotation not allowed on its target and
+    `RuntimeError` for an AST node kind this lowering does not know.
+    """
     if isinstance(node, AnnotatedNode):
         lowered_annotations = _lower_annotations(node.annotations)
         target = node.target
@@ -243,12 +259,37 @@ def lower_node(node: Node) -> IrNode:
                 annotations=lowered_annotations,
                 span=node.span,
             )
-        if isinstance(target, (OpenFuncDef, OpenExtendDef, OpenUseDef)):
-            # R20 (contract §7.2): interface-level metadata belongs to the
-            # single interface declaration; a clause-local annotation is
-            # rejected rather than silently promoted to interface metadata.
+        if isinstance(target, OpenFuncDef):
+            # R20 (contract §7.2.1): interface metadata belongs to the single
+            # interface declaration, and only as @doc/@meta, at most once each.
+            if not target.is_declaration:
+                raise SyntaxError(
+                    f"annotations on open interface {target.name!r} belong on its `open` declaration, "
+                    "not on a repeated clause"
+                )
+            for annotation in node.annotations:
+                if annotation.name not in ("doc", "meta"):
+                    raise SyntaxError(
+                        f"@{annotation.name} is not supported on the open declaration of {target.name!r}; "
+                        "supported: @doc, @meta"
+                    )
+            for allowed in ("doc", "meta"):
+                if sum(annotation.name == allowed for annotation in node.annotations) > 1:
+                    raise SyntaxError(f"duplicate @{allowed} annotation on open interface {target.name!r}")
+            return IrOpenFuncDef(
+                target.name,
+                [_lower_open_clause(clause) for clause in target.clauses],
+                target.docstring,
+                annotations=lowered_annotations,
+                span=node.span,
+            )
+        if isinstance(target, (OpenExtendDef, OpenUseDef)):
+            # R20 (contract §7.2): a contribution or selection cannot supply
+            # interface metadata, so its annotations are rejected rather than
+            # silently promoted to interface metadata.
             raise SyntaxError(
-                "Prefix annotations are not supported on open/extend/use declarations in this release"
+                "Prefix annotations are not supported on extend/use declarations: "
+                "interface metadata belongs on the open declaration"
             )
         raise RuntimeError(f"Annotated target is not bindable during lowering: {type(target).__name__}")
     if isinstance(node, ExprStmt):

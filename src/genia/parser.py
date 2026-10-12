@@ -248,13 +248,19 @@ class Parser:
         if not out:
             return False
         previous = out[-1]
+        # An annotated declaration (`@doc ... open f(...)`) is an AnnotatedNode
+        # wrapping the OpenFuncDef; repeated clauses merge into its target
+        # (contract 7.2.1) so the run is still one interface.
+        previous_open = previous.target if isinstance(previous, AnnotatedNode) else previous
         if (
             isinstance(node, OpenFuncDef)
-            and isinstance(previous, OpenFuncDef)
-            and previous.name == node.name
+            and isinstance(previous_open, OpenFuncDef)
+            and previous_open.name == node.name
         ):
-            previous.clauses.extend(node.clauses)
-            previous.span = self.merge_spans(previous.span, node.span)
+            previous_open.clauses.extend(node.clauses)
+            previous_open.span = self.merge_spans(previous_open.span, node.span)
+            if previous_open is not previous:
+                previous.span = self.merge_spans(previous.span, node.span)
             return True
         if (
             isinstance(node, OpenExtendDef)
@@ -640,6 +646,13 @@ class Parser:
         return [clause]
 
     def _parse_open_pattern_clause(self, *, open_tok: Optional[Token]) -> OpenFuncDef:
+        """Parse one `open`/repeated clause statement for an open interface.
+
+        `open_tok` is the `open` keyword token for a declaration and None for a
+        bare repeated clause; the node records which it was (`is_declaration`)
+        so only a declaration can carry interface annotations. Raises
+        `SyntaxError` when `open` redeclares a name already open in this module.
+        """
         name_tok = self.eat("IDENT")
         name = name_tok.text
         if open_tok is not None:
@@ -651,7 +664,7 @@ class Parser:
         clauses = self._parse_open_clause_list(name_tok)
         start_tok = open_tok if open_tok is not None else name_tok
         span = self.merge_spans(self.span_for_tokens(start_tok, start_tok), clauses[-1].span)
-        return OpenFuncDef(name, clauses, None, span=span)
+        return OpenFuncDef(name, clauses, None, span=span, is_declaration=open_tok is not None)
 
     def _try_parse_extend_clause(self, extend_tok: Token) -> OpenExtendDef | None:
         if not (self.at("IDENT") and "." in self.peek().text and self.peek(1).kind == "LPAREN"):
