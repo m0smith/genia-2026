@@ -1,3 +1,8 @@
+"""Python protected sink rejection, declassification and sentinel-free diagnostics.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import io
 
 import pytest
@@ -16,6 +21,10 @@ PURPOSE = "PROTECTED_PURPOSE_SENTINEL_592"
 
 
 def _env_with_protected(*, stdout=None, stderr=None):
+    """Return a runtime and protected carrier backed by explicit literal configuration.
+
+    Optional streams capture sink output; install the carrier entry-only without
+    revealing it or acquiring external configuration."""
     env = make_global_env(stdout_stream=stdout, stderr_stream=stderr)
     protected = run_source(
         "provider = config_provider([{kind: quote(values), values: {"
@@ -24,7 +33,7 @@ def _env_with_protected(*, stdout=None, stderr=None):
         f'secret_get(provider, "{KEY}", quote({PURPOSE})) |> unwrap_or(none)',
         env,
     )
-    env.set("protected_fixture", protected)
+    env.set_host("protected_fixture", protected, visibility="entry-only")
     return env, protected
 
 
@@ -113,7 +122,7 @@ def test_sheet_csv_rejects_with_structural_position_only():
 def test_resource_write_rejects_before_creating_or_writing_file(tmp_path):
     target = tmp_path / "protected.txt"
     env, _ = _env_with_protected()
-    env.set("target_path", str(target))
+    env.set_host("target_path", str(target), visibility="entry-only")
 
     result = run_source(
         'import resource as res\n'

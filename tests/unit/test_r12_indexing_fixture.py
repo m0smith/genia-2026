@@ -1,3 +1,8 @@
+"""Offline Python index-provider compatibility handles and protected credential authority.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import copy
 
 import pytest
@@ -50,6 +55,10 @@ def _embedded(text="hello", vector=None, dims=None, space=SPACE, doc_id="doc-1")
 
 
 def _env(handler):
+    """Return an offline index runtime, handler fixture and audit list.
+
+    Explicit protected literal credentials and matching authority are installed
+    entry-only; construction does not execute an indexing attempt."""
     from genia.retrieval import create_fixture_index_provider
 
     env = make_global_env([])
@@ -68,14 +77,15 @@ def _env(handler):
         config_provider, [symbol("index_call")], audits.append
     )
     fixture = create_fixture_index_provider(handler)
-    env.set("index_provider_fixture", fixture)
-    env.set("index_credential_fixture", credential)
-    env.set("index_authority_fixture", authority)
+    env.set_host("index_provider_fixture", fixture, visibility="entry-only")
+    env.set_host("index_credential_fixture", credential, visibility="entry-only")
+    env.set_host("index_authority_fixture", authority, visibility="entry-only")
     return env, fixture, audits
 
 
 def _env_with(env, name, value):
-    env.set(name, value)
+    """Install one named entry-only fixture in-place and return the runtime."""
+    env.set_host(name, value, visibility="entry-only")
     return env
 
 
@@ -100,7 +110,7 @@ def test_compatible_corpus_attempts_once_and_returns_only_opaque_handle():
 
     env, fixture, audits = _env(handler)
     corpus = [_embedded(), _embedded("world", doc_id="doc-2")]
-    env.set("embedded_fixture", corpus)
+    env.set_host("embedded_fixture", corpus, visibility="entry-only")
 
     result = run_source(_source(), env)
 
@@ -124,7 +134,7 @@ def test_each_success_creates_a_distinct_non_comparable_handle():
     env, fixture, audits = _env(
         lambda *_args: GeniaOptionSome(create_fixture_index_result(object()))
     )
-    env.set("embedded_fixture", [_embedded()])
+    env.set_host("embedded_fixture", [_embedded()], visibility="entry-only")
 
     first = run_source(_source(), env).value
     second = run_source(_source(), env).value
@@ -199,7 +209,7 @@ def test_empty_input_is_runtime_misuse_before_declassification_or_attempt():
 )
 def test_local_embedding_failures_precede_declassification(corpus, expected):
     env, fixture, audits = _env(lambda *_args: None)
-    env.set("embedded_fixture", corpus)
+    env.set_host("embedded_fixture", corpus, visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == expected
     assert fixture.attempt_count == 0
@@ -210,7 +220,7 @@ def test_malformed_chunk_fails_locally_without_attempt():
     malformed = _embedded()
     malformed = malformed.put("chunk", malformed.get("chunk").put("text", ""))
     env, fixture, audits = _env(lambda *_args: None)
-    env.set("embedded_fixture", [malformed])
+    env.set_host("embedded_fixture", [malformed], visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == 'err("chunk-invalid", {stage: document})'
     assert fixture.attempt_count == 0
@@ -243,7 +253,7 @@ def test_malformed_chunk_fails_locally_without_attempt():
 )
 def test_exact_provider_errors_are_preserved(observation, expected):
     env, fixture, audits = _env(lambda *_args: observation)
-    env.set("embedded_fixture", [_embedded()])
+    env.set_host("embedded_fixture", [_embedded()], visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == expected
     assert fixture.attempt_count == 1
@@ -260,7 +270,7 @@ def test_exact_provider_errors_are_preserved(observation, expected):
 )
 def test_malformed_provider_observation_is_non_sensitive(observation, stage):
     env, fixture, audits = _env(lambda *_args: observation)
-    env.set("embedded_fixture", [_embedded()])
+    env.set_host("embedded_fixture", [_embedded()], visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == f'err("index-response-invalid", {{stage: {stage}}})'
     assert KEY not in repr(result) and PAYLOAD not in repr(result)
@@ -274,7 +284,7 @@ def test_provider_exception_is_transport_failure_without_retry_or_leak():
         raise RuntimeError(f"provider exploded {KEY} {PAYLOAD} {CONFIG_ID}")
 
     env, fixture, audits = _env(fail)
-    env.set("embedded_fixture", [_embedded()])
+    env.set_host("embedded_fixture", [_embedded()], visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == 'err("index-transport-failure", {kind: other})'
     assert KEY not in repr(result) and PAYLOAD not in repr(result)
@@ -289,9 +299,9 @@ def test_handle_cannot_be_hashed_keyed_copied_or_serialized():
     env, _fixture, _audits = _env(
         lambda *_args: GeniaOptionSome(create_fixture_index_result(object()))
     )
-    env.set("embedded_fixture", [_embedded()])
+    env.set_host("embedded_fixture", [_embedded()], visibility="entry-only")
     handle = run_source(_source(), env).value
-    env.set("index_handle_fixture", handle)
+    env.set_host("index_handle_fixture", handle, visibility="entry-only")
 
     with pytest.raises(TypeError, match="index handles cannot be hashed"):
         hash(handle)
@@ -312,13 +322,13 @@ def test_handle_cannot_be_hashed_keyed_copied_or_serialized():
 def test_authority_mismatch_prevents_attempt():
     env, fixture, audits = _env(lambda *_args: None)
     config_provider = env.get("provider_fixture")
-    env.set(
+    env.set_host(
         "index_authority_fixture",
         create_declassification_authority(
             config_provider, [symbol("embed_call")], audits.append
         ),
-    )
-    env.set("embedded_fixture", [_embedded()])
+     visibility="entry-only")
+    env.set_host("embedded_fixture", [_embedded()], visibility="entry-only")
     with pytest.raises(TypeError, match="authority does not permit"):
         run_source(_source(), env)
     assert fixture.attempt_count == 0

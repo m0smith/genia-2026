@@ -1,3 +1,8 @@
+"""Fixed/variadic dispatch precedence and lazy prelude loading with host fixtures.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 import pytest
@@ -51,8 +56,8 @@ def test_autoload_resolution_matches_non_autoload(tmp_path: Path):
     )
 
     env = make_global_env([])
-    env.register_autoload("pick", 2, str(prelude_file.resolve()))
-    env.register_autoload("pick", 1, str(prelude_file.resolve()))
+    env.register_host_autoload("pick", 2, str(prelude_file.resolve()), visibility="runtime-public")
+    env.register_host_autoload("pick", 1, str(prelude_file.resolve()), visibility="runtime-public")
 
     assert run_source("pick(1, 2)", env) == "exact"
     assert run_source("pick(1, 2, 3)", env) == "varargs"
@@ -78,7 +83,7 @@ def test_autoload_ambiguous_matches_non_autoload(tmp_path: Path):
     )
 
     env = make_global_env([])
-    env.register_autoload("pick", 1, str(prelude_file.resolve()))
+    env.register_host_autoload("pick", 1, str(prelude_file.resolve()), visibility="runtime-public")
 
     with pytest.raises(TypeError, match="Ambiguous function resolution"):
         run_source("pick(1, 2, 3)", env)

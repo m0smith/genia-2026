@@ -1,3 +1,8 @@
+"""Python direct-REST model capability using mocked transport and protected authority.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import json
 import socket
 import urllib.error
@@ -56,8 +61,9 @@ def _env(transport, *, purpose="model_call", authority_provider=None):
 
 
 def _set(env, **values):
+    """Install supplied values entry-only in the same runtime and return it."""
     for key, value in values.items():
-        env.set(key, value)
+        env.set_host(key, value, visibility="entry-only")
     return env
 
 

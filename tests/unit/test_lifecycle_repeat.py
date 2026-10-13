@@ -68,7 +68,7 @@ def _counting_env(*, limit=1000):
 
         return GeniaFlow(lambda: _CountingCloser(state, limit=limit), label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     return env, state
 
 
@@ -82,7 +82,7 @@ def _values_flow_env(values):
 
         return GeniaFlow(lambda: iter(values), label="numbers")
 
-    env.set("numbers", numbers)
+    env.set_host("numbers", numbers, visibility="entry-only")
     return env
 
 

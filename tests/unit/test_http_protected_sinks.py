@@ -94,7 +94,7 @@ def test_http_send_full_round_trip_reveals_credential_only_to_transport_sentinel
     audit_events = []
     authority = create_declassification_authority(provider, [symbol(PURPOSE)], audit_events.append)
 
-    env.set("token_fixture", token)
+    env.set_host("token_fixture", token, visibility="entry-only")
     operation = run_source(
         "http_operation(quote(get), \"http://example.invalid\", \"/items\", "
         "{authorization: token_fixture}, {}, none(\"http-no-body\")) |> unwrap_or(none)",
@@ -139,7 +139,7 @@ def test_http_send_full_round_trip_reveals_credential_only_to_transport_sentinel
 def test_http_send_unauthorized_protected_placement_fails_closed_sentinel_free(case):
     env = make_global_env([])
     provider, token = _provider_and_token(env)
-    env.set("token_fixture", token)
+    env.set_host("token_fixture", token, visibility="entry-only")
     operation = run_source(
         "http_operation(quote(get), \"http://example.invalid\", \"/items\", "
         "{authorization: token_fixture}, {}, none(\"http-no-body\")) |> unwrap_or(none)",

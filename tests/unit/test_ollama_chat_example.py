@@ -1,3 +1,8 @@
+"""Offline Python provider/backend fixtures for the Ollama chat application.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import json
 from pathlib import Path
 
@@ -145,8 +150,8 @@ def test_groq_chat_declassifies_only_at_authorized_host_boundary(monkeypatch):
         provider, [symbol("chat_outbound")], lambda event: None
     )
     env = make_global_env([])
-    env.set("groq_authorization_fixture", authorization)
-    env.set("groq_authority_fixture", GeniaOptionSome(authority))
+    env.set_host("groq_authorization_fixture", authorization, visibility="entry-only")
+    env.set_host("groq_authority_fixture", GeniaOptionSome(authority), visibility="entry-only")
     monkeypatch.setattr("genia.http_client.send_http_request", fake_send)
 
     outcome = run_source(

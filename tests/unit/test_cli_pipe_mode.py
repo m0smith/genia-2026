@@ -389,7 +389,7 @@ class TestPipeModeHappyPath:
                 """Fail if pipe mode accidentally dispatches main."""
                 raise AssertionError("pipe mode should not dispatch main")
 
-            env.set("main", should_not_run)
+            env.set_host("main", should_not_run, visibility="entry-only")
             return env
 
         monkeypatch.setattr("genia.interpreter.make_global_env", make_env_with_failing_main)

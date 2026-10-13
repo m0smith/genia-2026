@@ -147,7 +147,7 @@ def _env(realization=None, corpus=None, index_provider=None, retrieve_provider=N
         "}}]) |> unwrap_or(none)",
         env,
     )
-    env.set("config_provider_fixture", config_provider)
+    env.set_host("config_provider_fixture", config_provider, visibility="entry-only")
     index_credential = run_source(
         f'secret_get(config_provider_fixture, "{KEY}", quote(index_call)) |> unwrap_or(none)',
         env,
@@ -164,22 +164,22 @@ def _env(realization=None, corpus=None, index_provider=None, retrieve_provider=N
     retrieve_authority = create_declassification_authority(
         config_provider, [symbol("retrieve_call")], retrieve_audits.append
     )
-    env.set("index_provider_fixture", index_provider)
-    env.set("index_credential_fixture", index_credential)
-    env.set("index_authority_fixture", index_authority)
-    env.set("retrieve_provider_fixture", retrieve_provider)
-    env.set("retrieve_credential_fixture", retrieve_credential)
-    env.set("retrieve_authority_fixture", retrieve_authority)
+    env.set_host("index_provider_fixture", index_provider, visibility="entry-only")
+    env.set_host("index_credential_fixture", index_credential, visibility="entry-only")
+    env.set_host("index_authority_fixture", index_authority, visibility="entry-only")
+    env.set_host("retrieve_provider_fixture", retrieve_provider, visibility="entry-only")
+    env.set_host("retrieve_credential_fixture", retrieve_credential, visibility="entry-only")
+    env.set_host("retrieve_authority_fixture", retrieve_authority, visibility="entry-only")
     corpus = _build_corpus() if corpus is None else corpus
-    env.set("embedded_corpus_fixture", corpus)
+    env.set_host("embedded_corpus_fixture", corpus, visibility="entry-only")
     handle = run_source(
         'i = index(index_provider_fixture, {id: "index", timeout_ms: 1000}, '
         "index_credential_fixture, index_authority_fixture)\n"
         "i(embedded_corpus_fixture) |> unwrap_or(none)",
         env,
     )
-    env.set("index_handle_fixture", handle)
-    env.set("query_embedding_fixture", _query())
+    env.set_host("index_handle_fixture", handle, visibility="entry-only")
+    env.set_host("query_embedding_fixture", _query(), visibility="entry-only")
     return env, index_provider, retrieve_provider, retrieve_audits
 
 
@@ -534,7 +534,7 @@ def test_outcome_semantics_unchanged_some_none_err(realization):
 @pytest.mark.parametrize("realization", ["A", "B"])
 def test_wrong_interface_revision_mismatched_dims_rejected(realization):
     env, _index, provider, audits = _env(realization)
-    env.set("query_embedding_fixture", _query(vector=[1.0], space=SPACE))
+    env.set_host("query_embedding_fixture", _query(vector=[1.0], space=SPACE), visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == 'err("retrieve-embedding-incompatible", {kind: dimension})'
     assert provider.attempt_count == 0
@@ -544,7 +544,7 @@ def test_wrong_interface_revision_mismatched_dims_rejected(realization):
 @pytest.mark.parametrize("realization", ["A", "B"])
 def test_incompatible_provider_wrong_space_rejected(realization):
     env, _index, provider, audits = _env(realization)
-    env.set("query_embedding_fixture", _query(vector=[1.0, 0.0], space="other-space"))
+    env.set_host("query_embedding_fixture", _query(vector=[1.0, 0.0], space="other-space"), visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == 'err("retrieve-embedding-incompatible", {kind: space})'
     assert provider.attempt_count == 0
@@ -561,7 +561,7 @@ def test_incompatible_index_identity_rejected(realization):
     other_index = create_fixture_index_provider(_realization_a_index_handler)
     other_retrieve_handler = _REALIZATIONS[realization][1]
     other_provider = create_fixture_retrieve_provider(other_index, other_retrieve_handler)
-    env.set("retrieve_provider_fixture", other_provider)
+    env.set_host("retrieve_provider_fixture", other_provider, visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == 'err("retrieve-capability-incompatible", {kind: index_handle})'
     assert other_provider.attempt_count == 0
@@ -619,7 +619,7 @@ def test_index_handle_embedded_in_query_is_rejected_before_any_handler(realizati
 
     env, _index, provider, audits = _env(realization)
     handle = env.get("index_handle_fixture")
-    env.set("misused_query_fixture", handle)
+    env.set_host("misused_query_fixture", handle, visibility="entry-only")
     with pytest.raises(TypeError):
         run_source(
             _source(query='{text: "x", embedding: misused_query_fixture}'),

@@ -15,7 +15,7 @@ def make_number_flow_env(values):
         """Produce a fresh Flow over the captured numeric values."""
         return GeniaFlow(lambda: iter(values), label="numbers")
 
-    env.set("numbers", numbers)
+    env.set_host("numbers", numbers, visibility="entry-only")
     return env
 
 
@@ -65,7 +65,7 @@ def make_close_tracking_flow_env(*, limit=100, close_error=None):
             label="ticks",
         )
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     return env, state
 
 
@@ -172,7 +172,7 @@ def test_seq_compatible_collect_rejects_non_seq_values_with_contract_diagnostic(
 
 def test_invalid_flow_source_reports_clear_runtime_error():
     env = make_global_env()
-    env.set("badflow", lambda: GeniaFlow(lambda: None, label="badflow"))
+    env.set_host("badflow", lambda: GeniaFlow(lambda: None, label="badflow"), visibility="entry-only")
     with pytest.raises(TypeError, match="Flow source badflow did not produce an iterable"):
         run_source("badflow() |> collect", env)
 
@@ -307,7 +307,7 @@ def test_take_zero_does_not_pull_upstream():
 
         return GeniaFlow(iterator, label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     assert run_source("ticks() |> take(0) |> collect", env) == []
     assert state["pulled"] == 0
 
@@ -336,7 +336,7 @@ def test_take_stops_without_overpulling_generator_backed_flow():
 
         return GeniaFlow(iterator, label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     assert run_source("ticks() |> take(3) |> collect", env) == [0, 1, 2]
     assert state["pulled"] == 3
 
@@ -360,7 +360,7 @@ def test_take_closes_generator_backed_upstream_on_early_stop():
 
         return GeniaFlow(iterator, label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     assert run_source("ticks() |> take(3) |> collect", env) == [0, 1, 2]
     assert state["pulled"] == 3
     assert state["closed"] == 1
@@ -398,7 +398,7 @@ def test_take_fast_path_closes_closable_upstream_on_early_stop():
         """Produce a closeable Flow source for take early-stop coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     assert run_source("ticks() |> take(2) |> collect", env) == [0, 1]
     assert state["pulled"] == 2
     assert state["closed"] == 1
@@ -436,7 +436,7 @@ def test_map_fast_path_propagates_early_close_to_upstream():
         """Produce a closeable Flow source for map early-stop coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     assert run_source("ticks() |> map((x) -> x + 1) |> take(2) |> collect", env) == [1, 2]
     assert state["pulled"] == 2
     assert state["closed"] == 1
@@ -474,7 +474,7 @@ def test_filter_fast_path_propagates_early_close_to_upstream():
         """Produce a closeable Flow source for filter early-stop coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     assert run_source("ticks() |> filter((x) -> x % 2 == 0) |> take(2) |> collect", env) == [0, 2]
     assert state["pulled"] == 3
     assert state["closed"] == 1
@@ -519,7 +519,7 @@ def test_primary_error_suppresses_finalization_error_during_map_cleanup():
         """Raise the primary error that should suppress cleanup failures."""
         raise RuntimeError("primary boom")
 
-    env.set("boom", boom)
+    env.set_host("boom", boom, visibility="entry-only")
 
     with pytest.raises(RuntimeError, match="primary boom"):
         run_source("ticks() |> map(boom) |> collect", env)
@@ -594,7 +594,7 @@ def test_scan_fast_path_propagates_early_close_to_upstream():
         """Produce a closeable Flow source for scan early-stop coverage."""
         return GeniaFlow(lambda: ClosableCounter(), label="ticks")
 
-    env.set("ticks", ticks)
+    env.set_host("ticks", ticks, visibility="entry-only")
     src = """
     ticks() |> scan((state, x) -> [state + x, state + x], 0) |> take(3) |> collect
     """
@@ -942,7 +942,7 @@ def test_evolve_init_f_emits_init_without_calling_f():
         calls["count"] += 1
         return x + 1
 
-    env.set("counter_fn", counter)
+    env.set_host("counter_fn", counter, visibility="entry-only")
     result = run_source("evolve(0, counter_fn) |> take(1) |> collect", env)
     assert result == [0]
     assert calls["count"] == 0
@@ -957,7 +957,7 @@ def test_evolve_init_f_take_zero_does_not_call_f():
         calls["count"] += 1
         return x + 1
 
-    env.set("counter_fn", counter)
+    env.set_host("counter_fn", counter, visibility="entry-only")
     result = run_source("evolve(0, counter_fn) |> take(0) |> collect", env)
     assert result == []
     assert calls["count"] == 0
@@ -972,7 +972,7 @@ def test_evolve_init_f_f_called_n_minus_one_times_for_take_n():
         calls["count"] += 1
         return x + 1
 
-    env.set("counter_fn", counter)
+    env.set_host("counter_fn", counter, visibility="entry-only")
     result = run_source("evolve(0, counter_fn) |> take(5) |> collect", env)
     assert result == [0, 1, 2, 3, 4]
     assert calls["count"] == 4

@@ -19,6 +19,12 @@ def _interpreter_runtime() -> Any:
     return interpreter
 
 
+def _check_host_visibility(visibility: str) -> None:
+    """Reject an undeclared host class before installation, without rendering values."""
+    if not isinstance(visibility, str) or visibility not in ("runtime-public", "entry-only"):
+        raise ValueError("host visibility must be runtime-public or entry-only")
+
+
 class Env:
     """A lexical scope: name bindings plus the module-level state of the root.
 
@@ -42,7 +48,15 @@ class Env:
         overrides the inherited permission to see internal prelude bindings.
         """
         self.parent = parent
+        # Lexical unit ownership is independent of provenance and write policy.
+        # Module construction replaces this inherited reference before evaluation.
+        self._unit_scope = parent.unit_scope() if parent is not None else self
         self.values: dict[str, Any] = {}
+        # Host declarations are bookkeeping, separate from language metadata.
+        # Both classes retain their existing placement during P1.
+        self.host_binding_visibility: dict[str, str] = {}
+        self.host_internal_visibility: dict[str, str] = {}
+        self.host_autoload_visibility: dict[tuple[str, int], str] = {}
         self.internal_values: dict[str, Any] = {}
         self.binding_metadata: dict[str, GeniaMap] = {}
         self.assignable: set[str] = set()
@@ -79,6 +93,34 @@ class Env:
             env = env.parent
         return env
 
+    def runtime_scope(self) -> "Env":
+        """Return the existing structural root owning runtime state; never allocate."""
+        return self.root()
+
+    def entry_scope(self) -> "Env":
+        """Return the execution's entry owner, still the shared root during P1.
+
+        Caller-created roots use the same default. Evaluating source in a child
+        does not register that child as entry or alter lexical parentage.
+        """
+        return self.runtime_scope()
+
+    def unit_scope(self) -> "Env":
+        """Return the declaring top-level Env inherited by lexical descendants.
+
+        A loaded module owns itself; entry/prelude use root. The result is live
+        owner identity, not a snapshot, caller scope or module-id inference.
+        """
+        return self._unit_scope
+
+    def inspection_globals_scope(self) -> "Env":
+        """Return root for debugger globals, preserving P1's compatibility view.
+
+        A module's declaring unit is intentionally different from this view.
+        Unit-only inspection requires the separately gated P2 behavior change.
+        """
+        return self.runtime_scope()
+
     def get(self, name: str) -> Any:
         env: Env | None = self
         while env is not None:
@@ -113,6 +155,46 @@ class Env:
 
     def set_internal(self, name: str, value: Any) -> None:
         self.root().internal_values[name] = value
+
+    def set_host(
+        self, name: str, value: Any, *, visibility: str,
+        assignable: bool = True, metadata: GeniaMap | None = None,
+        preserve_metadata: bool = False,
+    ) -> None:
+        """Classify a host injection and install it in this same Env during P1.
+
+        Requires an explicit runtime-public or entry-only class before mutation.
+        Delegates identity, assignability and metadata handling to unchanged set;
+        classification is not language metadata, trust or declassification power.
+        Language definitions/parameters keep using ordinary set without a class.
+        """
+        _check_host_visibility(visibility)
+        self.set(name, value, assignable=assignable, metadata=metadata,
+                 preserve_metadata=preserve_metadata)
+        self.host_binding_visibility[name] = visibility
+
+    def set_host_internal(self, name: str, value: Any, *, visibility: str) -> None:
+        """Record a trusted internal injection on runtime, retaining its access guard.
+
+        The class is mandatory and validated before mutation. Internal access
+        remains restricted to trusted code; neither class grants that access.
+        """
+        _check_host_visibility(visibility)
+        self.set_internal(name, value)
+        self.runtime_scope().host_internal_visibility[name] = visibility
+
+    def register_host_autoload(
+        self, name: str, arity: int, path: str, *, visibility: str,
+        trusted: bool = False,
+    ) -> None:
+        """Classify one runtime autoload key without evaluating or acquiring its file.
+
+        Existing registration, trust and lazy loading remain unchanged. The
+        declared class is recorded separately on the runtime owner during P1.
+        """
+        _check_host_visibility(visibility)
+        self.register_autoload(name, arity, path, trusted=trusted)
+        self.runtime_scope().host_autoload_visibility[(name, arity)] = visibility
 
     def assign(self, name: str, value: Any, *, metadata: GeniaMap | None = None) -> None:
         target_env = self.find_assign_target(name)
@@ -282,6 +364,7 @@ class Env:
         root.loading_modules.add(module_name)
         try:
             module_env = Env(root, rebind_parent=False)
+            module_env._unit_scope = module_env
             module_env.debug_hooks = root.debug_hooks
             module_env.debug_mode = root.debug_mode
             # R20: canonical module identity is the requested/cached module

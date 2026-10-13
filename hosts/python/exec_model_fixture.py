@@ -25,6 +25,11 @@ def _map(**values):
 
 
 def _build_env(*, stdin_data=None):
+    """Build one offline fixture runtime with explicit entry-only provider authority.
+
+    Classification records intent without moving bindings during P1. Credentials
+    remain protected and model acquisition/invocation stays explicit in source.
+    """
     env = make_global_env(stdin_data or [])
     descriptor = _map(
         kind=symbol("values"),
@@ -62,9 +67,9 @@ def _build_env(*, stdin_data=None):
         )
         return GeniaOptionSome(response)
     model_provider = create_fixture_model_provider(fixture_response)
-    env.set("model_provider_fixture", model_provider)
-    env.set("model_credential_fixture", credential_result.value)
-    env.set("model_authority_fixture", authority)
+    env.set_host("model_provider_fixture", model_provider, visibility="entry-only")
+    env.set_host("model_credential_fixture", credential_result.value, visibility="entry-only")
+    env.set_host("model_authority_fixture", authority, visibility="entry-only")
     return env
 
 
