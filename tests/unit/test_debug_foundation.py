@@ -1,3 +1,8 @@
+"""Python AST/IR source spans and debugger-hook observation without evaluation changes.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 from genia.ast_nodes import FuncDef
@@ -96,7 +101,7 @@ def test_autoload_uses_real_file_path_for_span_filename(tmp_path: Path):
 
     hooks = RecordingDebugHooks()
     env = make_global_env([], debug_hooks=hooks, debug_mode=True)
-    env.register_autoload("auto_const", 0, str(prelude_file.resolve()))
+    env.register_host_autoload("auto_const", 0, str(prelude_file.resolve()), visibility="runtime-public")
 
     result = run_source("auto_const()\n", env, filename="main.genia", debug_hooks=hooks, debug_mode=True)
 

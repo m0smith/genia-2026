@@ -1,3 +1,8 @@
+"""Map identity, lookup and supported host-injected key/value fixtures.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import pytest
 
 
@@ -68,8 +73,8 @@ def test_map_tuple_keys_runtime_behavior():
 
     env = make_global_env([])
     map_value = run_source("map_new()", env)
-    env.set("m", map_value)
-    env.set("k", ("tuple", 1))
+    env.set_host("m", map_value, visibility="entry-only")
+    env.set_host("k", ("tuple", 1), visibility="entry-only")
     run_source('m2 = map_put(m, k, "value")', env)
     assert run_source("map_get(m2, k)", env) == "value"
     assert run_source("map_has?(m2, k)", env) is True

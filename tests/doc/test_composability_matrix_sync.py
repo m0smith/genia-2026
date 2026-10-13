@@ -40,8 +40,14 @@ FAMILY_PATTERN = re.compile(
     r"^(represent|strip_representation|json_decode|json_encode|json_schema|.*_match)$"
 )
 
-_ENV_SET_NAME = re.compile(r'env\.set(?:_internal)?\(\s*"([A-Za-z_][A-Za-z0-9_?]*)"')
+_ENV_SET_NAME = re.compile(r'env\.set(?:_host)?(?:_internal)?\(\s*"([A-Za-z_][A-Za-z0-9_?]*)"')
 _PRELUDE_DEF_NAME = re.compile(r"(?m)^([a-zA-Z_][a-zA-Z0-9_?]*)\([^\n]*\)\s*(?:=|->)")
+
+
+@pytest.mark.parametrize("installer", ["set", "set_internal", "set_host", "set_host_internal"])
+def test_family_derivation_recognizes_legacy_and_classified_installers(installer):
+    source = f'env.{installer}("representation_match", helper)'
+    assert _ENV_SET_NAME.findall(source) == ["representation_match"]
 
 
 def _mentions_name(text: str, name: str) -> bool:

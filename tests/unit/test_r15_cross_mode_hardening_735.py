@@ -57,8 +57,8 @@ def test_protected_value_never_leaks_through_default_description_diagnostic_or_s
     )
     provider = env.get("config_standard")(GeniaMap(), []).value
     protected = env.get("secret_view")(provider, "", symbol("purpose_735"))("TOKEN").value
-    env.set("protected_default", protected)
-    env.set("protected_present", protected)
+    env.set_host("protected_default", protected, visibility="entry-only")
+    env.set_host("protected_present", protected, visibility="entry-only")
 
     # (a) description + missing-only default insertion: description records
     # only that a default exists, never the literal protected value; the

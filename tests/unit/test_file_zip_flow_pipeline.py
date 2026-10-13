@@ -1,3 +1,8 @@
+"""Python file/ZIP bridge callbacks and Flow pipeline IO using temporary paths.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import zipfile
 
 from genia import make_global_env, run_source
@@ -11,12 +16,12 @@ def test_zip_read_returns_lazy_flow_and_collects_entries(tmp_path):
         zf.writestr("b.txt", "B")
 
     env = make_global_env([])
-    env.set("in_path", str(in_zip))
+    env.set_host("in_path", str(in_zip), visibility="entry-only")
     flow_value = run_source("zip_read(in_path)", env)
     assert isinstance(flow_value, GeniaFlow)
 
     env = make_global_env([])
-    env.set("in_path", str(in_zip))
+    env.set_host("in_path", str(in_zip), visibility="entry-only")
     result = run_source(
       'zip_read(in_path) |> map((entry) -> unwrap_or("?", first(entry))) |> collect',
         env,
@@ -33,8 +38,8 @@ def test_zip_read_transform_json_and_zip_write_pipeline(tmp_path):
         zf.writestr("note.txt", "hello")
 
     env = make_global_env([])
-    env.set("in_path", str(in_zip))
-    env.set("out_path", str(out_zip))
+    env.set_host("in_path", str(in_zip), visibility="entry-only")
+    env.set_host("out_path", str(out_zip), visibility="entry-only")
 
     src = """
     rewrite(item) =
@@ -57,7 +62,7 @@ def test_zip_write_writes_new_zip_from_flow(tmp_path):
     out_zip = tmp_path / "created.zip"
 
     env = make_global_env([])
-    env.set("out_path", str(out_zip))
+    env.set_host("out_path", str(out_zip), visibility="entry-only")
 
     src = """
     make_item(line) = [concat(line, ".txt"), upper(line)]
@@ -80,8 +85,8 @@ def test_file_read_write_and_zip_error_paths_return_none_with_metadata(tmp_path)
     missing_zip = tmp_path / "missing.zip"
 
     env = make_global_env([])
-    env.set("missing", str(missing))
-    env.set("missing_zip", str(missing_zip))
+    env.set_host("missing", str(missing), visibility="entry-only")
+    env.set_host("missing_zip", str(missing_zip), visibility="entry-only")
 
     src = """
     read_missing = read_file(missing)
@@ -99,6 +104,6 @@ def test_file_read_write_and_zip_error_paths_return_none_with_metadata(tmp_path)
 
     out_file = tmp_path / "x.txt"
     env = make_global_env([])
-    env.set("out_file", str(out_file))
+    env.set_host("out_file", str(out_file), visibility="entry-only")
     assert run_source('write_file(out_file, "hello")', env) == str(out_file)
     assert run_source('read_file(out_file)', env) == "hello"

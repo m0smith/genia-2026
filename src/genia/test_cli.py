@@ -76,22 +76,24 @@ def make_test_env(
     fixture_bindings: dict[str, Any] | None = None,
     **global_env_kwargs: Any,
 ) -> tuple[Any, list[TestUnit]]:
-    """Create a host test environment with entry-owned legacy registration.
+    """Construct one test environment and its entry-owned registration list.
 
-    Fixtures and test() retain their existing entry visibility during P1.
+    Every supplied fixture and the registrar declare entry-only host visibility;
+    P1 retains the shared root and existing installation order/collisions, and
+    the registration list is attached through the entry-scope accessor.
     """
     tests: list[TestUnit] = []
     env = make_global_env(cli_args=[], **global_env_kwargs)
     setattr(env.entry_scope(), "_native_test_units", tests)
 
     for name, value in (fixture_bindings or {}).items():
-        env.set(name, value)
+        env.set_host(name, value, visibility="entry-only")
 
     def register_test(name: Any, body: Any) -> None:
         tests.append(TestUnit(name, body))
         return None
 
-    env.set("test", register_test)
+    env.set_host("test", register_test, visibility="entry-only")
     return env, tests
 
 

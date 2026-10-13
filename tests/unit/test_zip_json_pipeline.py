@@ -1,3 +1,8 @@
+"""Python ZIP/JSON bridge composition with explicit temporary archive and bytes fixtures.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import zipfile
 
 import pytest
@@ -35,8 +40,8 @@ def test_zip_rewrite_happy_path_with_pipeline_and_order(tmp_path):
         zf.writestr("b.json", '{"x":[3,2,1]}')
 
     env = make_global_env([])
-    env.set("in_path", str(in_zip))
-    env.set("out_path", str(out_zip))
+    env.set_host("in_path", str(in_zip), visibility="entry-only")
+    env.set_host("out_path", str(out_zip), visibility="entry-only")
     src = """
     rewrite_entry(entry) =
       entry ? entry_json(entry) -> update_entry_bytes(entry, compose(utf8_encode, json_pretty, json_parse, utf8_decode)) |
@@ -81,7 +86,7 @@ def test_invalid_json_failure_returns_structured_none_metadata():
 
 def test_invalid_utf8_failure_is_clear_and_deterministic():
     env = make_global_env([])
-    env.set("bad", GeniaBytes(b"\xff\xfe"))
+    env.set_host("bad", GeniaBytes(b"\xff\xfe"), visibility="entry-only")
     with pytest.raises(ValueError, match=r"utf8_decode invalid UTF-8"):
         run_source("utf8_decode(bad)", env)
 
@@ -94,7 +99,7 @@ def test_type_errors_for_wrong_argument_types():
     with pytest.raises(TypeError, match="entry_name expected a zip entry"):
         _run("entry_name(123)")
     env = make_global_env([])
-    env.set("entry", GeniaZipEntry("x.json", GeniaBytes(b"{}")))
+    env.set_host("entry", GeniaZipEntry("x.json", GeniaBytes(b"{}")), visibility="entry-only")
     with pytest.raises(TypeError, match="update_entry_bytes expected a function as second argument"):
         run_source("update_entry_bytes(entry, 1)", env)
 
@@ -102,12 +107,12 @@ def test_type_errors_for_wrong_argument_types():
 def test_zip_entries_missing_and_invalid_archive_errors(tmp_path):
     missing = tmp_path / "missing.zip"
     env = make_global_env([])
-    env.set("missing", str(missing))
+    env.set_host("missing", str(missing), visibility="entry-only")
     with pytest.raises(FileNotFoundError, match="zip_entries could not read zip file"):
         run_source("zip_entries(missing)", env)
 
     bad_zip = tmp_path / "bad.zip"
     bad_zip.write_bytes(b"not-a-zip")
-    env.set("bad_zip", str(bad_zip))
+    env.set_host("bad_zip", str(bad_zip), visibility="entry-only")
     with pytest.raises(ValueError, match="zip_entries invalid zip archive"):
         run_source("zip_entries(bad_zip)", env)

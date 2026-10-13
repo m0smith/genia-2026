@@ -30,6 +30,11 @@ def _map(**values):
 
 
 def _build_env(*, stdin_data=None, observations=None):
+    """Build offline grounding providers and entry-only credential/authority fixtures.
+
+    Optional observations collect fixture audits/backend identities. P1 records
+    classes in the same runtime and performs no real provider/network attempt.
+    """
     env = make_global_env(stdin_data or [])
     observations = observations if observations is not None else {}
     observations.setdefault("audits", [])
@@ -41,14 +46,15 @@ def _build_env(*, stdin_data=None, observations=None):
     for purpose in purposes:
         credential = get_secret_configuration(config_provider, f"R12_{purpose.upper()}", symbol(purpose))
         assert isinstance(credential, GeniaOptionSome)
-        env.set(purpose.replace("_call", "_credential_fixture"), credential.value)
-        env.set(
+        env.set_host(purpose.replace("_call", "_credential_fixture"), credential.value, visibility="entry-only")
+        env.set_host(
             purpose.replace("_call", "_authority_fixture"),
             create_declassification_authority(
                 config_provider,
                 [symbol(purpose)],
                 lambda event, concern=purpose: observations["audits"].append((concern, event)),
             ),
+            visibility="entry-only",
         )
 
     def embed_response(_config, value, _secret):
@@ -79,11 +85,11 @@ def _build_env(*, stdin_data=None, observations=None):
             )
         )
     )
-    env.set("embed_provider_fixture", create_fixture_embed_provider(embed_response))
-    env.set("index_provider_fixture", index_provider)
-    env.set("retrieve_provider_fixture", retrieve_provider)
-    env.set("rerank_provider_fixture", rerank_provider)
-    env.set("model_provider_fixture", model_provider)
+    env.set_host("embed_provider_fixture", create_fixture_embed_provider(embed_response), visibility="entry-only")
+    env.set_host("index_provider_fixture", index_provider, visibility="entry-only")
+    env.set_host("retrieve_provider_fixture", retrieve_provider, visibility="entry-only")
+    env.set_host("rerank_provider_fixture", rerank_provider, visibility="entry-only")
+    env.set_host("model_provider_fixture", model_provider, visibility="entry-only")
     observations["providers"] = {
         "embed_call": env.get("embed_provider_fixture"),
         "index_call": index_provider,

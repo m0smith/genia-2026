@@ -1,3 +1,8 @@
+"""Offline Python model fixtures in an Outcome-aware validated record pipeline.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 import pytest
@@ -45,6 +50,10 @@ def _response(text):
 
 
 def _env(handler, *, matching_authority=True):
+    """Return an offline model runtime, fixture and audit list for the handler.
+
+    matching_authority=False deliberately uses another provider authority; all
+    host fixture injections stay entry-only without changing R10 checks."""
     env = make_global_env([])
     provider = run_source(
         'config_provider([{kind: quote(values), values: {'
@@ -52,7 +61,7 @@ def _env(handler, *, matching_authority=True):
         "}}]) |> unwrap_or(none)",
         env,
     )
-    env.set("pipeline_config_provider_fixture", provider)
+    env.set_host("pipeline_config_provider_fixture", provider, visibility="entry-only")
     credential = run_source(
         f'secret_get(pipeline_config_provider_fixture, "{KEY}", quote(model_call)) '
         "|> unwrap_or(none)",
@@ -70,9 +79,9 @@ def _env(handler, *, matching_authority=True):
         authority_provider, [symbol("model_call")], audits.append
     )
     fixture = create_fixture_model_provider(handler)
-    env.set("model_provider_fixture", fixture)
-    env.set("model_credential_fixture", credential)
-    env.set("model_authority_fixture", authority)
+    env.set_host("model_provider_fixture", fixture, visibility="entry-only")
+    env.set_host("model_credential_fixture", credential, visibility="entry-only")
+    env.set_host("model_authority_fixture", authority, visibility="entry-only")
     return env, fixture, audits
 
 

@@ -230,7 +230,7 @@ original = worker.prune_environment
 
 def inject(env):
     original(env)
-    env.set("CARRIER", provider.protect("{SENTINEL}", GeniaSymbol("api")))
+    env.set_host("CARRIER", provider.protect("{SENTINEL}", GeniaSymbol("api")), visibility="entry-only")
 
 
 worker.prune_environment = inject

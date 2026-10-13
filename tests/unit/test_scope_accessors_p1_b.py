@@ -87,7 +87,7 @@ def test_caller_supplied_child_is_not_registered_as_entry_or_module_unit(rebind_
 ])
 def test_loaded_module_distinguishes_declaring_unit_from_entry_and_inspection(tmp_path, accessor, owner):
     root = make_global_env([])
-    root.set("entry_marker", 17)
+    root.set_host("entry_marker", 17, visibility="entry-only")
     module, module_scope = load_fixture(tmp_path, root, "module_marker = 41\nprobe(x) = x\n")
     assert module_scope.parent is root
     assert module_scope.values["module_marker"] == 41

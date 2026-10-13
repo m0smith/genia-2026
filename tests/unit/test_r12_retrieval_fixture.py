@@ -1,3 +1,8 @@
+"""Offline Python retrieval from explicit index/query fixtures with separate authorities.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import math
 
 import pytest
@@ -66,6 +71,10 @@ def _retrieved(chunk, score):
 
 
 def _env(handler, corpus=None):
+    """Return runtime, index/retrieve providers and their separate audit lists.
+
+    Build an offline index from supplied/default corpus, then install its handle
+    and explicit query embedding entry-only; no real storage/network is acquired."""
     from genia.retrieval import (
         create_fixture_index_provider,
         create_fixture_index_result,
@@ -79,7 +88,7 @@ def _env(handler, corpus=None):
         "}}]) |> unwrap_or(none)",
         env,
     )
-    env.set("config_provider_fixture", config_provider)
+    env.set_host("config_provider_fixture", config_provider, visibility="entry-only")
     index_credential = run_source(
         f'secret_get(config_provider_fixture, "{KEY}", quote(index_call)) |> unwrap_or(none)',
         env,
@@ -100,22 +109,22 @@ def _env(handler, corpus=None):
         lambda *_args: GeniaOptionSome(create_fixture_index_result(object()))
     )
     retrieve_provider = create_fixture_retrieve_provider(index_provider, handler)
-    env.set("index_provider_fixture", index_provider)
-    env.set("index_credential_fixture", index_credential)
-    env.set("index_authority_fixture", index_authority)
-    env.set("retrieve_provider_fixture", retrieve_provider)
-    env.set("retrieve_credential_fixture", retrieve_credential)
-    env.set("retrieve_authority_fixture", retrieve_authority)
+    env.set_host("index_provider_fixture", index_provider, visibility="entry-only")
+    env.set_host("index_credential_fixture", index_credential, visibility="entry-only")
+    env.set_host("index_authority_fixture", index_authority, visibility="entry-only")
+    env.set_host("retrieve_provider_fixture", retrieve_provider, visibility="entry-only")
+    env.set_host("retrieve_credential_fixture", retrieve_credential, visibility="entry-only")
+    env.set_host("retrieve_authority_fixture", retrieve_authority, visibility="entry-only")
     corpus = [_embedded()] if corpus is None else corpus
-    env.set("embedded_corpus_fixture", corpus)
+    env.set_host("embedded_corpus_fixture", corpus, visibility="entry-only")
     handle = run_source(
         'i = index(index_provider_fixture, {id: "index", timeout_ms: 1000}, '
         "index_credential_fixture, index_authority_fixture)\n"
         "i(embedded_corpus_fixture) |> unwrap_or(none)",
         env,
     )
-    env.set("index_handle_fixture", handle)
-    env.set("query_embedding_fixture", _query())
+    env.set_host("index_handle_fixture", handle, visibility="entry-only")
+    env.set_host("query_embedding_fixture", _query(), visibility="entry-only")
     return env, index_provider, retrieve_provider, index_audits, retrieve_audits
 
 
@@ -226,7 +235,7 @@ def test_invalid_query_or_k_precedes_declassification(query, k, message):
 
 def test_protected_query_field_is_rejected_before_attempt():
     env, _index, fixture, _index_audits, audits = _env(lambda *_args: None)
-    env.set("protected_query_fixture", env.get("retrieve_credential_fixture"))
+    env.set_host("protected_query_fixture", env.get("retrieve_credential_fixture"), visibility="entry-only")
     with pytest.raises(TypeError, match="protected-value: retrieve-input"):
         run_source(
             _source(
@@ -247,8 +256,8 @@ def test_capability_mismatch_precedes_space_and_dimension_checks():
     env, _index, _fixture, _index_audits, audits = _env(lambda *_args: None)
     other_index = create_fixture_index_provider(lambda *_args: None)
     other_retriever = create_fixture_retrieve_provider(other_index, lambda *_args: None)
-    env.set("retrieve_provider_fixture", other_retriever)
-    env.set("query_embedding_fixture", _query(vector=[1], space="other-space"))
+    env.set_host("retrieve_provider_fixture", other_retriever, visibility="entry-only")
+    env.set_host("query_embedding_fixture", _query(vector=[1], space="other-space"), visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == (
         'err("retrieve-capability-incompatible", {kind: index_handle})'
@@ -259,7 +268,7 @@ def test_capability_mismatch_precedes_space_and_dimension_checks():
 
 def test_space_mismatch_precedes_dimension_check():
     env, _index, fixture, _index_audits, audits = _env(lambda *_args: None)
-    env.set("query_embedding_fixture", _query(vector=[1], space="other-space"))
+    env.set_host("query_embedding_fixture", _query(vector=[1], space="other-space"), visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == (
         'err("retrieve-embedding-incompatible", {kind: space})'
@@ -270,7 +279,7 @@ def test_space_mismatch_precedes_dimension_check():
 
 def test_dimension_mismatch_follows_space_check():
     env, _index, fixture, _index_audits, audits = _env(lambda *_args: None)
-    env.set("query_embedding_fixture", _query(vector=[1], space=SPACE))
+    env.set_host("query_embedding_fixture", _query(vector=[1], space=SPACE), visibility="entry-only")
     result = run_source(_source(), env)
     assert format_display(result) == (
         'err("retrieve-embedding-incompatible", {kind: dimension})'
@@ -384,12 +393,12 @@ def test_provider_exception_is_transport_failure_without_retry_or_leak():
 def test_authority_mismatch_prevents_attempt():
     env, _index, fixture, _index_audits, audits = _env(lambda *_args: None)
     provider = env.get("config_provider_fixture")
-    env.set(
+    env.set_host(
         "retrieve_authority_fixture",
         create_declassification_authority(
             provider, [symbol("embed_call")], audits.append
         ),
-    )
+     visibility="entry-only")
     with pytest.raises(TypeError, match="authority does not permit"):
         run_source(_source(), env)
     assert fixture.attempt_count == 0

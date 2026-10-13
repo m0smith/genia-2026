@@ -107,7 +107,7 @@ def test_u2_malformed_utf8_decode_fails_deterministically_without_host_wording()
     from genia.builtins import GeniaBytes
 
     env = make_global_env([])
-    env.set("bad", GeniaBytes(b"\xff\xfe"))
+    env.set_host("bad", GeniaBytes(b"\xff\xfe"), visibility="entry-only")
     with pytest.raises(ValueError) as exc_info:
         run_source("utf8_decode(bad)", env)
     message = str(exc_info.value)
@@ -125,7 +125,7 @@ def test_u2_malformed_utf8_decode_reports_offset_of_first_bad_byte():
     env = make_global_env([])
     # Two valid bytes ("h", "i"), then an invalid continuation byte at
     # offset 2.
-    env.set("bad", GeniaBytes(b"hi\x80"))
+    env.set_host("bad", GeniaBytes(b"hi\x80"), visibility="entry-only")
     with pytest.raises(ValueError, match=r"utf8_decode invalid UTF-8 at byte offset 2"):
         run_source("utf8_decode(bad)", env)
 
@@ -134,7 +134,7 @@ def test_u2_no_u_fffd_replacement_on_malformed_input():
     from genia.builtins import GeniaBytes
 
     env = make_global_env([])
-    env.set("bad", GeniaBytes(b"\xff\xfe"))
+    env.set_host("bad", GeniaBytes(b"\xff\xfe"), visibility="entry-only")
     with pytest.raises(ValueError) as exc_info:
         run_source("utf8_decode(bad)", env)
     assert "�" not in str(exc_info.value)

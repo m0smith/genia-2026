@@ -1,3 +1,8 @@
+"""Offline model fixtures proving application-owned list/Flow conversation composition.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 from pathlib import Path
 
 from genia.builtins import make_global_env
@@ -33,13 +38,17 @@ def _response(text="fixture reply"):
 
 
 def _env(handler):
+    """Return an offline model runtime and fixture for the supplied response handler.
+
+    Install protected credentials and matching authority entry-only; construction
+    does not call the handler or start conversation state."""
     env = make_global_env([])
     provider = run_source(
         'config_provider([{kind: quote(values), values: {KEY: "secret"}}]) '
         "|> unwrap_or(none)",
         env,
     )
-    env.set("provider_fixture", provider)
+    env.set_host("provider_fixture", provider, visibility="entry-only")
     credential = run_source(
         'secret_get(provider_fixture, "KEY", quote(model_call)) |> unwrap_or(none)',
         env,
@@ -48,9 +57,9 @@ def _env(handler):
     authority = create_declassification_authority(
         provider, [symbol("model_call")], lambda event: None
     )
-    env.set("model_provider_fixture", fixture)
-    env.set("model_credential_fixture", credential)
-    env.set("model_authority_fixture", authority)
+    env.set_host("model_provider_fixture", fixture, visibility="entry-only")
+    env.set_host("model_credential_fixture", credential, visibility="entry-only")
+    env.set_host("model_authority_fixture", authority, visibility="entry-only")
     return env, fixture
 
 

@@ -48,7 +48,7 @@ def test_execution_process_is_callable_from_ordinary_genia_source():
         authorized=lambda _symbol: True,
         launcher=lambda target, args, timeout_ms: launch_process(target, args, timeout_ms),
     )
-    env.set("fixture_capability", capability)
+    env.set_host("fixture_capability", capability, visibility="entry-only")
 
     result = run_source(
         "import execution\n"

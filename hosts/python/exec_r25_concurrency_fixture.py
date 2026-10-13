@@ -11,8 +11,9 @@ from genia.values import r25_await_runtime_idle
 
 
 def _build_env():
+    """Install the explicit entry-only test idle barrier without starting a process."""
     env = make_global_env([])
-    env.set("_r25_await_idle", r25_await_runtime_idle)
+    env.set_host("_r25_await_idle", r25_await_runtime_idle, visibility="entry-only")
     return env
 
 

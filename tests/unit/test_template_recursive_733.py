@@ -64,7 +64,7 @@ def test_recursion_bound_holds_at_the_documented_ceiling_far_beyond_python_stack
     # pushes to a depth (10000) far beyond Python's default recursion limit
     # (1000) to prove the bound is now independent of Python's call stack.
     env = make_global_env([])
-    env.set("chain_10000", _build_chain(10000))
+    env.set_host("chain_10000", _build_chain(10000), visibility="entry-only")
     result = interpreter_module.run_source(
         "Tree = recursive_template(\"tree\", (ref) -> alternatives(\"kind\", "
         "{leaf: exact_shape({kind: refinement((x) -> x == \"leaf\")}), "
@@ -83,8 +83,8 @@ def test_recursion_bound_precise_boundary_at_the_documented_ceiling():
     # ceiling), while 101 must fail -- both far beyond the ~75-80 depth where
     # the original Python-recursion-based implementation actually crashed.
     env = make_global_env([])
-    env.set("chain_100", _build_chain(100))
-    env.set("chain_101", _build_chain(101))
+    env.set_host("chain_100", _build_chain(100), visibility="entry-only")
+    env.set_host("chain_101", _build_chain(101), visibility="entry-only")
     source = (
         "Tree = recursive_template(\"tree\", (ref) -> alternatives(\"kind\", "
         "{leaf: exact_shape({kind: refinement((x) -> x == \"leaf\")}), "

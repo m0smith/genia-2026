@@ -1,3 +1,8 @@
+"""Python protected configuration acquisition and sentinel-free rendering boundaries.
+
+Host injections declare P1 intent explicitly while retaining shared-root placement.
+"""
+
 import threading
 
 import pytest
@@ -92,7 +97,7 @@ def test_secret_get_or_rejects_a_default_success_containing_protection():
         f'secret_get(provider, "{KEY_SENTINEL}", quote(first_use)) |> unwrap_or(none)',
         env,
     )
-    env.set("protected_fixture", protected)
+    env.set_host("protected_fixture", protected, visibility="entry-only")
     with pytest.raises(
         TypeError, match="default success cannot contain a protected value"
     ):
@@ -114,7 +119,7 @@ def test_protected_match_returns_exact_subject_and_named_pattern_binds_it():
     assert isinstance(direct, GeniaOptionSome)
     assert direct.value is protected
 
-    env.set("protected_fixture", protected)
+    env.set_host("protected_fixture", protected, visibility="entry-only")
     matched = run_source(
         'pattern Secret(value) = protected_match("secret", value)\n'
         "extract(value) = Secret(bound) -> bound | _ -> none\n"
@@ -193,7 +198,7 @@ def test_exact_protected_leaf_transports_through_containers_pipeline_flow_sheet_
         f'secret_get(provider, "{KEY_SENTINEL}", quote({PURPOSE_SENTINEL})) |> unwrap_or(none)',
         env,
     )
-    env.set("protected_fixture", protected)
+    env.set_host("protected_fixture", protected, visibility="entry-only")
     result = run_source(
         """
         holder = ref(protected_fixture)
@@ -235,7 +240,7 @@ def test_protected_leaf_is_opaque_to_ordinary_derivation_and_all_observations_ar
     )
     assert format_display(protected) == "<protected>"
     assert format_debug(protected) == "<protected>"
-    env.set("protected_fixture", protected)
+    env.set_host("protected_fixture", protected, visibility="entry-only")
     derived = run_source('protected_fixture + "suffix"', env)
     assert isinstance(derived, GeniaOptionNone)
     assert derived.reason == "type-error"
