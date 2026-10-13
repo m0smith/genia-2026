@@ -83,9 +83,9 @@ never blanket. Under the planned graph R is the structural root, so
 | `:199-217` `assign`/`find_assign_target` | walks parents if `rebind_parent` | R | E with `rebind_parent=True` reproduces "rebinds R" for assignment; module Envs stay `False` |
 | `environment.py:259-273` `merge_binding_metadata`, `get_metadata` | parent walk | R | Metadata follows the binding's owning Env; add collision-row metadata test |
 | `builtins.py:3340`, `:3378` (#1220) | `env.root().autoloads` in help catalogue | M (see §G) | `env` there is captured R, so the migration is **behavior-neutral** under the approved graph; closing #1220 needs a test/guard decision (§G) |
-| `builtins.py` `doc_fn`/`meta_fn`/`help_fn` (`:3492`, `_help_in_scope` `:3461`) | R-bound lookup Env | M (D1) | Entry names currently invisible to `doc`/`help` once E exists (probe). Must bind evaluation scope or entry reflection regresses |
+| `builtins.py` `doc_fn`/`meta_fn`/`help_fn` (`help_fn` `:3490`, `_help_in_scope` `:3448`, `doc_fn` `:3531`, `meta_fn` `:3565`) | R-bound lookup Env | M (D1) | Entry names currently invisible to `doc`/`help` once E exists (probe). Must bind evaluation scope or entry reflection regresses |
 | `builtins.py:394-` `_make_meta_env` (`Env(env, rebind_parent=False)`) | metacircular base env is a child of R, so it currently also sees entry names | ? | Incidental visibility; decide keep (E fallback-like) or restrict; needs a characterization test first |
-| `builtins.py:6537` `make_global_env` host installs | runtime-public by P1-E | R | Keep in R; `trusted_autoloads.update` at `:6518` is R state |
+| `builtins.py:~5884-6107` `make_global_env` host installs | runtime-public by P1-E | R | Keep in R; `trusted_autoloads.update` at `:6518` is R state |
 | `interpreter.py:336` `_emit_error`; `test_cli.py:283,292` `_write_stdout/_write_stderr` | `env.values.get("stderr"/"stdout")` on the supplied Env | M | P1 design §3 prescribed a runtime accessor; code still reads the supplied Env's own dict. If handed E, custom sinks are silently skipped for `sys.stderr`. Not yet shown which Env each caller passes — verify in P2-A |
 | `interpreter.py:200-217` `run_source` | writes `debug_hooks`/`debug_mode`/`internal_access` on the supplied Env | M | Debug state is runtime-owned; E would get its own copy while R's stays at constructor values. Decide owner = R |
 | `interpreter.py:338-` `_emit_result` | `env.get("stdout")` lexical | R | Correct from E |
@@ -94,12 +94,16 @@ never blanket. Under the planned graph R is the structural root, so
 | `interpreter.py:549` serve; `server_*_binding.py` | entry IR + `entry_env` | R | Correct once E; annotations must not scan R/M |
 | `interpreter.py:354,419,540,631,644,659`; `test_cli.py:86`; `hosts/python/{exec_model_fixture,exec_ollama_chat,exec_r12_grounded_fixture,exec_r25_concurrency_fixture,mcp_host,mcp_worker}.py` | the **construction sites** (13) that create the one env | M | Each must create/register E and run source in it. This is where separation actually becomes real |
 | `test_cli.py:102,180-182` | entry values scan | R | Correct once E; `make_test_env` fixtures/registrar → E via `set_host(entry-only)` |
-| `debug_controller.py:244` globals; `:246` locals; `:290` root frame; `:215-222` `_frame_for_env` | globals/frames | M / R | Globals remap to `unit_scope()` (D3). `_frame_for_env` falls back to `frames[0]` for Envs under R (prelude frames); verify it still lands on E |
+| `debug_controller.py:244` globals; `:246` locals; `:290` root frame; `:214-221` `_frame_for_env` | globals/frames | M / R | Globals remap to `unit_scope()` (D3). `_frame_for_env` falls back to `frames[0]` for Envs under R (prelude frames); verify it still lands on E |
 | `hosts/python/mcp_worker_profile.py:144-152` `prune_environment`; `mcp_worker.py:225-241` | prunes runtime values/autoloads, then evaluates in same env | M | Prune R, then create E; no E binding may re-introduce a denied name |
 | `tools/gen_function_docs.py:110`; `tools/lint_doc.py:536,556` | fresh-env catalogue | R | Must stay `runtime_scope()`; never entry |
 | `host_bridge.py:417-453` | `root.loaded_modules` | R | Module cache is R |
 | `callable.py:1127-1134` `_closure_lookup` (awareness), manual `.values` walk | no autoload, no fallback | ? | Awareness of a callable resolved via fallback differs from call-time; characterize (R20/Outcome awareness) |
-| Tests: 171 files call `make_global_env`; 5 inspect `.root()`/`env.values` | harnesses | see §E | Caller-created roots keep entry==root; **most of the suite will not exercise separation** unless P2 says so |
+| `builtins.py:535,886,4217,4227,4267,5939,5970` (`Evaluator(env, env.debug_hooks, env.debug_mode)` on captured R); `environment.py:368-369` (module copies `root.debug_hooks`) | debug state read from R | M | `run_source` writes hooks only on the Env it is given (`interpreter.py:210-211`); running in E would leave R's hooks no-op, losing stepping inside HOF callbacks and modules. Rule: R owns debug state |
+| `test_cli.py:318-324` (`getattr(env, "_native_test_units")` on the constructed env) vs `:87` (`setattr` on `entry_scope()`) | legacy test list read/written on different Envs | M | Once E≠R legacy `test(...)` locations are silently dropped; the construction helper must register E before `:87`, and `:322` must use `entry_scope()` |
+| `server_{config,cors,route}_binding.py` (~`:223/187/217`) | parent-walking `get_metadata` | R | Correct under any write-through; verify in T3 |
+| Prelude top-level helpers with no autoload registration (e.g. `map_acc`, `filter_acc`, `reverse_acc`, `nth_impl`, `take_acc`, `range_acc` in `std/prelude/list.genia`) | name not in R and not autoload-registered until the file loads | ? | Defeats a rule keyed on "bound in R or autoload-registered" (§J-1) |
+| Tests: 171 files call `make_global_env`; 5 inspect `env.values`; none call `.root()` | harnesses | see §E | Caller-created roots keep entry==root; **most of the suite will not exercise separation** unless P2 says so |
 | Fallback, shadowing, `NameError`, fallback removal, D2b | — | P3 | Out of P2 |
 
 ## D. Risk register (ranked)
@@ -111,7 +115,7 @@ Each: current → target → failure mode → mitigation → verification.
    merges with R's group, errors on duplicate arity, and is seen by prelude. Target
    (§9.1 P2): unchanged. Failure: child E silently becomes P3 shadowing (probe:
    `first`, `map`, `rows`) and hides R's other arities. Mitigation: explicit
-   write-through rule (§J-1). Verify: four pinned collision rows, red first.
+   write-through rule (§J-1). Verify: four pinned collision rows, red first. Note the rule is order-dependent (whether a name is already bound depends on load timing) and also governs `IrOpenFuncDef` (`evaluator.py:1503`).
 2. **Reflection regresses for entry names once E exists** (probe). Mitigation: D1
    evaluation-bound activation, covering `IrVar`, direct `eval_call`, both pipeline
    name paths and autoload retry (P1 design §6), with value-based marking so user
@@ -182,32 +186,36 @@ shared/native specs.
 | ID | Behavior | Old behavior that must fail | Source files | Location | Cross-host | Expected red diagnostic |
 |---|---|---|---|---|---|---|
 | T1 | `main/1`→`main/0`, `argv` dispatch from E; module/R `main` never entry | `_resolve_program_result(_, E)` reads R (no `main`) → result printed, not dispatched | `interpreter.py:499` | `tests/unit/test_f2_p2_separated_entry.py` | shared CLI cases unchanged | `assert … == 'out'`, got `<function main/0>` |
-| T2 | Native-test discovery scans E; `@test` in modules excluded; fixtures/`test` registrar `entry-only` in E | `discover_test_units(E)` scans R → `total=0` | `test_cli.py:87,102,180` | same | Python tooling only | `0 != expected N` |
+| T2 | Native-test discovery scans E; `@test` in modules excluded; fixtures/`test` registrar `entry-only` in E | `discover_test_units(E)` scans R: `test(...)` registrar entries (list on R) are still found, `@test`-annotated entry functions are missed | `test_cli.py:87,102,180,322` | same | Python tooling only | annotated-test count mismatch (not `total=0`) |
 | T3 | Serve discovery from E; annotations in modules inert | discovery reads R | `interpreter.py:549`, `server_*_binding.py` | same (loopback marker where sockets) | Python HTTP host | "no route/server declared" |
 | T4 | REPL `:env` lists E's own bindings only (D3), session persists | lists R builtins | `interpreter.py:383` | update `test_repl_env_characterization.py` | colon command host-local | extra builtin names present |
 | T5 | Debugger `locals`=frame, `globals`=declaring unit (E or M); prelude frame resolves | globals = R for module frames | `debug_controller.py:244,290,215` | `test_debug_stdio.py` additions | host protocol | module frame globals list builtins |
-| T6 | `gen_function_docs.collect`/`lint_doc` use `runtime_scope()`; wrong accessor on E sees empty catalogue | n/a today (same object) → passes after flip; red = *wrong-accessor* variant | `tools/*` | `tests/unit/test_scope_consumers_*.py` | tooling | "autoloads empty" |
+| T6 | `gen_function_docs.collect`/`lint_doc` use `runtime_scope()`. These tools build fresh roots (entry==root default), so a wrong-accessor red needs an explicitly separated E in the test; otherwise T6 is guard-only (§J-6) | red only with an explicit E | `tools/*` | `tests/unit/test_scope_consumers_*.py` | tooling | "autoloads empty" |
 | T7 | Module M→R only; entry name read works **with one stderr warning** per (module,name); strict switch fails; contribution clause reported against declaring module; import order independent | module reads E silently / no warning, no switch | `environment.py:get`, new fallback path | `tests/unit/test_f2_p2_module_fallback.py` + native cases | Python-only fallback; shared §5 cases are P3 | `warning absent` / `NameError` mismatch |
 | T8 | D1 reflection: entry→E then R; module→M then R; prelude→R; `map(doc,names)` binds E; transferred callable keeps scope; user-rebound `doc` unchanged | `doc("zzz")` in E misses entry name after flip | `builtins.py` reflection, `evaluator.py` identifier paths | `test_f2_p1_reflection_scope.py` + new | `doc_help` shared cases unchanged; C++ unsupported | `none('missing-doc')` instead of metadata |
-| T9 | MCP: R pruned before E, E empty, denied names undefined, catalogue/help pruned, allowed run unchanged | prune only an empty E / ordering regression | `mcp_worker_profile.py`, `mcp_worker.py` | `test_r28_mcp_*` + new unit | none | denied name resolves |
+| T9 | MCP: R pruned before E; `mcp_worker.py:241` runs source in **E, not R**; no installs after `prune_environment` (`:232`); E empty; denied names undefined; catalogue/help pruned; allowed run unchanged. Limits to state, not overclaim: `prune_environment` never prunes `internal_values`, and allowed autoloads can re-add unlisted helper names into R (only static `policy_violation` covers that) | prune only an empty E / ordering regression | `mcp_worker_profile.py`, `mcp_worker.py` | `test_r28_mcp_*` + new unit | none | denied name resolves |
 | T10 | Four collision rows preserved (definition vs unloaded prelude name; extend loaded group; value rebinding of R name; unloaded-prelude value) | child-E shadowing/hiding (probe) | `environment.py:define_function`, `evaluator.py:1503` | `test_f2_p2_collisions.py` | portable P3 shadowing matrix deferred | `ArityError` on `rows/1`; `first` resolves to entry in prelude |
 | T11 | Sink/diagnostic routing: custom stdout/stderr via R, test/err output ordering | `env.values.get("stderr")` on E → `sys.stderr` fallback | `interpreter.py:336`, `test_cli.py:283,292` | same | host IO | text on process stderr, not sink |
 | T12 | Host injection routing by class; unclassified rejected | installed in same Env | `environment.py:set_host*` | extend `test_scope_accessors_p1_b.py` | host policy | value found in wrong Env |
-| T13 | Debug state ownership (R); autoload under hooks | hooks on E only | `interpreter.py:200-217` | new unit | host | hooks absent in prelude frame |
+| T13 | Debug state ownership (R): hooks reach HOF callbacks (`builtins.py:535,886,4217…`), modules (`environment.py:368`) and autoload frames | hooks on E only; R no-op | `interpreter.py:200-217` | new unit | host | hooks absent in prelude frame |
 | T14 | Metacircular `eval` base env visibility per §J-4 | n/a (decision) | `builtins.py:394` | native + unit | `eval` shared cases unchanged | NameError / unexpected value |
 | T15 | Prelude cannot write E; autoload defines only into R | n/a post-flip | `environment.py:try_autoload` | native `prelude_local_binding_isolation.genia` run under separated mode | portable | entry binding changed |
 | T16 | R10 protected sentinels: no leak via `:env`, debugger globals, warnings, reflection | n/a | configuration/lifecycle | `test_declassification.py` patterns | Python | sentinel in output |
 | T17 | Wrong-accessor matrix: every consumer in §C has one test that fails if given the other of `runtime_scope()`/`entry_scope()`/`unit_scope()` | stub-based (#1221) | all | `tests/unit/test_f2_p2_wrong_accessor.py` | n/a | named boundary mismatch |
 
-Shared-spec decision: P2 introduces **no new portable expectation**, because the
-fallback keeps module reads working. Add shared/native cases only for observations
-invariant across P1→P2→P3 (declaring-module closure for contributions with a
-module-defined helper, D1 transfer, prelude non-write). `NameError`/shadowing cases
+Shared-spec decision: P2 introduces **no new module-isolation expectation**, because
+the fallback keeps module reads working. Contract §12 makes §7.1 (D1) portable, so
+D1 evaluation-scope cases (entry/module/prelude/indirect/transferred) are a portable
+obligation to express as shared specs under `doc_help` + `multi_file_eval`, alongside
+other observations invariant across P1→P2→P3 (declaring-module closure with a
+module-defined helper, prelude non-write). `NameError`/shadowing cases
 are P3 shared work (gate P2→P3, §11.4.3). Capability vocabulary stays
 `multi_file_eval`/`doc_help`; no new capability.
 
-Host test: C++ (`m0smith/genia-cpp`) declares `multi_file_eval` and `doc_help`
-unsupported and has a single environment (contract §12, P1-H record). **Not
+Host test: contract §12 states C++ rejects `import`, declares `multi_file_eval`
+unsupported, and has a single environment. This repository does not itself state
+`doc_help` is unsupported in C++ (the P1-H record says C++ parity was not run);
+verify against `spec/manifest.json`/the R16 runner in P2-F rather than assume. **Not
 re-verified against `genia-cpp` HEAD in this pre-flight** (outside repository scope);
 P2-F must re-run `tools.spec_runner` to show no change in supported/unsupported
 classification. No C++ change or host-gap entry is required by P2.
@@ -225,7 +233,7 @@ fallback-removal issue. Slices are PRs checked off in the P2 issue, not new issu
 | **P2-B** | Failing separated-scope tests T1-T5, T7-T13, T15-T17 | P2-0, P2-A | `tests/unit/test_f2_p2_*.py` | no source change | all, red for intended reason | red SHA recorded | after 0/A |
 | **P2-C** | Topology: construction helper + 13 sites, `entry_scope`/`runtime_scope` remap, `set_host` routing, write-through rule, `run_source` debug ownership | P2-B | `environment.py`, `interpreter.py`, `test_cli.py`, `hosts/python/*` | prelude closes over R; M child of R; collisions unchanged | T1-T3, T10-T13 green | sequential (owns `environment.py`) | no |
 | **P2-D** | Consumer flip + reflection: REPL/debugger D3, D1 activation, runtime sink reads, `.root()` removal in `builtins.py` (#1220) | P2-C | `builtins.py`, `evaluator.py`, `callable.py`, `interpreter.py`, `debug_controller.py` | D1; entry compat | T4, T5, T8, T14 | #1220 evidence | ‖ P2-E (serialize `interpreter.py` hunks) |
-| **P2-E** | Fallback: `Env.get` miss path, dedupe, warning text, strict switch, manifest of repository programs, deadline check, registry/marker | P2-C | `environment.py`, new small module, CI config | reads only; no values/paths | T7 | strict CI zero events | ‖ P2-D |
+| **P2-E** | Fallback: `Env.get` miss path, dedupe, warning text, strict switch, registry/marker; repository-program manifest and deadline check only if P2-0 keeps them in scope (P1 design §7 proposal, beyond contract §11 minimum) | P2-C and P2-D's `environment.py` hunks (serialize) | `environment.py`, new small module, CI config | reads only; no values/paths | T7 | strict CI zero events | after P2-D `environment.py` hunks; otherwise ‖ |
 | **P2-F** | Integration: real separated coverage of every boundary (#1221), MCP T9, both full partitions, `spec_runner`, doc tooling | P2-D, P2-E | tests | — | T9, T17 | **#1221 gate**; full green | no |
 | **P2-G** | Docs + audit + distillation: STATE (net-small), RULES, REPL README, README, host-interop, cheatsheet only if example changes, semantic facts, MCP profile impact answer, composability-matrix test | P2-F | docs | STATE ≤43,000 words | doc-sync tests | skeptical audit | no |
 
@@ -239,13 +247,16 @@ approved reclassification) in #1067; code merge alone does not close P2.
 parentless root; E and M are children), `root()` and `runtime_scope()` coincide for
 every Env, so the migration is correct and **behavior-neutral**; a test cannot go red
 on the *accessor choice* unless some Env's `runtime_scope()` differs from `root()`,
-which the approved topology never produces. P2 must therefore (i) replace both sites
+which the approved topology never produces. Wrong choices *are* testable once E exists:
+using `entry_scope()`/`unit_scope()` for the catalogue sees an empty one. P2 must therefore (i) replace both sites
 with `runtime_scope()`; (ii) add behavioral tests with E≠R proving the help overview
 and families are built from R's catalogue (entry-defined names never appear;
 MCP-pruned R shows the pruned catalogue; help output unchanged); (iii) add a source
-guard (as P1-E did for raw host injection) that fails on `.root()` outside
-`environment.py`, which **does** fail against the current code. Criterion 2 of #1220
-("fail against old direct-root implementation") is met only through (iii); recorded as
+guard (as P1-E did for raw host injection) that fails on `.root()` calls outside
+`environment.py` and on `.autoloads` reads through anything but `runtime_scope()`,
+which **does** fail against the current code (`builtins.py:3340,3378`). Criterion 2 of #1220
+("fail against old direct-root implementation") is met only through (iii), plus
+entry/unit-misuse tests for (ii); recorded as
 reclassification request in §J-5. Do not close on (i) alone.
 
 **#1221 (open).** Stub tests (`test_scope_consumers_p1_g.py`, `test_inspection_consumers_p1_d.py`,
@@ -272,7 +283,24 @@ generated function docs only if public `@doc` changes. STATE margin is 135 words
 
 ## I. Independent review
 
-See the section appended after the reviewer returns (below).
+Read-only reviewer (separate agent, no edits) challenged the first draft against the
+code. Findings and disposition:
+
+| # | Finding | Disposition |
+|---|---|---|
+| H1 | Write-through rule incomplete (unregistered prelude helpers; contradiction with §9.1 row 4; order-dependence; `IrOpenFuncDef`) | Verified (`map_acc` unregistered). Added to §C, risk 1, §J-1; contract conflict stated |
+| H2 | Debug-state consumers missing | Added to §C and T13 |
+| H3 | Native-test list read/write on different Envs (`test_cli.py:322` vs `:87`) | Verified; added to §C and T2 |
+| H4 | T6/T17 impossible under entry==root default | T6 reworded (explicit E or guard-only) |
+| M5 | #1220 claim overstated | §G reworded; guard scope widened to `.autoloads`; tests-`.root()` claim corrected |
+| M6 | T2 red diagnostic wrong | Corrected |
+| M7 | MCP gaps (E vs R execution, `internal_values`, allowed autoloads) | T9 extended with explicit limits |
+| M8 | C++ `doc_help` attribution; D1 portable | Corrected in §E |
+| L9 | Citation errors | Corrected where verified |
+| L10 | P2-E scope/parallelism; §J-4 restrict is a behavior change | Serialized `environment.py`; labeled |
+
+No finding was rejected. The reviewer judged the probe claims plausible and confirmed
+the 13 construction sites. No premature P3 work was found.
 
 ## J. Open decisions and verdict
 
@@ -282,7 +310,13 @@ Rulings needed in P2-0 (none may be assumed):
    behavior (probe). Candidate (recommended): during P2 an entry definition/assignment
    whose name is bound in R **or autoload-registered** writes through to R exactly as
    today; all other names go to E; removed in P3, when D2/D2b shadowing replaces it.
-   Consequences to rule on: such names are absent from E's `:env`/test discovery;
+   Gaps found in review that P2-0 must close: (a) prelude files define top-level helpers
+with no autoload registration (`map_acc`, `filter_acc`, …), so the rule must be keyed
+on a static manifest of every top-level name in every autoload file, or accept a
+visible change; (b) contract §9.1 row 4 ("prelude write into an entry binding: removed")
+cannot hold for R-named entry bindings that live in R under write-through — check the
+16 §2.1 names against R/autoload; (c) routing is load-order dependent and must also
+cover `IrOpenFuncDef`. Consequences to rule on: such names are absent from E's `:env`/test discovery;
    module/prelude see them (today's behavior). Alternative: amend §9.1 to start shadowing
    at P2 (rejected here: contradicts the approved table).
 2. **Reflection in P2.** Activate D1 evaluation-bound reflective values in P2
@@ -291,7 +325,7 @@ Rulings needed in P2-0 (none may be assumed):
    is C++-scoped), strict-switch spelling, deadline unit (releases vs the P1 design's
    hybrid 60-day proposal), and who owns the removal issue. Contract §14 open question 4
    and P1 design §7 are unratified in #1067.
-4. **Metacircular base env** visibility of E names (§C, T14).
+4. **Metacircular base env** visibility of E names (§C, T14). Restricting it is a P2 behavior change (hides E names from `eval`) and must be labeled so.
 5. **#1220 reclassification** (accessor test infeasible; guard-based criterion).
 6. **Construction API:** name/shape of the single helper that registers E on R
    (default: caller-created roots keep entry==root, per P1 design §2), and whether a
