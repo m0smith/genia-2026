@@ -29,3 +29,11 @@ Verification on the merged tree: `ruff check .`; `pytest -n auto -m "not loopbac
 `lint_doc.py --require-coverage` and `gen_mcp_language_profile.py --check` clean.
 Not run locally: Node/VS Code and official-SDK MCP stdio jobs, C++ host parity
 (CI-only).
+
+Post-merge note: PR #1219 merged this branch into `main` (10ed362f) before this
+note was written; no further integration was required.
+
+Deferred audit findings (Low, non-blocking for P1-H, mandatory for P2
+completion; tracked in the F2 contract gates section): #1220 direct
+`env.root().autoloads` access in reflection/help, and #1221 stub-only
+P1-C/D/G accessor tests. Both remain open; no change was made to either in P1-H.
