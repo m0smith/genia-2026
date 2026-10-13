@@ -345,6 +345,12 @@ def _emit_error(env: Env, message: str) -> None:
 
 
 def repl() -> None:
+    """Evaluate persistent input and host colon commands until quit or EOF.
+
+    :env renders the sorted inspection compatibility view (root during P1).
+    Interactive stdin adds prompts/banner; scripted input keeps output clean.
+    Evaluation errors are reported to stderr and permit subsequent input.
+    """
     env = make_global_env([])
     # Banner and prompts are host-local terminal cosmetics (see
     # docs/design/r26-cpp-repl-contract.md section 3); a non-interactive
@@ -374,8 +380,9 @@ def repl() -> None:
             env.get("help")()
             continue
         if not buf and line.strip() == ":env":
-            for k in sorted(env.values):
-                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(env.values[k])}")
+            inspection = env.inspection_globals_scope()
+            for k in sorted(inspection.values):
+                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(inspection.values[k])}")
             continue
         buf += line + "\n"
         if not is_complete(buf):
@@ -488,6 +495,8 @@ def _select_execution_mode(
 
 
 def _resolve_program_result(run_result: Any, env: Env) -> Any:
+    """Dispatch entry main/1 before main/0, preserving the source result if absent."""
+    env = env.entry_scope()
     main_group = env.values.get("main")
     if not isinstance(main_group, GeniaFunctionGroup):
         return run_result
@@ -512,6 +521,11 @@ def _format_serve_diagnostic(diagnostic: Any) -> str:
 
 
 def _run_serve_file(program_path: str) -> int:
+    """Evaluate the file and discover descriptors in its P1 entry owner.
+
+    Activate one assembled server without dispatching main; report startup or
+    lifecycle failure as exit status 1. Entry still aliases root during P1.
+    """
     from .server_config_binding import (
         discover_entry_file_server_config_binding,
     )
@@ -532,14 +546,15 @@ def _run_serve_file(program_path: str) -> int:
         assert_portable_core_ir(ir_nodes)
         Evaluator(env).eval_program(ir_nodes)
 
+        entry_env = env.entry_scope()
         server_result = discover_entry_file_server_config_binding(
             ir_nodes,
-            env,
+            entry_env,
             entry_source_identity=resolved_path,
         )
         route_result = discover_entry_file_route_bindings(
             ir_nodes,
-            env,
+            entry_env,
             entry_source_identity=resolved_path,
         )
         diagnostics = list(server_result.diagnostics)
@@ -547,7 +562,7 @@ def _run_serve_file(program_path: str) -> int:
         if server_result.binding is not None:
             cors_result = discover_entry_file_cors_binding(
                 ir_nodes,
-                env,
+                entry_env,
                 entry_source_identity=resolved_path,
                 server_declaration_name=server_result.binding.declaration_name,
                 server_source_index=server_result.binding.source_index,

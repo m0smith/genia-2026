@@ -132,11 +132,11 @@ def test_indirection_cannot_reach_prohibited_authority():
 def test_every_binding_and_autoload_is_explicitly_classified():
     profile = _profile()
     env = _fresh_env()
-    names = set(env.values)
+    names = set(env.runtime_scope().values)
     assert names <= (profile.ALLOWED_BINDINGS | profile.DENIED_BINDINGS), sorted(
         names - profile.ALLOWED_BINDINGS - profile.DENIED_BINDINGS
     )
-    autoloads = set(env.root().autoloads)
+    autoloads = set(env.runtime_scope().autoloads)
     assert autoloads <= (profile.ALLOWED_AUTOLOADS | profile.DENIED_AUTOLOADS), sorted(
         autoloads - profile.ALLOWED_AUTOLOADS - profile.DENIED_AUTOLOADS
     )
@@ -148,20 +148,20 @@ def test_classification_names_exist_today():
     # A stale entry would hide a removed binding; keep the lists honest.
     profile = _profile()
     env = _fresh_env()
-    assert profile.DENIED_BINDINGS <= set(env.values)
-    assert profile.ALLOWED_BINDINGS <= set(env.values)
+    assert profile.DENIED_BINDINGS <= set(env.runtime_scope().values)
+    assert profile.ALLOWED_BINDINGS <= set(env.runtime_scope().values)
 
 
 def test_pruned_environment_keeps_only_allowed_names():
     profile = _profile()
     env = _fresh_env()
     profile.prune_environment(env)
-    assert set(env.values) <= profile.ALLOWED_BINDINGS
-    assert set(env.root().autoloads) <= profile.ALLOWED_AUTOLOADS
+    assert set(env.runtime_scope().values) <= profile.ALLOWED_BINDINGS
+    assert set(env.runtime_scope().autoloads) <= profile.ALLOWED_AUTOLOADS
     for denied in ("read_file", "_read_file", "write_file", "config_get", "secret_get",
                    "_http_send", "_execution_process", "input", "stdin_keys"):
-        assert denied not in env.values
-    assert ("read_file", 1) not in env.root().autoloads
+        assert denied not in env.runtime_scope().values
+    assert ("read_file", 1) not in env.runtime_scope().autoloads
     # Ordinary pure prelude behavior still works.
     assert env.get("stdout") is not None
 

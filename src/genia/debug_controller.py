@@ -1,3 +1,5 @@
+"""Python-host stdio debugger with logical frames and P1-compatible globals."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -26,6 +28,13 @@ class LogicalFrame:
 
 
 class StdioDebugSession(DebugHooks):
+    """Run the Python debugger protocol with live lexical frames.
+
+    Globals use the explicit compatibility view (root during P1); locals stay
+    frame-local. Commands control stepping and breakpoints without changing
+    lexical parentage; disconnection terminates the session normally.
+    """
+
     def __init__(self, command_stream: TextIO, event_stream: TextIO, *, filename: str) -> None:
         self.command_stream = command_stream
         self.event_stream = event_stream
@@ -224,10 +233,15 @@ class StdioDebugSession(DebugHooks):
         ]
 
     def _variables(self, scope: str, frame_id: int) -> list[dict[str, str]]:
+        """Render sorted compatibility globals or frame-local values.
+
+        Unknown frame IDs retain the last-frame fallback. Globals intentionally
+        retain the root view for module frames during P1.
+        """
         frame = next((item for item in self.frames if item.id == frame_id), self.frames[-1])
         values: dict[str, Any]
         if scope == "globals":
-            values = frame.env.root().values
+            values = frame.env.inspection_globals_scope().values
         else:
             values = frame.env.values
         return [self._variable(name, value) for name, value in sorted(values.items())]
@@ -267,12 +281,13 @@ class StdioDebugSession(DebugHooks):
         return "unknown"
 
     def ensure_root_frame(self, env: Env) -> None:
+        """Initialize one logical entry frame; later calls preserve the stack."""
         if self.frames:
             return
         frame = LogicalFrame(
             id=self.next_frame_id,
             name="<module>",
-            env=env.root(),
+            env=env.entry_scope(),
             file=self.main_filename,
             line=1,
             column=1,

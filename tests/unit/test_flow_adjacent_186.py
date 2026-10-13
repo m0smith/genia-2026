@@ -64,7 +64,7 @@ class TestAutoloadPaths:
     @pytest.mark.parametrize("name", _NAMES_ARITY_0)
     def test_arity0_autoloads_from_flow_genia(self, name):
         env = _env()
-        path = env.root().autoloads.get((name, 0))
+        path = env.runtime_scope().autoloads.get((name, 0))
         assert path == self.EXPECTED_PATH, (
             f"{name}/0 autoloads from {path!r}, expected {self.EXPECTED_PATH!r}"
         )
@@ -72,7 +72,7 @@ class TestAutoloadPaths:
     @pytest.mark.parametrize("name", _NAMES_ARITY_1)
     def test_arity1_autoloads_from_flow_genia(self, name):
         env = _env()
-        path = env.root().autoloads.get((name, 1))
+        path = env.runtime_scope().autoloads.get((name, 1))
         assert path == self.EXPECTED_PATH, (
             f"{name}/1 autoloads from {path!r}, expected {self.EXPECTED_PATH!r}"
         )
@@ -80,7 +80,7 @@ class TestAutoloadPaths:
     @pytest.mark.parametrize("name", _NAMES_ARITY_3)
     def test_arity3_autoloads_from_flow_genia(self, name):
         env = _env()
-        path = env.root().autoloads.get((name, 3))
+        path = env.runtime_scope().autoloads.get((name, 3))
         assert path == self.EXPECTED_PATH, (
             f"{name}/3 autoloads from {path!r}, expected {self.EXPECTED_PATH!r}"
         )

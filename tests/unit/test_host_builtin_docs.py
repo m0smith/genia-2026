@@ -24,7 +24,7 @@ def _is_callable(value) -> bool:
 
 def test_registry_covers_every_direct_host_callable_exactly_once():
     registry = _registry_module()
-    env = make_global_env([]).root()
+    env = make_global_env([]).runtime_scope()
     direct_names = {name for name, value in env.values.items() if _is_callable(value)}
     direct_names.update(
         name for name, value in env.internal_values.items() if _is_callable(value)

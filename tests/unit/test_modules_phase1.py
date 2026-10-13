@@ -29,14 +29,14 @@ def test_import_module_with_alias_binds_same_module_value(run):
 def test_duplicate_imports_reuse_loaded_module_instance():
     env = make_global_env([])
     run_source("import math\nimport math", env)
-    assert env.values["math"] is env.loaded_modules["math"]
+    assert env.entry_scope().values["math"] is env.loaded_modules["math"]
 
 
 def test_multiple_aliases_reference_same_loaded_module_instance():
     env = make_global_env([])
     run_source("import math as m1\nimport math as m2", env)
-    assert env.values["m1"] is env.values["m2"]
-    assert env.values["m1"] is env.loaded_modules["math"]
+    assert env.entry_scope().values["m1"] is env.entry_scope().values["m2"]
+    assert env.entry_scope().values["m1"] is env.loaded_modules["math"]
 
 
 def test_module_missing_export_raises_clear_error(run):
@@ -251,7 +251,7 @@ def test_module_top_level_assignment_does_not_rebind_root_name(tmp_path):
         env,
         filename=str((tmp_path / "prog.genia").resolve()),
     )
-    assert env.values["x"] == 1
+    assert env.entry_scope().values["x"] == 1
 
 
 # --- Contract §3.4: sentinel suppresses requester-relative resolution ---

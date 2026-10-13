@@ -533,7 +533,7 @@ def _runtime_public_names() -> set:
         from genia.builtins import make_global_env
         from genia.host_builtin_docs import public_host_builtin_docs
 
-        autoloads = make_global_env([]).root().autoloads
+        autoloads = make_global_env([]).runtime_scope().autoloads
     except (ImportError, ModuleNotFoundError) as exc:
         raise RuntimeError(
             "cannot derive public prelude names because the genia package "
@@ -553,7 +553,7 @@ def _runtime_public_prelude_names() -> set:
     try:
         from genia.builtins import make_global_env
 
-        autoloads = make_global_env([]).root().autoloads
+        autoloads = make_global_env([]).runtime_scope().autoloads
     except (ImportError, ModuleNotFoundError) as exc:
         raise RuntimeError(
             "cannot derive public prelude names because the genia package "

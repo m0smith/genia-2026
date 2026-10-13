@@ -417,7 +417,7 @@ def test_fixture_factory_and_global_environment_are_narrow():
     with pytest.raises(TypeError, match="callable handler"):
         create_fixture_retrieve_provider(index_provider, 42)
     env = make_global_env([])
-    assert "retrieve" in env.values
+    assert "retrieve" in env.runtime_scope().values
     for name in (
         "retrieve_provider_fixture",
         "retrieve_credential_fixture",
@@ -425,4 +425,4 @@ def test_fixture_factory_and_global_environment_are_narrow():
         "retrieve_retry",
         "retrieve_and_embed",
     ):
-        assert name not in env.values
+        assert name not in env.runtime_scope().values

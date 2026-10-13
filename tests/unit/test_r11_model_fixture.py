@@ -231,7 +231,7 @@ def test_global_environment_has_no_ambient_model_fixture_bindings():
         "model_retry",
         "model_tools",
     ):
-        assert name not in env.values
+        assert name not in env.runtime_scope().values
 
 
 def _json_request_source(template_source="(_) -> some(\"ignored payload\")"):

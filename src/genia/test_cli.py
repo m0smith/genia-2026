@@ -1,4 +1,4 @@
-"""Python native-test discovery, registration and deterministic report rendering."""
+"""Python-host native test discovery, registration and CLI report orchestration."""
 
 from __future__ import annotations
 
@@ -76,14 +76,15 @@ def make_test_env(
     fixture_bindings: dict[str, Any] | None = None,
     **global_env_kwargs: Any,
 ) -> tuple[Any, list[TestUnit]]:
-    """Construct one test environment and its shared registration list.
+    """Construct one test environment and its entry-owned registration list.
 
     Every supplied fixture and the registrar declare entry-only host visibility;
-    P1 retains the shared root and existing installation order/collisions.
+    P1 retains the shared root and existing installation order/collisions, and
+    the registration list is attached through the entry-scope accessor.
     """
     tests: list[TestUnit] = []
     env = make_global_env(cli_args=[], **global_env_kwargs)
-    setattr(env, "_native_test_units", tests)
+    setattr(env.entry_scope(), "_native_test_units", tests)
 
     for name, value in (fixture_bindings or {}).items():
         env.set_host(name, value, visibility="entry-only")
@@ -97,6 +98,8 @@ def make_test_env(
 
 
 def discover_test_units(env: Any) -> list[TestUnit]:
+    """Combine entry registrations and annotations, rejecting duplicate names."""
+    env = env.entry_scope()
     return validate_unique_test_names([
         *list(getattr(env, "_native_test_units", [])),
         *discover_annotated_test_units(env),
@@ -170,6 +173,11 @@ def _has_discovery_error(test_unit: TestUnit) -> bool:
 
 
 def discover_annotated_test_units(env: Any) -> list[TestUnit]:
+    """Read entry-local annotation metadata in binding order, recording misuse.
+
+    Imported module annotations are not entry tests; no bodies execute here.
+    """
+    env = env.entry_scope()
     test_units: list[TestUnit] = []
     for name, value in env.values.items():
         metadata = env.binding_metadata.get(name)
