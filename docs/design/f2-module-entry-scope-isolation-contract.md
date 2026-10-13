@@ -441,6 +441,14 @@ Gates:
   single root; the §8.1 tests exist and pass; every injection is classified.
 - **P2 → P3:** the §11.4 removal criteria are met.
 
+P2 completion also requires two open P1 audit follow-ups (both Low, neither
+blocked P1-H): #1220 (reflection/help in `builtins.py` still reads
+`env.root().autoloads` directly; migrate to the runtime accessor behind failing
+tests that use distinct runtime and entry scopes) and #1221 (P1-C/D/G accessor
+tests are stub-based; add real separated-scope coverage that fails for each
+wrong-scope accessor use). P2 is not complete until both carry verification
+evidence linked from #1067.
+
 F3–F5 of the unified-function-model draft remain paused throughout.
 
 ## 11. Compatibility fallback (temporary)
