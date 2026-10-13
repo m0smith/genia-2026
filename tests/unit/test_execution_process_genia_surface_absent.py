@@ -75,7 +75,7 @@ def test_global_environment_has_no_ambient_ready_to_use_capability():
     env = make_global_env([])
 
     for name in ("execution", "execution_process", "process_capability", "host"):
-        assert name not in env.values
+        assert name not in env.runtime_scope().values
 
 
 def test_ambient_builtin_grants_no_authority_without_a_real_capability():

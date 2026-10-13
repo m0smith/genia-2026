@@ -97,8 +97,8 @@ def arities_label(group) -> str:
 
 
 def collect():
-    env = make_global_env([])
-    root = env.root()
+    env = make_global_env([]).runtime_scope()
+    root = env
     # name -> module path (first arity's path), restricted to prelude autoloads
     name_path = collections.OrderedDict()
     for (name, _arity), path in root.autoloads.items():

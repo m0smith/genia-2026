@@ -341,7 +341,7 @@ def test_fixture_factory_and_global_environment_are_narrow():
     with pytest.raises(TypeError, match="callable handler"):
         create_fixture_index_provider(42)
     env = make_global_env([])
-    assert "index" in env.values
+    assert "index" in env.runtime_scope().values
     for name in (
         "index_provider_fixture",
         "index_credential_fixture",
@@ -349,4 +349,4 @@ def test_fixture_factory_and_global_environment_are_narrow():
         "index_retry",
         "index_batch",
     ):
-        assert name not in env.values
+        assert name not in env.runtime_scope().values

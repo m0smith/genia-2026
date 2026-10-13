@@ -163,7 +163,7 @@ def test_every_denied_binding_and_autoload_is_unavailable_after_pruning():
 
     env = genia.make_global_env(cli_args=[])
     prune_environment(env)
-    present = set(env.values) | {name for name, _ in env.root().autoloads}
+    present = set(env.runtime_scope().values) | {name for name, _ in env.runtime_scope().autoloads}
     assert present <= ALLOWED_BINDINGS | {name for name, _ in ALLOWED_AUTOLOADS}
     assert not (set(DENIED_BINDINGS) & present)
     assert not ({name for name, _ in DENIED_AUTOLOADS} & present)
