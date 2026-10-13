@@ -97,6 +97,16 @@ def arities_label(group) -> str:
 
 
 def collect():
+    """Build reference records for public prelude autoloads and host builtins.
+
+    Prelude names come from the runtime scope's autoload table (the prelude's
+    owner; identical to the entry scope during P1) and are loaded so arities and
+    docstrings are visible; a name whose autoload fails still gets a record
+    without signatures. Documented Python-host builtins are appended after them.
+    Raises ValueError when a host builtin duplicates a prelude name; host
+    records whose page slug collides case-insensitively get a "-host" suffix.
+    Records are returned sorted by lowercase name.
+    """
     env = make_global_env([]).runtime_scope()
     root = env
     # name -> module path (first arity's path), restricted to prelude autoloads

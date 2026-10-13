@@ -17,12 +17,15 @@ P1-C's `env.entry_scope()` registration-list attachment; both are required.
 The P1-G merge was conflict-free.
 
 CI blockers: `GENIA_STATE.md` is 42865 words after the `main` merge (limit
-43000); no limit change. The code-documentation test passes on the merged tree
-without baseline changes.
+43000); no limit change. The CI code-documentation job runs with
+`--base-ref` (diff-aware), which the plain unit test does not: it reported
+`tools/gen_function_docs.py::collect` as a new/changed gap because P1-G edited it
+undocumented. Fixed with an accurate docstring and removal of its now-resolved
+baseline entry (2841 -> 2840 legacy gaps); no exemption was added.
 
 Verification on the merged tree: `ruff check .`; `pytest -n auto -m "not loopback"`
 6659 passed / 60 skipped; `-m loopback` 31 passed; `tools.spec_runner` 822/822;
-`test_code_documentation.py` 26 passed; `gen_function_docs.py --check`,
+`test_code_documentation.py` 26 passed and `python -m tools.code_documentation --base-ref <main>` 0 errors; `gen_function_docs.py --check`,
 `lint_doc.py --require-coverage` and `gen_mcp_language_profile.py --check` clean.
 Not run locally: Node/VS Code and official-SDK MCP stdio jobs, C++ host parity
 (CI-only).

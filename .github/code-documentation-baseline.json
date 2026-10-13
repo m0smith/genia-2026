@@ -2639,7 +2639,6 @@
     "tests/unit/test_zip_json_pipeline.py::binding::_run": "b7b9f1bcf19e50917ac25e4436644a03b0c14613b8075c72571381604dbdff94",
     "tools/gen_function_docs.py::binding::arities_label": "19096ce228df8acd378acfa82968f32668e26a43b1bb46e505e5bedb9af1a101",
     "tools/gen_function_docs.py::binding::check.cmp": "ae7899257f2ac791f9f6d1613bfab623f8371ab2d7a690dd7fef24fa165d631c",
-    "tools/gen_function_docs.py::binding::collect": "041730d4605961c940d2e9d4f17139b48aafc353c262f47e0b3cb4fd76393838",
     "tools/gen_function_docs.py::binding::esc_cell": "428b56893b934c235f12d400f626213e3036973618d6e49e6cee55944c48d29a",
     "tools/gen_function_docs.py::binding::main": "20a31710a1f2fca5302d4dc80475ec6eda160c9ae66ee454dda0198f70272f54",
     "tools/gen_function_docs.py::binding::mlist": "feff181b5a41fa5f0287f9c76b57a6a51aa2c6d4893675d3ae81ca70afaa56ec",
