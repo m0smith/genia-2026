@@ -59,3 +59,15 @@ If required handoffs are missing → STOP and report.
 - No scope expansion
 - No unrelated changes
 - Prefer minimal edits
+
+---
+
+# MAINTAINABILITY REVIEW PHASE
+
+For a code-bearing change, run a separate phase **after implementation and before docs** using `docs/process/code-maintainability-review.md`.
+
+- Inspect the actual diff and neighboring call sites; do not accept implementer summaries as review evidence.
+- Record reviewer independence, file/line findings, severity, dispositions, and a PASS / PASS WITH NON-BLOCKING FINDINGS / FAIL verdict in the change handoff.
+- On FAIL, STOP and return to implementation for focused corrections and repeat review before continuing.
+- For non-blocking findings, record accountable follow-up rather than silently dropping them.
+- Keep final truth audit separate. Do not change implemented-language authority; maintain `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, and `README.md` when actual behavior changes.
