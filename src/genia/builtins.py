@@ -6553,7 +6553,8 @@ def make_program_env(
     arguments. `prepare(runtime)` performs runtime-public host work (for example
     MCP pruning) on R strictly before E exists; an entry-only injection made
     there is rejected, since entry-only bindings belong to E (contract 16.6.1).
-    Returns the registered entry scope; `runtime_scope()` yields R.
+    Returns the registered entry scope; `runtime_scope()` yields R. Raises
+    ValueError when `prepare` leaves an entry-only host binding on R.
     PYTHON REFERENCE HOST ONLY.
     """
     runtime = make_global_env(*args, **kwargs)

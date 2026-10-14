@@ -227,6 +227,8 @@ from genia.values import GeniaConfigProvider, GeniaSymbol
 
 provider = GeniaConfigProvider(({{"K": "{SENTINEL}"}},))
 original = genia.make_program_env
+# Pinned call style: mcp_worker.execute_source must call `genia.make_program_env`
+# at call time, or this replacement silently stops injecting the carrier.
 
 
 def inject(*args, **kwargs):

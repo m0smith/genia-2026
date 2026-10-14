@@ -240,6 +240,11 @@ class Env:
         everything else binds in E. Other scopes bind in themselves. Raises
         ValueError for a runtime-owned name that host pruning made unavailable,
         rather than recreating it in R.
+
+        Side effect: a routed name is recorded in `entry_declared_runtime_owned`
+        when the operation is attempted, before it succeeds; a later failure (for
+        example a duplicate arity) therefore still leaves the name recorded. The
+        list is an attempt record for host consumers, not proof of a binding.
         """
         if not self._is_entry or not self.is_runtime_owned(name):
             return self
@@ -249,7 +254,10 @@ class Env:
         return self.runtime_scope()
 
     def binding_scope(self, name: str) -> "Env":
-        """Return the scope that owns a top-level binding of `name` made from this Env."""
+        """Return the scope that owns a top-level binding of `name` made from this Env.
+
+        Same routing, rejection and attempt-recording side effect as `_entry_route`.
+        """
         return self._entry_route(name)
 
     def get(self, name: str) -> Any:
