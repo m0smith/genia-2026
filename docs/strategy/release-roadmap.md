@@ -28,11 +28,7 @@ Plain-language promise:
 
 > messy records in → clear pipelines → validated shaped output / reports + useful diagnostics
 
-New release work should strengthen this workflow unless explicitly approved as infrastructure or parking-lot work.
-
-## Cross-cutting long-term goal: Human–AI Shared Programming
-
-Genia aims to be a **shared programming language for humans and LLMs**: one understandable, executable, verifiable representation that helps both collaborators reach a correct result with less total effort. This is a **non-normative design goal**, not a current capability claim or a change in release scope. Evaluate it through explicit correctness, comprehension, collaboration, and verification evidence—not token count alone. The validated-data-pipeline workflow remains the practical proving ground. See [Human–AI Shared Programming](human-ai-shared-programming.md) and [tracking issue #1224](https://github.com/m0smith/genia-2026/issues/1224). It creates no R29 blocker or additional release gate.
+New release work should strengthen this workflow unless explicitly approved as infrastructure or parking-lot work. Long-term cross-cutting goal: [Human–AI Shared Programming](human-ai-shared-programming.md) (strategy only; no R29 gate).
 
 ## Promoted cross-cutting follow-up: Outcome Composition Ergonomics
 
