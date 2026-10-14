@@ -1500,8 +1500,9 @@ class Evaluator:
             self.env.set(node.alias, module_value)
             return module_value
         if isinstance(node, IrOpenFuncDef):
-            if node.name in self.env.values:
-                held = self.env.values[node.name]
+            home = self.env.binding_scope(node.name)
+            if node.name in home.values:
+                held = home.values[node.name]
                 if isinstance(held, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
                     existing = "open interface"
                 elif isinstance(held, GeniaFunctionGroup):

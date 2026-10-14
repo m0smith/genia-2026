@@ -9,7 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
-from .builtins import make_global_env
+from .builtins import make_program_env
 from .callable import GeniaFunctionGroup
 from .errors import GeniaQuietBrokenPipe
 from .native_test_lifecycle import validate_native_test_lifecycle
@@ -83,7 +83,7 @@ def make_test_env(
     the registration list is attached through the entry-scope accessor.
     """
     tests: list[TestUnit] = []
-    env = make_global_env(cli_args=[], **global_env_kwargs)
+    env = make_program_env(cli_args=[], **global_env_kwargs)
     setattr(env.entry_scope(), "_native_test_units", tests)
 
     for name, value in (fixture_bindings or {}).items():

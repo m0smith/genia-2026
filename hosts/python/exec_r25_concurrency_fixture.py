@@ -5,14 +5,14 @@ from __future__ import annotations
 import sys
 
 from genia import interpreter as genia_interpreter
-from genia.builtins import make_global_env
+from genia.builtins import make_program_env
 from genia.utf8 import format_debug
 from genia.values import r25_await_runtime_idle
 
 
 def _build_env():
     """Install the explicit entry-only test idle barrier without starting a process."""
-    env = make_global_env([])
+    env = make_program_env([])
     env.set_host("_r25_await_idle", r25_await_runtime_idle, visibility="entry-only")
     return env
 

@@ -17,7 +17,7 @@ import signal
 import sys
 from pathlib import Path
 
-from genia import make_global_env, run_source
+from genia import make_program_env, run_source
 from genia.values import GeniaMap
 from hosts.python.mcp_parse_capability import parse_source
 from hosts.python.mcp_run_capability import RunCapability
@@ -55,7 +55,7 @@ def main(argv: list[str] | None = None) -> int:
     signal.signal(signal.SIGTERM, _terminate)
     signal.signal(signal.SIGHUP, _terminate)
     mux = LineMux(sys.stdin.fileno())
-    env = make_global_env(cli_args=[], stdin_provider=mux.provider)
+    env = make_program_env(cli_args=[], stdin_provider=mux.provider)
     run_source(server_path.read_text(encoding="utf-8"), env, filename=str(server_path))
     # Constructing the run capability determines its best-effort isolation profile (a
     # bounded one-time probe) here, before `serve` reads any request (ledger R28-H33).

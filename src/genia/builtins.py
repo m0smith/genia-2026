@@ -6516,6 +6516,9 @@ def make_global_env(
     env.register_host_autoload("actor_error", 1, "std/prelude/actor.genia", visibility="runtime-public")
     env.register_host_autoload("actor_status", 1, "std/prelude/actor.genia", visibility="runtime-public")
     env.trusted_autoloads.update(env.autoloads.keys())
+    # F2/P2: remember the autoload-target prelude files before any host pruning, so
+    # the static runtime-owned name manifest (contract 16.1.1) is never shrunk.
+    env.prelude_paths = frozenset(env.autoloads.values())
 
     # Host-callable documentation is attached only after the existing binding
     # inventory is complete. This changes metadata, never values or visibility.
@@ -6536,3 +6539,26 @@ def make_global_env(
             metadata = metadata.put("see_also", list(entry.see_also))
         env.merge_binding_metadata(entry.name, metadata)
     return env
+
+
+def make_program_env(
+    *args: Any,
+    prepare: Optional[Callable[[Env], None]] = None,
+    **kwargs: Any,
+) -> Env:
+    """Build the runtime scope R, finish host work on it, register E, and return E.
+
+    The single construction helper for every program-evaluating host path
+    (F2/P2 contract 16.6.2). `args`/`kwargs` are the `make_global_env`
+    arguments. `prepare(runtime)` performs runtime-public host work (for example
+    MCP pruning) on R strictly before E exists; an entry-only injection made
+    there is rejected, since entry-only bindings belong to E (contract 16.6.1).
+    Returns the registered entry scope; `runtime_scope()` yields R.
+    PYTHON REFERENCE HOST ONLY.
+    """
+    runtime = make_global_env(*args, **kwargs)
+    if prepare is not None:
+        prepare(runtime)
+    if "entry-only" in runtime.host_binding_visibility.values():
+        raise ValueError("entry-only host bindings must be installed after entry registration")
+    return runtime.create_entry_scope()

@@ -111,7 +111,7 @@ else:
     )
 
 if __package__ in (None, ""):
-    from genia.builtins import make_global_env
+    from genia.builtins import make_global_env, make_program_env
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv
     from genia.lexer import SourceSpan
     from genia.values import (
@@ -130,7 +130,7 @@ if __package__ in (None, ""):
         _resolve_packaged_module,
     )
 else:
-    from .builtins import make_global_env as make_global_env
+    from .builtins import make_global_env as make_global_env, make_program_env as make_program_env
     from .evaluator import Evaluator as Evaluator, GeniaPromise as GeniaPromise, GeniaMetaEnv as GeniaMetaEnv
     from .lexer import SourceSpan as SourceSpan
     from .values import (
@@ -351,7 +351,7 @@ def repl() -> None:
     Interactive stdin adds prompts/banner; scripted input keeps output clean.
     Evaluation errors are reported to stderr and permit subsequent input.
     """
-    env = make_global_env([])
+    env = make_program_env([])
     # Banner and prompts are host-local terminal cosmetics (see
     # docs/design/r26-cpp-repl-contract.md section 3); a non-interactive
     # (piped/scripted) stdin must not have them mixed into the portable
@@ -416,7 +416,7 @@ def run_debug_stdio(
     resolved_path = str(Path(program_path).resolve())
     source = Path(program_path).read_text(encoding="utf-8")
     session = StdioDebugSession(command_stream, event_stream, filename=resolved_path)
-    env = make_global_env(
+    env = make_program_env(
         debug_hooks=session,
         debug_mode=True,
         output_handler=session.emit_stdout_output,
@@ -537,7 +537,7 @@ def _run_serve_file(program_path: str) -> int:
     )
 
     resolved_path = str(Path(program_path).resolve())
-    env = make_global_env()
+    env = make_program_env()
     try:
         source = Path(program_path).read_text(encoding="utf-8")
         tokens = lex(source)
@@ -628,7 +628,7 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
 
     if mode.kind == "pipe":
         assert mode.source is not None
-        env = make_global_env(cli_args=mode.script_args)
+        env = make_program_env(cli_args=mode.script_args)
         try:
             wrapped_source = _wrap_pipe_mode_expr(mode.source)
             run_source(wrapped_source, env, filename="<pipe>")
@@ -641,7 +641,7 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
 
     if mode.kind == "command":
         assert mode.source is not None
-        env = make_global_env(cli_args=mode.script_args)
+        env = make_program_env(cli_args=mode.script_args)
         try:
             run_result = run_source(mode.source, env, filename="<command>")
             result = _resolve_program_result(run_result, env)
@@ -656,7 +656,7 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
 
     if mode.kind == "file":
         assert mode.program_path is not None
-        env = make_global_env(cli_args=mode.script_args)
+        env = make_program_env(cli_args=mode.script_args)
         try:
             with open(mode.program_path, "r", encoding="utf-8") as f:
                 run_result = run_source(f.read(), env, filename=str(Path(mode.program_path).resolve()))

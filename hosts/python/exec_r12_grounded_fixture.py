@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from genia import interpreter as genia_interpreter
-from genia.builtins import make_global_env
+from genia.builtins import make_program_env
 from genia.configuration import construct_provider, create_declassification_authority, get_secret_configuration
 from genia.model import create_fixture_model_provider
 from genia.retrieval import (
@@ -35,7 +35,7 @@ def _build_env(*, stdin_data=None, observations=None):
     Optional observations collect fixture audits/backend identities. P1 records
     classes in the same runtime and performs no real provider/network attempt.
     """
-    env = make_global_env(stdin_data or [])
+    env = make_program_env(stdin_data or [])
     observations = observations if observations is not None else {}
     observations.setdefault("audits", [])
     purposes = ("embed_call", "index_call", "retrieve_call", "rerank_call", "model_call")

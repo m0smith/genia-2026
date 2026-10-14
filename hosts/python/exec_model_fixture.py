@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from genia.builtins import make_global_env
+from genia.builtins import make_program_env
 from genia.configuration import (
     construct_provider,
     create_declassification_authority,
@@ -30,7 +30,7 @@ def _build_env(*, stdin_data=None):
     Classification records intent without moving bindings during P1. Credentials
     remain protected and model acquisition/invocation stays explicit in source.
     """
-    env = make_global_env(stdin_data or [])
+    env = make_program_env(stdin_data or [])
     descriptor = _map(
         kind=symbol("values"),
         values=_map(R11_MODEL_FIXTURE_KEY="R11_MODEL_FIXTURE_PAYLOAD"),

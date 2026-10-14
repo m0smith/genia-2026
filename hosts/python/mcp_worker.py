@@ -222,15 +222,15 @@ def execute_source(source: str, *, enforce_policy: bool = True) -> dict:
 
     stdout, stderr = BoundedStream(CHANNEL_MAX_BYTES), BoundedStream(CHANNEL_MAX_BYTES)
     try:
-        env = genia.make_global_env(
+        env = genia.make_program_env(
             cli_args=[],
             stdin_provider=lambda: iter(()),
             stdout_stream=stdout,
             stderr_stream=stderr,
             environment_snapshot_provider=dict,
             dotenv_snapshot_provider=_deny,
+            prepare=prune_environment,
         )
-        prune_environment(env)
     except Exception:
         return {"status": "internal_error"}
 

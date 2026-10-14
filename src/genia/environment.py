@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
 
@@ -23,6 +24,46 @@ def _check_host_visibility(visibility: str) -> None:
     """Reject an undeclared host class before installation, without rendering values."""
     if not isinstance(visibility, str) or visibility not in ("runtime-public", "entry-only"):
         raise ValueError("host visibility must be runtime-public or entry-only")
+
+
+@lru_cache(maxsize=None)
+def _declared_prelude_names(path: str) -> frozenset[str]:
+    """Parse one autoload-target prelude file and return its top-level declared names.
+
+    Inert: the file is parsed, never evaluated. Functions, named patterns,
+    assignments and open declarations count; an annotated declaration is
+    unwrapped. Cached per process because prelude sources are immutable.
+    """
+    from .ast_nodes import AnnotatedNode, Assign, FuncDef, NamedPatternDef, OpenFuncDef
+
+    runtime = _interpreter_runtime()
+    source, key = runtime._load_source_from_path(path)
+    names: set[str] = set()
+    for node in runtime.Parser(runtime.lex(source), source=source, filename=key).parse_program():
+        while isinstance(node, AnnotatedNode):
+            node = node.target
+        if isinstance(node, (Assign, FuncDef, NamedPatternDef, OpenFuncDef)):
+            names.add(node.name)
+    return frozenset(names)
+
+
+def runtime_owned_manifest(paths: frozenset[str]) -> frozenset[str]:
+    """Return every top-level name declared by the given autoload-target prelude files.
+
+    The static runtime-owned name manifest of contract 16.1.1 clause 3. It is
+    derived from prelude source declarations, not from the autoload registry, so
+    unregistered helpers such as `map_acc` are included. Packaged modules are
+    never passed in and so never owned.
+    """
+    names: set[str] = set()
+    for path in paths:
+        names |= _declared_prelude_names(path)
+    return frozenset(names)
+
+
+def runtime_owned_manifest_paths(paths: frozenset[str], name: str) -> set[str]:
+    """Return the autoload-target files that declare `name` (empty when unowned)."""
+    return {path for path in paths if name in _declared_prelude_names(path)}
 
 
 class Env:
@@ -79,6 +120,16 @@ class Env:
         # R20 contract 4.2: this module's contribution units, keyed by target
         # interface key. A table, not bindings, so units are never exports.
         self.open_contributions: dict[tuple[str, str], Any] = {}
+        # F2/P2-C topology. `_entry` is runtime-owned registration state (None on a
+        # caller-created single-root harness). `_is_entry` marks the registered
+        # entry scope E. `entry_declared_runtime_owned` records the runtime-owned
+        # names the entry unit itself declared (contract 16.1.4). The prelude
+        # paths are the autoload targets captured at construction, before any
+        # host pruning, so the manifest is never shrunk by pruning.
+        self._entry: Env | None = None
+        self._is_entry = False
+        self.entry_declared_runtime_owned: set[str] = set()
+        self.prelude_paths: frozenset[str] = frozenset()
 
     def module_identity(self) -> str:
         """The deterministic, portable module/source-unit identity for this
@@ -98,12 +149,14 @@ class Env:
         return self.root()
 
     def entry_scope(self) -> "Env":
-        """Return the execution's entry owner, still the shared root during P1.
+        """Return the execution's registered entry scope E, else the runtime root.
 
-        Caller-created roots use the same default. Evaluating source in a child
-        does not register that child as entry or alter lexical parentage.
+        A caller-created single-root harness never registers an entry, so entry
+        is the root there. Evaluating source in an ordinary child does not
+        register that child as entry or alter lexical parentage.
         """
-        return self.runtime_scope()
+        runtime = self.runtime_scope()
+        return runtime._entry if runtime._entry is not None else runtime
 
     def unit_scope(self) -> "Env":
         """Return the declaring top-level Env inherited by lexical descendants.
@@ -114,12 +167,72 @@ class Env:
         return self._unit_scope
 
     def inspection_globals_scope(self) -> "Env":
-        """Return root for debugger globals, preserving P1's compatibility view.
+        """Return the globals view for debugger/inspection consumers.
 
-        A module's declaring unit is intentionally different from this view.
-        Unit-only inspection requires the separately gated P2 behavior change.
+        Once an entry scope is registered the view is the declaring unit (E for
+        entry frames, M for module frames, R for prelude frames). A caller-created
+        single-root harness keeps the P1 compatibility view: the root.
         """
-        return self.runtime_scope()
+        runtime = self.runtime_scope()
+        return self.unit_scope() if runtime._entry is not None else runtime
+
+    def create_entry_scope(self) -> "Env":
+        """Allocate and register the execution's entry scope E as a child of this runtime.
+
+        Output: a new Env with parent R, parent rebinding enabled and the entry
+        unit identity. After registration `entry_scope()` returns it from any Env
+        of the execution. Failure: raises RuntimeError when called on a non-runtime
+        Env, or when an entry scope is already registered; the first registration
+        is never replaced. Side effects: marks R as sealed against late
+        runtime-public host work (contract 16.1.6). PYTHON REFERENCE HOST ONLY.
+        """
+        if self.parent is not None:
+            raise RuntimeError("entry scope registration is an operation on the runtime scope")
+        if self._entry is not None:
+            raise RuntimeError("entry scope is already registered for this runtime")
+        entry = Env(self, rebind_parent=True)
+        entry._unit_scope = entry
+        entry._is_entry = True
+        self._entry = entry
+        return entry
+
+    def is_runtime_owned(self, name: str) -> bool:
+        """True when `name` is runtime-owned at this moment (contract 16.1.1).
+
+        Owned means: a runtime binding or trusted internal binding, a registered
+        autoload name, or any top-level declaration of an autoload-target prelude
+        file (registered or not, e.g. `map_acc`). Packaged modules are not
+        autoload targets and so never owned. Pure; evaluates no prelude source.
+        """
+        runtime = self.runtime_scope()
+        if name in runtime.values or name in runtime.internal_values:
+            return True
+        if any(autoload_name == name for autoload_name, _arity in runtime.autoloads):
+            return True
+        return name in runtime_owned_manifest(runtime.prelude_paths)
+
+    def _entry_route(self, name: str) -> "Env":
+        """Return the scope receiving a top-level binding operation on `name`.
+
+        Only the registered entry scope routes: a runtime-owned name binds in R
+        exactly as the single-root host did (P2 compatibility write-through, A1),
+        everything else binds in E. Other scopes bind in themselves. A manifest
+        name whose declaring prelude files are no longer reachable (host pruning)
+        is rejected rather than recreated in R.
+        """
+        if not self._is_entry or not self.is_runtime_owned(name):
+            return self
+        runtime = self.runtime_scope()
+        if name not in runtime.values and name not in runtime.internal_values \
+                and not any(autoload_name == name for autoload_name, _arity in runtime.autoloads) \
+                and not (runtime_owned_manifest_paths(runtime.prelude_paths, name) & set(runtime.autoloads.values())):
+            raise ValueError(f"Cannot bind {name}: the runtime name is not available in this restricted execution")
+        self.entry_declared_runtime_owned.add(name)
+        return runtime
+
+    def binding_scope(self, name: str) -> "Env":
+        """Return the scope that owns a top-level binding of `name` made from this Env."""
+        return self._entry_route(name)
 
     def get(self, name: str) -> Any:
         env: Env | None = self
@@ -143,6 +256,11 @@ class Env:
         metadata: GeniaMap | None = None,
         preserve_metadata: bool = False,
     ) -> None:
+        home = self._entry_route(name)
+        if home is not self:
+            home.set(name, value, assignable=assignable, metadata=metadata,
+                     preserve_metadata=preserve_metadata)
+            return
         self.values[name] = value
         if metadata is not None:
             self.binding_metadata[name] = metadata
@@ -161,25 +279,40 @@ class Env:
         assignable: bool = True, metadata: GeniaMap | None = None,
         preserve_metadata: bool = False,
     ) -> None:
-        """Classify a host injection and install it in this same Env during P1.
+        """Classify a host injection and install it according to its class.
 
         Requires an explicit runtime-public or entry-only class before mutation.
-        Delegates identity, assignability and metadata handling to unchanged set;
-        classification is not language metadata, trust or declassification power.
-        Language definitions/parameters keep using ordinary set without a class.
+        On a caller-created root with no registered entry both classes install in
+        this Env (the single-root compatibility harness). Once an entry scope is
+        registered an entry-only binding installs in E (from any Env of the
+        execution) and a runtime-public one is rejected, because runtime work must
+        finish before registration (contract 16.1.6); an entry-only injection of
+        a runtime-owned name is also rejected. Classification is not language
+        metadata, trust or declassification power.
         """
         _check_host_visibility(visibility)
-        self.set(name, value, assignable=assignable, metadata=metadata,
-                 preserve_metadata=preserve_metadata)
-        self.host_binding_visibility[name] = visibility
+        runtime = self.runtime_scope()
+        target = self
+        if runtime._entry is not None:
+            if visibility == "runtime-public":
+                raise ValueError("runtime-public host bindings must be installed before entry registration")
+            if runtime.is_runtime_owned(name):
+                raise ValueError(f"entry-only host binding cannot use the runtime-owned name {name}")
+            target = runtime._entry
+        target.set(name, value, assignable=assignable, metadata=metadata,
+                   preserve_metadata=preserve_metadata)
+        target.host_binding_visibility[name] = visibility
 
     def set_host_internal(self, name: str, value: Any, *, visibility: str) -> None:
         """Record a trusted internal injection on runtime, retaining its access guard.
 
         The class is mandatory and validated before mutation. Internal access
         remains restricted to trusted code; neither class grants that access.
+        Rejected once an entry scope is registered (runtime work precedes E).
         """
         _check_host_visibility(visibility)
+        if self.runtime_scope()._entry is not None:
+            raise ValueError("trusted internal host bindings must be installed before entry registration")
         self.set_internal(name, value)
         self.runtime_scope().host_internal_visibility[name] = visibility
 
@@ -190,13 +323,21 @@ class Env:
         """Classify one runtime autoload key without evaluating or acquiring its file.
 
         Existing registration, trust and lazy loading remain unchanged. The
-        declared class is recorded separately on the runtime owner during P1.
+        declared class is recorded separately on the runtime owner. Rejected once
+        an entry scope is registered, so late registration cannot turn an
+        E-resident name into a runtime-owned one (contract 16.1.6).
         """
         _check_host_visibility(visibility)
+        if self.runtime_scope()._entry is not None:
+            raise ValueError("host autoloads must be registered before entry registration")
         self.register_autoload(name, arity, path, trusted=trusted)
         self.runtime_scope().host_autoload_visibility[(name, arity)] = visibility
 
     def assign(self, name: str, value: Any, *, metadata: GeniaMap | None = None) -> None:
+        home = self._entry_route(name)
+        if home is not self:
+            home.assign(name, value, metadata=metadata)
+            return
         target_env = self.find_assign_target(name)
         if target_env is None:
             self.set(name, value, assignable=True, metadata=metadata, preserve_metadata=metadata is None)
@@ -227,6 +368,10 @@ class Env:
         """
         GeniaFunctionGroup = _interpreter_runtime().GeniaFunctionGroup
 
+        home = self._entry_route(fn.name)
+        if home is not self:
+            home.define_function(fn, metadata=metadata)
+            return
         existing = self.values.get(fn.name)
         if existing is None:
             group = GeniaFunctionGroup(fn.name)
