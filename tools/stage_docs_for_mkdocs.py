@@ -30,7 +30,6 @@ STRATEGY_DOCS = [
     "docs/contract/code-documentation.md",
     "docs/process/code-documentation.md",
     "docs/strategy/release-roadmap.md",
-    "docs/strategy/human-ai-shared-programming.md",
     "docs/strategy/roadmap/README.md",
     "docs/strategy/roadmap/r15.md",
     "docs/strategy/roadmap/r16-r20.md",
