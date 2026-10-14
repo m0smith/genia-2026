@@ -18,6 +18,7 @@ if __package__ in (None, ""):
     from genia.utf8 import format_debug, format_display
     from genia.equality import genia_equal
     from genia.environment import Env
+    from genia.module_fallback import temporary_compatibility_fallback_read
     from genia.errors import GeniaQuietBrokenPipe
     from genia.ast_nodes import (
         Assign, Binary, Block, Boolean, Call, CaseClause, CaseExpr, Delay,
@@ -63,6 +64,7 @@ else:
     from .utf8 import format_debug, format_display
     from .equality import genia_equal
     from .environment import Env
+    from .module_fallback import temporary_compatibility_fallback_read
     from .errors import GeniaQuietBrokenPipe
     from .ast_nodes import (
         Assign, Binary, Block, Boolean, Call, CaseClause, CaseExpr, Delay,
@@ -1210,7 +1212,9 @@ class Evaluator:
             if self.env.try_autoload(name, autoload_arity):
                 value = self.env.get(name)
             else:
-                raise
+                found, value = temporary_compatibility_fallback_read(self.env, name)
+                if not found:
+                    raise
         if type(value) is FunctionType:
             binder = getattr(value, Env.SCOPE_BINDER_ATTR, None)
             if binder is not None:

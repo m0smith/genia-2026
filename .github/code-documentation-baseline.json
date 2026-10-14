@@ -1,7 +1,6 @@
 {
   "schema_version": 1,
   "gaps": {
-    ".github/workflows/ci.yml::module::<module>": "6efcbe588331c0f6cd5d5852691960fefe30e5a016a150fe9813f6f32b156a43",
     ".github/workflows/docker-dev-environment.yml::module::<module>": "0f63071bfb43c546a36110fde26f62ed97ff4b4fd88b4eee23e6c7c084423ece",
     ".github/workflows/docs.yml::module::<module>": "96d526f93b97ccd915fd8a7c9ee0eac21fa9e49d8e5faa3b17c53529b6026b37",
     ".github/workflows/github-hosted-runner-canary.yml::module::<module>": "3f4721ca37d2d402d8c1b98f0a21b140cfc99a9e2d1a2fb0f87eebfca3ff4584",

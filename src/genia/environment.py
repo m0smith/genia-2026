@@ -91,6 +91,11 @@ class Env:
     # F2/P2-D: evaluation-bound reflective callables created for this lexical scope,
     # keyed by the original runtime target. Created lazily so ordinary frames pay nothing.
     _scope_bound: "dict[Any, Any] | None" = None
+    # F2/P2-E temporary module fallback state, assigned on the runtime scope R at
+    # construction (see module_fallback.py): the per-execution set of distinct
+    # (module identity, name) events, and the strict switch captured once.
+    fallback_events: "set[tuple[str, str]] | None" = None
+    strict_module_scope: bool = False
     # Name of the function attribute marking a runtime reflective builtin as bindable
     # to the scope where its identifier is evaluated (set by builtins, read by the evaluator).
     SCOPE_BINDER_ATTR = "__genia_scope_binder__"

@@ -317,6 +317,9 @@ def make_global_env(
     env = Env()
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
     env.debug_mode = debug_mode
+    # F2/P2-E: per-execution fallback events and the strict switch, read exactly once here.
+    env.fallback_events = set()
+    env.strict_module_scope = os.environ.get("GENIA_STRICT_MODULE_SCOPE") == "1"
 
     stdout_sink = GeniaOutputSink(
         "stdout",
