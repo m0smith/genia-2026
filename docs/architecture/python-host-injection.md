@@ -25,9 +25,9 @@ definitions/parameters use `set` and require no host class.
 | Builtin installation, standard sinks/input/argv | runtime-public in the existing root |
 | Trusted internal helpers and prelude autoload registrations | runtime-public ownership; existing trust restrictions remain |
 | Constructor input/configuration/output callbacks and debug fields | captured runtime capability/state, not new lexical names |
-| Native fixtures and `test` registrar | entry-only, still in the shared root |
-| Model/grounding/concurrency fixture adapters | entry-only; explicit offline provider/authority/test helper values |
-| Python program fixtures | entry-only, preserving current physical placement |
+| Native fixtures and `test` registrar | entry-only; installed in the registered entry scope E (F2/P2-C) |
+| Model/grounding/concurrency fixture adapters | entry-only; explicit offline provider/authority/test helper values, installed in E |
+| Python program fixtures | entry-only; installed in E on `make_program_env` paths |
 | Module test's explicit `counter` callback | runtime-public: deliberately supplied module-visible capability |
 | Custom harness autoload registrations | runtime-public on runtime, evaluated only on demand |
 
@@ -46,5 +46,19 @@ sources, not a security boundary or proof about third-party host integrations.
 
 R10 protected-carrier, sink and explicit-authority behavior is unchanged.
 Classifying an authority or credential does not reveal it or mint authority.
-P2 placement/visibility, module fallback and evaluation-bound reflection remain
-separately gated and are not activated by these bookkeeping APIs.
+
+## F2/P2-C placement (Python reference host)
+
+`make_program_env(...)` builds R, runs optional `prepare(runtime)` host work (for
+example MCP pruning) while R has no entry, then registers E with
+`Env.create_entry_scope()` and returns E. After registration `set_host` places
+`entry-only` bindings in E from any Env of the execution, and rejects
+`runtime-public` installs, `set_host_internal`, `register_host_autoload` and an
+`entry-only` install of a runtime-owned name (ValueError). Before registration
+(caller-created roots) both classes install in the supplied Env as before.
+Runtime-owned names (bound or internal runtime names, registered autoloads, every
+top-level declaration of an autoload-target prelude file, snapshotted before
+pruning) written by the entry unit bind in R; a pruned name is rejected instead
+of recreated. Evaluation-bound reflection, the `empty_env()` base, consumer
+migration and the module compatibility fallback are separately gated (P2-D/P2-E)
+and are not delivered by this placement.

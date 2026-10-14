@@ -787,7 +787,7 @@ Current behavior:
 **PYTHON REFERENCE HOST (host-local commands, not portable REPL semantics):**
 
 - `:help`
-- `:env`
+- `:env` (lists the registered entry scope's bindings; entry-declared runtime-owned names and runtime bindings are not yet included, F2/P2-C)
 - `:quit`
 - `help()` for the public stdlib/help overview
 - `help(name)` to inspect named-function, prelude, or registered public Python-host metadata

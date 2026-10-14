@@ -2918,13 +2918,11 @@ Core IR shape currently includes:
   - these optimized nodes are not the minimal Core IR portability contract
 ## 9) Debug/runtime tooling
 
-**PYTHON REFERENCE HOST (internal scope access):**
-`Env.runtime_scope()` and `Env.entry_scope()` return the shared root; entry
-evaluation creates no child scope. `Env.unit_scope()` returns the declaring
-module's top Env (root for entry/prelude).
-`Env.inspection_globals_scope()` returns root even for module frames (debugger
-view). These APIs prepare consumers; they add no module/entry isolation
-or evaluation-bound reflection.
+**PYTHON REFERENCE HOST (internal scope access):** `make_program_env` host
+paths register entry scope E (child of runtime scope R); caller-created
+roots register none. Entry bindings of runtime-owned names
+bind in R, others in E, hidden from prelude and modules. Not yet delivered:
+scope-bound reflection, `empty_env()` change, consumer migration, module fallback.
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
