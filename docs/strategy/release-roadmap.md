@@ -59,6 +59,10 @@ contract, design, failing-test, implementation, documentation, audit, and
 distillation gates. Detailed parking-lot disposition is recorded in
 [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
+## Named pipeline composition — near-term follow-up
+
+[Issue #1236](https://github.com/m0smith/genia-2026/issues/1236) tracks an evidence-first contract for **named, reusable pipeline transformations and terminal stages**. Schedule its design gate alongside R29–R31 Flow/Seq ergonomics, not as a prerequisite for R29. Preserve existing `|>` application semantics; settle the ambiguity between stage composition and callable values as data before authorizing code. Coordinate with #1067, #1014, and #1208. See [release sequence](roadmap/sequence.md) for guardrails. This is a planning entry only, not implemented language behavior.
+
 ## Promoted R20 follow-up: Unified Function Model and Open-Function Repairs
 
 Issue #1067 is the primary promoted R20 follow-up, scheduled **after R28 and before R29** without a new release number or R28 scope expansion. Detailed staging and guardrails live in [`roadmap/sequence.md`](roadmap/sequence.md) and [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
