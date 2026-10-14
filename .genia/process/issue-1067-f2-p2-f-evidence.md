@@ -55,6 +55,22 @@ deliberate fallback test** (P2-B `test_B4_*`: 22 reads in 6 test cases; P2-E `te
 **Limits (not claimed):** single-root harness tests cannot produce events; inspection-only files are listed as such; function bodies of repository modules are covered only where an existing test calls them; third-party reliance is unknown; the removal PR must
 rerun this measurement on the merged tree. The first-on-`main` date is **not recorded** (stack unmerged).
 
+## 3b. Reproducing the measurement and the mutation checks
+
+- Fallback-event measurement: `.genia/process/issue-1067-f2-p2-f-fallback_probe.py` (committed, measurement-only, never imported by the suite). Reproduce with
+  `FALLBACK_PROBE_LOG=/tmp/events.jsonl PYTHONPATH=.genia/process uv run pytest -n auto -q -p issue-1067-f2-p2-f-fallback_probe ...` after copying the file to a name importable as a module
+  (e.g. `cp .genia/process/issue-1067-f2-p2-f-fallback_probe.py /tmp/plug/fallback_probe.py; PYTHONPATH=/tmp/plug ... -p fallback_probe`), then count the JSON lines by test id.
+- Mutation checks (each applied alone to a throwaway `git worktree` of the P2-F head, run with `PYTHONPATH=<worktree>/src:<worktree>` against `tests/unit/test_f2_p2_b_boundaries.py`, `test_f2_p2_b_hosts.py`, `test_f2_p2_d_consumers.py`; the unmutated tree gives 75/84 passed):
+  1. `test_cli.py` `_write_stdout`: `env.runtime_scope().values.get("stdout")` → `env.values.get("stdout")`
+  2. `builtins.py` `_public_autoload_paths`: `env.runtime_scope().autoloads` → `env.entry_scope().autoloads`
+  3. `debug_controller.py` `_variables`: `frame.env.inspection_globals_scope().inspection_bindings()` → `frame.env.runtime_scope().inspection_bindings()`
+  4. `interpreter.py` REPL `:env`: `env.inspection_globals_scope().inspection_bindings()` → `env.runtime_scope().inspection_bindings()`
+  5. `interpreter.py` `_resolve_program_result`: `env.binding_owner("main")` → `env.runtime_scope().binding_owner("main")`
+  6. `test_cli.py` `discover_annotated_test_units`: `env.inspection_bindings()` → `env.runtime_scope().inspection_bindings()`
+  7. `evaluator.py` `_resolve_identifier`: `return self.env.scope_bound(value, binder)` → `return value`
+  8. `interpreter.py` `run_source`: `state = env.debug_state_scope()` → `state = env`
+  Observed failures: 4, 3, 8, 4, 3, 10, 6, 2 respectively (mutations 1-4 ran on the boundaries+hosts files, 5-8 with the consumer file added). The specs' pre-F2 sensitivity was run by copying the three YAML files into a worktree of `b8168fd4` and running the spec runner (3 failures, 822 passed).
+
 ## 4. #1220 acceptance review (recommend closure after maintainer review of the stack; not closed here)
 
 | Criterion | Evidence | Status |
@@ -63,7 +79,7 @@ rerun this measurement on the merged tree. The first-on-`main` date is **not rec
 | AST guard fails on implicit root reads; was red on P1 | `test_B11_B_catalogue_source_guard_rejects_implicit_root` (P2-B red evidence: failed at `builtins.py:3340/3378`; green since P2-D); mutation: catalogue read from E detected (3 failures) | proven |
 | Real non-aliased R/E/M, empty-E control, identical `help()`, pruned R | `test_B11_A_help_overview_identical_from_R_E_M_and_pruned_R[False,True]`, `test_B11_A_wrong_catalogue_owner_empty_control_is_discriminating` | proven |
 | Existing reflection/help/autoload/module/MCP suites pass | full default and strict runs (below) | proven |
-| Independent verification, no leak beyond §16.2 | P2-D and P2-F independent truth audits | proven pending the final P2-F audit verdict |
+| Independent verification, no leak beyond §16.2 | P2-D independent truth audit (PASS WITH FINDINGS) and the P2-F independent truth audit (PASS WITH FINDINGS, no blocking; its non-blocking findings are dispositioned below) | proven |
 
 ## 5. #1221 acceptance review (recommend closure after maintainer review; not closed here)
 
@@ -106,3 +122,10 @@ Not run: C++ host, VS Code launch/extension host tests beyond the unit tests, cr
 - Independent truth audit: see PR.
 - #1226: no meaningful new supporting computation beyond a throwaway pytest probe plugin (Python, pytest-specific, **D**), mutation worktree scripts (shell/Python, **D**), and routine greps; no Genia sketch, no candidate.
 - **P2-G handoff:** final documentation synchronization of STATE/RULES/REPL README/README/architecture/contract status text; decide #1220/#1221 closure after maintainers review the merged stack; document N1 attempt semantics; refresh the #1230 measurement on the merged tree; update host-gap/capability docs only if the next host-parity run changes the C++ statement; final F2 completion audit.
+
+## 9. Independent truth audit (read-only) — PASS WITH FINDINGS, no blocking
+
+Confirmed: remote P2-E head and linear stack, empty production diff, P2-F tests 23/23 in default and strict mode and non-vacuous, specs 825/825, honest C++ boundary, #1238 N1 and the metacircular pin match the code,
+documentation claims (marker once, STATE 42,998 words, no P2-F/G or C++ claim). Findings dispositioned: (1) the #1220 "Independent verification" label corrected above; (2) the throwaway measurement and mutation tooling is now committed
+(`issue-1067-f2-p2-f-fallback_probe.py`) and the exact mutations are listed in section 3b; (3) STATE has 2 words of headroom, so P2-G must condense before adding text; (4) the MCP integration test checks end state only —
+the prune-before-registration order is proven by `test_B7_B_worker_prunes_runtime_before_entry_registration`. The auditor did not re-run the full suites (those are this record's section 7) and did not re-verify the specs' pre-F2 failure (section 2, author-run).
