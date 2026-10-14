@@ -42,7 +42,7 @@ sink/debug-state ownership, MCP pruning order (all Python-host mechanics; Python
 ## 3. #1230 executed strict-mode coverage inventory
 
 Suite-wide measurement (throwaway plugin wrapping the fallback function, default mode, full non-loopback + loopback run on `7d696abf`, 6913 passed): **32 fallback reads in 12 tests, 13 distinct (module, name) pairs, every one in a
-deliberate fallback test** (P2-B `test_B4_*`: 21 reads in 5 tests; P2-E `test_f2_p2_e_fallback.py`: 11 reads in 7 tests). Zero reads from any other test. The strict suite (below) is green. Execution table:
+deliberate fallback test** (P2-B `test_B4_*`: 22 reads in 6 test cases; P2-E `test_f2_p2_e_fallback.py`: 10 reads in 6 tests; the P2-F test files were added after that run started and read entry names only in their own deliberate default-mode cases). Zero reads from any other test. The strict suite (below) is green. Execution table:
 
 | Group | Files | Executed how | Registered E? | Strict | Event possible / observed |
 |---|---|---|---|---|---|
@@ -92,7 +92,7 @@ No semantic or security contract violation was found, so no failing test or fix 
 | Default, tree before the fixture fix | 6936 passed, 60 skipped, 0 failed; loopback 31; specs 825/825 |
 | **Strict, same tree (initial failure preserved)** | **1 failed**, 6935 passed: `test_combined_registered_execution_composes_every_approved_boundary` relied on the fallback without clearing the switch (my new test); loopback 31; specs 825/825 |
 | Fix | autouse default-mode fixture in `test_f2_p2_f_integration.py` (same pattern as the other fallback-exercising modules) |
-| **Final default** (`b31ie5…` tree + docs) | **6936 passed, 60 skipped, 0 failed**, 416.6 s; loopback **31 passed**; specs **825/825** |
+| **Final default** (tree `c791311d` + documentation-only commits) | **6936 passed, 60 skipped, 0 failed**, 416.6 s; loopback **31 passed**; specs **825/825** |
 | **Final strict** | **6936 passed, 60 skipped, 0 failed**, 401.5 s; loopback **31 passed**; specs **825/825** |
 | P2-B…P2-E counts re-derived | all 179 P2-B cases pass; P2-C 75, P2-D 87, P2-E 17 as assigned |
 | VS Code extension (`npm ci` + `npm test` in a copy) | 4 passed (language indexer unit tests only; the debugger itself is covered by the Python debug-stdio suites) |
