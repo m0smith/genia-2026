@@ -765,6 +765,7 @@ Pipeline (Phase 2) evaluation model:
   - unannotated rebinding preserves existing metadata on that binding
   - annotated rebinding merges new metadata over existing metadata, with the last annotation winning for duplicate keys
   - `doc("name")` returns the current doc string or `none("missing-doc", {name: ...})`; `@doc` metadata takes priority over legacy inline docstrings
+  - `doc`/`meta`/`help` resolve `name` in the scope where the reflective identifier is evaluated: frame parameters first, then that unit's own names and the runtime's; module code cannot name entry-program bindings
   - `meta("name")` returns the metadata map or `none("missing-meta", {name: ...})` for undefined names
   - `help("name")` prefers `@doc` metadata text over legacy function docstrings and also shows selected metadata fields such as category/since/deprecated
   - no macros, compile-time transforms, or annotation-driven evaluator rewrites are implemented
@@ -1878,7 +1879,7 @@ details, not portable semantics. See
   - `ref_is_set(ref)`
   - `ref_update(ref, updater)`
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
-  - the underlying ref behavior remains host-backed and unchanged in this phase
+  - the underlying ref behavior remains host-backed and unchanged
 
 Behavior:
 
@@ -1903,7 +1904,7 @@ and is excluded from R25; portable actors belong to R38.
   - `process_failed?(process)`
   - `process_error(process)`
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
-  - the underlying process behavior remains host-backed and unchanged in this phase
+  - the underlying process behavior remains host-backed and unchanged
 
 Behavior:
 
@@ -1958,7 +1959,7 @@ Behavior:
   - clears cached failure/error and stopped state
   - marks the cell ready again
   - relaunches the worker thread if it has exited (e.g. after `cell_stop`)
-  - discards queued pre-restart updates in this phase
+  - discards queued pre-restart updates
 - nested `cell_send` calls made during an update are staged and are committed only if that update succeeds
 - `cell_stop(cell)` gracefully stops the cell:
   - queued updates already in the mailbox are processed before the worker exits
@@ -2030,7 +2031,7 @@ Behavior:
   - handler exceptions or invalid effect shapes mark the actor as failed
   - subsequent `actor_send` raises `RuntimeError` after failure
   - `actor_call` on a failing handler returns `none("actor-error")` instead of blocking
-- actors are a thin convenience layer; internal cell state is accessible through the actor map for advanced use in this phase
+- actors are a thin convenience layer; internal cell state is accessible through the actor map for advanced use
 - Concurrency invariants are locked by `tests/test_invariant_concurrency.py`:
   - Ref: `ref_set` visible to all threads; `ref_update` serialized; `ref_get` blocks until set
   - Process: FIFO message ordering; serialized handler execution; permanent fail-stop on exception
@@ -2270,7 +2271,7 @@ See `docs/releases/R18.md` for the release summary and
   - `map_values(map)`
   - `pairs(xs, ys)`
   - these helper names are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
-  - the underlying persistent map runtime remains host-backed and unchanged in this phase
+  - the underlying persistent map runtime remains host-backed and unchanged
 
 Behavior:
 
@@ -2332,7 +2333,7 @@ Behavior:
   - `diagnostic_skipped(index, field, reason, context)` (**Experimental**)
   - `diagnostic_reason(diagnostic)` (**Experimental**)
   - `diagnostic_field(diagnostic)` (**Experimental**)
-  - the helpers operate on one map record or list of records at a time; no schema DSL, Sheet behavior, or report helper is introduced in this phase
+  - the helpers operate on one map record or list of records at a time; no schema DSL, Sheet behavior, or report helper is introduced
   - the helpers use existing Outcome values: valid records return `some(record)` or `some(clean_record, context?)`, and recoverable user-data problems return `err(reason, context)`
 
 Behavior:
@@ -2449,7 +2450,7 @@ PYTHON REFERENCE HOST:
 - Flow input returns a lazy derived Flow of Outcome values; validation happens during consumption; single-use and finalization behavior follow existing Flow semantics
 - does not aggregate diagnostics; aggregation remains the job of `collect_validated`
 - composes with `validate_record` as the per-item validator; composes with `collect_validated` as the terminal aggregator
-- `validate_each/3`, Sheet behavior, and context merging are not implemented in this phase
+- `validate_each/3`, Sheet behavior, and context merging are not implemented
 
 PYTHON REFERENCE HOST:
 
@@ -2480,7 +2481,7 @@ PYTHON REFERENCE HOST: the composition is evaluated by the Python reference host
   - `some(value)`
 - public option helpers are thin prelude wrappers in `src/genia/std/prelude/option.genia`
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
-  - the underlying runtime behavior remains host-backed and unchanged in this phase
+  - the underlying runtime behavior remains host-backed and unchanged
   - `none` remains a runtime literal/value, not a prelude wrapper
 - option/query helpers:
   - `get(key, target)`
@@ -2920,8 +2921,8 @@ Core IR shape currently includes:
 
 **PYTHON REFERENCE HOST (internal scope access):** `make_program_env` paths
 register entry scope E (child of R); caller roots register none. Runtime-owned
-names bind in R, others in E, hidden from prelude and modules. `doc`/`meta`/`help`
-resolve in the evaluating scope; `empty_env()` is R-based; `:env`, debugger
+names bind in R, others in E, hidden from prelude and modules.
+`empty_env()` is R-based; `:env`, debugger
 globals, native discovery use entry/unit scopes.
 TEMPORARY COMPATIBILITY FALLBACK (Python host only; removal tracked in #1230): a
 module identifier read missing normal lookup returns the entry scope's own

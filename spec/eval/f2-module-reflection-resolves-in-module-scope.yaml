@@ -1,0 +1,25 @@
+name: f2-module-reflection-resolves-in-module-scope
+category: eval
+description: F2 P2 contract 7.1/16.2 reflection called in module code resolves a name in that module's scope, while the entry program does not see the module's private helper
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          @doc "lib documentation"
+          own_helper(x) = x
+
+          probe() = doc("own_helper")
+      - path: main.genia
+        source: |
+          import lib
+
+          [lib.probe(), doc("own_helper")]
+expected:
+  stdout: "[\"lib documentation\", none(\"missing-doc\", {name: \"own_helper\"})]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - multi_file_eval
+  - doc_help

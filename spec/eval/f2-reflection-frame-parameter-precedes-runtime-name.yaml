@@ -1,0 +1,16 @@
+name: f2-reflection-frame-parameter-precedes-runtime-name
+category: eval
+description: F2 P2 contract 16.2 reflective lookup starts at the evaluating frame, so a parameter named like a documented runtime function is the name that is looked up
+input:
+  source: |
+    plain(x) = x
+
+    describe(map) = doc("map")
+
+    [describe(plain), is_none?(describe(plain)), is_none?(doc("map"))]
+expected:
+  stdout: "[none(\"missing-doc\", {name: \"map\"}), true, false]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - doc_help
