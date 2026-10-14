@@ -60,12 +60,21 @@ For work requiring pre-flight:
 9. Commit failing tests
 10. Run implementation prompt
 11. Commit implementation
-12. Run docs prompt
-13. Commit docs
-14. Run audit prompt
-15. Commit audit or audit fixes
-16. Run the Doc Distillation prompt
-17. Commit the updated docs
+12. Run the **Code Quality & Maintainability Review** phase using
+    [`code-maintainability-review.md`](code-maintainability-review.md), inspecting
+    the implementation diff and affected call sites, not only the implementer's
+    summary. Record the reviewer, evidence, findings, verdict, and follow-ups.
+13. Resolve blocking maintainability findings and obtain a fresh review verdict;
+    commit any necessary focused fixes. Do not proceed with a FAIL verdict.
+14. Commit the maintainability-review handoff/evidence according to the
+    existing handoff conventions.
+15. Run docs prompt
+16. Commit docs
+17. Run audit prompt (independent behavioral/documentation truth audit;
+    maintainability review does not replace it)
+18. Commit audit or audit fixes
+19. Run the Doc Distillation prompt
+20. Commit the updated docs
 
 Do not merge until audit passes.
 
