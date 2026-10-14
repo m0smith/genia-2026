@@ -54,6 +54,14 @@ For proposed changes, ask: **Does this make the same program easier for both a h
 
 Record a brief tradeoff answer in the relevant future strategy/preflight when material. Do **not** impose a new mandatory gate on an already-scoped release or expand R29 implicitly. Any concrete language or runtime change still follows contract, test, implementation, documentation-sync, and audit phases.
 
+## Development dogfooding: post-task tool review (proposed pilot)
+
+After a substantive LLM-assisted development task, briefly inspect the *purpose* of agent-produced Python, Bash, JavaScript, jq, or similar support code. Identify data processing, validation, diagnostic, or report-generation steps that **might** have been expressed in current Genia. Do not assume Genia should replace Git, shell administration, host-specific utilities, or every working script.
+
+Classify observations as: **already possible in Genia** (adoption/docs opportunity); **possible but awkward** (ergonomics); **not currently supported** (evidenced language/host/tooling gap); **better left to existing tools** (out of scope); or **unknown** (insufficient evidence). Verify any claimed current Genia equivalent against `GENIA_STATE.md`, real host support and runnable evidence; label proposed syntax as hypothetical. The review may report **no meaningful Genia opportunity**.
+
+Keep the post-task note concise. Aggregate and deduplicate observations across tasks, then use the normal roadmap/preflight process to prioritize recurring or important proven gaps—never auto-promote one speculative example to a feature. Start with a bounded, opt-in pilot and evaluate review overhead and false positives before considering a broader process requirement. Do not retain credentials, sensitive logs, or unfiltered tool transcripts. See [pilot issue #1226](https://github.com/m0smith/genia-2026/issues/1226).
+
 ## Boundaries and references
 
 - **Implemented semantics:** `GENIA_STATE.md`; supporting `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, and tests.
