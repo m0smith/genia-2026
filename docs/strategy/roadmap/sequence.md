@@ -158,6 +158,14 @@ closed by default. Portable repairs require shared evidence and accurate
 Python/C++ conformance claims. Breaking Core IR consolidation remains deferred
 to R41 or another separately approved versioned-IR gate.
 
+F2 (module/entry scope isolation) execution is tracked in
+[#1229](https://github.com/m0smith/genia-2026/issues/1229) (P2-B through P2-G,
+blocked on maintainer approval of contract §16) and the temporary compatibility
+fallback's evidence-gated removal in
+[#1230](https://github.com/m0smith/genia-2026/issues/1230). Completion also
+requires #1220 and #1221. The fallback removal is a blocker for R29
+implementation intake unless a recorded revised decision says otherwise.
+
 ## Interactive sessions and Jupyter
 
 R42 is the planned persistent interactive-session and first-class Jupyter
