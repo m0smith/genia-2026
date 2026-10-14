@@ -150,6 +150,12 @@ def test_B8_B_31_site_inventory_classifies_all_raw_program_constructors():
     assert sum(approved.values()) == 18
     actual = Counter(tree_calls)
     unknown = actual - approved
+    # The one new physical E allocation is the approved registration operation,
+    # not a missed program constructor. Keep its cardinality explicit; frames
+    # still use the 15 reviewed baseline allocations above.
+    entry_allocation = ("src/genia/environment.py", "create_entry_scope", "Env")
+    assert unknown[entry_allocation] <= 1, "§16.6.1 allocates one E per registration"
+    unknown.pop(entry_allocation, None)
     # One new construction helper may own a raw R factory when its body also
     # calls the approved registration operation. A second helper is a defect.
     helpers = []

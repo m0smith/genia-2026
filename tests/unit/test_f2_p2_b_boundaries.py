@@ -27,8 +27,9 @@ from tests.unit.f2_p2_support import ROOT, separated_scopes, wrong_accessor
 def test_B11_B_catalogue_source_guard_rejects_implicit_root():
     """§16.5.2: P2-D must remove root calls outside environment.py, notably help."""
     violations = []
-    for path in sorted((ROOT / "src/genia").glob("*.py")):
-        if path.name == "environment.py":
+    paths = sorted(path for directory in ("src", "hosts", "tools", "apps") for path in (ROOT / directory).rglob("*.py"))
+    for path in paths:
+        if path == ROOT / "src/genia/environment.py":
             continue
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "root":
@@ -46,10 +47,12 @@ def test_B11_B_autoload_reads_use_runtime_or_reviewed_runtime_constructor():
         "hosts/python/mcp_worker_profile.py": {"runtime"},
         "tools/gen_function_docs.py": {"env", "root"},
     }
-    paths = [ROOT / name for name in allowlist] + [ROOT / "tools/lint_doc.py"]
+    paths = sorted(path for directory in ("src", "hosts", "tools", "apps") for path in (ROOT / directory).rglob("*.py"))
     violations = []
     for path in paths:
         relative = str(path.relative_to(ROOT))
+        if relative == "src/genia/environment.py":
+            continue  # Structural root/autoload operations belong here (§16.5).
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if not isinstance(node, ast.Attribute) or node.attr != "autoloads" or not isinstance(node.ctx, ast.Load):
                 continue
