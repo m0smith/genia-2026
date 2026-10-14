@@ -319,6 +319,7 @@ Each consumer below must resolve in the stated context.
 | Debugger variables (decision D3) | `locals` = the frame's own bindings; `globals` = the top-level scope of the frame's declaring unit (E or M), not R |
 | Module export surface (`mod.name`) | M's own bindings only, never R or E (unchanged) |
 | Python-harness inspection of an execution's bindings | a harness that needs the program's bindings reads E through the program-scope accessor, not R |
+| Serve program `web` alias and entry-declared handlers | E through the entry accessor; `_emit_error` through the runtime accessor |
 | Host diagnostic and test-report sinks (`stdout`/`stderr` direct reads) | R, through the runtime accessor (§16.6) |
 | Debug hooks and mode | owned by R; written and read through the runtime accessor (§16.6) |
 | Metacircular `empty_env()` base scope | R only (§16.4) |
@@ -455,7 +456,7 @@ document.
 |---|---|---|
 | P0 | This contract | none |
 | P1 | Introduce a program-scope accessor and re-point each §8 consumer to it while the single root still holds both scopes. Add the §8.1 regression tests first. Classify every injection (§6.3) | none intended |
-| P2 | Create distinct R and E scopes; modules remain children of R. Install the §11 fallback. Prelude closes over R. Apply the §16 rulings (runtime-owned write-through, evaluation-bound reflection, runtime-based `eval` base) | module reads of E-resident entry names still work and warn; prelude can no longer write E-resident names; module-called `doc`/`meta`/`help` resolve in the module's chain (§16.2); `empty_env()` no longer exposes E-resident names (§16.4) |
+| P2 | Create distinct R and E scopes; modules remain children of R. Install the §11 fallback. Prelude closes over R. Apply the §16 rulings (runtime-owned write-through, evaluation-bound reflection, runtime-based `eval` base) | module reads of E-resident entry names still work and warn; prelude can no longer write E-resident names; `:env` and debugger `globals` narrow to the unit (D3); `entry-only` fixtures and the `test` registrar are invisible to prelude and modules; module-called and frame-local `doc`/`meta`/`help` resolve in the evaluating chain (§16.2); `empty_env()` no longer exposes E-resident names (§16.4) |
 | P3 | Remove the fallback; strict isolation; apply D2 shadowing | module reads of entry names raise `NameError`; entry definitions and rebinding no longer touch R |
 
 Gates:
@@ -661,9 +662,9 @@ Baseline facts the rulings rest on (verified against `origin/main` at `95c5bfb`)
   or `map/1` lands in E and shadows R, an entry `rows/0` creates an E-only group
   that hides R's other arities, `log = 5` rebinds R, and `entry_scope()` still
   returns R. Shadowing is P3 behavior (§9.1).
-- R holds 241 builtin bindings. The prelude declares 319 distinct top-level
-  names across its bundled files, but only 217 distinct names are autoload-registered;
-  102 declared names in 13 files (for example `map_acc`, `filter_acc`, `abs_impl`,
+- R holds 241 builtin bindings. The autoloaded prelude files declare about 320 distinct top-level
+  names (functions and assignments), but only 217 distinct names are autoload-registered;
+  about 103 declared names in 13 files (for example `map_acc`, `filter_acc`, `abs_impl`,
   `list?`, `map?`, `get_or`, `make_function`) are not registered. The autoload
   registry therefore cannot identify the names the runtime owns.
 - With the entry program in the shared root, an entry `first/1` or `map_acc/3`
@@ -678,8 +679,11 @@ entry top-level binding operation if any of the following holds:
 1. it is a key of R's bindings or of R's trusted internal bindings (builtins and
    `runtime-public` host injections that survive any MCP pruning);
 2. it is an autoload-registered name in R;
-3. it is a top-level declared name in any bundled runtime prelude source
-   (`src/genia/std/prelude/*.genia`), registered or not.
+3. it is a top-level declared name (function, named pattern, or assignment) in
+   any prelude file that is an autoload target, registered or not. Files that
+   are only importable as packaged modules (`web.genia`, `resource.genia`,
+   `execution.genia`) are excluded; the manifest names its source files
+   explicitly and a test fails if an autoload target is missing from it.
 
 Clause 3 is a static **runtime-owned name manifest**. It is derived mechanically
 from the prelude sources (by parse of top-level declarations, not by autoload
@@ -687,14 +691,14 @@ registration, and without evaluating prelude files at environment construction),
 is R-owned state, and is protected by a drift test that fails when a top-level
 prelude declaration is absent from it or when it fails to include every
 autoload-registered name. The autoload registry is never the sole authority for
-ownership. Packaged modules (`web`, `resource`) are modules, not runtime-owned
-names. The manifest is not shrunk by MCP pruning (pruning removes bindings and
+ownership. Packaged modules are modules, not runtime-owned names: an entry
+assignment such as `ok_text = web.ok_text` binds in E. The manifest is not shrunk by MCP pruning (pruning removes bindings and
 autoloads from R; it does not change what the prelude declares).
 
 **16.1.2 Routing rule (P2 only).** Every top-level binding operation of the
-entry unit — function definition, assignment, open-function declaration/`use`/
-`extend` target, import alias, destructured top-level binding, and annotation
-metadata merge — whose name is runtime-owned binds in R, with exactly the
+entry unit — the IR forms `IrFuncDef`, `IrAssign`, `IrNamedPatternDef`,
+`IrImport` alias, `IrOpenFuncDef`, the local name bound by `IrOpenUse`, and
+annotation metadata merges — whose name is runtime-owned binds in R, with exactly the
 semantics the single-root host has today, including: merging into an existing
 function group, the duplicate-arity error, the non-function/open-interface
 conflict `TypeError`, assignment through the existing assignability rule, and
@@ -702,6 +706,9 @@ the later prelude-load collision. Any other entry top-level operation binds in E
 Function-local and inner-frame operations follow the ordinary lexical chain
 (frame, E, R); E is created with parent rebinding enabled so an inner-frame
 assignment to an existing R binding rebinds R as today.
+
+`IrOpenContribution` binds no name; the entry unit's contribution table lives in
+E. The redeclaration check for open declarations tests the routed scope.
 
 **16.1.3 What does not write through.** Prelude and R-closure code never reaches
 E. Module environments never write through: a module top-level definition of a
@@ -711,7 +718,7 @@ through; the set is closed and enumerable.
 **16.1.4 Entry-declared visibility.** E records which runtime-owned names the
 entry unit itself declared. Host consumers of the entry unit (CLI `main`
 dispatch, native-test discovery including annotation metadata, serve annotation
-discovery, `:env`) observe those names through E's view, bound to R's binding,
+discovery, `:env`, debugger `globals` for entry frames) observe those names through E's view, bound to R's binding,
 and observe no other R binding. The mechanism is a design-phase matter.
 
 **16.1.5 Ownership table.**
@@ -719,13 +726,15 @@ and observe no other R binding. The mechanism is a design-phase matter.
 | Declaration | Resident in | Notes |
 |---|---|---|
 | Builtins, `runtime-public` host bindings, prelude (loaded or not), autoload tables, module cache, debug state | R | unchanged |
-| Entry top-level, name not runtime-owned; import aliases; `entry-only` host injections | E | invisible to prelude; module reads are fallback events (§11) |
+| Entry top-level, name not runtime-owned (including its import aliases); `entry-only` host injections | E | invisible to prelude; module reads are fallback events (§11) |
 | Entry top-level, name runtime-owned | R (E records entry-declared, §16.1.4) | P2 compatibility; replaced by shadowing in P3 |
 | Module top-level, aliases, contributions | M | unchanged |
 
 **16.1.6 Ordering and arity.** R is complete (builtins, `runtime-public`
-injections, MCP pruning) before E is registered; a `runtime-public` binding
-installed in R after E is registered is a host-integration defect. Because
+injections, MCP pruning) before E is registered; a `runtime-public` binding,
+autoload registration or trusted internal installed in R after E is registered
+is a host-integration defect (it could turn an E-resident name into a runtime-owned
+one). An `entry-only` injection of a runtime-owned name raises. Because
 runtime-owned writes land in R's single binding, every distinct arity and every
 duplicate-arity outcome is the single-root outcome; no per-arity merge exists in
 P2 and D2b is not required.
@@ -773,7 +782,10 @@ what the evaluating chain can see.
 Observable changes, to be announced in STATE: (1) a module's `doc("own_helper")`
 now resolves (§7.2); (2) a module's `doc`/`meta`/`help` of an E-resident entry
 name no longer resolves, whereas it does today because the root is shared; there
-is no fallback for it. Entry-code reflection is unchanged. Value-based marking,
+is no fallback for it; (3) lookup starts at the evaluating frame, so a local or
+parameter binding named like the target now takes precedence (`describe(map) =
+doc("map")` documents the parameter's value, not the prelude function). Entry
+top-level reflection is otherwise unchanged. Value-based marking,
 callable-identity stability and `map(doc, names)` binding the evaluating scope
 are design requirements already stated in the P1 design §6.
 
@@ -791,16 +803,20 @@ retrieval and catalogue-ownership cases are Python unit tests.
 2. **Eligibility is structural, not registered.** A read resolves through the
    fallback only if (a) the reading frame's declaring unit is a module (including
    R20 contribution clauses, reported against the declaring module); (b) the
-   M-then-R chain including autoload and trusted internals has missed; and (c) the
-   name is E-resident. No allowlist or manifest of eligible programs exists.
+   M-then-R chain including autoload and trusted internals has missed; (c) the
+   name is E-resident; and (d) the read is an identifier evaluation of a free
+   name by the evaluator. Condition (d) makes the fallback opt-in per call site:
+   reflection, the metacircular evaluator and host `Env.get` calls never request it. No allowlist or manifest of eligible programs exists.
    Events are recorded as the per-execution set of (canonical module identity,
    name) pairs held on R, which also drives warning deduplication.
 3. **Strict switch.** The environment variable `GENIA_STRICT_MODULE_SCOPE=1`
    (the repository already uses environment variables for host-local switches, for
    example `GENIA_DEBUG_OPT`), read once when R is constructed. No CLI flag, API
    keyword or language surface is added. Under strict mode a would-be fallback
-   read raises the ordinary `Undefined name` `NameError` — exactly the P3
-   outcome — so a strict run is a rehearsal of P3 and adds no new failure mode.
+   read raises the ordinary `Undefined name` `NameError`, adding no new failure
+   mode. Strict mode does not detect module or prelude reads of entry-declared
+   runtime-owned bindings (they are R-resident); the P2→P3 gate therefore also
+   requires measuring those reads before shadowing is introduced (§16.7).
    The default during P2 is off (fallback with warning).
 4. **Marker and recording.** The code path is one named function carrying the
    literal marker `TEMPORARY COMPATIBILITY FALLBACK`, which also appears once in
@@ -817,12 +833,15 @@ retrieval and catalogue-ownership cases are Python unit tests.
    with owner, reason, remaining evidence and a new absolute date. There is no
    automated date-expiry check and no repository-program execution manifest;
    the removal PR carries a table of repository programs/modules/fixtures run under
-   strict mode and a list of any that could not be run.
+   strict mode, states which suites ran through the construction helper (single-root
+   tests cannot produce events), and lists any that could not be run. The R29 milestone
+   is the first merged PR or issue label that starts R29 implementation, recorded in
+   the removal issue.
 6. **Masking prevention.** The repository CI runs the full regression with strict
    mode on, so any unintended module read of an E name fails; the tests that
    intentionally exercise the fallback clear the variable explicitly and are the
-   only fallback-event sources. Further tests prove the fallback never serves
-   writes, reflection, exports, prelude or R-closure reads, `empty_env()` lookups
+   only fallback-event sources. Further tests (including reflection called from a module frame) prove the
+   fallback never serves writes, reflection, exports, prelude or R-closure reads, `empty_env()` lookups
    (§16.4), or runtime-owned names (which are never E-resident), and that
    warnings contain no value, path or exception text.
 
@@ -864,9 +883,11 @@ Revised #1220 acceptance criteria (replace criteria 1–2; keep 3–5):
 
 1. The help catalogue (`_public_autoload_paths`, `_discover_public_family_names`)
    reads only the runtime scope through `runtime_scope()`; behavior-neutral.
-2. A source guard fails on `.root()` outside `environment.py` and on `.autoloads`
-   reads through anything other than `runtime_scope()`; it fails on the current
-   code, giving the red phase for the accessor.
+2. An AST source guard fails on `.root()` calls outside `environment.py` and on
+   `.autoloads` reads whose receiver is not a `runtime_scope()` result, with an
+   explicit reviewed allowlist for receivers that are the runtime scope by
+   construction (for example the constructor's own `env`); it fails on the current
+   `.root()` reads, giving the red phase for the accessor.
 3. Behavioral tests with real, non-aliased R, E and M (setup asserts
    `E.autoloads == {}` while R's is non-empty as a control): `help()` output is
    identical when evaluated from E, from M, and from R; an entry- or
@@ -889,15 +910,23 @@ Revised #1220 acceptance criteria (replace criteria 1–2; keep 3–5):
    `runtime_scope()` returns R, `unit_scope()` returns E for entry frames and M
    for module frames, and `inspection_globals_scope()` returns the unit scope.
    `set_host(..., visibility=...)` routes by class from any Env of the execution:
-   `runtime-public` into R, `entry-only` into E; an `entry-only` install before
-   registration raises. Module environments stay children of R built by
+   `runtime-public` into R, `entry-only` into E. On a root with no registered
+   entry, `entry-only` installs into R (entry is the root), preserving the existing
+   single-root harnesses; the construction helper rejects an `entry-only` install made
+   after R is complete but before `create_entry_scope()` returns. Module environments stay children of R built by
    `load_module`.
 2. **One construction helper.** The Python host provides one helper that builds R,
    applies pre-registration host work (runtime-public installs, MCP pruning),
    registers E, and returns both scopes. Every program-construction site uses it;
    a source guard fails on a program evaluated outside it. `run_source` never
    registers E and keeps evaluating in the scope supplied.
-3. **Runtime-owned reads and writes by hosts.** Direct reads of `stdout`/`stderr`
+3. **Evaluation scope of hosts.** `make_test_env` returns the entry scope (or both
+   scopes) so that native-test identification (`identify_tests`) and the runner
+   evaluate in E; the serve path reads the `web` alias and entry declarations from E.
+   The construction-site guard matches any evaluator entry point
+   (`run_source`, `Evaluator(...).eval_program`), not only `run_source`.
+
+   **Runtime-owned reads and writes by hosts.** Direct reads of `stdout`/`stderr`
    sinks (`_emit_error`, native-test report writers) go through the runtime
    accessor; debug hooks and mode are written to and read from R so stepping
    reaches higher-order callbacks, modules and prelude frames; the native-test
@@ -910,7 +939,7 @@ Revised #1220 acceptance criteria (replace criteria 1–2; keep 3–5):
 | `interpreter.py` `run_debug_stdio` | debugger | root frame is E |
 | `interpreter.py` `_run_serve_file` | serve | discovery on E |
 | `interpreter.py` `_run_execution_mode` (pipe, command, file: 3 sites) | CLI modes | entry runs in E |
-| `test_cli.py` `make_test_env` | native tests | fixtures and registrar `entry-only` into E |
+| `test_cli.py` `make_test_env` (consumed by `native_test_runner`) | native tests | fixtures and registrar `entry-only` into E; returns E |
 | `hosts/python/exec_model_fixture.py`, `exec_r12_grounded_fixture.py`, `exec_r25_concurrency_fixture.py` | conformance adapters | fixtures `entry-only` into E |
 | `hosts/python/exec_ollama_chat.py` | offline adapter | entry runs in E |
 | `hosts/python/mcp_worker.py` | MCP worker | prune R, then register E; E starts empty; no host binding added after pruning |
@@ -937,6 +966,15 @@ catalogue-only tools (`gen_function_docs.py`, `lint_doc.py`), which stay on
 - **Settled for P2 by this section (once approved):** runtime-owned write-through,
   evaluation-bound reflection, the fallback and strict switch, the `eval` base,
   the construction API, and the #1220/#1221 completion criteria.
+- **P2→P3 gate additions:** measure module and prelude reads of entry-written
+  R bindings (a counter or diagnostic) before shadowing is introduced; give R a
+  module identity distinct from E's `<entry>` identity if open-interface keys,
+  fallback reports or debugger attribution need it (design question); decide the
+  Option-awareness walk (`_closure_lookup`) for callables resolved only through
+  the fallback (deferred, unchanged in P2).
+- **MCP note:** pruned builtin names stop being runtime-owned while pruned prelude
+  names stay owned (the manifest is not shrunk); neither lets write-through recreate
+  a denied binding in R, which a test must assert.
 - **Deferred to P3, unchanged:** D2/D2b finality and any shadowing, `NameError`
   for module reads, removal of the fallback and the write-through rule, the
   `internal_values` hardening, export/privacy, C++ module system. P2 needs no

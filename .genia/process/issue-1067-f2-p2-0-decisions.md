@@ -25,8 +25,10 @@ Independently re-verified (throwaway probes, not committed):
   `log = 5` rebinds R; `entry_scope()` and `unit_scope()` both return R.
 - Shared root: entry `first/1` or `map_acc/3` breaks the prelude's `map`
   (entry-to-prelude hijack), so "unchanged" in P2 preserves a failure for those names.
-- Prelude: 319 declared top-level names; 217 autoload-registered; 102 unregistered in
-  13 files; 241 builtins; no overlap; `main` and `test` are not runtime names.
+- Autoloaded prelude files (21): about 320 declared top-level names; 217 autoload-registered;
+  about 103 unregistered in 13 files; 241 builtins; `pi` is both a builtin and a prelude
+  assignment; `main` and `test` are not runtime names. `web`/`resource`/`execution` are
+  packaged modules, not autoload targets.
 - Running all entry source in a child scope (throwaway plugin): the metacircular
   unit tests pass; `help`/docstring tests and the module harness fail, as the
   pre-flight predicted.
@@ -55,7 +57,7 @@ entry bindings are E-resident and unreachable by the prelude; a child E violates
 rows 2–3 (probe). Alternatives: (A) write-through keyed on a complete runtime-owned
 set (chosen); (B) write-through keyed on public surface only, making unregistered
 helpers shadow in E — a visible change that contradicts the approved table and
-pulls part of P3 forward; (C) autoload registry only — rejected, it misses 102
+pulls part of P3 forward; (C) autoload registry only — rejected, it misses about 103
 declared names (`map_acc`, `list?`, `get_or`, …); (D) start shadowing in P2 —
 rejected, needs D2/D2b. Smallest coherent rule: A. Row 4 is reworded to "E-resident
 entry binding"; names written through are R bindings by the P2 compatibility rule,
@@ -141,7 +143,7 @@ D2/D2b ruled.
 |---|---|---|---|---|
 | T-D1a | four §9.0 collision rows identical with E registered, incl. `map_acc` | child E shadows/hides (probe) | yes | Python unit |
 | T-D1b | non-runtime-owned entry name absent from R, invisible to prelude | shared root exposes it | yes | Python unit + native |
-| T-D1c | manifest drift: every prelude top-level declaration ⊆ manifest ⊇ autoload names | registry-only derivation misses 102 | no | Python unit |
+| T-D1c | manifest drift: every prelude top-level declaration ⊆ manifest ⊇ autoload names | registry-only derivation misses about 103 | no | Python unit |
 | T-D1d | main/test/serve/`:env` see entry-declared runtime-owned names | consumers handed R or bare E | yes | Python unit |
 | T-D2 | reflection per §16.2 table, incl. `map(doc, names)`, transferred, user-rebound `doc`, module attempting E name, pruned catalogue | R-captured reflection misses entry names; E-for-all leaks to modules | yes | shared spec (evaluation scope) + Python unit |
 | T-D3 | fallback eligibility, dedupe, no value/path text, strict → `NameError`, never for writes/reflection/exports/prelude/`eval`/runtime-owned | n/a (new) | yes | Python unit + native |
@@ -169,3 +171,20 @@ slice: GENIA_STATE.md (net-small; margin about 135 words), RULES §8.2/§8.3, RE
 README, README if visible, host-interop, book eval chapter, composability matrix
 test, semantic facts, MCP language profile impact answer, code-documentation
 contract for changed bindings.
+
+## Independent review (read-only, separate agent) — findings and disposition
+
+No blocking finding. Fixed in the contract: H1 manifest scope (autoload targets only,
+assignments counted, `web` module names excluded); H2 fallback opt-in per identifier
+evaluation, not reflection; H3 serve `web` alias via entry accessor; H4 `entry-only`
+on an unregistered root installs into R; H5 frame-first reflection announced as a third
+observable change; M1 "rehearsal" claim removed and a P2→P3 measurement gate added;
+M2 removal PR states which suites ran through the helper; M3 `make_test_env` returns E,
+`identify_tests` and an evaluator-wide construction guard; M4 actual IR binding forms;
+M5 complete observable-change row; L1/L2 late registration and `entry-only` runtime-owned
+names; L3 MCP asymmetry stated; L4 AST guard with allowlist; L5 R identity and L8
+awareness walk recorded as design/deferred items; L6 debugger globals; L7 table; L9
+R29 milestone made datable. Numeric corrections: about 320 declared / about 103
+unregistered (the earlier 319/102 omitted top-level assignments such as `pi`). Verified
+sound by the reviewer: metacircular base already child of R, prelude locals not
+runtime-owned, inner-frame rebinding parity, no accidental P3.
