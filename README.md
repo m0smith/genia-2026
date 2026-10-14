@@ -904,7 +904,7 @@ import math as m
 - `import mod` binds a module value to `mod`
 - `import mod as alias` binds the same module value to `alias`
 - module imports are cached by module name (`loaded_modules`) so duplicate imports are not re-evaluated
-- Python host: module code does not see the entry program's own bindings, apart from a temporary, warned compatibility fallback (`GENIA_STRICT_MODULE_SCOPE=1` disables it; see `GENIA_STATE.md` section 9)
+- Python host: module code does not see the entry program's own bindings, apart from runtime-owned names the entry declares (written through to the runtime scope) and a temporary, warned compatibility fallback (`GENIA_STRICT_MODULE_SCOPE=1` disables it; see `GENIA_STATE.md` section 9)
 - module exports are accessed with narrow dot access (`mod.name`)
 - modules are immutable runtime namespace values (distinct from maps)
 
