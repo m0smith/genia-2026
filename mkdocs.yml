@@ -19,7 +19,6 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Roadmap: strategy/release-roadmap.md
-  - Human–AI Shared Programming: strategy/human-ai-shared-programming.md
   - Reference:
       - Current State: GENIA_STATE.md
       - Language Rules: GENIA_RULES.md
