@@ -27,7 +27,6 @@ Genia's first killer workflow is:
 Plain-language promise:
 
 > messy records in → clear pipelines → validated shaped output / reports + useful diagnostics
-
 New release work should strengthen this workflow unless explicitly approved as infrastructure or parking-lot work. Long-term cross-cutting goal: [Human–AI Shared Programming](human-ai-shared-programming.md) (strategy only; no R29 gate).
 
 ## Promoted cross-cutting follow-up: Outcome Composition Ergonomics
