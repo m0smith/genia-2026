@@ -10,6 +10,7 @@ LOG = os.environ["FALLBACK_PROBE_LOG"]
 
 
 def probe(env, name):
+    """Delegate to the real fallback read and log each successful read with its test id."""
     found, value = _original(env, name)
     if found:
         unit = env.unit_scope()

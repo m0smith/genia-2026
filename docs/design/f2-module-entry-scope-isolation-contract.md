@@ -7,7 +7,9 @@ what the Python reference host actually does, including the behavior this
 contract proposes to correct. This document defines required semantics and a
 phased migration; it contains no tests, adds no syntax, and changes no Core IR.
 
-**P2-0 amendment (PROPOSED, pending maintainer approval on #1067):** §16 resolves
+**Implementation status (P2-G):** §16 and amendments A1–A3 were approved by the maintainer on #1067 ([comment](https://github.com/m0smith/genia-2026/issues/1067#issuecomment-6171848719)) and are implemented in the Python reference host by the stacked PRs #1235 (tests), #1239, #1240, #1241 and #1242, which are not on `main` until the stack merges. P3 (shadowing, `NameError` for module reads, fallback and write-through removal) and C++ module support are not implemented. `GENIA_STATE.md` section 9 is the implemented-truth statement.
+
+**P2-0 amendment (approved; was PROPOSED):** §16 resolves
 the six P2 pre-flight decisions (P2R-1 through P2R-6) and the statements in
 §4.2, §4.4, §6.1, §8, §9.1, §10, §11, §12 and §13 below are read together with
 it. Nothing in §16 is implemented; P2-B failing tests must not start until the
@@ -650,9 +652,9 @@ Open questions returned for review (this document does not decide them):
 - No C++ obligation now (§12).
 - No implementation, test, or specification change in this PR.
 
-## 16. P2-0 rulings (PROPOSED — pending maintainer approval on #1067)
+## 16. P2-0 rulings (approved on #1067; implemented on the stacked P2 branches)
 
-Status: **PROPOSED.** These rulings resolve the six decisions left by the F2 P2
+Status: **APPROVED** (historical wording follows: written while PROPOSED). These rulings resolve the six decisions left by the F2 P2
 pre-flight. They are contract text only: no behavior below is implemented,
 `GENIA_STATE.md` is unchanged, and no P2 test or code may start until the
 maintainer approves §16.1, §16.2, §16.4 and §16.3.5 (the rulings that carry an
@@ -997,9 +999,9 @@ catalogue-only tools (`gen_function_docs.py`, `lint_doc.py`), which stay on
   STATE, RULES, the REPL README, host-interop and the book/cheatsheets with
   their sidecar tests in the same change as the behavior.
 
-### 16.8 P2 reconciliation with P2-A evidence and pending amendments (PROPOSED)
+### 16.8 P2 reconciliation with P2-A evidence and amendments (A1–A3 approved)
 
-Status: **PROPOSED, not approved.** §16.1–§16.7 above are unchanged. This
+Status: **APPROVED** (historical wording follows: written while PROPOSED); A2 supersedes the 60-day/R29 "earlier of" deadline wording of §11.4 and §16.3.5. §16.1–§16.7 above are unchanged. This
 subsection records how the P2-A characterization
 (`.genia/process/issue-1067-f2-p2-a-characterization.md`, PR #1228) relates to
 §16 and the amendments the maintainer is asked to approve together with the six

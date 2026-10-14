@@ -548,7 +548,7 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
     - `as_seq(string)` returns a list of one-character strings in iteration order; strings remain atomic unless passed to `as_seq`.
     - `as_seq("")` returns an empty list.
     - Unsupported inputs (e.g., number, boolean, map) fail with `TypeError: as_seq expected a list or string, received <type>.`
-    - Flow input is not supported in this phase; Flow remains Seq-compatible through existing `each`, `collect`, `run`, `map`, `filter`, `scan`, `reduce` without `as_seq`.
+    - Flow input is not supported; Flow remains Seq-compatible through existing `each`, `collect`, `run`, `map`, `filter`, `scan`, `reduce` without `as_seq`.
     - `as_seq` does not make strings implicitly Seq-compatible; `collect("abc")` and similar remain invalid.
     - `as_seq` does not introduce a `Char` type; each emitted element is a one-character Genia string value.
   - Maturity: Partial; list and Flow behavior is implemented, while Seq remains semantic terminology rather than a separate public surface. `as_seq` for list and string input is implemented and tested.
@@ -560,9 +560,9 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public validation helper names `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, and `diagnostic_field` are prelude-backed wrappers over small host-backed checks/constructors; record validation helpers return Outcome values for user-data problems, diagnostic constructors return ordinary maps, and programmer misuse remains a runtime error.
 - `collect_validated` is a host-backed terminal builtin (Experimental) registered directly in the global environment; it consumes a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; it does not alter Outcome semantics, pipeline short-circuit behavior, Sheet semantics, or existing validation helpers.
-- public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `with_headers`, `cors`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
-- public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
-- limited Python host interop is implemented in this phase:
+- public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `with_headers`, `cors`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers; the underlying HTTP transport integration remains host-backed
+- public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
+- limited Python host interop is implemented:
   - it uses the existing module/import model rather than new syntax
   - supported host modules are currently allowlisted: `python`, `python.json`
   - unsupported host module names fail clearly instead of falling through to arbitrary host import
@@ -571,13 +571,13 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
   - `get?` remains as the current compatibility exception
-- Callable behavior currently crosses nominal value boundaries:
+- Callable behavior crosses nominal value boundaries:
   - functions are callable as functions
   - maps are callable as lookup values
   - strings are callable as map projectors
 - Flow, stdout/stderr, MetaEnv, Ref, and Process handles are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
 - lexical assignment does not protect builtin/root names from rebinding inside the same root environment.
-- The current model is implemented and tested as one integrated design in this phase:
+- The current model is implemented and tested as one integrated design:
   - Core IR carries explicit pipeline and Option nodes
   - pipeline evaluation owns automatic Option propagation
   - Flow remains an explicit runtime value family rather than an implicit pipeline mode
@@ -783,8 +783,8 @@ Pipeline (Phase 2) evaluation model:
   - this does not add general member/index access
 ## 4.1) Python host interop layer (implemented, allowlisted)
 
-- Genia currently exposes a minimal Python-only host interop layer through the existing module system.
-- supported host imports in this phase:
+- Genia exposes a minimal Python-only host interop layer through the existing module system.
+- supported host imports:
   - `import python`
   - `import python.json`
   - `import python.json as alias`
@@ -908,7 +908,7 @@ Pipeline (Phase 2) evaluation model:
 
 - Genia now ships a minimal metacircular expression helper layer in `src/genia/std/prelude/syntax.genia`
 - these helpers operate on the same quoted/quasiquoted data representation produced by `quote(expr)` and `quasiquote(expr)`
-- the host-backed substrate in this phase is intentionally small:
+- the host-backed substrate is intentionally small:
   - parser/lowering/quote/quasiquote runtime representation
   - symbol/self-evaluating runtime shape detection
   - metacircular pattern-lowering support used by the evaluator
@@ -956,7 +956,7 @@ Pipeline (Phase 2) evaluation model:
 ## 4.6) Metacircular evaluator (stdlib)
 
 - Genia now ships a minimal metacircular evaluator layer in `src/genia/std/prelude/eval.genia`
-- the host-backed substrate in this phase remains:
+- the host-backed substrate remains:
   - metacircular environment values and lexical mutation support
   - metacircular pattern lowering/matching support
   - ordinary evaluator/runtime substrate and `apply` fallback machinery
@@ -969,7 +969,7 @@ Pipeline (Phase 2) evaluation model:
   - `extend`
   - `eval`
   - `apply` (extended in `src/genia/std/prelude/fn.genia` to handle metacircular compound procedures as well as ordinary callables)
-- `eval(expr, env)` currently supports these quoted expression families:
+- `eval(expr, env)` supports these quoted expression families:
   - self-evaluating literals
   - symbol/variable expressions
   - quoted expressions
@@ -1374,7 +1374,7 @@ Output sink semantics:
   - `config.host` defaults to `"127.0.0.1"`
   - `config.port` defaults to `8000`
   - optional `config.max_requests` stops the server after a fixed number of handled requests
-  - request maps currently include:
+  - request maps include:
     - `method`
     - `path`
     - `query` (string-keyed map; repeated query keys keep the last value)
@@ -1382,7 +1382,7 @@ Output sink semantics:
     - `body` (parsed JSON when content type starts with `application/json`, otherwise decoded text)
     - `raw_body` (decoded text body)
     - `client` (`{host, port}`)
-  - response maps currently use:
+  - response maps use:
     - `status` (integer)
     - `headers` (string-keyed map)
     - `body` (string, bytes, or `none`)
@@ -1565,7 +1565,7 @@ Representation System entry points (#185, implemented):
   - maps: both return brace map syntax and recursively represent keys and values
   - pairs / quoted syntax data: both preserve the existing pair-shaped representation syntax
 - Wrong arity fails through the ordinary callable arity/type-error path.
-- Runtime capability values and function-like values may have host-specific opaque debug/display text in this phase unless a later contract explicitly stabilizes them.
+- Runtime capability values and function-like values may have host-specific opaque debug/display text unless a later contract explicitly stabilizes them.
 ### Sheet builtins (Experimental)
 
 Sheet public helpers are registered directly as arity-specific `GeniaFunctionGroup` builtins in the global environment (not autoloaded). This allows coexistence with user-defined functions at other arities (for example, user-defined `rows/0` may coexist with `rows(sheet)`).
@@ -1766,7 +1766,7 @@ Flow semantics:
   - finalization-error behavior: if a primary user or source error is already propagating, finalization errors are suppressed; if no primary error exists, finalization errors surface
   - list sources are never finalized; lists have no resource lifecycle
   - PYTHON REFERENCE HOST: finalization is implemented via the iterable `.close()` protocol (generator close); the `close_on_early_termination` flag on internal `GeniaSeq`/`GeniaFlow` objects controls whether cleanup is attempted; these internals are not public Genia surfaces
-- host-backed Flow kernel remains intentionally small in this phase:
+- host-backed Flow kernel remains intentionally small:
   - flow value creation and single-consumption enforcement
   - lazy pull-based iteration over upstream sources
   - source-bound stdin integration
@@ -1849,7 +1849,7 @@ Behavior:
   - `options`: list of names forced to value-taking behavior
   - `aliases`: map of alias name -> canonical name (string keys/values)
 - grouped short options with spec raise clear `ValueError` for ambiguous mixes
-- host-side CLI support is intentionally small in this phase:
+- host-side CLI support is intentionally small:
   - raw `argv()`
   - spec normalization/validation
   - token-to-char decomposition
@@ -2528,7 +2528,7 @@ Absence semantics:
 
 `get?` semantics:
 
-- `get(key, target)` is the canonical maybe-aware lookup helper in this phase
+- `get(key, target)` is the canonical maybe-aware lookup helper
 - `get?(key, target)` remains as a compatibility alias with the same runtime behavior
 - `get?(key, none) -> none`
 - `get?(key, none(reason)) -> none(reason)`
@@ -2632,7 +2632,7 @@ Compatibility note:
 - existing callable-data map/string-projector behavior is unchanged:
   - `m(key)`, `m(key, default)`
   - `"key"(m)`, `"key"(m, default)`
-- compatibility aliases retained in this phase:
+- compatibility aliases retained:
   - `get?` for `get`
   - `first_opt` for `first`
   - `nth_opt` for `nth`
@@ -2649,7 +2649,7 @@ Compatibility note:
 - new naming rule in current docs/runtime surface:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
-  - `get?` remains the existing compatibility exception; `get` is the canonical maybe-aware name in this phase
+  - `get?` remains the existing compatibility exception; `get` is the canonical maybe-aware name
 
 Pattern matching note:
 
@@ -2668,7 +2668,7 @@ Pattern matching note:
 - `lower`, `upper`, `parse_int`
 - public string helpers are thin prelude wrappers in `src/genia/std/prelude/string.genia`
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
-  - the underlying runtime behavior remains host-backed and unchanged in this phase
+  - the underlying runtime behavior remains host-backed and unchanged
 
 `parse_int` behavior:
 
@@ -2828,7 +2828,7 @@ Behavior:
 - PYTHON REFERENCE HOST: determinism is provided by the existing 32-bit LCG via `rng`/`rand`/`rand_int`; internal RNG state is not exposed as a Genia-visible value during Flow consumption
 ## 7) Autoloaded stdlib
 
-Autoload is keyed by `(name, arity)` and currently registers functions from bundled stdlib sources:
+Autoload is keyed by `(name, arity)` and registers functions from bundled stdlib sources:
 
 - `src/genia/std/prelude/list.genia`
 - `src/genia/std/prelude/fn.genia`
@@ -2899,7 +2899,7 @@ Implemented tail-call/runtime behavior:
 - function calls in tail position execute in constant stack space
 - self tail recursion is implemented
 - mutual tail recursion is implemented
-- tail position currently includes:
+- tail position includes:
   - the direct result of a function body
   - the selected branch result of a case expression
   - the final expression in a block
@@ -2909,7 +2909,7 @@ Other implemented optimizations:
 
 - specialized nth-style list traversal rewrite to `IrListTraversalLoop` for a narrow recognized recursion shape
 
-Core IR shape currently includes:
+Core IR shape includes:
 
 - program items: expression statement, assignment, named function definition, import, annotation
 - expressions: literal, explicit Option some/none, variable, call, pipeline, unary, binary, lambda, block, list, map, spread, case, quote, quasiquote, delay
@@ -2919,17 +2919,18 @@ Core IR shape currently includes:
   - these optimized nodes are not the minimal Core IR portability contract
 ## 9) Debug/runtime tooling
 
-**PYTHON REFERENCE HOST (internal scope access):** `make_program_env` paths
-register entry scope E (child of R); caller roots register none. Runtime-owned
-names bind in R, others in E, hidden from prelude and modules.
-`empty_env()` is R-based; `:env`, debugger
-globals, native discovery use entry/unit scopes.
-TEMPORARY COMPATIBILITY FALLBACK (Python host only; removal tracked in #1230): a
-module identifier read missing normal lookup returns the entry scope's own
-binding, with one value-free stderr warning per distinct (module, name); never
-for writes, reflection, exports, prelude, `eval` or host lookup.
-`GENIA_STRICT_MODULE_SCOPE=1`, read once at runtime construction, makes it the
-ordinary `NameError`.
+**PYTHON REFERENCE HOST (internal scope access; not portable language behavior):**
+`make_program_env` paths register entry scope E (child of runtime scope R); caller-created
+roots register none. Entry bindings of runtime-owned names (runtime bindings, autoloads, prelude
+declarations, including unregistered helpers such as `map_acc`) write through to R and stay
+visible to modules and the prelude until P3; other entry bindings live in E, hidden from both.
+`empty_env()` is R-based; the `help()` catalogue and sink are runtime-owned. `:env`, debugger
+globals and native discovery show the entry/unit scope plus runtime-owned names the entry
+attempted to declare (a failed attempt can list an existing runtime binding).
+TEMPORARY COMPATIBILITY FALLBACK (removal tracked in #1230): a module identifier read missing
+normal lookup returns the entry scope's own binding, with one value-free stderr warning per
+distinct (module, name); never for writes, reflection, exports, prelude, `eval` or host lookup.
+`GENIA_STRICT_MODULE_SCOPE=1`, read once at runtime construction, makes it the ordinary `NameError`.
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
@@ -2972,7 +2973,7 @@ Current native test behavior distinguishes:
 Current native test support is not a complete test framework; lifecycle hooks, `@setup`/`@teardown` annotations, setup/teardown, fixtures, parameterized tests, broad directory discovery, and multi-host conformance are out of scope in this phase.
 ### Native test / pytest / shared-spec placement boundary (Python reference host, Experimental)
 
-Native test support remains Experimental and backed by the Python reference host in this phase. Native tests complement pytest and shared semantic specs. Native tests do not replace pytest or shared semantic specs.
+Native test support remains Experimental and backed by the Python reference host. Native tests complement pytest and shared semantic specs. Native tests do not replace pytest or shared semantic specs.
 
 Genia-native tests belong to Genia-facing behavior that can be expressed and verified in Genia source from the user's perspective. Appropriate native-test coverage includes Outcome helpers, validation helpers, Flow/Seq visible behavior, Sheet helpers, user-facing examples, and similar prelude/source-level behavior.
 
@@ -2980,7 +2981,7 @@ Python pytest remains the home for parser, lexer, AST, Core IR, host/runtime int
 
 Shared semantic specs remain authoritative for portable observable CLI/eval/flow/error/parse/IR behavior where covered. Covered portable observable behavior must stay in shared specs and must not be moved into native tests as a replacement.
 
-Unsupported native-test features remain unsupported in this phase:
+Unsupported native-test features remain unsupported:
 
 - setup/teardown execution and setup/teardown are not implemented
 - fixtures are not implemented
