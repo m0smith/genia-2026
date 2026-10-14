@@ -34,6 +34,9 @@ def temporary_compatibility_fallback_read(env: Any, name: str) -> tuple[bool, An
     Records the distinct (canonical module identity, name) pair on R's per-execution
     event set and, for a new pair, writes one value-free warning line. Never called for
     writes, reflection, exports, metacircular `eval`, host `Env.get` or inspection.
+    The event set is plain, unlocked state: concurrent module evaluation could emit a
+    duplicate warning line for one pair (harmless; the set itself stays correct). An R
+    not built by `make_global_env` has no event set and returns the value unrecorded.
     """
     runtime = env.runtime_scope()
     entry = runtime._entry
@@ -51,18 +54,24 @@ def temporary_compatibility_fallback_read(env: Any, name: str) -> tuple[bool, An
 
 
 def _warn(runtime: Any, pair: tuple[str, str]) -> None:
-    """Write one warning naming the module and name only (no value, path or detail)."""
+    """Write one warning naming the module and name only (no value, path or detail).
+
+    Goes to the runtime's `stderr` binding (host-configured; the entry program cannot
+    redirect it except by declaring its own runtime-owned `stderr`) or the process
+    stream. A closed or failing stream is ignored: a diagnostic never alters the
+    program's result.
+    """
     module, name = pair
     line = (
         f"warning: {FALLBACK_MARKER}: module '{module}' resolved entry-program name "
         f"'{name}'; this will become an undefined-name error (tracking {TRACKING_ISSUE})\n"
     )
     sink = runtime.values.get("stderr")
-    if sink is not None and hasattr(sink, "write_text"):
-        sink.write_text(line)
-        return
     try:
-        sys.stderr.write(line)
-        sys.stderr.flush()
-    except BrokenPipeError:
+        if sink is not None and hasattr(sink, "write_text"):
+            sink.write_text(line)
+        else:
+            sys.stderr.write(line)
+            sys.stderr.flush()
+    except (BrokenPipeError, OSError):
         return

@@ -147,3 +147,22 @@ def test_warning_uses_the_runtime_stderr_sink_when_configured(tmp_path):
     module = load_program_module(tmp_path, entry, "probe() = entry_marker", "sink_module")
     module.exports["probe"]()
     assert "TEMPORARY COMPATIBILITY FALLBACK" in stream.getvalue()
+
+
+def test_a_failing_warning_stream_never_changes_the_program_result(tmp_path):
+    """A closed or broken stderr stream is ignored; the fallback still returns the entry value."""
+
+    class BrokenStream(io.StringIO):
+        """A stream whose writes fail the way a closed pipe does."""
+
+        def write(self, text):
+            """Fail every write."""
+            raise OSError("closed")
+
+    from genia.test_cli import make_test_env
+
+    entry, _ = make_test_env(stderr_stream=BrokenStream())
+    run_source("entry_marker = 41", entry)
+    module = load_program_module(tmp_path, entry, "probe() = entry_marker", "broken_stream_module")
+    assert module.exports["probe"]() == 41
+    assert entry.runtime_scope().fallback_events == {("broken_stream_module", "entry_marker")}

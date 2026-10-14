@@ -321,7 +321,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - list input returns a list of Outcome values in source order; output length equals input length
   - Flow input returns a lazy derived Flow of Outcome values; validation happens during consumption; single-use and finalization behavior follow existing Flow semantics
   - does not aggregate; aggregation remains the job of `collect_validated`
-  - `validate_each/3`, Sheet behavior, and validation DSL are not implemented in this phase
+  - `validate_each/3`, Sheet behavior, and validation DSL are not implemented
 - `collect_validated(results)` is an explicit terminal helper for Outcome-aware validated pipelines (**Experimental**):
   - accepts a list or Flow (Seq-compatible source)
   - every item must be an Outcome; non-Outcome items raise a runtime `TypeError`
@@ -600,7 +600,7 @@ A Sheet has:
 A Sheet is not:
 - a lazy or streaming value
 - a reactive or formula-driven spreadsheet
-- a Seq-compatible source in this phase
+- a Seq-compatible source
 - a replacement for Flow or lists
 
 **PYTHON REFERENCE HOST:**
@@ -614,8 +614,8 @@ Implemented as `GeniaSheet` — a frozen dataclass with tuple-backed column stor
 - `some(...)`, `none(...)`, and `err(...)` are stored as ordinary cell values; no automatic Outcome propagation across columns.
 - `derive` rejects an existing column name.
 - `where` predicates must return a boolean; non-boolean predicate results fail clearly.
-- Construction requires lists as column values; other Seq-compatible values are not accepted in this phase.
-- Sheets are not Seq-compatible sources in this phase.
+- Construction requires lists as column values; other Seq-compatible values are not accepted.
+- Sheets are not Seq-compatible sources.
 ## 3) Implemented syntax and expression forms
 <!-- anchor: state:syntax-forms -->
 
@@ -654,7 +654,7 @@ Implemented as `GeniaSheet` — a frozen dataclass with tuple-backed column stor
 
 Pipeline (Phase 2) evaluation model:
 
-- `|>` is a dedicated pipeline stage form in Core IR/runtime in this phase
+- `|>` is a dedicated pipeline stage form in Core IR/runtime
 - Core IR shape is explicit:
   - `x |> f |> g` lowers to one pipeline node with a source plus ordered stages
   - pipelines are not represented as nested call nodes
@@ -727,7 +727,7 @@ Pipeline (Phase 2) evaluation model:
   - blocks create lexical scopes
   - function parameters are ordinary assignable lexical bindings
   - closures capture lexical environments, so rebinding is visible across calls to the same closure
-  - assignment is limited to simple names in this phase
+  - assignment is limited to simple names
   - invalid targets such as `(a + b) = 3` raise `SyntaxError("Assignment target must be a simple name")`
   - module evaluation uses its own module environment, so module top-level assignment does not rebind names in the importing root environment
 - named function definitions may include an optional leading docstring string literal after `=`
@@ -751,7 +751,7 @@ Pipeline (Phase 2) evaluation model:
       )
       ```
   - for multi-clause named functions: zero docstrings = undocumented; one docstring total = valid; repeated identical docstrings = valid; conflicting docstrings raise a clear `TypeError`
-- prefix annotations now attach metadata to bindings in this phase
+- prefix annotations now attach metadata to bindings
   - supported built-in annotations are:
     - `@doc "text"` -> stores `{"doc": "text"}`
     - `@meta { ... }` -> merges map entries into binding metadata
@@ -846,7 +846,7 @@ Pipeline (Phase 2) evaluation model:
   - map literal -> runtime map with quoted keys and values
   - unary / binary / call forms -> tagged application pair chain `(app <operator> <arg1> ...)`
   - quoted identifier map keys become symbols; quoted string map keys stay strings
-- there is no quote sugar (`'x`) in this phase
+- there is no quote sugar (`'x`)
 - `quasiquote(expr)` is implemented as a special form
   - it constructs the same runtime data shapes as `quote(expr)`
   - `unquote(expr)` evaluates `expr` and inserts the result at the nearest active quasiquote depth
@@ -875,7 +875,7 @@ Pipeline (Phase 2) evaluation model:
   - `null?(x)` reports whether a value is the normalized empty-pair terminator (`none("nil")`, including legacy `nil`)
 - pair equality is structural
 - lists can be represented as pair chains ending in `nil`
-- ordinary list literals remain separate List values in this phase
+- ordinary list literals remain separate List values
 ## 4.3) Promises
 
 - Promise is a real runtime value family
@@ -1193,7 +1193,7 @@ Named reusable pattern semantics (Experimental):
 - only one nested pattern argument is supported; `Name()` and `Name(a, b)` are parse errors
 - named patterns are valid wherever ordinary patterns are valid (function case arms, list patterns, map patterns, tuple patterns)
 - named pattern declarations do not introduce a separate namespace; `Name` is bound in the normal lexical environment
-- recursive named patterns are not supported in this phase
+- recursive named patterns are not supported
 
 Template semantics (Experimental):
 
@@ -1357,7 +1357,7 @@ Case placement rules (enforced):
 Output sink semantics:
 
 - `write`, `writeln`, and `flush` are the canonical public sink helper names and carry Markdown docstrings for `help(...)`
-- the underlying sink behavior remains host-backed and unchanged in this phase
+- the underlying sink behavior remains host-backed and unchanged
 - `write(sink, value)` writes display-formatted output without a trailing newline and returns `value`
 - `writeln(sink, value)` writes display-formatted output with a trailing newline and returns `value`
 - `flush(sink)` flushes the sink and returns `none("nil")`
@@ -1385,7 +1385,7 @@ Output sink semantics:
     - `status` (integer)
     - `headers` (string-keyed map)
     - `body` (string, bytes, or `none`)
-  - invalid handler return values or response-shape errors produce a `500 internal server error` response in this phase
+  - invalid handler return values or response-shape errors produce a `500 internal server error` response
   - the ants browser viewer uses this same HTTP surface with static HTML/CSS/JS responses, JSON state snapshots, and POST endpoints for reset/step; it does not add WebSockets, SSE, or a richer server runtime
 ### Response header composition (**Partial**)
 
@@ -1703,8 +1703,8 @@ Implementation files:
   - `_ensure_seq_compatible` is available only to trusted prelude/runtime code; ordinary Genia user code cannot call it
   - it introduces no public Seq surface, no Core IR node, no new syntax, and no implicit list/Flow conversion
 - PYTHON REFERENCE HOST: adjacent Flow `map` / `filter` stages may be fused into one internal Flow wrapper before downstream consumption:
-  - fusion applies only to Flow inputs and only to adjacent `map` / `filter` stages in this phase
-  - list-side `map` / `filter` behavior remains eager and reusable, with no list fusion in this phase
+  - fusion applies only to Flow inputs and only to adjacent `map` / `filter` stages
+  - list-side `map` / `filter` behavior remains eager and reusable, with no list fusion
   - non-fusable Flow stages and consumers (`take`, `drop`, `scan`, `each`, `collect`, `run`, rules/refine helpers, and option-routing helpers) continue to consume a normal Flow-compatible value
   - the fused wrapper is internal Python host machinery, not a public runtime value or portable Core IR contract
   - observable behavior must remain unchanged: item order, callback order, side-effect order, laziness, bounded pulling, upstream close behavior, single-use enforcement, errors, stdout/stderr/exit code, and Flow display labels
@@ -1797,7 +1797,7 @@ Flow semantics:
   - `halt: true` stops later rules for the current input item only
   - `rules()` is the identity stage
   - contract violations raise `RuntimeError` messages prefixed with `invalid-rules-result:`
-  - rule orchestration, defaulting of omitted fields, and most contract checking are implemented in `src/genia/std/prelude/flow.genia` in this phase
+  - rule orchestration, defaulting of omitted fields, and most contract checking are implemented in `src/genia/std/prelude/flow.genia`
   - the host rules kernel expects the prelude layer to pass normalized rule output with `emit` and `ctx` fields already present
 - `keep_some_else` semantics:
   - it is an explicit Flow-stage helper for Option-returning per-item stages
@@ -1815,7 +1815,7 @@ Flow semantics:
 - explicit CLI pipe mode is implemented:
   - `genia -p "<stage_expr>"` / `genia --pipe "<stage_expr>"`
   - runs `<stage_expr>` over `stdin |> lines`, then consumes the final Flow automatically
-  - no `pipe(...)` helper function exists in this phase
+  - no `pipe(...)` helper function exists
   - pipe mode expects one stage expression, not a full program
   - explicit `stdin` is rejected because pipe mode provides it automatically
   - explicit `run` is rejected because pipe mode runs the final flow automatically
@@ -2920,10 +2920,15 @@ Core IR shape currently includes:
 
 **PYTHON REFERENCE HOST (internal scope access):** `make_program_env` paths
 register entry scope E (child of R); caller roots register none. Runtime-owned
-names bind in R, others in E, hidden from prelude and modules (module reads raise
-NameError pending the fallback). `doc`/`meta`/`help` resolve in the evaluating
-scope; `empty_env()` is R-based; `:env`, debugger globals, native discovery
-use entry/unit scopes.
+names bind in R, others in E, hidden from prelude and modules. `doc`/`meta`/`help`
+resolve in the evaluating scope; `empty_env()` is R-based; `:env`, debugger
+globals, native discovery use entry/unit scopes.
+TEMPORARY COMPATIBILITY FALLBACK (Python host only; removal tracked in #1230): a
+module identifier read missing normal lookup returns the entry scope's own
+binding, with one value-free stderr warning per distinct (module, name); never
+for writes, reflection, exports, prelude, `eval` or host lookup.
+`GENIA_STRICT_MODULE_SCOPE=1`, read once at runtime construction, makes it the
+ordinary `NameError`.
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
