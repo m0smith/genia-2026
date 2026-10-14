@@ -86,6 +86,12 @@ the issue comments above.
 Both follow from the same structure: the runtime and the entry program share
 one scope.
 
+Status note (P2 reconciliation): the specific prelude local-assignment instances
+of item 2 were repaired independently by #1205/#1206 and are no longer
+reproducible on `main`; item 2 is retained as the historical record of why the
+structural write-isolation guarantee of §4.4 is still owed by P2. Item 1 is
+unchanged.
+
 ## 3. Evidence and its limits
 
 Facts from the F2 survey, recorded as input and not as obligations:
@@ -990,3 +996,66 @@ catalogue-only tools (`gen_function_docs.py`, `lint_doc.py`), which stay on
   documentation, semantic facts and audit. Each documentation slice updates
   STATE, RULES, the REPL README, host-interop and the book/cheatsheets with
   their sidecar tests in the same change as the behavior.
+
+### 16.8 P2 reconciliation with P2-A evidence and pending amendments (PROPOSED)
+
+Status: **PROPOSED, not approved.** §16.1–§16.7 above are unchanged. This
+subsection records how the P2-A characterization
+(`.genia/process/issue-1067-f2-p2-a-characterization.md`, PR #1228) relates to
+§16 and the amendments the maintainer is asked to approve together with the six
+rulings. The approval record is
+`.genia/process/issue-1067-f2-p2-approval-gate.md`. An amendment takes effect
+only when approved on #1067; until then §16.1–§16.7 stand as written.
+
+**Reconciliation result.** No P2-A observation contradicts a P2R ruling. The
+observations that the rulings rest on were reproduced against real
+environments: `map_acc` is unregistered and installed into R by the list-file
+load (P2R-1 manifest need); a child scope shadows or hides runtime groups
+instead of writing through (P2R-1 premise); string `doc`/`meta`/`help` capture R
+even in a module (P2R-2 observable change 1); `empty_env()` is a non-rebinding
+child of R that reads live entry names (P2R-4 observable change); error and
+test sinks ignore a sink bound on an inherited scope (P2R-6); plain-child `main`
+is ignored by the entry accessor (P2R-6). Three items are P2-A *limits*, not
+conflicts: root and runtime accessors coincide, so #1220 cannot be proven by
+accessor spelling alone (P2R-5); manifest counts (about 320 / 217 / 103) were
+not independently re-derived in P2-A and are re-derived by the P2-B drift test;
+MCP pruning was characterized on a root and a plain child, not on a worker E.
+
+**A1 (modifies §16.7, P2→P3 gate): measurable retirement gate for the
+entry-to-prelude interference.** The residual risk of §16.1.7 (an entry
+declaration of a runtime-owned name stays visible to modules and the prelude,
+including hijack of an unregistered helper such as `map_acc`, and
+`internal_values` shadowing) is a **P3 obligation**. P3 may not remove
+write-through or introduce shadowing until all hold: (a) the entry-declared
+runtime-owned name list of §16.1.4 is measured per run, by class (public
+registered, unregistered helper, builtin), for CI and the repository-owned
+programs, and its non-empty members each have a recorded disposition;
+(b) module and prelude reads of entry-written R bindings are counted (§16.7
+first bullet) with the counts recorded in the fallback removal issue;
+(c) the currently characterized hijack behaviors (entry `first/1`, `map_acc/3`
+breaking the prelude `map`) are pinned by a test so P3 changes them
+deliberately; (d) D2/D2b are ruled. No per-arity shadowing is introduced in P2.
+
+**A2 (modifies §16.3.5 and the final paragraph of §11.4): fallback deadline.**
+Replace "the earlier of (a) 60 calendar days … and (b) the start of R29
+implementation" with an evidence-gated policy: the removal criteria of §11.4
+are the only removal condition; the start of R29 implementation is a hard gate
+(R29 intake references the removal issue as a blocker and may not start with
+the fallback present unless a recorded revised decision names owner, reason,
+remaining evidence and a new absolute date); 60 calendar days after the UTC
+date warning-enabled P2 is first on `main` is a **review checkpoint**, not a
+removal trigger — at the checkpoint the removal issue must show either readiness
+or a visible blocker / recorded revised decision. Sixty days is not claimed to
+guarantee a sufficient exposure window. No silent extension, no automatic
+removal, no date-expiry runtime check, no permanent switch. The removal PR
+records the exposure window that actually occurred.
+
+**A3 (clarifies §16.6.4): inventory scope.** The 13 program-construction sites
+are migrated to the construction helper. The broader P2-A inventory (13 program
++ 3 tooling + 15 direct `Env` allocations = 31) is classified as: 13 program
+sites migrate; 3 tooling calls stay on `runtime_scope()`; of the 15 direct
+allocations, 1 is R creation, 1 is the module Env, 1 is the metacircular base
+(P2R-4), 1 is a metacircular pattern child, and 11 are evaluator/callable
+frames that inherit their parent's scope and are not construction sites.
+Legacy single-root harnesses (caller-created roots where entry is root) remain
+intentional and are not counted as separation evidence (§16.6.5).
