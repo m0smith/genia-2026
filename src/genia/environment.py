@@ -88,6 +88,9 @@ class Env:
     _is_entry: bool = False
     entry_declared_runtime_owned: "set[str] | None" = None
     prelude_paths: frozenset[str] = frozenset()
+    # F2/P2-D: evaluation-bound reflective callables created for this lexical scope,
+    # keyed by the original runtime target. Created lazily so ordinary frames pay nothing.
+    _scope_bound: "dict[Any, Any] | None" = None
 
     def __init__(
         self,
@@ -135,6 +138,21 @@ class Env:
         # interface key. A table, not bindings, so units are never exports.
         self.open_contributions: dict[tuple[str, str], Any] = {}
 
+    def scope_bound(self, target: Any, build: Any) -> Any:
+        """Return the callable `build(self)` bound to this scope, cached per `target`.
+
+        Repeated reads of the same reflective target in the same lexical scope
+        return the identical object (stable callable identity); a different scope
+        gets a different object. The cache lives on this scope, not on the runtime.
+        """
+        cache = self._scope_bound
+        if cache is None:
+            cache = self._scope_bound = {}
+        bound = cache.get(target)
+        if bound is None:
+            bound = cache[target] = build(self)
+        return bound
+
     def module_identity(self) -> str:
         """The deterministic, portable module/source-unit identity for this
         environment (R20 contract §2.1): the canonical cached module name,
@@ -179,6 +197,49 @@ class Env:
         """
         runtime = self.runtime_scope()
         return self.unit_scope() if runtime._entry is not None else runtime
+
+    def entry_binding_owner(self, name: str) -> "Env | None":
+        """Return the scope holding the entry unit's own binding of `name`, else None.
+
+        On a registered entry this is E, or R for a runtime-owned name the entry
+        declared (contract 16.1.4: write-through names stay observable to entry
+        consumers). On a caller-created root it is the root. Never exposes
+        another runtime binding, an imported module's name, or an unrelated R name.
+        """
+        entry = self.entry_scope()
+        if name in entry.values:
+            return entry
+        if entry._is_entry and name in entry.entry_declared_runtime_owned:
+            runtime = entry.runtime_scope()
+            if name in runtime.values:
+                return runtime
+        return None
+
+    def inspection_bindings(self) -> dict[str, Any]:
+        """Return this scope's bindings as an inspection consumer sees them.
+
+        A registered entry scope shows its own bindings plus the runtime-owned
+        names it declared (deterministic order: own bindings, then declared names
+        sorted); any other scope shows its own bindings. Values are returned, not
+        copied deeply; the dict is a fresh snapshot.
+        """
+        view = dict(self.values)
+        if self._is_entry:
+            runtime = self.runtime_scope()
+            for name in sorted(self.entry_declared_runtime_owned):
+                if name not in view and name in runtime.values:
+                    view[name] = runtime.values[name]
+        return view
+
+    def debug_state_scope(self) -> "Env":
+        """Return the scope owning debug hooks and mode for this execution.
+
+        The runtime scope once an entry is registered, so stepping reaches module,
+        prelude and higher-order frames; otherwise this Env (caller-created roots
+        and children keep the P1 behavior).
+        """
+        runtime = self.runtime_scope()
+        return runtime if runtime._entry is not None else self
 
     def create_entry_scope(self) -> "Env":
         """Allocate and register the execution's entry scope E as a child of this runtime.

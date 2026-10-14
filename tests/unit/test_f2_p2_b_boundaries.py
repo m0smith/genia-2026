@@ -210,7 +210,11 @@ def test_B12_A_real_consumers_discriminate_wrong_accessors(tmp_path, monkeypatch
                 return replacement if frame.parent is owner else original(frame)
 
             negative.setattr(Env, "inspection_globals_scope", wrong_frame_scope)
-        with pytest.raises(AssertionError):
+        # P2-D test repair (reviewed): serve discovery documents that lookup failures
+        # propagate, so a wrong owner that cannot see the entry declaration fails the
+        # observation with NameError; every other boundary fails by assertion.
+        failure = (AssertionError, NameError) if boundary == "serve" else AssertionError
+        with pytest.raises(failure):
             observe_boundary(boundary, s, negative)
 
 
@@ -233,6 +237,10 @@ def test_B12_A_actual_repl_discriminates_wrong_inspection_owner(tmp_path, monkey
             def observe(source, e, **kwargs):
                 """Execute unchanged source, then instrument the real session owner."""
                 result = original(source, e, **kwargs)
+                if not e._is_entry:
+                    # P2-D test repair (reviewed): module loading also reaches the patched
+                    # run_source; only the REPL's own entry evaluations are instrumented.
+                    return result
                 r = e.runtime_scope()
                 seen.append(e)
                 module = s_module(e)

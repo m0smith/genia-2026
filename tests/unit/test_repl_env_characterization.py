@@ -1,7 +1,8 @@
-"""Pin Python's host-local :env view before F2 splits entry/runtime scopes.
+"""Pin Python's host-local :env view (not the portable R26 REPL contract).
 
-These colon-command observations are not the portable R26 REPL contract.
-Runtime bindings intentionally remain listed during behavior-preserving P1.
+F2/P2-D: the REPL evaluates in the registered entry scope and `:env` lists that scope's
+bindings (plus runtime-owned names the entry declared), never runtime bindings. Before
+P2-D the shared root made every runtime binding appear in the listing.
 """
 
 import io
@@ -12,7 +13,7 @@ from genia.interpreter import repl
 
 
 @pytest.mark.parametrize("ending", [":quit", None], ids=["quit", "eof"])
-def test_env_lists_sorted_runtime_and_persistent_user_bindings_after_autoload(monkeypatch, ending):
+def test_env_lists_sorted_persistent_entry_bindings_without_runtime_bindings(monkeypatch, ending):
     stdout = io.StringIO()
     stderr = io.StringIO()
     commands = iter([
@@ -63,7 +64,7 @@ def test_env_lists_sorted_runtime_and_persistent_user_bindings_after_autoload(mo
 
     baseline, user, autoloaded = bindings
     for snapshot in bindings:
-        assert {"stdout", "stderr", "argv", "doc", "meta", "help", "_write"} <= snapshot.keys()
+        assert {"stdout", "stderr", "argv", "doc", "meta", "help", "_write"}.isdisjoint(snapshot.keys())
         assert "parameter" not in snapshot
     assert "entry_marker" not in baseline
     assert "entry_probe" not in baseline
@@ -76,5 +77,5 @@ def test_env_lists_sorted_runtime_and_persistent_user_bindings_after_autoload(mo
     )
     assert autoloaded["entry_marker"] == "19"
     assert autoloaded["entry_probe"] == user["entry_probe"]
-    assert "<function length/1>" in autoloaded["length"]
+    assert "length" not in autoloaded  # The autoloaded runtime binding is not an entry binding.
     assert baseline.keys() <= user.keys() <= autoloaded.keys()

@@ -172,7 +172,10 @@ def test_B6_A_explicit_define_and_runtime_names_keep_working(tmp_path):
     s = separated_scopes(tmp_path)
     run_source("entry_f(x) = x + 1", s.entry)
     assert run_source("eval(quote(entry_f(41)), define(empty_env(), quote(entry_f), entry_f))", s.entry) == 42
-    assert run_source("eval(quote(map((x) -> x + 1, [41])), empty_env())", s.entry) == [42]
+    # P2-D test repair (reviewed): the metacircular evaluator supports neither lambda nor
+    # list syntax, so P1 failed this line for a reason unrelated to scope. A runtime-owned
+    # prelude function with a simple argument keeps the "runtime names remain available" intent.
+    assert run_source("eval(quote(inc(41)), empty_env())", s.entry) == 42
     run_source("log = 5", s.entry)
     assert run_source("eval(quote(log), empty_env())", s.entry) == 5
     base = run_source("empty_env()", s.entry).env

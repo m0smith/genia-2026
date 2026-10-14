@@ -3335,9 +3335,10 @@ def make_global_env(
         return "\n".join(lines)
 
     def _public_autoload_paths() -> list[str]:
+        """Return the distinct prelude files in the runtime catalogue, in registration order."""
         paths: list[str] = []
         seen: set[str] = set()
-        for _, path in env.root().autoloads.items():
+        for _, path in env.runtime_scope().autoloads.items():
             if not path.startswith("std/prelude/") or path in seen:
                 continue
             seen.add(path)
@@ -3373,9 +3374,10 @@ def make_global_env(
         return labels.get(basename, basename)
 
     def _discover_public_family_names(path: str) -> list[str]:
+        """Return the distinct registered names the runtime catalogue maps to prelude file `path`."""
         names: list[str] = []
         seen: set[str] = set()
-        for (name, _), candidate_path in env.root().autoloads.items():
+        for (name, _), candidate_path in env.runtime_scope().autoloads.items():
             if candidate_path != path or name in seen:
                 continue
             seen.add(name)
@@ -3571,6 +3573,33 @@ def make_global_env(
         non-string name. Autoloads a prelude name once.
         """
         return _meta_in_scope(env, *args)
+
+    def _scope_binder(target: Callable[..., Any], in_scope: Callable[..., Any]) -> Callable[[Env], Callable[..., Any]]:
+        """Return the builder of `target` bound to a lexical scope (F2/P2-D, contract 16.2).
+
+        The bound callable resolves names through `in_scope(lookup_env, ...)` where
+        `lookup_env` is the scope in which the reflective identifier was evaluated.
+        It is not itself bindable, so aliases, parameters and higher-order passing
+        keep the scope of the original evaluation (an explicit grant).
+        """
+
+        def bind(lookup_env: Env) -> Callable[..., Any]:
+            """Build the callable of `target` that resolves names in `lookup_env`."""
+
+            def bound(*args: Any) -> Any:
+                """Run the reflective operation with this callable's captured lookup scope."""
+                return in_scope(lookup_env, *args)
+
+            bound.__name__ = target.__name__
+            bound.__doc__ = target.__doc__
+            return bound
+
+        return bind
+
+    for _reflective, _in_scope in ((help_fn, _help_in_scope), (doc_fn, _doc_in_scope), (meta_fn, _meta_in_scope)):
+        # Value-based marking: only these original runtime targets are bindable; a
+        # user rebinding the same names keeps an ordinary, unmarked value.
+        _reflective.__genia_scope_binder__ = _scope_binder(_reflective, _in_scope)  # type: ignore[attr-defined]
 
     def ref_fn(*args: Any) -> GeniaRef:
         if len(args) == 0:

@@ -199,16 +199,24 @@ def run_source(
     debug_mode: bool = False,
     internal_access: bool = False,
 ) -> Any:
-    effective_hooks = debug_hooks or env.debug_hooks or NOOP_DEBUG_HOOKS
-    effective_debug_mode = debug_mode or env.debug_mode
+    """Parse, lower and evaluate `source` in `env`, returning its normalized result.
+
+    Debug hooks and mode default from the execution's debug-state scope (the runtime
+    once an entry is registered, else `env`) and are stored back there, so stepping
+    reaches module, prelude and higher-order frames. `internal_access` grants trusted
+    prelude access for this run only. Raises the parse, lowering or evaluation error.
+    """
+    state = env.debug_state_scope()
+    effective_hooks = debug_hooks or state.debug_hooks or NOOP_DEBUG_HOOKS
+    effective_debug_mode = debug_mode or state.debug_mode
     tokens = lex(source)
     parser = Parser(tokens, source=source, filename=filename)
     ast_nodes = parser.parse_program()
     ir_nodes = lower_program(ast_nodes)
     assert_portable_core_ir(ir_nodes)
     ir_nodes = optimize_program(ir_nodes, debug=os.getenv("GENIA_DEBUG_OPT", "") == "1")
-    env.debug_hooks = effective_hooks
-    env.debug_mode = effective_debug_mode
+    state.debug_hooks = effective_hooks
+    state.debug_mode = effective_debug_mode
     previous_internal_access = env.internal_access
     env.internal_access = previous_internal_access or internal_access
     try:
@@ -381,9 +389,9 @@ def repl() -> None:
             env.get("help")()
             continue
         if not buf and line.strip() == ":env":
-            inspection = env.inspection_globals_scope()
-            for k in sorted(inspection.values):
-                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(inspection.values[k])}")
+            inspection = env.inspection_globals_scope().inspection_bindings()
+            for k in sorted(inspection):
+                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(inspection[k])}")
             continue
         buf += line + "\n"
         if not is_complete(buf):
@@ -504,7 +512,8 @@ def _select_execution_mode(
 def _resolve_program_result(run_result: Any, env: Env) -> Any:
     """Dispatch entry main/1 before main/0, preserving the source result if absent."""
     env = env.entry_scope()
-    main_group = env.values.get("main")
+    owner = env.entry_binding_owner("main")
+    main_group = owner.values.get("main") if owner is not None else None
     if not isinstance(main_group, GeniaFunctionGroup):
         return run_result
     main_with_args = main_group.get(1)

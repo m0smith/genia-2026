@@ -173,14 +173,18 @@ def _has_discovery_error(test_unit: TestUnit) -> bool:
 
 
 def discover_annotated_test_units(env: Any) -> list[TestUnit]:
-    """Read entry-local annotation metadata in binding order, recording misuse.
+    """Read entry annotation metadata in binding order, recording misuse.
 
-    Imported module annotations are not entry tests; no bodies execute here.
+    Covers the entry scope's own bindings and the runtime-owned names the entry
+    declared (contract 16.1.4). `env` must already be the entry scope (the caller
+    resolves it once, so a wrong accessor is not silently corrected here). Imported
+    module annotations are not entry tests; no bodies execute here.
     """
-    env = env.entry_scope()
     test_units: list[TestUnit] = []
-    for name, value in env.values.items():
-        metadata = env.binding_metadata.get(name)
+    runtime = env.runtime_scope()
+    for name, value in env.inspection_bindings().items():
+        # A runtime-owned name the entry declared lives in R; its metadata does too.
+        metadata = (env if name in env.values else runtime).binding_metadata.get(name)
         if not _is_test_metadata(metadata):
             continue
         if not isinstance(value, GeniaFunctionGroup):
