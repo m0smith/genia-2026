@@ -47,7 +47,7 @@ sources, not a security boundary or proof about third-party host integrations.
 R10 protected-carrier, sink and explicit-authority behavior is unchanged.
 Classifying an authority or credential does not reveal it or mint authority.
 
-## F2/P2-C placement (Python reference host)
+## F2/P2-C/D placement and consumers (Python reference host)
 
 `make_program_env(...)` builds R, runs optional `prepare(runtime)` host work (for
 example MCP pruning) while R has no entry, then registers E with
@@ -59,6 +59,18 @@ example MCP pruning) while R has no entry, then registers E with
 Runtime-owned names (bound or internal runtime names, registered autoloads, every
 top-level declaration of an autoload-target prelude file, snapshotted before
 pruning) written by the entry unit bind in R; a pruned name is rejected instead
-of recreated. Evaluation-bound reflection, the `empty_env()` base, consumer
-migration and the module compatibility fallback are separately gated (P2-D/P2-E)
-and are not delivered by this placement.
+of recreated. The entry scope records the runtime-owned names it declared.
+
+**P2-D consumers.** The evaluator resolves identifiers through one helper; a
+runtime `doc`/`meta`/`help` (marked by `Env.SCOPE_BINDER_ATTR`, value-based, never by
+name) is returned bound to the evaluating Env and cached per Env, so lookup starts at
+the evaluating frame and module code cannot name E bindings; the help catalogue and
+output sink stay runtime-owned (`runtime_scope()`), and host `Env.get` still returns
+the raw root-bound callable. `empty_env()` is based on R, so E bindings are not
+implicitly visible to `eval` (supply them with `define`). REPL `:env`, debugger
+globals (`inspection_globals_scope()`), CLI `main` dispatch and native-test
+discovery read the entry scope plus its declared runtime-owned names via
+`Env.inspection_bindings()`/`Env.binding_owner()`; debug hooks and mode live on R once
+E is registered (`Env.debug_state_scope()`); error and test-report sinks read R.
+The module compatibility fallback and strict switch (P2-E) are not delivered:
+modules reading entry globals raise `NameError`.

@@ -576,7 +576,7 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
   - maps are callable as lookup values
   - strings are callable as map projectors
 - Flow, stdout/stderr, MetaEnv, Ref, and Process handles are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
-- lexical assignment currently does not protect builtin/root names from rebinding inside the same root environment; that is real current behavior.
+- lexical assignment does not protect builtin/root names from rebinding inside the same root environment.
 - The current model is implemented and tested as one integrated design in this phase:
   - Core IR carries explicit pipeline and Option nodes
   - pipeline evaluation owns automatic Option propagation
@@ -2919,9 +2919,11 @@ Core IR shape currently includes:
 ## 9) Debug/runtime tooling
 
 **PYTHON REFERENCE HOST (internal scope access):** `make_program_env` paths
-register entry scope E (child of R); caller roots register none. Runtime-owned names bind in R, others in E, hidden from
-prelude and modules (module reads raise NameError). Not yet delivered: scope-bound
-reflection (`doc` of entry names fails), `empty_env()` change, consumers, fallback.
+register entry scope E (child of R); caller roots register none. Runtime-owned
+names bind in R, others in E, hidden from prelude and modules (module reads raise
+NameError pending the fallback). `doc`/`meta`/`help` resolve in the evaluating
+scope; `empty_env()` is R-based; `:env`, debugger globals, native discovery
+use entry/unit scopes.
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
