@@ -17,6 +17,12 @@ from genia.values import GeniaOptionNone
 from hosts.python import mcp_worker
 from tests.unit.f2_p2_support import ROOT, load_program_module
 
+@pytest.fixture(autouse=True)
+def default_fallback_mode(monkeypatch):
+    """Tests here exercise the default (non-strict) mode unless a case runs a strict subprocess itself."""
+    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
+
+
 MODULE = "lib.genia"
 LIBRARY = '@doc "library docs"\nown(x) = x\nread_entry() = shared_name\nreflect_entry() = doc("entry_fn")\nreflect_own() = doc("own")\nrun_eval() = eval(quote(shared_name), empty_env())\n'
 ENTRY = 'import lib\n@doc "entry docs"\nentry_fn(x) = x\nshared_name = "from-entry"\nmain(args) = [lib.read_entry(), lib.reflect_entry(), lib.reflect_own()]\n'
