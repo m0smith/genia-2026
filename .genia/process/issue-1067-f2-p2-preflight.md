@@ -8,6 +8,8 @@ Tracking: [#1067](https://github.com/m0smith/genia-2026/issues/1067), carry-forw
 obligations [#1220](https://github.com/m0smith/genia-2026/issues/1220) and
 [#1221](https://github.com/m0smith/genia-2026/issues/1221).
 
+P2-0 rulings (proposed): `.genia/process/issue-1067-f2-p2-0-decisions.md`.
+
 **Verdict: CONDITIONAL GO** — for the contract-clarification slice (P2-0) and the
 characterization slice (P2-A) only. **NO-GO** for any slice that moves bindings
 or allocates a distinct entry scope until the P2-0 rulings in §J exist.
