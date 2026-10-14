@@ -305,3 +305,7 @@ The policy covers both repositories, including applications and substantial inte
 bindings. New or changed required bindings must be documented in the same change;
 legacy baseline entries are temporary debt and cannot be added or refreshed to
 hide new gaps. Review accuracy and usefulness as well as checker presence.
+
+## Code Maintainability Review Gate
+
+For implementation changes following the full lifecycle, run the explicit **Code Quality & Human-Maintainability Review** after implementation and before documentation sync. Follow [`docs/process/code-maintainability-review.md`](../process/code-maintainability-review.md) and `docs/process/run-change.md`; inspect actual changed code, record findings with locations and an explicit verdict, and re-review blocking fixes. **FAIL** blocks progression; tracked non-blocking findings may proceed. This review does not replace tests, portability evidence, documentation updates, or the final skeptical audit. Tool-specific prompts must retain this phase rather than collapsing it into implementation or audit.
