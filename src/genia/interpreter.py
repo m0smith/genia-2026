@@ -512,7 +512,7 @@ def _select_execution_mode(
 def _resolve_program_result(run_result: Any, env: Env) -> Any:
     """Dispatch entry main/1 before main/0, preserving the source result if absent."""
     env = env.entry_scope()
-    owner = env.entry_binding_owner("main")
+    owner = env.binding_owner("main")
     main_group = owner.values.get("main") if owner is not None else None
     if not isinstance(main_group, GeniaFunctionGroup):
         return run_result

@@ -214,8 +214,10 @@ def test_B12_A_real_consumers_discriminate_wrong_accessors(tmp_path, monkeypatch
         # propagate, so a wrong owner that cannot see the entry declaration fails the
         # observation with NameError; every other boundary fails by assertion.
         failure = (AssertionError, NameError) if boundary == "serve" else AssertionError
-        with pytest.raises(failure):
+        with pytest.raises(failure) as raised:
             observe_boundary(boundary, s, negative)
+        if isinstance(raised.value, NameError):
+            assert "Undefined name" in str(raised.value)  # Only the documented lookup failure.
 
 
 @pytest.mark.parametrize("wrong_owner", ["runtime", "entry", "module"])

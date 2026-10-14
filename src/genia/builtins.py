@@ -3599,7 +3599,7 @@ def make_global_env(
     for _reflective, _in_scope in ((help_fn, _help_in_scope), (doc_fn, _doc_in_scope), (meta_fn, _meta_in_scope)):
         # Value-based marking: only these original runtime targets are bindable; a
         # user rebinding the same names keeps an ordinary, unmarked value.
-        _reflective.__genia_scope_binder__ = _scope_binder(_reflective, _in_scope)  # type: ignore[attr-defined]
+        setattr(_reflective, Env.SCOPE_BINDER_ATTR, _scope_binder(_reflective, _in_scope))
 
     def ref_fn(*args: Any) -> GeniaRef:
         if len(args) == 0:

@@ -91,6 +91,9 @@ class Env:
     # F2/P2-D: evaluation-bound reflective callables created for this lexical scope,
     # keyed by the original runtime target. Created lazily so ordinary frames pay nothing.
     _scope_bound: "dict[Any, Any] | None" = None
+    # Name of the function attribute marking a runtime reflective builtin as bindable
+    # to the scope where its identifier is evaluated (set by builtins, read by the evaluator).
+    SCOPE_BINDER_ATTR = "__genia_scope_binder__"
 
     def __init__(
         self,
@@ -146,6 +149,8 @@ class Env:
         gets a different object. The cache lives on this scope, not on the runtime.
         """
         cache = self._scope_bound
+        # The bound callable captures this Env, so Env, cache and closure form a
+        # reference cycle collected by the cycle GC, not by reference counting.
         if cache is None:
             cache = self._scope_bound = {}
         bound = cache.get(target)
@@ -198,19 +203,20 @@ class Env:
         runtime = self.runtime_scope()
         return self.unit_scope() if runtime._entry is not None else runtime
 
-    def entry_binding_owner(self, name: str) -> "Env | None":
-        """Return the scope holding the entry unit's own binding of `name`, else None.
+    def binding_owner(self, name: str) -> "Env | None":
+        """Return the scope holding this scope's own top-level binding of `name`, else None.
 
-        On a registered entry this is E, or R for a runtime-owned name the entry
-        declared (contract 16.1.4: write-through names stay observable to entry
-        consumers). On a caller-created root it is the root. Never exposes
-        another runtime binding, an imported module's name, or an unrelated R name.
+        `self` is treated as the unit and is never re-resolved, so a caller that
+        resolved the entry scope once keeps that choice. For a registered entry
+        this is E, or R for a runtime-owned name the entry declared (contract
+        16.1.4: write-through names stay observable to entry consumers); for any
+        other scope it is the scope itself. Never exposes another runtime
+        binding, an imported module's name, or an unrelated R name.
         """
-        entry = self.entry_scope()
-        if name in entry.values:
-            return entry
-        if entry._is_entry and name in entry.entry_declared_runtime_owned:
-            runtime = entry.runtime_scope()
+        if name in self.values:
+            return self
+        if self._is_entry and name in self.entry_declared_runtime_owned:
+            runtime = self.runtime_scope()
             if name in runtime.values:
                 return runtime
         return None

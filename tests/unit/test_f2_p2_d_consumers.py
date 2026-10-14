@@ -82,8 +82,8 @@ def test_entry_inspection_bindings_list_entry_and_declared_runtime_owned_names_o
     run_source("zzz = 1\nlog = 5\nmap_acc(f, xs, acc) = acc", entry)
     view = entry.inspection_bindings()
     assert list(view)[:1] == ["zzz"] and set(view) == {"zzz", "log", "map_acc"}
-    assert entry.entry_binding_owner("log") is entry.runtime_scope()
-    assert entry.entry_binding_owner("print") is None and entry.entry_binding_owner("zzz") is entry
+    assert entry.binding_owner("log") is entry.runtime_scope()
+    assert entry.binding_owner("print") is None and entry.binding_owner("zzz") is entry
     assert "stdout" in entry.runtime_scope().inspection_bindings()
 
 

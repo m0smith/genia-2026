@@ -1212,7 +1212,7 @@ class Evaluator:
             else:
                 raise
         if type(value) is FunctionType:
-            binder = getattr(value, "__genia_scope_binder__", None)
+            binder = getattr(value, Env.SCOPE_BINDER_ATTR, None)
             if binder is not None:
                 return self.env.scope_bound(value, binder)
         return value

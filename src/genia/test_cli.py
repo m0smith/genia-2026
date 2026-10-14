@@ -181,10 +181,9 @@ def discover_annotated_test_units(env: Any) -> list[TestUnit]:
     module annotations are not entry tests; no bodies execute here.
     """
     test_units: list[TestUnit] = []
-    runtime = env.runtime_scope()
     for name, value in env.inspection_bindings().items():
         # A runtime-owned name the entry declared lives in R; its metadata does too.
-        metadata = (env if name in env.values else runtime).binding_metadata.get(name)
+        metadata = env.binding_owner(name).binding_metadata.get(name)
         if not _is_test_metadata(metadata):
             continue
         if not isinstance(value, GeniaFunctionGroup):
