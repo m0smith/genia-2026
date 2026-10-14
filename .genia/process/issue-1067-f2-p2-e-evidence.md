@@ -49,7 +49,7 @@ undefined to modules (`test_fallback_never_reaches_denied_capabilities_after_pru
 and neither the event set nor the warning contains the payload; the ten protected-value conformance cases and compat/lifecycle suites pass in both modes.
 
 ## Reviews
-- Maintainability (`.genia/process/tmp/handoffs/f2-p2-e/maintainability-review.md`): **PASS WITH NON-BLOCKING FINDINGS**; stream-failure guard, docstring limits (sink, unlocked set, hand-made R) addressed.
+- Maintainability (`.genia/process/issue-1067-f2-p2-e-maintainability-review.md`): **PASS WITH NON-BLOCKING FINDINGS**; stream-failure guard, docstring limits (sink, unlocked set, hand-made R) addressed.
 - Independent truth audit (read-only): **PASS WITH FINDINGS**, no blocking. Its two unverified items (suite-wide strict failures; default-mode stderr assertions) are closed by the full runs above;
   the entry-declared `stderr` redirect and the unlocked set are documented in the code and noted here; STATE margin is 2 words (`tests/doc/test_state_distillation_gates.py`).
 

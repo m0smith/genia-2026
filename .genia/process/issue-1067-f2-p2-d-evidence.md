@@ -59,7 +59,7 @@ conformance cases and the compat/lifecycle suites pass in the final run.
 
 ## Reviews
 
-- Maintainability: **PASS WITH NON-BLOCKING FINDINGS** (`.genia/process/tmp/handoffs/f2-p2-d/maintainability-review.md`); fixes 1, 3, 4, t1 applied.
+- Maintainability: **PASS WITH NON-BLOCKING FINDINGS** (`.genia/process/issue-1067-f2-p2-d-maintainability-review.md`); fixes 1, 3, 4, t1 applied.
 - Independent truth audit (read-only): **PASS WITH FINDINGS**, no blocking. Findings: reflective call inside metacircular `eval` resolves through `GeniaMetaEnv.lookup` to the raw R-bound
   callable (conservative, cannot leak E; tracked in #1238); debugger redaction rests on `repr` of protected values (covered by `test_B10_A_protected_entry_values_are_redacted_in_globals_and_diagnostics`).
 

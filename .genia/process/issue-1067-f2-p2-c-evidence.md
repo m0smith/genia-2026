@@ -77,7 +77,7 @@ globals raise `NameError` without the warning fallback. STATE §9 states this; d
 
 ## Reviews
 
-- Maintainability: **PASS WITH NON-BLOCKING FINDINGS** (`.genia/process/tmp/handoffs/f2-p2-c/maintainability-review.md`); N1–N3 tracked in #1238.
+- Maintainability: **PASS WITH NON-BLOCKING FINDINGS** (`.genia/process/issue-1067-f2-p2-c-maintainability-review.md`); N1–N3 tracked in #1238.
 - Independent truth audit (read-only): **PASS WITH FINDINGS**, no blocking defect. F-1 settled by STATE wording and this section; F-2 by the #1238 link; F-3 recorded;
   F-4 confirmed here (the spec runner and final run show the 3 R20 specs and the parity case failing, all reflection).
 
