@@ -221,19 +221,23 @@ SENTINEL = "SENTINEL-ZQ9-7731-PROTECTED"
 # native server, supervisor, policy, and renderer over a value the contract says must never
 # cross (contract 6). Nothing in the production worker is weakened or edited.
 PROTECTED_WORKER = f"""
+import genia
 import hosts.python.mcp_worker as worker
 from genia.values import GeniaConfigProvider, GeniaSymbol
 
 provider = GeniaConfigProvider(({{"K": "{SENTINEL}"}},))
-original = worker.prune_environment
+original = genia.make_program_env
 
 
-def inject(env):
-    original(env)
+def inject(*args, **kwargs):
+    # F2/P2: entry-only bindings belong to the registered entry scope, so the
+    # carrier is installed on the returned E, after pruning and registration.
+    env = original(*args, **kwargs)
     env.set_host("CARRIER", provider.protect("{SENTINEL}", GeniaSymbol("api")), visibility="entry-only")
+    return env
 
 
-worker.prune_environment = inject
+genia.make_program_env = inject
 raise SystemExit(worker.main())
 """
 

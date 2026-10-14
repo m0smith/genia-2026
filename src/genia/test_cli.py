@@ -280,7 +280,8 @@ def _legacy_test_registration_locations(
 
 
 def _write_stdout(env: Any, text: str) -> None:
-    sink = env.values.get("stdout")
+    """Write native-test report text to the runtime-owned stdout sink, else the process stream."""
+    sink = env.runtime_scope().values.get("stdout")
     if isinstance(sink, GeniaOutputSink):
         sink.write_text(text)
         return
@@ -289,7 +290,8 @@ def _write_stdout(env: Any, text: str) -> None:
 
 
 def _write_stderr(env: Any, message: str) -> None:
-    sink = env.values.get("stderr")
+    """Write a native-test diagnostic line to the runtime-owned stderr sink, else the process stream."""
+    sink = env.runtime_scope().values.get("stderr")
     text = message + "\n"
     if isinstance(sink, GeniaOutputSink):
         sink.write_text(text)

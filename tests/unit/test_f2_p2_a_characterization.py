@@ -420,9 +420,11 @@ def test_error_and_test_output_use_supplied_env_local_sink_then_system_fallback(
     assert output == ["root-message" + ("" if name == "stdout" else "\n")]
     output.clear()
     consumer(Env(root), "child-message")
-    assert output == []  # Inherited sink is ignored by these current consumers.
+    # F2/P2-C boundary change: host sink consumers read the runtime-owned sink, so an
+    # inherited sink is now used (P1 ignored it). Registered-E coverage is P2-B B10.
+    assert output == ["child-message" + ("" if name == "stdout" else "\n")]
     captured = capsys.readouterr()
-    assert (captured.out if name == "stdout" else captured.err) == "child-message" + ("" if name == "stdout" else "\n")
+    assert captured.out == captured.err == ""
 
 
 def test_protected_entry_binding_is_visible_to_module_inspection_but_payload_is_redacted(tmp_path):

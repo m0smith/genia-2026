@@ -333,7 +333,8 @@ def _emit_result(env: Env, value: Any) -> None:
 
 
 def _emit_error(env: Env, message: str) -> None:
-    sink = env.values.get("stderr")
+    """Report an error line on the runtime-owned stderr sink, else the process stream."""
+    sink = env.runtime_scope().values.get("stderr")
     if isinstance(sink, GeniaOutputSink):
         sink.write_text(message + "\n")
     else:
@@ -408,6 +409,12 @@ def run_debug_stdio(
     event_stream: Any = None,
     error_stream: Any = None,
 ) -> int:
+    """Run `program_path` under the stdio debugger and return the exit status.
+
+    The runtime scope owns the debug hooks and output callbacks; the program is
+    evaluated in the registered entry scope. Streams default to the process
+    streams. Failures are reported through the session on `error_stream`.
+    """
     from .debug_controller import StdioDebugSession
 
     command_stream = command_stream or sys.stdin
@@ -612,6 +619,13 @@ def _run_serve_file(program_path: str) -> int:
 
 
 def _run_execution_mode(mode: ExecutionMode) -> int:
+    """Run one selected CLI execution mode and return the process exit status.
+
+    Program-evaluating modes (pipe, command, file) evaluate in a registered entry
+    scope built by `make_program_env`; debug, test, serve and REPL modes delegate
+    to their own drivers. Evaluation errors are reported on the runtime stderr
+    sink and yield status 1; a quiet broken pipe yields 0.
+    """
     if mode.kind == "debug_stdio":
         assert mode.program_path is not None
         return run_debug_stdio(mode.program_path)

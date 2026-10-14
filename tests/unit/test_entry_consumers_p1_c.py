@@ -35,7 +35,7 @@ def test_serve_discovery_receives_entry_owner(tmp_path, monkeypatch):
     outer = make_global_env()
     entry = make_global_env()
     outer.entry_scope = lambda: entry
-    monkeypatch.setattr(interpreter, "make_global_env", lambda: outer)
+    monkeypatch.setattr(interpreter, "make_program_env", lambda: outer)
     seen = []
 
     def discover(_nodes, env, **_kwargs):

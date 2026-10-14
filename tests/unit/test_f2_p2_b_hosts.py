@@ -29,15 +29,23 @@ def test_B8_B_all_13_program_construction_paths_register_entry(tmp_path, monkeyp
     original = interpreter.run_source
 
     def observe(source, env, **kwargs):
-        """Record the actual caller-owned Env and still execute the real evaluator."""
-        seen.append(env)
+        """Record the actual caller-owned Env and still execute the real evaluator.
+
+        P2-C test-instrument repair (reviewed): trusted prelude autoload
+        evaluation legitimately runs in R (internal_access=True) and is not the
+        host program, so it is executed but not recorded as a program Env.
+        """
+        if not kwargs.get("internal_access"):
+            seen.append(env)
         return original(source, env, **kwargs)
 
     monkeypatch.setattr(interpreter, "run_source", observe)
     path = tmp_path / "entry.genia"
     path.write_text("entry_marker = 17", encoding="utf-8")
     if site in ("pipe", "command", "file"):
-        mode = interpreter.ExecutionMode(kind=site, source="it" if site == "pipe" else "entry_marker = 17", program_path=str(path), script_args=[])
+        # P2-C test-instrument repair (reviewed): `it` is not a valid pipe stage, so the
+        # original fixture exited 1 on P1 for a reason unrelated to topology.
+        mode = interpreter.ExecutionMode(kind=site, source="map((line) -> line)" if site == "pipe" else "entry_marker = 17", program_path=str(path), script_args=[])
         monkeypatch.setattr("sys.stdin", io.StringIO("record\n"))
         assert interpreter._run_execution_mode(mode) == 0
     elif site == "repl":
@@ -49,6 +57,16 @@ def test_B8_B_all_13_program_construction_paths_register_entry(tmp_path, monkeyp
         monkeypatch.setattr(StdioDebugSession, "run", lambda self, work, **kw: work())
         interpreter.run_debug_stdio(str(path), command_stream=io.StringIO(), event_stream=io.StringIO(), error_stream=io.StringIO())
     elif site == "serve":
+        # P2-C test-instrument repair (reviewed): serve evaluates through
+        # Evaluator.eval_program, not run_source, so observe that real entry point too.
+        original_eval_program = interpreter.Evaluator.eval_program
+
+        def observe_program(self, nodes):
+            """Record the actual Env serve evaluates in, then run the real evaluator."""
+            seen.append(self.env)
+            return original_eval_program(self, nodes)
+
+        monkeypatch.setattr(interpreter.Evaluator, "eval_program", observe_program)
         assert interpreter._run_serve_file(str(path)) == 1  # No server descriptor, no listener.
     elif site == "native":
         e, _ = make_test_env()

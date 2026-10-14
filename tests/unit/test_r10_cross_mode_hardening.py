@@ -1,9 +1,11 @@
+"""Python-host R10 cross-mode hardening: native-test and serve construction seams."""
+
 import io
 
 import pytest
 
 import genia.interpreter as interpreter_module
-from genia.builtins import make_global_env
+from genia.builtins import make_global_env, make_program_env
 from genia.configuration import create_declassification_authority
 from genia.interpreter import run_source
 from genia.test_cli import make_test_env, run_native_tests_from_file
@@ -157,10 +159,11 @@ def test_serve_explicit_snapshot_precedes_activation_and_is_not_refreshed(tmp_pa
         encoding="utf-8",
     )
     events = []
-    original_make_global_env = make_global_env
+    original_make_program_env = make_program_env
 
     def make_env(*args, **kwargs):
-        return original_make_global_env(
+        """Build the program env with a counted environment snapshot provider."""
+        return original_make_program_env(
             *args,
             **kwargs,
             environment_snapshot_provider=lambda: events.append("snapshot") or {KEY: PAYLOAD},
@@ -172,7 +175,7 @@ def test_serve_explicit_snapshot_precedes_activation_and_is_not_refreshed(tmp_pa
         events.append(response.get("body"))
         return {"handled_requests": 1}
 
-    monkeypatch.setattr(interpreter_module, "make_global_env", make_env)
+    monkeypatch.setattr(interpreter_module, "make_program_env", make_env)
     monkeypatch.setattr(interpreter_module, "_activate_serve_application", activate)
 
     assert interpreter_module._run_serve_file(str(program)) == 0

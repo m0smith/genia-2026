@@ -75,6 +75,20 @@ class Env:
     evaluation.
     """
 
+    # F2/P2-C topology state. Class-level defaults are immutable (None, False,
+    # empty frozenset) so ordinary frames pay no per-instance cost; the owning
+    # runtime scope and entry scope assign their own values on the instance.
+    # `_entry` is runtime-owned registration state (None for a caller-created
+    # single-root harness); `_is_entry` marks the registered entry scope E;
+    # `entry_declared_runtime_owned` (E only) records the runtime-owned names the
+    # entry unit itself declared (contract 16.1.4); `prelude_paths` (R only) are
+    # the autoload-target prelude files captured at construction, before any host
+    # pruning, so the runtime-owned manifest is never shrunk by pruning.
+    _entry: "Env | None" = None
+    _is_entry: bool = False
+    entry_declared_runtime_owned: "set[str] | None" = None
+    prelude_paths: frozenset[str] = frozenset()
+
     def __init__(
         self,
         parent: Optional["Env"] = None,
@@ -120,16 +134,6 @@ class Env:
         # R20 contract 4.2: this module's contribution units, keyed by target
         # interface key. A table, not bindings, so units are never exports.
         self.open_contributions: dict[tuple[str, str], Any] = {}
-        # F2/P2-C topology. `_entry` is runtime-owned registration state (None on a
-        # caller-created single-root harness). `_is_entry` marks the registered
-        # entry scope E. `entry_declared_runtime_owned` records the runtime-owned
-        # names the entry unit itself declared (contract 16.1.4). The prelude
-        # paths are the autoload targets captured at construction, before any
-        # host pruning, so the manifest is never shrunk by pruning.
-        self._entry: Env | None = None
-        self._is_entry = False
-        self.entry_declared_runtime_owned: set[str] = set()
-        self.prelude_paths: frozenset[str] = frozenset()
 
     def module_identity(self) -> str:
         """The deterministic, portable module/source-unit identity for this
@@ -193,6 +197,7 @@ class Env:
         entry = Env(self, rebind_parent=True)
         entry._unit_scope = entry
         entry._is_entry = True
+        entry.entry_declared_runtime_owned = set()
         self._entry = entry
         return entry
 
@@ -211,24 +216,37 @@ class Env:
             return True
         return name in runtime_owned_manifest(runtime.prelude_paths)
 
+    def _runtime_name_available(self, name: str) -> bool:
+        """True when runtime-owned `name` can still be bound in R.
+
+        A name that is bound, internal, autoload-registered, or declared by an
+        autoload-target file that remains registered is available. A manifest
+        name whose files were all pruned away by the host is not: binding it
+        would recreate a denied capability (contract 16.7 MCP note).
+        """
+        runtime = self.runtime_scope()
+        if name in runtime.values or name in runtime.internal_values:
+            return True
+        if any(autoload_name == name for autoload_name, _arity in runtime.autoloads):
+            return True
+        declaring = runtime_owned_manifest_paths(runtime.prelude_paths, name)
+        return bool(declaring & set(runtime.autoloads.values()))
+
     def _entry_route(self, name: str) -> "Env":
         """Return the scope receiving a top-level binding operation on `name`.
 
         Only the registered entry scope routes: a runtime-owned name binds in R
         exactly as the single-root host did (P2 compatibility write-through, A1),
-        everything else binds in E. Other scopes bind in themselves. A manifest
-        name whose declaring prelude files are no longer reachable (host pruning)
-        is rejected rather than recreated in R.
+        everything else binds in E. Other scopes bind in themselves. Raises
+        ValueError for a runtime-owned name that host pruning made unavailable,
+        rather than recreating it in R.
         """
         if not self._is_entry or not self.is_runtime_owned(name):
             return self
-        runtime = self.runtime_scope()
-        if name not in runtime.values and name not in runtime.internal_values \
-                and not any(autoload_name == name for autoload_name, _arity in runtime.autoloads) \
-                and not (runtime_owned_manifest_paths(runtime.prelude_paths, name) & set(runtime.autoloads.values())):
+        if not self._runtime_name_available(name):
             raise ValueError(f"Cannot bind {name}: the runtime name is not available in this restricted execution")
         self.entry_declared_runtime_owned.add(name)
-        return runtime
+        return self.runtime_scope()
 
     def binding_scope(self, name: str) -> "Env":
         """Return the scope that owns a top-level binding of `name` made from this Env."""
@@ -256,6 +274,12 @@ class Env:
         metadata: GeniaMap | None = None,
         preserve_metadata: bool = False,
     ) -> None:
+        """Bind `name` to `value` in this scope's own binding table.
+
+        On the registered entry scope a runtime-owned name binds in the runtime
+        scope instead (contract 16.1.2 write-through); a pruned runtime name
+        raises ValueError. Metadata is replaced unless `preserve_metadata` is set.
+        """
         home = self._entry_route(name)
         if home is not self:
             home.set(name, value, assignable=assignable, metadata=metadata,
@@ -334,6 +358,11 @@ class Env:
         self.runtime_scope().host_autoload_visibility[(name, arity)] = visibility
 
     def assign(self, name: str, value: Any, *, metadata: GeniaMap | None = None) -> None:
+        """Assign `value` to the nearest assignable `name`, else define it here.
+
+        Routes like `set` on the registered entry scope. Raises NameError when the
+        nearest binding is not assignable and ValueError for a pruned runtime name.
+        """
         home = self._entry_route(name)
         if home is not self:
             home.assign(name, value, metadata=metadata)

@@ -16,6 +16,13 @@ PURPOSE = symbol("chat_outbound")
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the offline Ollama chat example in a registered entry scope.
+
+    Builds the runtime and entry scopes through the single construction helper,
+    constructs the standard configuration provider, evaluates the example in the
+    entry scope and calls its `run_chat`. Returns 0 on success; configuration or
+    example failures write a normalized `Error:` line to stderr and return 1.
+    """
     args = list(sys.argv[1:] if argv is None else argv)
     env = make_program_env(cli_args=args)
     provider_result = env.get("config_standard")(GeniaMap(), [])
