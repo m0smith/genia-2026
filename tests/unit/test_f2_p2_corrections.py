@@ -27,6 +27,10 @@ def _default_mode(monkeypatch):
 
 
 def _program_with_list_prelude():
+    """Return a program environment whose list prelude is loaded, so `first` and `length` are bound runtime names.
+
+    Failure cases below need an existing runtime-owned binding to collide with.
+    """
     entry = make_program_env([])
     run_source("length([1])", entry)  # loads the list prelude so `first` is a bound runtime name
     return entry
@@ -56,6 +60,7 @@ def test_r01_failed_declaration_of_existing_runtime_name_is_not_recorded(source,
 
 def test_r01_failed_assignment_and_failed_function_clause_are_not_recorded(tmp_path):
     def prepare(runtime):
+        """Pre-registration host setup: a non-assignable and an ordinary non-function runtime binding."""
         runtime.set("fixed_value", 1, assignable=False)
         runtime.set("plain_value", 2)
 
@@ -122,6 +127,11 @@ def test_r01_mcp_denied_name_cannot_be_declared_restored_or_recorded(tmp_path, s
 
 
 def _worker_module(tmp_path):
+    """Build an entry program with a real module `race` and three spawned Process workers.
+
+    `p` and `q` run `race.worker` (an eligible fallback read of entry name `entry_secret`, the same pair);
+    `r` runs `race.other` (a distinct pair, `entry_other`). Returns the entry env; messages are sent by the caller.
+    """
     (tmp_path / "race.genia").write_text("worker(msg) = entry_secret\nother(msg) = entry_other\n", encoding="utf-8")
     entry = make_program_env([])
     genia.run_source(
@@ -142,11 +152,13 @@ class _PausingEvents(set):
     """
 
     def __init__(self, parties):
+        """Create an empty set whose membership tests rendezvous at a `parties`-way barrier."""
         super().__init__()
         self.barrier = threading.Barrier(parties)
         self.hits = 0
 
     def __contains__(self, item):
+        """Answer membership first, then pause up to 1s at the barrier (tolerating a broken one) to force overlap."""
         seen = super().__contains__(item)  # the answer is fixed before the pause
         self.hits += 1
         try:
@@ -177,6 +189,7 @@ def test_r15_claim_is_atomic_for_many_threads_on_one_pair():
     start = threading.Barrier(8)
 
     def contend():
+        """Wait for all threads, then claim the one shared pair, counting a win only when the claim returns True."""
         start.wait()
         if runtime.claim_fallback_event(("m", "n")):
             winners.append(1)
@@ -216,7 +229,10 @@ def test_r15_warning_io_is_outside_the_claim_critical_section(tmp_path):
     reentered = []
 
     class ReenteringSink:
+        """Warning sink that claims another pair from inside `write_text`, probing for I/O under the lock."""
+
         def write_text(self, text):
+            """Record the result of a nested claim; it would deadlock if the caller still held the claim lock."""
             reentered.append(runtime.claim_fallback_event(("other", "pair")))
 
     runtime.values["stderr"] = ReenteringSink()
@@ -233,6 +249,11 @@ def test_r15_warning_io_is_outside_the_claim_critical_section(tmp_path):
 
 
 def _manual_runtime():
+    """Hand-build registered runtime R, entry E (with `shared = 42`) and module frame M named `manual`.
+
+    Mirrors what the module loader sets up without using `make_global_env`, so fallback state comes only from
+    `create_entry_scope()`. Returns `(R, E, M)`.
+    """
     r = Env()
     e = r.create_entry_scope()
     e.set("shared", 42)

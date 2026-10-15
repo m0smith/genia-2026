@@ -23,12 +23,14 @@ undocumented_entry_only = 7
 
 
 def _entry():
+    """Build a program environment holding `PRELUDE`'s documented, docstring and entry-only names."""
     entry = make_program_env([])
     run_source(PRELUDE, entry)
     return entry
 
 
 def _show(entry, source):
+    """Run Genia `source` in `entry` and return the debug `repr` of its result for text assertions."""
     return repr(run_source(source, entry))
 
 

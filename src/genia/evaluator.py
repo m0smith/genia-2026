@@ -545,6 +545,14 @@ class GeniaPromise:
 
 
 class GeniaMetaEnv:
+    """Host-backed metacircular environment value (`<meta-env>`) wrapping one `Env` frame.
+
+    Created by `empty_env()` (a child of the runtime scope R, never of the entry scope E) and
+    extended by `extend`, which makes a child frame. Names reach a frame only through `define`/
+    `extend`/`assign` or by lookup up the chain to R. `lookup` binds raw `doc`/`meta`/`help` to the
+    frame it is read in; no module-to-entry compatibility fallback applies to this class.
+    """
+
     def __init__(self, env: Env):
         self._env = env
 
