@@ -17,6 +17,7 @@ from genia import make_program_env, run_source
 PRELUDE = '''
 @doc "documented in entry"
 documented(x) = x
+docstringed(x) = "docstring in entry" x
 undocumented_entry_only = 7
 '''
 
@@ -38,17 +39,20 @@ def _is_missing(text):
 @pytest.mark.parametrize("frame", ["define(empty_env(), quote(f), documented)",
                                    "define(extend(empty_env(), nil, []), quote(f), documented)"])
 def test_raw_doc_in_meta_frame_finds_explicitly_defined_documented_callable(frame):
+    """`define` carries the function value (and its docstring), not the entry's `@doc` binding metadata."""
     entry = _entry()
-    text = _show(entry, f'eval(quote(doc("f")), {frame})')
-    assert "documented in entry" in text and not _is_missing(text)
+    text = _show(entry, f'eval(quote(doc("f")), {frame.replace("documented", "docstringed")})')
+    assert text == repr("docstring in entry")
 
 
 @pytest.mark.parametrize("frame", ["define(empty_env(), quote(f), documented)",
                                    "define(extend(empty_env(), nil, []), quote(f), documented)"])
-def test_raw_meta_in_meta_frame_finds_explicitly_defined_name_metadata(frame):
+def test_raw_meta_in_meta_frame_distinguishes_a_defined_name_from_a_missing_one(frame):
+    """A defined name has a (here empty) metadata map; only an unbound name is `missing-meta`."""
     entry = _entry()
-    text = _show(entry, f'eval(quote(map_get(meta("f"), "doc")), {frame})')
-    assert "documented in entry" in text and not _is_missing(text)
+    frame = frame.replace("documented", "docstringed")
+    assert _show(entry, f'eval(quote(meta("f")), {frame})') == "<map 0>"
+    assert "missing-meta" in _show(entry, f'eval(quote(meta("never_defined")), {frame})')
 
 
 def test_raw_reflection_still_finds_runtime_names_and_missing_stays_missing():
@@ -61,9 +65,9 @@ def test_help_in_meta_frame_resolves_the_explicitly_defined_name():
     out = []
     entry = make_program_env([], output_handler=out.append)
     run_source(PRELUDE, entry)
-    run_source('eval(quote(help("f")), define(empty_env(), quote(f), documented))', entry)
+    run_source('eval(quote(help("f")), define(empty_env(), quote(f), docstringed))', entry)
     text = "".join(out)
-    assert "documented in entry" in text and "No public helper or runtime name found" not in text
+    assert "docstring in entry" in text and "No public helper or runtime name found" not in text
 
 
 def test_already_bound_reflective_callable_keeps_its_captured_scope():
