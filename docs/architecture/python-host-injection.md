@@ -59,7 +59,7 @@ example MCP pruning) while R has no entry, then registers E with
 Runtime-owned names (bound or internal runtime names, registered autoloads, every
 top-level declaration of an autoload-target prelude file, snapshotted before
 pruning) written by the entry unit bind in R; a pruned name is rejected instead
-of recreated. The entry scope records the runtime-owned names it declared.
+of recreated. The entry scope records the runtime-owned names it successfully declared; a declaration that raised is never recorded.
 
 **P2-D consumers.** The evaluator resolves identifiers through one helper; a
 runtime `doc`/`meta`/`help` (marked by `Env.SCOPE_BINDER_ATTR`, value-based, never by
@@ -67,7 +67,9 @@ name) is returned bound to the evaluating Env and cached per Env, so lookup star
 the evaluating frame and module code cannot name E bindings; the help catalogue and
 output sink stay runtime-owned (`runtime_scope()`), and host `Env.get` still returns
 the raw root-bound callable. `empty_env()` is based on R, so E bindings are not
-implicitly visible to `eval` (supply them with `define`). REPL `:env`, debugger
+implicitly visible to `eval` (supply them with `define`). Inside `eval`, `GeniaMetaEnv.lookup`
+binds a raw `doc`/`meta`/`help` to the meta frame it was read in (names from `define`/`extend`);
+an already-bound reflective callable transferred in keeps its captured scope, and there is no fallback. REPL `:env`, debugger
 globals (`inspection_globals_scope()`), CLI `main` dispatch and native-test
 discovery read the entry scope plus its declared runtime-owned names via
 `Env.inspection_bindings()`/`Env.binding_owner()`; debug hooks and mode live on R once
@@ -81,11 +83,13 @@ E is registered (`Env.debug_state_scope()`); error and test-report sinks read R.
 one autoload retry all missed. It returns the entry scope's **own** binding of the name
 when an entry is registered, the evaluating unit is a module (R20 contribution clauses
 count as their declaring module; entry, prelude and runtime never do) and strict mode is
-off. Each distinct `(canonical module identity, name)` pair is added once to
+off. Each distinct `(canonical module identity, name)` pair is added once, atomically
+(`Env.claim_fallback_event`, a per-runtime lock held only for the check and add; the
+warning is written after release), to
 `runtime.fallback_events` (per execution, on R) and produces one warning line on the
 runtime `stderr` sink (module and name only; no value, path or exception text; a failing
-stream is ignored). `GENIA_STRICT_MODULE_SCOPE=1`, read exactly once in
-`make_global_env`, makes the same read raise the ordinary `Undefined name` `NameError`
+stream is ignored). `GENIA_STRICT_MODULE_SCOPE=1`, read exactly once per execution (in
+`make_global_env`, or in `create_entry_scope()` for a runtime the factory did not build), makes the same read raise the ordinary `Undefined name` `NameError`
 and records nothing. It is never used for writes, `doc`/`meta`/`help`, exports,
 metacircular `eval`/`empty_env()`, host `Env.get`, REPL/debugger/discovery inspection or
 runtime-owned names (entry-declared runtime-owned names live in R and need no fallback).

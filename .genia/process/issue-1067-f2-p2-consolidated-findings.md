@@ -8,6 +8,8 @@ Three corrections block integration (R01, R15, R16). R10 requires an explicit
 maintainer interpretation before merge; a conservative result is not proof of
 contract compliance. Existing green tests do not settle these findings.
 
+**Correction status:** see the final section, "Correction status" (appended after this NO-GO review; the sections above are the historical review and are not rewritten).
+
 ## Baseline and authority
 
 Reviewed GitHub heads fetched on the review date:
@@ -364,3 +366,20 @@ checklists/cross-links for the fallback findings to #1230 rather than duplicatin
 tickets. Deferred performance/cache work has no demonstrated correctness or
 performance regression requiring P2 expansion. This review stops at evidence and
 handoffs; no fixes or merges were performed.
+
+## Correction status (stacked correction PR on #1244)
+
+Appended after the corrections; the verdict above is historical. Branch `claude/amazing-ritchie-8mqq4k`
+(stacked on #1244 head `dcb749d`). Red commits precede fixes; nothing here is a maintainer sign-off.
+
+| Item | Red tests (failing first) | Fix | Corrected-behavior tests |
+|---|---|---|---|
+| R01 | `acf1a97` (R01 cases failed) | `faca7ad`: record after success in `Env.set`/`assign`/`define_function`; `_entry_route` is pure routing | `tests/unit/test_f2_p2_corrections.py::test_r01_*`; flipped G pin `test_f2_p2_g_closeout.py::test_failed_declaration_of_existing_runtime_name_is_not_recorded` |
+| R15 | `acf1a97` (barrier-forced two-warning reproduction with real Process workers failed) | `faca7ad`: `Env.claim_fallback_event` (per-runtime lock, IO after release) | `test_r15_*` |
+| R16 | `acf1a97` (manual R/E/M repro returned `42` with `None` events) | `faca7ad`: `create_entry_scope()` calls `init_fallback_state`; fail-closed when state missing | `test_r16_*` |
+| R10 / R34 | `77034c3` (5 failed on unmodified lookup) | `62a9916`: `GeniaMetaEnv.lookup` scope-binds raw reflection (Option A, maintainer ruling PR #1244 comment 6197128489) | `tests/unit/test_f2_p2_meta_reflection.py` (documented/docstring callable, `meta` present-vs-missing, `help`, already-bound `d`, no leak, E invisible, module no-fallback, user rebinding) |
+
+R34 note: the first red set asserted `@doc` binding metadata through `define`, which `define` has never carried; the
+corrected set uses a docstring function and the present-empty-map vs `missing-meta` control (commit `77034c3`). No
+semantics changed to make that pass. Maintainability review (independent, #1233): PASS WITH NON-BLOCKING FINDINGS
+(shared strict reader and `init_fallback_state` re-entry guard adopted; historical records intentionally unrewritten).

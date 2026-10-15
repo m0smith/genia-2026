@@ -797,6 +797,14 @@ top-level reflection is otherwise unchanged. Value-based marking,
 callable-identity stability and `map(doc, names)` binding the evaluating scope
 are design requirements already stated in the P1 design §6.
 
+**Ruling R10 (approved by the maintainer on PR #1244, comment 6197128489;
+implemented in `GeniaMetaEnv.lookup`):** raw `doc`, `meta` and `help` obtained by
+identifier lookup during metacircular `eval` bind to the metacircular evaluation
+frame, for names supplied through `define`/`extend`. An already scope-bound
+reflective callable transferred into the frame retains its captured scope and is
+not rebound. `empty_env()` stays rooted at R, entry-only names stay invisible
+without explicit transfer, and no fallback applies.
+
 Proof (future): entry, module, prelude, indirect (`map(doc, names)`),
 transferred, alias and user-rebound-`doc` cases; a module attempting to name an
 E-resident entry binding; MCP-pruned catalogue from E. Evaluation-scope cases are

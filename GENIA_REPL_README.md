@@ -611,7 +611,7 @@ matcher = eval(quote(x ? x > 0 -> x | _ -> 0), empty_env())
 [apply(matcher, [5]), apply(matcher, [-1])]
 ```
 
-Python host: `empty_env()` is based on the runtime scope, so entry-program names are not implicitly visible to `eval`; supply them with `define(empty_env(), quote(name), value)`.
+Python host: `empty_env()` is based on the runtime scope, so entry-program names are not implicitly visible to `eval`; supply them with `define(empty_env(), quote(name), value)`. Raw `doc`/`meta`/`help` read inside `eval` resolve names in the meta frame, including names supplied by `define`/`extend`.
 
 - this returns `[5, 0]`
 

@@ -2924,12 +2924,15 @@ Core IR shape includes:
 roots register none. Entry bindings of runtime-owned names (runtime bindings, autoloads, prelude
 declarations, including unregistered helpers such as `map_acc`) write through to R and stay
 visible to modules and the prelude until P3; other entry bindings live in E, hidden from both.
-`empty_env()` is R-based; the `help()` catalogue and sink are runtime-owned. `:env`, debugger
-globals and native discovery show the entry/unit scope plus runtime-owned names the entry
-attempted to declare (a failed attempt can list an existing runtime binding).
+`empty_env()` is R-based; raw `doc`/`meta`/`help` read during metacircular `eval` bind to the
+evaluating meta frame (names from `define`/`extend`; an already-bound reflective callable keeps its
+scope); the `help()` catalogue and sink are runtime-owned. `:env`, debugger globals and native
+discovery show the entry/unit scope plus runtime-owned names the entry successfully declared
+(a failed declaration is not listed).
 TEMPORARY COMPATIBILITY FALLBACK (removal tracked in #1230): a module identifier read missing
 normal lookup returns the entry scope's own binding, with one value-free stderr warning per
-distinct (module, name); never for writes, reflection, exports, prelude, `eval` or host lookup.
+distinct (module, name) per execution, claimed atomically (also under Process workers);
+registering E on a caller-created runtime establishes this state; never for writes, reflection, exports, prelude, `eval` or host lookup.
 `GENIA_STRICT_MODULE_SCOPE=1`, read once at runtime construction, makes it the ordinary `NameError`.
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
