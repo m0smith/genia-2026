@@ -287,8 +287,8 @@ class Env:
         The check and the add share one per-runtime critical section, so concurrent
         readers of the same pair elect exactly one winner (who then writes the single
         warning, outside this lock). Different runtimes never contend. Holds no other
-        lock and performs no I/O. Requires established fallback state (TypeError or
-        AttributeError otherwise); the one caller checks for that first.
+        lock and performs no I/O. Requires both the event set and the lock and raises
+        TypeError if either is missing; the one caller checks only the event set first.
         """
         with self._fallback_lock:
             if pair in self.fallback_events:
@@ -373,12 +373,13 @@ class Env:
         return self.runtime_scope()
 
     def _record_entry_declaration(self, name: str) -> None:
-        """Record that the entry unit successfully declared the runtime-owned `name`.
+        """Record that the entry unit's binding operation on the runtime-owned `name` succeeded.
 
         Called by each binding operation after its write-through to R completed, so the
-        record never lists a failed declaration (contract 16.1.4: entry consumers see
-        the runtime-owned names the entry declared and no other R binding). Earlier
-        successful records are never removed by a later failure.
+        record never lists a rejected binding (contract 16.1.4: entry consumers see the
+        runtime-owned names the entry bound and no other R binding). Records are never
+        removed. Annotation processing is a later step: an annotation error can still
+        raise after the binding and this record exist (declarations are not transactional).
         """
         self.entry_declared_runtime_owned.add(name)
 

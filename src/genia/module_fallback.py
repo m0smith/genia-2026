@@ -37,8 +37,10 @@ def temporary_compatibility_fallback_read(env: Any, name: str) -> tuple[bool, An
     The event claim is atomic per runtime (`Env.claim_fallback_event`): concurrent
     readers of one pair elect a single winner, who alone writes the warning, after the
     lock is released. A registered runtime always has fallback state (`make_global_env`
-    or `create_entry_scope` establishes it); if it is somehow missing, the read fails
-    closed (ordinary undefined-name error) rather than succeeding without a record.
+    or `create_entry_scope` establishes the event set and its lock). If the event set is
+    missing the read falls through to the ordinary undefined-name error; an inconsistent
+    state with an event set but no lock raises TypeError from the claim. Neither case
+    succeeds without a record.
     """
     runtime = env.runtime_scope()
     entry = runtime._entry

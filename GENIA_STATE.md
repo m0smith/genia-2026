@@ -2927,7 +2927,7 @@ visible to modules and the prelude until P3; other entry bindings live in E, hid
 `empty_env()` is R-based; raw `doc`/`meta`/`help` inside `eval` bind to the meta frame (an
 already-bound one keeps its scope); the `help()` catalogue/sink are runtime-owned.
 `:env`, debugger globals and native discovery show the entry/unit scope plus runtime-owned names
-the entry declared successfully.
+the entry bound successfully.
 TEMPORARY COMPATIBILITY FALLBACK (removal tracked in #1230): a module identifier read missing
 normal lookup returns the entry scope's own binding, with one value-free stderr warning per
 distinct (module, name) per execution; never for writes, reflection, exports, prelude, `eval` or host lookup.

@@ -315,3 +315,24 @@ def test_r16_missing_event_state_fails_closed_rather_than_skipping_diagnostics()
     r, e, m = _manual_runtime()
     r.fallback_events = None  # simulate an inconsistent registered runtime
     assert temporary_compatibility_fallback_read(m, "shared") == (False, None)
+
+
+def test_r16_event_set_without_lock_raises_type_error_and_never_grants_the_read():
+    """Documented limit: only the event set is checked up front, so a half-initialised runtime raises TypeError.
+
+    Supported construction installs both; this pins that the inconsistent state still never returns the entry value.
+    """
+    r, _e, m = _manual_runtime()
+    r._fallback_lock = None
+    with pytest.raises(TypeError):
+        genia.run_source("shared", m)
+    assert r.fallback_events == set()
+
+
+def test_r01_annotation_error_after_a_successful_binding_leaves_the_binding_and_its_record():
+    """Declarations are not transactional: annotation processing runs after the bind, so the record stays."""
+    entry = _program_with_list_prelude()
+    with pytest.raises(TypeError):
+        run_source("@doc 1\nfirst(a, b, c, d, e) = 1", entry)
+    assert "first" in entry.entry_declared_runtime_owned
+    assert entry.runtime_scope().get("first").get(5) is not None

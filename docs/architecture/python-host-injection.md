@@ -59,7 +59,7 @@ example MCP pruning) while R has no entry, then registers E with
 Runtime-owned names (bound or internal runtime names, registered autoloads, every
 top-level declaration of an autoload-target prelude file, snapshotted before
 pruning) written by the entry unit bind in R; a pruned name is rejected instead
-of recreated. The entry scope records the runtime-owned names it successfully declared; a declaration that raised is never recorded.
+of recreated. The entry scope records a runtime-owned name once its binding operation succeeds; a rejected binding (collision, non-assignable, pruned) is never recorded. Annotation processing runs after the binding, so an annotation error (for example `@doc 1` on a new clause) can raise with the binding and its record already in place; declarations are not transactional.
 
 **P2-D consumers.** The evaluator resolves identifiers through one helper; a
 runtime `doc`/`meta`/`help` (marked by `Env.SCOPE_BINDER_ATTR`, value-based, never by
