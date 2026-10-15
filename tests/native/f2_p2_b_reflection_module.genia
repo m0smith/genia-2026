@@ -1,0 +1,9 @@
+# Module fixture for §16.2 red native tests; no lifecycle or host activation.
+@doc "module documentation"
+own_helper(x) = x
+
+@doc "Evaluate doc in this module's lexical unit."
+probe() = doc("own_helper")
+
+@doc "The parameter named map precedes the runtime function in reflective lookup."
+describe(map) = doc("map")

@@ -1,0 +1,25 @@
+name: f2-module-reflection-cannot-name-entry-binding
+category: eval
+description: F2 P2 contract 7.1/16.2 reflection called in module code cannot name an entry-program binding, while the entry program can
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          probe() = doc("entry_only")
+      - path: main.genia
+        source: |
+          import lib
+
+          @doc "entry documentation"
+          entry_only(x) = x
+
+          [doc("entry_only"), lib.probe()]
+expected:
+  stdout: "[\"entry documentation\", none(\"missing-doc\", {name: \"entry_only\"})]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - multi_file_eval
+  - doc_help

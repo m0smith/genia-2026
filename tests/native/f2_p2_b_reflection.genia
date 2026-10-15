@@ -1,0 +1,16 @@
+# EXPECTED RED — P2-B, §16.2. Python-host native twin; not portability proof.
+# The imported helper's doc lookup must bind at identifier evaluation in M.
+import f2_p2_b_reflection_module
+
+@doc "Entry target used to demonstrate parameter-first reflection."
+entry_target(x) = x
+
+@doc "Approved P2 module-local reflection; P1 returns missing-doc."
+@test "module reflection owns its lookup"
+module_reflection_owns_its_lookup() =
+  assert_eq(f2_p2_b_reflection_module.probe(), "module documentation")
+
+@doc "Approved P2 frame-first reflection; P1 documents prelude map instead."
+@test "frame parameter precedes runtime name"
+frame_parameter_precedes_runtime_name() =
+  assert_eq(none?(f2_p2_b_reflection_module.describe(entry_target)), true)

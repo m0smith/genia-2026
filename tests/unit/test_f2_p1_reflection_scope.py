@@ -1,4 +1,4 @@
-"""Python-host reflection factoring seams; public scope binding remains legacy root."""
+"""Python-host reflection factoring seams; host-direct retrieval stays root-bound, identifier evaluation binds (F2/P2-D)."""
 
 import inspect
 
@@ -35,7 +35,14 @@ def test_private_reflection_helper_uses_explicit_scope_without_rebinding_public_
 
 
 @pytest.mark.parametrize("name", ["doc", "meta", "help"])
-def test_reflection_alias_and_module_argument_keep_root_binding(name):
+def test_raw_runtime_target_binds_at_identifier_evaluation_and_bound_value_keeps_its_scope(name):
+    """F2/P2-D (contract 16.2): marking is value-based on the original runtime target.
+
+    Before P2-D a host-installed alias of the raw callable stayed root-bound when
+    passed on. Now evaluating the identifier binds it to the evaluating scope, while
+    an already-bound callable (here, one read in root) keeps that scope when passed
+    to child code. Host `Env.get` still returns the raw, root-bound public callable.
+    """
     outputs = []
     root = make_global_env([], output_handler=outputs.append)
     child = Env(root)
@@ -43,14 +50,29 @@ def test_reflection_alias_and_module_argument_keep_root_binding(name):
     run_source('@doc "child documentation"\nsubject(x) -> x\nuse_reflection(f) -> f("subject")\n', child)
     public = root.get(name)
     child.set("reflection_alias", public)
-    result = run_source('use_reflection(reflection_alias)', child)
+
+    def observe(source):
+        """Run `source` in the child scope and return its result with captured help text."""
+        outputs.clear()
+        result = run_source(source, child)
+        return result, "".join(outputs)
+
+    result, text = observe("use_reflection(reflection_alias)")
+    if name == "doc":
+        assert result == "child documentation"
+    elif name == "meta":
+        assert result is child.get_metadata("subject")
+    else:
+        assert "child documentation" in text and "root documentation" not in text
+    root_bound = run_source(name, root)
+    child.set("granted", root_bound)
+    result, text = observe("use_reflection(granted)")
     if name == "doc":
         assert result == "root documentation"
     elif name == "meta":
         assert result is root.get_metadata("subject")
     else:
-        assert "root documentation" in "".join(outputs)
-        assert "child documentation" not in "".join(outputs)
+        assert "root documentation" in text and "child documentation" not in text
     assert child.get("reflection_alias") is public
 
 

@@ -39,7 +39,7 @@ def test_repl_env_uses_inspection_owner(monkeypatch, capsys):
     inspected.set("visible", 29)
     env.inspection_globals_scope = lambda: inspected
     commands = iter([":env", ":quit"])
-    monkeypatch.setattr(interpreter, "make_global_env", lambda *_args: env)
+    monkeypatch.setattr(interpreter, "make_program_env", lambda *_args: env)
     monkeypatch.setattr("builtins.input", lambda *_args: next(commands))
     monkeypatch.setattr("sys.stdin", io.StringIO())
     repl()

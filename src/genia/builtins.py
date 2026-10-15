@@ -81,7 +81,7 @@ if __package__ in (None, ""):
         GeniaLinkedOpenFunction,
         GeniaOpenFunction,
     )
-    from genia.environment import Env
+    from genia.environment import Env, strict_module_scope_requested
     from genia.utf8 import (
         format_debug,
         format_display,
@@ -209,7 +209,7 @@ else:
         GeniaLinkedOpenFunction,
         GeniaOpenFunction,
     )
-    from .environment import Env
+    from .environment import Env, strict_module_scope_requested
     from .utf8 import (
         format_debug,
         format_display,
@@ -317,6 +317,8 @@ def make_global_env(
     env = Env()
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
     env.debug_mode = debug_mode
+    # F2/P2-E: per-execution fallback events and the strict switch, read exactly once here.
+    env.init_fallback_state(strict_module_scope=strict_module_scope_requested())
 
     stdout_sink = GeniaOutputSink(
         "stdout",
@@ -3335,9 +3337,10 @@ def make_global_env(
         return "\n".join(lines)
 
     def _public_autoload_paths() -> list[str]:
+        """Return the distinct prelude files in the runtime catalogue, in registration order."""
         paths: list[str] = []
         seen: set[str] = set()
-        for _, path in env.root().autoloads.items():
+        for _, path in env.runtime_scope().autoloads.items():
             if not path.startswith("std/prelude/") or path in seen:
                 continue
             seen.add(path)
@@ -3373,9 +3376,10 @@ def make_global_env(
         return labels.get(basename, basename)
 
     def _discover_public_family_names(path: str) -> list[str]:
+        """Return the distinct registered names the runtime catalogue maps to prelude file `path`."""
         names: list[str] = []
         seen: set[str] = set()
-        for (name, _), candidate_path in env.root().autoloads.items():
+        for (name, _), candidate_path in env.runtime_scope().autoloads.items():
             if candidate_path != path or name in seen:
                 continue
             seen.add(name)
@@ -3571,6 +3575,33 @@ def make_global_env(
         non-string name. Autoloads a prelude name once.
         """
         return _meta_in_scope(env, *args)
+
+    def _scope_binder(target: Callable[..., Any], in_scope: Callable[..., Any]) -> Callable[[Env], Callable[..., Any]]:
+        """Return the builder of `target` bound to a lexical scope (F2/P2-D, contract 16.2).
+
+        The bound callable resolves names through `in_scope(lookup_env, ...)` where
+        `lookup_env` is the scope in which the reflective identifier was evaluated.
+        It is not itself bindable, so aliases, parameters and higher-order passing
+        keep the scope of the original evaluation (an explicit grant).
+        """
+
+        def bind(lookup_env: Env) -> Callable[..., Any]:
+            """Build the callable of `target` that resolves names in `lookup_env`."""
+
+            def bound(*args: Any) -> Any:
+                """Run the reflective operation with this callable's captured lookup scope."""
+                return in_scope(lookup_env, *args)
+
+            bound.__name__ = target.__name__
+            bound.__doc__ = target.__doc__
+            return bound
+
+        return bind
+
+    for _reflective, _in_scope in ((help_fn, _help_in_scope), (doc_fn, _doc_in_scope), (meta_fn, _meta_in_scope)):
+        # Value-based marking: only these original runtime targets are bindable; a
+        # user rebinding the same names keeps an ordinary, unmarked value.
+        setattr(_reflective, Env.SCOPE_BINDER_ATTR, _scope_binder(_reflective, _in_scope))
 
     def ref_fn(*args: Any) -> GeniaRef:
         if len(args) == 0:
@@ -6516,6 +6547,9 @@ def make_global_env(
     env.register_host_autoload("actor_error", 1, "std/prelude/actor.genia", visibility="runtime-public")
     env.register_host_autoload("actor_status", 1, "std/prelude/actor.genia", visibility="runtime-public")
     env.trusted_autoloads.update(env.autoloads.keys())
+    # F2/P2: remember the autoload-target prelude files before any host pruning, so
+    # the static runtime-owned name manifest (contract 16.1.1) is never shrunk.
+    env.prelude_paths = frozenset(env.autoloads.values())
 
     # Host-callable documentation is attached only after the existing binding
     # inventory is complete. This changes metadata, never values or visibility.
@@ -6536,3 +6570,27 @@ def make_global_env(
             metadata = metadata.put("see_also", list(entry.see_also))
         env.merge_binding_metadata(entry.name, metadata)
     return env
+
+
+def make_program_env(
+    *args: Any,
+    prepare: Optional[Callable[[Env], None]] = None,
+    **kwargs: Any,
+) -> Env:
+    """Build the runtime scope R, finish host work on it, register E, and return E.
+
+    The single construction helper for every program-evaluating host path
+    (F2/P2 contract 16.6.2). `args`/`kwargs` are the `make_global_env`
+    arguments. `prepare(runtime)` performs runtime-public host work (for example
+    MCP pruning) on R strictly before E exists; an entry-only injection made
+    there is rejected, since entry-only bindings belong to E (contract 16.6.1).
+    Returns the registered entry scope; `runtime_scope()` yields R. Raises
+    ValueError when `prepare` leaves an entry-only host binding on R.
+    PYTHON REFERENCE HOST ONLY.
+    """
+    runtime = make_global_env(*args, **kwargs)
+    if prepare is not None:
+        prepare(runtime)
+    if "entry-only" in runtime.host_binding_visibility.values():
+        raise ValueError("entry-only host bindings must be installed after entry registration")
+    return runtime.create_entry_scope()

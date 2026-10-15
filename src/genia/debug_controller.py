@@ -241,7 +241,7 @@ class StdioDebugSession(DebugHooks):
         frame = next((item for item in self.frames if item.id == frame_id), self.frames[-1])
         values: dict[str, Any]
         if scope == "globals":
-            values = frame.env.inspection_globals_scope().values
+            values = frame.env.inspection_globals_scope().inspection_bindings()
         else:
             values = frame.env.values
         return [self._variable(name, value) for name, value in sorted(values.items())]

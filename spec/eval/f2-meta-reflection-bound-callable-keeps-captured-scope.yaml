@@ -1,0 +1,20 @@
+name: f2-meta-reflection-bound-callable-keeps-captured-scope
+category: eval
+description: F2 P2 contract 16.2 Option A an already scope-bound doc transferred into a metacircular frame keeps the scope where it was read (it sees entry names, not frame-only names) while raw doc read inside the frame sees the frame-only name
+input:
+  source: |
+    f(x) = "frame docs" x
+    d = doc
+    m = define(define(empty_env(), quote(frame_only), f), quote(d), d)
+    [
+      eval(quote(doc("frame_only")), m),
+      eval(quote(d("frame_only")), m),
+      eval(quote(d("f")), m)
+    ]
+expected:
+  stdout: "[\"frame docs\", none(\"missing-doc\", {name: \"frame_only\"}), \"frame docs\"]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - prelude_autoload
+  - doc_help

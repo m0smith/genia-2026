@@ -111,7 +111,7 @@ else:
     )
 
 if __package__ in (None, ""):
-    from genia.builtins import make_global_env
+    from genia.builtins import make_global_env, make_program_env
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv
     from genia.lexer import SourceSpan
     from genia.values import (
@@ -130,7 +130,7 @@ if __package__ in (None, ""):
         _resolve_packaged_module,
     )
 else:
-    from .builtins import make_global_env as make_global_env
+    from .builtins import make_global_env as make_global_env, make_program_env as make_program_env
     from .evaluator import Evaluator as Evaluator, GeniaPromise as GeniaPromise, GeniaMetaEnv as GeniaMetaEnv
     from .lexer import SourceSpan as SourceSpan
     from .values import (
@@ -199,16 +199,24 @@ def run_source(
     debug_mode: bool = False,
     internal_access: bool = False,
 ) -> Any:
-    effective_hooks = debug_hooks or env.debug_hooks or NOOP_DEBUG_HOOKS
-    effective_debug_mode = debug_mode or env.debug_mode
+    """Parse, lower and evaluate `source` in `env`, returning its normalized result.
+
+    Debug hooks and mode default from the execution's debug-state scope (the runtime
+    once an entry is registered, else `env`) and are stored back there, so stepping
+    reaches module, prelude and higher-order frames. `internal_access` grants trusted
+    prelude access for this run only. Raises the parse, lowering or evaluation error.
+    """
+    state = env.debug_state_scope()
+    effective_hooks = debug_hooks or state.debug_hooks or NOOP_DEBUG_HOOKS
+    effective_debug_mode = debug_mode or state.debug_mode
     tokens = lex(source)
     parser = Parser(tokens, source=source, filename=filename)
     ast_nodes = parser.parse_program()
     ir_nodes = lower_program(ast_nodes)
     assert_portable_core_ir(ir_nodes)
     ir_nodes = optimize_program(ir_nodes, debug=os.getenv("GENIA_DEBUG_OPT", "") == "1")
-    env.debug_hooks = effective_hooks
-    env.debug_mode = effective_debug_mode
+    state.debug_hooks = effective_hooks
+    state.debug_mode = effective_debug_mode
     previous_internal_access = env.internal_access
     env.internal_access = previous_internal_access or internal_access
     try:
@@ -333,7 +341,8 @@ def _emit_result(env: Env, value: Any) -> None:
 
 
 def _emit_error(env: Env, message: str) -> None:
-    sink = env.values.get("stderr")
+    """Report an error line on the runtime-owned stderr sink, else the process stream."""
+    sink = env.runtime_scope().values.get("stderr")
     if isinstance(sink, GeniaOutputSink):
         sink.write_text(message + "\n")
     else:
@@ -351,7 +360,7 @@ def repl() -> None:
     Interactive stdin adds prompts/banner; scripted input keeps output clean.
     Evaluation errors are reported to stderr and permit subsequent input.
     """
-    env = make_global_env([])
+    env = make_program_env([])
     # Banner and prompts are host-local terminal cosmetics (see
     # docs/design/r26-cpp-repl-contract.md section 3); a non-interactive
     # (piped/scripted) stdin must not have them mixed into the portable
@@ -380,9 +389,9 @@ def repl() -> None:
             env.get("help")()
             continue
         if not buf and line.strip() == ":env":
-            inspection = env.inspection_globals_scope()
-            for k in sorted(inspection.values):
-                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(inspection.values[k])}")
+            inspection = env.inspection_globals_scope().inspection_bindings()
+            for k in sorted(inspection):
+                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(inspection[k])}")
             continue
         buf += line + "\n"
         if not is_complete(buf):
@@ -408,6 +417,12 @@ def run_debug_stdio(
     event_stream: Any = None,
     error_stream: Any = None,
 ) -> int:
+    """Run `program_path` under the stdio debugger and return the exit status.
+
+    The runtime scope owns the debug hooks and output callbacks; the program is
+    evaluated in the registered entry scope. Streams default to the process
+    streams. Failures are reported through the session on `error_stream`.
+    """
     from .debug_controller import StdioDebugSession
 
     command_stream = command_stream or sys.stdin
@@ -416,7 +431,7 @@ def run_debug_stdio(
     resolved_path = str(Path(program_path).resolve())
     source = Path(program_path).read_text(encoding="utf-8")
     session = StdioDebugSession(command_stream, event_stream, filename=resolved_path)
-    env = make_global_env(
+    env = make_program_env(
         debug_hooks=session,
         debug_mode=True,
         output_handler=session.emit_stdout_output,
@@ -497,7 +512,8 @@ def _select_execution_mode(
 def _resolve_program_result(run_result: Any, env: Env) -> Any:
     """Dispatch entry main/1 before main/0, preserving the source result if absent."""
     env = env.entry_scope()
-    main_group = env.values.get("main")
+    owner = env.binding_owner("main")
+    main_group = owner.values.get("main") if owner is not None else None
     if not isinstance(main_group, GeniaFunctionGroup):
         return run_result
     main_with_args = main_group.get(1)
@@ -537,7 +553,7 @@ def _run_serve_file(program_path: str) -> int:
     )
 
     resolved_path = str(Path(program_path).resolve())
-    env = make_global_env()
+    env = make_program_env()
     try:
         source = Path(program_path).read_text(encoding="utf-8")
         tokens = lex(source)
@@ -612,6 +628,13 @@ def _run_serve_file(program_path: str) -> int:
 
 
 def _run_execution_mode(mode: ExecutionMode) -> int:
+    """Run one selected CLI execution mode and return the process exit status.
+
+    Program-evaluating modes (pipe, command, file) evaluate in a registered entry
+    scope built by `make_program_env`; debug, test, serve and REPL modes delegate
+    to their own drivers. Evaluation errors are reported on the runtime stderr
+    sink and yield status 1; a quiet broken pipe yields 0.
+    """
     if mode.kind == "debug_stdio":
         assert mode.program_path is not None
         return run_debug_stdio(mode.program_path)
@@ -628,7 +651,7 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
 
     if mode.kind == "pipe":
         assert mode.source is not None
-        env = make_global_env(cli_args=mode.script_args)
+        env = make_program_env(cli_args=mode.script_args)
         try:
             wrapped_source = _wrap_pipe_mode_expr(mode.source)
             run_source(wrapped_source, env, filename="<pipe>")
@@ -641,7 +664,7 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
 
     if mode.kind == "command":
         assert mode.source is not None
-        env = make_global_env(cli_args=mode.script_args)
+        env = make_program_env(cli_args=mode.script_args)
         try:
             run_result = run_source(mode.source, env, filename="<command>")
             result = _resolve_program_result(run_result, env)
@@ -656,7 +679,7 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
 
     if mode.kind == "file":
         assert mode.program_path is not None
-        env = make_global_env(cli_args=mode.script_args)
+        env = make_program_env(cli_args=mode.script_args)
         try:
             with open(mode.program_path, "r", encoding="utf-8") as f:
                 run_result = run_source(f.read(), env, filename=str(Path(mode.program_path).resolve()))

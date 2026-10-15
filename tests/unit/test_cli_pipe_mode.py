@@ -8,7 +8,7 @@ stderr robustness.
 import io
 
 
-from genia import make_global_env
+from genia import make_program_env
 from genia.interpreter import _main
 
 
@@ -379,11 +379,11 @@ class TestPipeModeHappyPath:
     """Successful pipe-mode executions and regression guards."""
 
     def test_pipe_mode_bypasses_main_dispatch(self, monkeypatch, capsys):
-        original_make_global_env = make_global_env
+        original_make_program_env = make_program_env
 
         def make_env_with_failing_main(*args, **kwargs):
             """Create an environment whose main would fail if dispatched."""
-            env = original_make_global_env(*args, **kwargs)
+            env = original_make_program_env(*args, **kwargs)
 
             def should_not_run():
                 """Fail if pipe mode accidentally dispatches main."""
@@ -392,7 +392,7 @@ class TestPipeModeHappyPath:
             env.set_host("main", should_not_run, visibility="entry-only")
             return env
 
-        monkeypatch.setattr("genia.interpreter.make_global_env", make_env_with_failing_main)
+        monkeypatch.setattr("genia.interpreter.make_program_env", make_env_with_failing_main)
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
 
         exit_code = _main(["-p", "each(print)"])

@@ -9,7 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
-from .builtins import make_global_env
+from .builtins import make_program_env
 from .callable import GeniaFunctionGroup
 from .errors import GeniaQuietBrokenPipe
 from .native_test_lifecycle import validate_native_test_lifecycle
@@ -83,7 +83,7 @@ def make_test_env(
     the registration list is attached through the entry-scope accessor.
     """
     tests: list[TestUnit] = []
-    env = make_global_env(cli_args=[], **global_env_kwargs)
+    env = make_program_env(cli_args=[], **global_env_kwargs)
     setattr(env.entry_scope(), "_native_test_units", tests)
 
     for name, value in (fixture_bindings or {}).items():
@@ -173,14 +173,17 @@ def _has_discovery_error(test_unit: TestUnit) -> bool:
 
 
 def discover_annotated_test_units(env: Any) -> list[TestUnit]:
-    """Read entry-local annotation metadata in binding order, recording misuse.
+    """Read entry annotation metadata in binding order, recording misuse.
 
-    Imported module annotations are not entry tests; no bodies execute here.
+    Covers the entry scope's own bindings and the runtime-owned names the entry
+    declared (contract 16.1.4). `env` must already be the entry scope (the caller
+    resolves it once, so a wrong accessor is not silently corrected here). Imported
+    module annotations are not entry tests; no bodies execute here.
     """
-    env = env.entry_scope()
     test_units: list[TestUnit] = []
-    for name, value in env.values.items():
-        metadata = env.binding_metadata.get(name)
+    for name, value in env.inspection_bindings().items():
+        # A runtime-owned name the entry declared lives in R; its metadata does too.
+        metadata = env.binding_owner(name).binding_metadata.get(name)
         if not _is_test_metadata(metadata):
             continue
         if not isinstance(value, GeniaFunctionGroup):
@@ -280,7 +283,8 @@ def _legacy_test_registration_locations(
 
 
 def _write_stdout(env: Any, text: str) -> None:
-    sink = env.values.get("stdout")
+    """Write native-test report text to the runtime-owned stdout sink, else the process stream."""
+    sink = env.runtime_scope().values.get("stdout")
     if isinstance(sink, GeniaOutputSink):
         sink.write_text(text)
         return
@@ -289,7 +293,8 @@ def _write_stdout(env: Any, text: str) -> None:
 
 
 def _write_stderr(env: Any, message: str) -> None:
-    sink = env.values.get("stderr")
+    """Write a native-test diagnostic line to the runtime-owned stderr sink, else the process stream."""
+    sink = env.runtime_scope().values.get("stderr")
     text = message + "\n"
     if isinstance(sink, GeniaOutputSink):
         sink.write_text(text)

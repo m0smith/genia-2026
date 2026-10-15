@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import subprocess
 from dataclasses import dataclass
+from types import FunctionType
 from typing import Any, Callable, Iterable, Optional
 
 if __package__ in (None, ""):
@@ -17,6 +18,7 @@ if __package__ in (None, ""):
     from genia.utf8 import format_debug, format_display
     from genia.equality import genia_equal
     from genia.environment import Env
+    from genia.module_fallback import temporary_compatibility_fallback_read
     from genia.errors import GeniaQuietBrokenPipe
     from genia.ast_nodes import (
         Assign, Binary, Block, Boolean, Call, CaseClause, CaseExpr, Delay,
@@ -62,6 +64,7 @@ else:
     from .utf8 import format_debug, format_display
     from .equality import genia_equal
     from .environment import Env
+    from .module_fallback import temporary_compatibility_fallback_read
     from .errors import GeniaQuietBrokenPipe
     from .ast_nodes import (
         Assign, Binary, Block, Boolean, Call, CaseClause, CaseExpr, Delay,
@@ -542,6 +545,15 @@ class GeniaPromise:
 
 
 class GeniaMetaEnv:
+    """Host-backed metacircular environment value (`<meta-env>`) wrapping one `Env` frame.
+
+    Created by `empty_env()` (a child of the runtime scope R, never of the entry scope E, seeded with the
+    metacircular operators) and extended by `extend`, which makes a child frame. A frame sees names
+    bound in it by `define`/`extend`, rebinds the nearest assignable one with `assign`, and otherwise
+    resolves up the chain to R. `lookup` binds raw `doc`/`meta`/`help` to the
+    frame it is read in; no module-to-entry compatibility fallback applies to this class.
+    """
+
     def __init__(self, env: Env):
         self._env = env
 
@@ -550,12 +562,25 @@ class GeniaMetaEnv:
         return self._env
 
     def lookup(self, name: str) -> Any:
+        """Resolve `name` in this metacircular frame chain, retrying one autoload.
+
+        A raw runtime reflective builtin (`doc`/`meta`/`help`) is returned bound to this
+        frame, so it sees names supplied through `define`/`extend` (contract 16.2, maintainer
+        ruling on PR #1244). Any other value, including an already scope-bound callable
+        transferred into the frame, is returned unchanged and keeps its captured scope. No
+        compatibility fallback applies here; the chain is the frame up to the runtime root.
+        """
         try:
-            return self._env.get(name)
+            value = self._env.get(name)
         except NameError:
-            if self._env.try_autoload(name, 0):
-                return self._env.get(name)
-            raise
+            if not self._env.try_autoload(name, 0):
+                raise
+            value = self._env.get(name)
+        if type(value) is FunctionType:
+            binder = getattr(value, Env.SCOPE_BINDER_ATTR, None)
+            if binder is not None:
+                return self._env.scope_bound(value, binder)
+        return value
 
     def define(self, name: str, value: Any) -> "GeniaMetaEnv":
         self._env.set(name, value)
@@ -907,6 +932,13 @@ class Evaluator:
         return self.eval(node)
 
     def eval_call(self, node: IrCall, tail_position: bool) -> Any:
+        """Evaluate a call: arguments left to right (spreads expanded), then the callee.
+
+        A named callee resolves through `_resolve_identifier` (one autoload retry at
+        the call's arity, reflective builtins bound to this scope); any other callee
+        expression is evaluated. Returns the invocation result, or a tail call
+        marker when `tail_position` is set. Raises NameError for an unbound callee.
+        """
         args: list[Any] = []
         for arg_node in node.args:
             if isinstance(arg_node, IrSpread):
@@ -919,13 +951,7 @@ class Evaluator:
 
         if isinstance(node.fn, IrVar):
             name = node.fn.name
-            try:
-                fn = self.env.get(name)
-            except NameError:
-                if self.env.try_autoload(name, len(args)):
-                    fn = self.env.get(name)
-                else:
-                    raise
+            fn = self._resolve_identifier(name, len(args))
         else:
             fn = self.eval(node.fn)
 
@@ -1081,6 +1107,12 @@ class Evaluator:
         return stage_value
 
     def eval_pipeline_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:
+        """Apply one pipeline stage to `stage_value` and return the stage result.
+
+        Shell stages run through the shell evaluator; call and bare-name stages
+        resolve their callee with `_resolve_identifier` (autoload at arity + 1),
+        so reflective builtins bind to this scope; other stages evaluate to a callable.
+        """
         if isinstance(node, IrShellStage):
             return self._eval_shell_stage(node, stage_value)
 
@@ -1121,26 +1153,14 @@ class Evaluator:
 
             if isinstance(node.fn, IrVar):
                 name = node.fn.name
-                try:
-                    fn = self.env.get(name)
-                except NameError:
-                    if self.env.try_autoload(name, len(args) + 1):
-                        fn = self.env.get(name)
-                    else:
-                        raise
+                fn = self._resolve_identifier(name, len(args) + 1)
             else:
                 fn = self.eval(node.fn)
 
             return invoke_with_pipeline_option_lifting(fn, args, node.fn)
 
         if isinstance(node, IrVar):
-            try:
-                fn_value = self.env.get(node.name)
-            except NameError:
-                if self.env.try_autoload(node.name, 1):
-                    fn_value = self.env.get(node.name)
-                else:
-                    raise
+            fn_value = self._resolve_identifier(node.name, 1)
         else:
             fn_value = self.eval(node)
         return invoke_with_pipeline_option_lifting(fn_value, [], node)
@@ -1197,6 +1217,31 @@ class Evaluator:
         if was_some and not isinstance(out, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
             out = GeniaOptionSome(out, stage_value.context)
         return out
+
+    def _resolve_identifier(self, name: str, autoload_arity: int) -> Any:
+        """Resolve identifier `name` in the evaluating scope, retrying one autoload.
+
+        The single identifier-resolution path for variable reads, call targets and
+        pipeline stages. A marked reflective runtime builtin (`doc`/`meta`/`help`) is
+        returned bound to the evaluating scope (F2/P2-D, contract 16.2); any other
+        value, including a user rebinding of those names or an already-bound
+        callable, is returned unchanged. Host `Env.get` is deliberately unbound.
+        Raises NameError when the name is unbound and not autoloadable.
+        """
+        try:
+            value = self.env.get(name)
+        except NameError:
+            if self.env.try_autoload(name, autoload_arity):
+                value = self.env.get(name)
+            else:
+                found, value = temporary_compatibility_fallback_read(self.env, name)
+                if not found:
+                    raise
+        if type(value) is FunctionType:
+            binder = getattr(value, Env.SCOPE_BINDER_ATTR, None)
+            if binder is not None:
+                return self.env.scope_bound(value, binder)
+        return value
 
     def invoke_callable(
         self,
@@ -1360,12 +1405,7 @@ class Evaluator:
         if isinstance(node, IrUnquoteSplicing):
             raise RuntimeError("unquote_splicing(...) is only valid inside quasiquote")
         if isinstance(node, IrVar):
-            try:
-                return self.env.get(node.name)
-            except NameError:
-                if self.env.try_autoload(node.name, 0):
-                    return self.env.get(node.name)
-                raise
+            return self._resolve_identifier(node.name, 0)
         if isinstance(node, IrUnary):
             value = self.eval(node.expr)
             if is_none(value):
@@ -1500,8 +1540,9 @@ class Evaluator:
             self.env.set(node.alias, module_value)
             return module_value
         if isinstance(node, IrOpenFuncDef):
-            if node.name in self.env.values:
-                held = self.env.values[node.name]
+            home = self.env.binding_scope(node.name)
+            if node.name in home.values:
+                held = home.values[node.name]
                 if isinstance(held, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
                     existing = "open interface"
                 elif isinstance(held, GeniaFunctionGroup):

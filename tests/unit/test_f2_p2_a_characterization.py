@@ -20,7 +20,7 @@ from genia.interpreter import Parser, _emit_error, _resolve_program_result, lex,
 from genia.server_config_binding import discover_entry_file_server_config_binding
 from genia.server_route_binding import discover_entry_file_route_bindings
 from genia.test_cli import _write_stderr, _write_stdout, discover_test_units, make_test_env
-from genia.values import GeniaOptionNone, GeniaOutputSink
+from genia.values import GeniaOutputSink
 from hosts.python.mcp_worker_profile import (
     ALLOWED_AUTOLOADS,
     ALLOWED_BINDINGS,
@@ -221,7 +221,7 @@ def test_lookup_chain_precedes_guarded_internal_then_autoload(tmp_path):
 
 
 @pytest.mark.parametrize("reflection", ["doc", "meta", "help"])
-def test_module_direct_binding_and_metadata_exist_but_string_reflection_uses_root(tmp_path, reflection):
+def test_module_direct_binding_metadata_and_string_reflection_resolve_module_scope(tmp_path, reflection):
     output = []
     root = make_global_env([], output_handler=output.append)
     _, scope = load_module(tmp_path, root, '@doc "module documentation"\nprobe() = 41\n')
@@ -229,15 +229,18 @@ def test_module_direct_binding_and_metadata_exist_but_string_reflection_uses_roo
     assert scope.get("probe") is root.get("baseline_module").exports["probe"]
     assert scope.get(reflection) is root.get(reflection)
     result = run_source(f'{reflection}("probe")', scope)
+    # F2/P2-D (contract 16.2): before, string reflection in module code used the captured
+    # runtime and missed the module's own name (missing-doc/-meta, "No public helper").
+    # Now the identifier is bound to the module scope and resolves the module's name.
     if reflection == "help":
-        assert "No public helper or runtime name found: probe" in "".join(output)
+        assert "module documentation" in "".join(output)
         output.clear()
         run_source("help(probe)", scope)
         assert "module documentation" in "".join(output)
+    elif reflection == "doc":
+        assert result == "module documentation"
     else:
-        assert isinstance(result, GeniaOptionNone)
-        assert result.reason == f"missing-{reflection}"
-        assert result.context.get("name") == "probe"
+        assert result is scope.get_metadata("probe")
     assert "probe" not in root.values
 
 
@@ -308,7 +311,10 @@ def test_native_discovery_real_root_includes_entry_tests_excludes_module_tests(t
     assert units[0] is registered[0]
     assert root._native_test_units is registered
     assert root.host_binding_visibility["test"] == "entry-only"
-    assert scope.get("fixture_marker") == 41  # Classification does not isolate today.
+    # F2/P2-C/D: the entry-only fixture lives in E; host-direct module lookup cannot reach it
+    # (before, the shared root exposed it). Identifier reads fall under the P2-E fallback.
+    with pytest.raises(NameError, match="^Undefined name: fixture_marker$"):
+        scope.get("fixture_marker")
     assert "fixture_marker" not in scope.values
 
 
@@ -420,9 +426,11 @@ def test_error_and_test_output_use_supplied_env_local_sink_then_system_fallback(
     assert output == ["root-message" + ("" if name == "stdout" else "\n")]
     output.clear()
     consumer(Env(root), "child-message")
-    assert output == []  # Inherited sink is ignored by these current consumers.
+    # F2/P2-C boundary change: host sink consumers read the runtime-owned sink, so an
+    # inherited sink is now used (P1 ignored it). Registered-E coverage is P2-B B10.
+    assert output == ["child-message" + ("" if name == "stdout" else "\n")]
     captured = capsys.readouterr()
-    assert (captured.out if name == "stdout" else captured.err) == "child-message" + ("" if name == "stdout" else "\n")
+    assert captured.out == captured.err == ""
 
 
 def test_protected_entry_binding_is_visible_to_module_inspection_but_payload_is_redacted(tmp_path):
@@ -471,7 +479,7 @@ def test_plain_child_entry_main_is_ignored_by_current_entry_accessor():
     assert run_source("main()", child) == 41
 
 
-def test_repl_real_shared_root_lists_entry_runtime_autoload_and_redacts_protection(monkeypatch, capsys):
+def test_repl_real_registered_entry_lists_entry_bindings_only_and_redacts_protection(monkeypatch, capsys):
     commands = iter([
         'entry_marker = 17',
         'protected_marker = secret_get(config_provider([{kind: quote(values), values: {KEY: "P2_A_REPL_SENTINEL"}}]) |> unwrap_or(none), "KEY", quote(use)) |> unwrap_or(none)',
@@ -483,7 +491,8 @@ def test_repl_real_shared_root_lists_entry_runtime_autoload_and_redacts_protecti
     captured = capsys.readouterr()
     assert captured.err == ""
     assert "entry_marker = 17\n" in captured.out
-    assert "length = " in captured.out
-    assert "stdout = " in captured.out
+    # F2/P2-D: runtime and autoloaded bindings are no longer listed (shared root before).
+    assert "length = " not in captured.out
+    assert "stdout = " not in captured.out
     assert "protected_marker = " in captured.out
     assert "P2_A_REPL_SENTINEL" not in captured.out

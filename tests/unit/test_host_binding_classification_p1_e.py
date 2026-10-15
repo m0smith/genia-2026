@@ -100,12 +100,14 @@ def test_reviewed_builtin_internal_and_prelude_inventory_has_exact_classificatio
     assert env.autoloads == {key: row["path"] for key, row in expected_autoloads.items()}
 
 
-def test_native_registrar_and_each_dynamic_fixture_are_entry_only_without_relocation():
+def test_native_registrar_and_each_dynamic_fixture_are_entry_only_in_registered_entry():
+    """P2-C: entry-only fixtures and the registrar reside in E, never in R."""
     marker = object()
     env, tests = make_test_env(fixture_bindings={"first_fixture": marker, "second_fixture": 17})
-    assert env.parent is None
-    assert env.entry_scope() is env.runtime_scope() is env
+    assert env.parent is env.runtime_scope() and env is not env.runtime_scope()
+    assert env.entry_scope() is env
     assert env.values["first_fixture"] is marker
+    assert not {"test", "first_fixture", "second_fixture"} & env.runtime_scope().values.keys()
     assert {name: env.host_binding_visibility[name] for name in ["test", "first_fixture", "second_fixture"]} == {
         "test": "entry-only", "first_fixture": "entry-only", "second_fixture": "entry-only",
     }
@@ -121,8 +123,10 @@ def test_host_adapter_fixture_classification_is_explicit_and_entry_only(adapter,
     from importlib import import_module
 
     env = import_module(f"hosts.python.{adapter}")._build_env()
-    assert env.parent is None
+    # P2-C: adapter fixtures reside in the registered entry scope, not the runtime.
+    assert env.parent is env.runtime_scope() and env is not env.runtime_scope()
     assert fixtures <= env.values.keys()
+    assert not fixtures & env.runtime_scope().values.keys()
     assert all(env.host_binding_visibility[name] == "entry-only" for name in fixtures)
 
 

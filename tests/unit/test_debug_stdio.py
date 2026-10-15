@@ -137,8 +137,13 @@ def test_output_event_is_emitted(tmp_path: Path):
 
 
 @pytest.mark.parametrize("origin", ["entry", "module", "module_nested"])
-def test_function_globals_are_shared_root_and_locals_are_frame_bindings(tmp_path: Path, origin):
-    """Pin root globals across entry, module and nested module call frames."""
+def test_function_globals_are_unit_scoped_and_locals_are_frame_bindings(tmp_path: Path, origin):
+    """Pin unit-scoped globals across entry, module and nested module call frames.
+
+    F2/P2-D (contract 16.6.1): before, every frame showed the shared root (entry
+    names plus runtime names). Now an entry frame shows the entry scope and a
+    module frame shows its own module scope; runtime bindings appear in neither.
+    """
     body = "probe(parameter) = {\n  local_marker = parameter\n  local_marker\n}\n"
     if origin == "entry":
         source = "entry_marker = 17\n" + body + "probe(23)\n"
@@ -195,18 +200,24 @@ def test_function_globals_are_shared_root_and_locals_are_frame_bindings(tmp_path
     globals_rows = globals_response["variables"]
     assert [row["name"] for row in globals_rows] == sorted(row["name"] for row in globals_rows)
     globals_by_name = {row["name"]: row for row in globals_rows}
-    assert globals_by_name["entry_marker"] == {"name": "entry_marker", "value": "17", "type": "number"}
-    assert {"stdout", "stderr", "doc", "meta", "help"} <= globals_by_name.keys()
-    assert {"parameter", "local_marker", "module_marker", "captured"}.isdisjoint(globals_by_name)
+    assert {"stdout", "stderr", "doc", "meta", "help"}.isdisjoint(globals_by_name)
+    assert {"parameter", "local_marker", "captured"}.isdisjoint(globals_by_name)
     if origin == "entry":
+        assert globals_by_name["entry_marker"] == {"name": "entry_marker", "value": "17", "type": "number"}
         assert globals_by_name["probe"]["type"] == "function"
+        assert "module_marker" not in globals_by_name
     else:
-        assert "scope_fixture" in globals_by_name
-        assert {"probe", "wrapper"}.isdisjoint(globals_by_name)
+        assert globals_by_name["module_marker"] == {"name": "module_marker", "value": "41", "type": "number"}
+        assert globals_by_name["probe"]["type"] == "function"
+        assert "entry_marker" not in globals_by_name and "scope_fixture" not in globals_by_name
+        assert ("wrapper" in globals_by_name) == (origin == "module_nested")
 
 
-def test_prelude_frame_globals_include_entry_bindings_after_autoload(tmp_path: Path):
-    """Prelude inspection currently shares root globals; locals stay in its frame."""
+def test_prelude_frame_globals_are_runtime_bindings_not_entry_bindings(tmp_path: Path):
+    """Prelude frames show runtime globals (F2/P2-D); entry bindings are not visible; locals stay in the frame.
+
+    Before P2-D the shared root made entry_marker appear among a prelude frame's globals.
+    """
     source = "entry_marker = 17\ncount([1, 2])\n"
     code, events, stderr = run_session(tmp_path, source, [
         {"command": "setBreakpoints", "breakpoints": [{"file": str((tmp_path / "program.genia").resolve()), "line": 2}]},
@@ -228,6 +239,6 @@ def test_prelude_frame_globals_include_entry_bindings_after_autoload(tmp_path: P
     assert "entry_marker" not in locals_by_name
     assert any(row["value"] == "[1, 2]" for row in locals_by_name.values())
     globals_by_name = {row["name"]: row for row in globals_response["variables"]}
-    assert globals_by_name["entry_marker"]["value"] == "17"
-    assert globals_by_name["count"]["type"] == "function"
+    assert "entry_marker" not in globals_by_name
+    assert globals_by_name["count"]["type"] == "function" and "stdout" in globals_by_name
     assert locals_by_name.keys().isdisjoint(globals_by_name)

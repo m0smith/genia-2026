@@ -1,0 +1,22 @@
+name: f2-meta-reflection-binds-to-meta-frame
+category: eval
+description: F2 P2 contract 16.2 Option A (maintainer ruling on PR 1244) raw doc and meta read inside eval resolve a callable explicitly defined in the metacircular frame, present versus missing is distinguishable, and the same holds in an extend child frame
+input:
+  source: |
+    f(x) = "frame docs" x
+    m = define(empty_env(), quote(f), f)
+    child = define(extend(empty_env(), nil, []), quote(f), f)
+    [
+      eval(quote(doc("f")), m),
+      eval(quote(meta("f")), m),
+      eval(quote(meta("never_defined")), m),
+      eval(quote(doc("f")), child),
+      eval(quote(f(7)), m)
+    ]
+expected:
+  stdout: "[\"frame docs\", {}, none(\"missing-meta\", {name: \"never_defined\"}), \"frame docs\", 7]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - prelude_autoload
+  - doc_help
