@@ -428,3 +428,18 @@ compatibility fallback is added). The C++ host is expected to report all four as
 
 Maintainability review (independent, #1233) of this correction: PASS WITH NON-BLOCKING FINDINGS; its three low findings
 (guard-case description, Python-test docstring accuracy, `GeniaMetaEnv` docstring precision) were applied as wording-only edits.
+
+### V01/V02 verification record and #1226 observation (follow-up stacked on #1245)
+
+Verification on the branch (regression started at `c4de8bd`; later commits changed only docstrings, one spec description,
+one test docstring and `.genia` notes, then focused checks were re-run on the final head): non-loopback default 6974 passed /
+60 skipped; strict 6974 passed / 60 skipped; loopback 31 passed default and 31 strict; shared spec runner 829/829 (825 + 4 new)
+run before the last spec-description wording edit; code-documentation check 0 errors against base `dcb749d` and `8475969`.
+Recorded failed attempt: an earlier `-k "spec or manifest or capab or host_status or conformance"` selection, run while the
+spec runner and a regression were also running, had one failure (`test_r28_mcp_conformance_run.py::test_runaway_output_is_stopped_at_the_limit_not_accumulated_until_the_deadline`:
+1 failed, 1286 passed); it passed in isolation (2.69s) and in both full regression runs. Treated as load-related timing, not
+reproduced. C++ parity, VS Code tests and the official MCP client were not run locally.
+
+#1226 (not a gate; no issue opened): meaningful supporting computation was Python text-edit scripts (D), a Python/YAML harness
+comparing spec outputs on fixed vs pre-fix lookup (the compared programs were themselves Genia and were exercised through the
+shared runner; the harness is host tooling, D), and log tails (None). No A/B/C candidate; no Genia-vs-Python cost comparison made.
