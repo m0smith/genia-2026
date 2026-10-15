@@ -547,9 +547,10 @@ class GeniaPromise:
 class GeniaMetaEnv:
     """Host-backed metacircular environment value (`<meta-env>`) wrapping one `Env` frame.
 
-    Created by `empty_env()` (a child of the runtime scope R, never of the entry scope E) and
-    extended by `extend`, which makes a child frame. Names reach a frame only through `define`/
-    `extend`/`assign` or by lookup up the chain to R. `lookup` binds raw `doc`/`meta`/`help` to the
+    Created by `empty_env()` (a child of the runtime scope R, never of the entry scope E, seeded with the
+    metacircular operators) and extended by `extend`, which makes a child frame. A frame sees names
+    bound in it by `define`/`extend`, rebinds the nearest assignable one with `assign`, and otherwise
+    resolves up the chain to R. `lookup` binds raw `doc`/`meta`/`help` to the
     frame it is read in; no module-to-entry compatibility fallback applies to this class.
     """
 

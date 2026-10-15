@@ -1,6 +1,6 @@
 name: f2-meta-reflection-does-not-use-module-fallback
 category: eval
-description: F2 P2 contract 11 and 16.2 raw doc read inside eval from module code does not reach an entry-program name through the temporary module compatibility fallback and writes no fallback warning
+description: F2 P2 contract 11 and 16.2 boundary guard (also passes under the pre-Option-A lookup; it only fails if a compatibility fallback is added) raw doc read inside eval from module code does not reach an entry-program name and writes no fallback warning
 input:
   modules:
     entry: main.genia

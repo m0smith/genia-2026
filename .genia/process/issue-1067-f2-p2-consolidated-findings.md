@@ -401,3 +401,30 @@ Not a merge gate; no issue opened; no messages posted to #1226. Based on this ta
 | `tail`/`grep` summarization of regression logs | None | Mundane log reading |
 
 No A/B/C candidate was established, no Genia equivalent was written or run, and no productivity claim is made.
+
+## Final integration gate corrections (V01, V02; follow-up stacked on #1245)
+
+Source: independent verification of #1245 head `8475969`
+([comment](https://github.com/m0smith/genia-2026/pull/1245#issuecomment-6201239306); report
+`.genia/process/issue-1067-pr1245-independent-verification.md` at `c64a5fb` on `audit/issue-1067-pr1245-verification`).
+No runtime semantics changed; R01, R15, R16 and R10/R34 remain as independently verified.
+
+| Item | Before | After | Evidence |
+|---|---|---|---|
+| V01 maintained-code documentation | `python -m tools.code_documentation --base-ref dcb749d`: 9571 records, 2821 legacy gaps, 13 errors (12 required-binding gaps + 1 stale baseline: `GeniaMetaEnv.lookup`) | 0 errors; legacy gaps 2819. Documenting the `GeniaMetaEnv` class (flagged as changed because it contains `lookup`) resolved its baseline entry too, so **two** resolved baseline entries were removed, none added | commit `a948b66`; also 0 errors against base `8475969` |
+| V02 Option A conformance | Python-only tests, no shared/native twin | four shared `eval` specs `spec/eval/f2-meta-reflection-*.yaml` (requires `prelude_autoload`, `doc_help`; module case also `multi_file_eval`); Python tests kept as host twin | commit `c4de8bd`'s parent spec commit; see below |
+| Wording 1 (annotation after bind) | docs said a raised declaration is never recorded | docs say a rejected binding is never recorded; annotation errors run after the bind and can raise with binding and record in place (not transactional); pinned by `test_r01_annotation_error_after_a_successful_binding_leaves_the_binding_and_its_record` | reproduced: `@doc 1` + `first(a,b,c,d,e) = 1` and `@doc 1` + `log = 123` raise `TypeError` with binding present and recorded |
+| Wording 2 (missing lock) | docstring promised ordinary undefined-name | missing event set -> ordinary `NameError`; event set without lock -> `TypeError` from the claim (no silent grant; supported construction installs both); pinned by `test_r16_event_set_without_lock_raises_type_error_and_never_grants_the_read` | reproduced both states |
+
+Neither wording observation is a contract violation: the annotation case is a real binding that really exists, and the lock
+case raises rather than granting an unrecorded read. No implementation was redesigned.
+
+Sensitivity of the shared specs to the pre-Option-A lookup (binding step removed from `GeniaMetaEnv.lookup`, same specs):
+`binds-to-meta-frame` FAIL (`doc("f")`/`meta("f")` return `missing-*`), `bound-callable-keeps-captured-scope` FAIL
+(raw `doc("frame_only")` returns `missing-doc`), `entry-names-stay-invisible` FAIL (positive control `doc("g")` missing),
+`does-not-use-module-fallback` PASS under both (a boundary guard, labelled as such in its description; it fails only if a
+compatibility fallback is added). The C++ host is expected to report all four as unsupported (it does not declare
+`doc_help`/`multi_file_eval` per recorded evidence); the C++ job was not run locally.
+
+Maintainability review (independent, #1233) of this correction: PASS WITH NON-BLOCKING FINDINGS; its three low findings
+(guard-case description, Python-test docstring accuracy, `GeniaMetaEnv` docstring precision) were applied as wording-only edits.
