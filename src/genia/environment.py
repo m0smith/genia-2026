@@ -22,6 +22,15 @@ def _interpreter_runtime() -> Any:
     return interpreter
 
 
+def strict_module_scope_requested() -> bool:
+    """Read the strict module-scope switch (`GENIA_STRICT_MODULE_SCOPE=1`) from the process environment.
+
+    The single capture point's reader: callers read it once when they establish a runtime's fallback
+    state (`Env.init_fallback_state`) and never again for that execution.
+    """
+    return os.environ.get("GENIA_STRICT_MODULE_SCOPE") == "1"
+
+
 def _check_host_visibility(visibility: str) -> None:
     """Reject an undeclared host class before installation, without rendering values."""
     if not isinstance(visibility, str) or visibility not in ("runtime-public", "entry-only"):
@@ -263,8 +272,11 @@ class Env:
         Creates the empty event set and its lock and records the strict switch. The
         strict switch is passed in so the caller owns the capture point: the program
         factory captures it when it builds R, `create_entry_scope` when it registers E
-        on a runtime the factory did not build. PYTHON REFERENCE HOST ONLY.
+        on a runtime the factory did not build. Raises RuntimeError if the state already
+        exists, so the capture cannot be redone mid-execution. PYTHON REFERENCE HOST ONLY.
         """
+        if self.fallback_events is not None:
+            raise RuntimeError("fallback state is already established for this runtime")
         self.fallback_events = set()
         self._fallback_lock = threading.Lock()
         self.strict_module_scope = strict_module_scope
@@ -275,7 +287,8 @@ class Env:
         The check and the add share one per-runtime critical section, so concurrent
         readers of the same pair elect exactly one winner (who then writes the single
         warning, outside this lock). Different runtimes never contend. Holds no other
-        lock and performs no I/O. Raises if the runtime has no fallback state.
+        lock and performs no I/O. Requires established fallback state (TypeError or
+        AttributeError otherwise); the one caller checks for that first.
         """
         with self._fallback_lock:
             if pair in self.fallback_events:
@@ -306,7 +319,7 @@ class Env:
         entry._is_entry = True
         entry.entry_declared_runtime_owned = set()
         if self.fallback_events is None:
-            self.init_fallback_state(strict_module_scope=os.environ.get("GENIA_STRICT_MODULE_SCOPE") == "1")
+            self.init_fallback_state(strict_module_scope=strict_module_scope_requested())
         self._entry = entry
         return entry
 

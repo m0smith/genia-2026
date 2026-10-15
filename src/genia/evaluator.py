@@ -553,12 +553,25 @@ class GeniaMetaEnv:
         return self._env
 
     def lookup(self, name: str) -> Any:
+        """Resolve `name` in this metacircular frame chain, retrying one autoload.
+
+        A raw runtime reflective builtin (`doc`/`meta`/`help`) is returned bound to this
+        frame, so it sees names supplied through `define`/`extend` (contract 16.2, maintainer
+        ruling on PR #1244). Any other value, including an already scope-bound callable
+        transferred into the frame, is returned unchanged and keeps its captured scope. No
+        compatibility fallback applies here; the chain is the frame up to the runtime root.
+        """
         try:
-            return self._env.get(name)
+            value = self._env.get(name)
         except NameError:
-            if self._env.try_autoload(name, 0):
-                return self._env.get(name)
-            raise
+            if not self._env.try_autoload(name, 0):
+                raise
+            value = self._env.get(name)
+        if type(value) is FunctionType:
+            binder = getattr(value, Env.SCOPE_BINDER_ATTR, None)
+            if binder is not None:
+                return self._env.scope_bound(value, binder)
+        return value
 
     def define(self, name: str, value: Any) -> "GeniaMetaEnv":
         self._env.set(name, value)

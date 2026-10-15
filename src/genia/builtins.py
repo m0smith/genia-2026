@@ -81,7 +81,7 @@ if __package__ in (None, ""):
         GeniaLinkedOpenFunction,
         GeniaOpenFunction,
     )
-    from genia.environment import Env
+    from genia.environment import Env, strict_module_scope_requested
     from genia.utf8 import (
         format_debug,
         format_display,
@@ -209,7 +209,7 @@ else:
         GeniaLinkedOpenFunction,
         GeniaOpenFunction,
     )
-    from .environment import Env
+    from .environment import Env, strict_module_scope_requested
     from .utf8 import (
         format_debug,
         format_display,
@@ -318,7 +318,7 @@ def make_global_env(
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
     env.debug_mode = debug_mode
     # F2/P2-E: per-execution fallback events and the strict switch, read exactly once here.
-    env.init_fallback_state(strict_module_scope=os.environ.get("GENIA_STRICT_MODULE_SCOPE") == "1")
+    env.init_fallback_state(strict_module_scope=strict_module_scope_requested())
 
     stdout_sink = GeniaOutputSink(
         "stdout",
