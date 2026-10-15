@@ -6,8 +6,11 @@ for names supplied through `define`/`extend`. An already scope-bound reflective 
 into the frame keeps its captured scope. `empty_env()` stays rooted at R; entry-only names stay
 invisible without explicit transfer; there is no module-to-entry fallback in metacircular evaluation.
 
-Python-host test: it drives `GeniaMetaEnv.lookup`. The earlier integer `doc` probe was non-discriminating
-(`missing-doc` under every rule); these controls use a documented function with observable metadata.
+Portable authority for this behavior is the shared specs `spec/eval/f2-meta-reflection-*.yaml` (explicit
+`define` found by raw `doc`/`meta`, entry names invisible, already-bound callable keeps its scope, no module
+fallback). These Python tests are retained as the Python-host twin that also covers `extend` frames, `help`
+output routing, cache isolation and user rebinding through `GeniaMetaEnv.lookup` itself. The earlier integer
+`doc` probe was non-discriminating (`missing-doc` under every rule); these controls use a documented function.
 """
 
 import pytest

@@ -1,0 +1,20 @@
+name: f2-meta-reflection-entry-names-stay-invisible
+category: eval
+description: F2 P2 contract 16.2 and 16.4 empty_env remains runtime-rooted so raw doc and meta read inside eval cannot see entry-only names, while an explicit define of a documented callable is found as a positive control
+input:
+  source: |
+    entry_fn(x) = "entry docs" x
+    entry_value = 1
+    g(x) = "g docs" x
+    [
+      eval(quote(doc("entry_fn")), empty_env()),
+      eval(quote(meta("entry_value")), empty_env()),
+      eval(quote(doc("g")), define(empty_env(), quote(g), g))
+    ]
+expected:
+  stdout: "[none(\"missing-doc\", {name: \"entry_fn\"}), none(\"missing-meta\", {name: \"entry_value\"}), \"g docs\"]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - prelude_autoload
+  - doc_help

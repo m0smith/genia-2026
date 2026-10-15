@@ -1,0 +1,25 @@
+name: f2-meta-reflection-does-not-use-module-fallback
+category: eval
+description: F2 P2 contract 11 and 16.2 raw doc read inside eval from module code does not reach an entry-program name through the temporary module compatibility fallback and writes no fallback warning
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          probe() = eval(quote(doc("entry_fn")), empty_env())
+      - path: main.genia
+        source: |
+          import lib
+
+          entry_fn(x) = "entry docs" x
+
+          lib.probe()
+expected:
+  stdout: "none(\"missing-doc\", {name: \"entry_fn\"})\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - multi_file_eval
+  - prelude_autoload
+  - doc_help
