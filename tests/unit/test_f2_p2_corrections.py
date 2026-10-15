@@ -281,13 +281,13 @@ def test_r16_factory_built_runtime_state_is_not_reinitialised(monkeypatch):
 
 
 def test_r16_unregistered_single_root_has_no_fallback_and_no_state():
-    root = Env()
-    root.set("x", 1)
-    child = Env(root)
+    legacy_root = Env()
+    legacy_root.set("x", 1)
+    child = Env(legacy_root)
     child._unit_scope = child
     child.module_id = "legacy"
     assert genia.run_source("x", child) == 1  # ordinary parent lookup, no fallback involved
-    assert root.fallback_events is None
+    assert legacy_root.fallback_events is None
 
 
 def test_r16_missing_event_state_fails_closed_rather_than_skipping_diagnostics():
