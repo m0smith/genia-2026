@@ -382,4 +382,9 @@ Appended after the corrections; the verdict above is historical. Branch `claude/
 R34 note: the first red set asserted `@doc` binding metadata through `define`, which `define` has never carried; the
 corrected set uses a docstring function and the present-empty-map vs `missing-meta` control (commit `77034c3`). No
 semantics changed to make that pass. Maintainability review (independent, #1233): PASS WITH NON-BLOCKING FINDINGS
-(shared strict reader and `init_fallback_state` re-entry guard adopted; historical records intentionally unrewritten).
+(shared strict reader and `init_fallback_state` re-entry guard adopted; historical records intentionally unrewritten:
+the "attempt record"/"unlocked" wording in the C/E/G review and evidence files is superseded by this section).
+Truth audit (independent): first pass FAIL on the real STATE word gate (43029 > 43000, `wc -w` undercounts versus
+`str.split`) plus stale `GENIA_REPL_README.md` `:env` wording and a stale F-integration docstring; all three corrected
+in the following commit and re-verified. Accepted non-blocking debt (#1238): duplicated reflective-binding snippet in
+`lookup` and `_resolve_identifier`; fail-closed guard checks only `fallback_events`; help sink ownership not pinned.

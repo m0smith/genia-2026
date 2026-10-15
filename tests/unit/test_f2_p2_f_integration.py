@@ -108,10 +108,9 @@ def test_mcp_worker_path_prunes_before_entry_and_keeps_denied_names_denied():
 
 
 def test_reflection_inside_metacircular_eval_is_runtime_scoped_and_cannot_see_entry(tmp_path):
-    """#1238 corner, pinned: a reflective call evaluated by `eval` resolves through the R-based meta
-    environment (`GeniaMetaEnv.lookup` returns the raw runtime-bound callable). It sees runtime names, never
-    entry names (no leak) and never names added with `define`. Conservative by construction; a P3 change must
-    flip this deliberately."""
+    """#1238 corner: a reflective call evaluated by `eval` over `empty_env()` sees runtime names and never
+    entry names (no leak). Binding to names added with `define` (maintainer ruling, PR #1244) is pinned
+    discriminatingly in test_f2_p2_meta_reflection.py; the integer `doc("added")` check here cannot tell."""
     entry = make_program_env([])
     run_source('@doc "entry docs"\nentry_fn(x) = x', entry)
     assert isinstance(run_source('eval(quote(doc("entry_fn")), empty_env())', entry), GeniaOptionNone)
