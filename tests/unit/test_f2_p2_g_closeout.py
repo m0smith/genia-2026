@@ -1,10 +1,9 @@
 """Python-only F2/P2-G closeout guards (issue #1067, tracker #1229, retirement #1230, follow-up #1238).
 
 Pins two implemented facts the closeout documentation states: the temporary fallback is one isolated,
-marked, singly-called path (so P3 removal is a deletion), and the entry-declaration record is an attempt
-record (a failed declaration of an existing runtime-owned name can list that runtime binding in the entry
-inspection view). The second is a known, documented limitation, not an endorsed semantic: changing it
-(recording after success) is a deliberate follow-up that must flip this test.
+marked, singly-called path (so P3 removal is a deletion), and the entry-declaration record lists successful
+declarations only (a failed declaration of an existing runtime-owned name never lists that runtime binding
+in the entry inspection view; #1238 N1 / R01, corrected after the independent review of PR #1244).
 """
 
 import ast
@@ -34,12 +33,12 @@ def test_fallback_is_one_isolated_marked_path_with_one_call_site():
 
 
 @pytest.mark.parametrize("source,error", [("first(x) = x", TypeError), ("open log(x) = x", Exception)])
-def test_failed_declaration_of_existing_runtime_name_is_recorded_as_an_attempt(source, error):
-    """#1238 N1: the record is written when the name is routed, before the bind can fail.
+def test_failed_declaration_of_existing_runtime_name_is_not_recorded(source, error):
+    """#1238 N1 / R01: the record is written only after the bind succeeded.
 
-    Observable effect: the entry inspection view (REPL `:env`, debugger entry globals) can list a runtime
-    binding the entry never successfully declared. Runtime-owned names pruned by the host are rejected
-    before recording, and the entry never gains authority over the runtime binding. Pinned as documented.
+    A failed declaration neither lists the existing runtime binding in the entry inspection view (REPL
+    `:env`, debugger entry globals) nor makes the entry the owner of it. Fuller coverage, including
+    assignment, MCP-denied names and nested success, is in test_f2_p2_corrections.py.
     """
     entry = make_program_env([])
     run_source("length([1])", entry)  # loads the list prelude so `first` exists
@@ -48,5 +47,5 @@ def test_failed_declaration_of_existing_runtime_name_is_recorded_as_an_attempt(s
     assert name in runtime.values and name not in entry.entry_declared_runtime_owned
     with pytest.raises(error):
         run_source(source, entry)
-    assert name in entry.entry_declared_runtime_owned
-    assert name in entry.inspection_bindings() and name not in entry.values
+    assert name not in entry.entry_declared_runtime_owned
+    assert name not in entry.inspection_bindings() and name not in entry.values

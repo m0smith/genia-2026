@@ -34,9 +34,11 @@ def temporary_compatibility_fallback_read(env: Any, name: str) -> tuple[bool, An
     Records the distinct (canonical module identity, name) pair on R's per-execution
     event set and, for a new pair, writes one value-free warning line. Never called for
     writes, reflection, exports, metacircular `eval`, host `Env.get` or inspection.
-    The event set is plain, unlocked state: concurrent module evaluation could emit a
-    duplicate warning line for one pair (harmless; the set itself stays correct). An R
-    not built by `make_global_env` has no event set and returns the value unrecorded.
+    The event claim is atomic per runtime (`Env.claim_fallback_event`): concurrent
+    readers of one pair elect a single winner, who alone writes the warning, after the
+    lock is released. A registered runtime always has fallback state (`make_global_env`
+    or `create_entry_scope` establishes it); if it is somehow missing, the read fails
+    closed (ordinary undefined-name error) rather than succeeding without a record.
     """
     runtime = env.runtime_scope()
     entry = runtime._entry
@@ -46,9 +48,9 @@ def temporary_compatibility_fallback_read(env: Any, name: str) -> tuple[bool, An
     if unit is runtime or unit is entry or unit.module_id is None:
         return False, None
     pair = (unit.module_identity(), name)
-    events = runtime.fallback_events
-    if events is not None and pair not in events:
-        events.add(pair)
+    if runtime.fallback_events is None:
+        return False, None
+    if runtime.claim_fallback_event(pair):
         _warn(runtime, pair)
     return True, entry.values[name]
 

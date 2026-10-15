@@ -20,6 +20,12 @@ from genia.module_fallback import temporary_compatibility_fallback_read
 from tests.unit.f2_p2_support import register_entry, separated_scopes
 
 
+@pytest.fixture(autouse=True)
+def _default_mode(monkeypatch):
+    """Fallback accounting is a default-mode behavior; strict-capture tests set the switch themselves."""
+    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
+
+
 def _program_with_list_prelude():
     entry = make_program_env([])
     run_source("length([1])", entry)  # loads the list prelude so `first` is a bound runtime name
@@ -99,20 +105,17 @@ def test_r01_nested_successful_declaration_survives_a_later_failed_one():
     assert "first" not in entry.entry_declared_runtime_owned
 
 
-def test_r01_pruned_runtime_name_still_cannot_be_declared_or_recorded(tmp_path):
-    def prune(runtime):
-        for key in [k for k in runtime.autoloads if k[0] == "first"]:
-            del runtime.autoloads[key]
-        runtime.values.pop("first", None)
+@pytest.mark.parametrize("source", ["read_file = 1", "read_file(x) = x", "open read_file(x) = x"])
+def test_r01_mcp_denied_name_cannot_be_declared_restored_or_recorded(tmp_path, source):
+    from hosts.python.mcp_worker_profile import prune_environment
 
-    s = separated_scopes(tmp_path, prune=prune)
-    # `first` may still be declared by a remaining prelude file; the denial must hold either way.
-    try:
-        run_source("first(x) = x", s.entry)
-    except ValueError:
-        pass
-    assert "first" not in s.runtime.values
-    assert "first" not in s.entry.inspection_bindings() or "first" in s.entry.values
+    s = separated_scopes(tmp_path, prune=prune_environment)
+    assert "read_file" not in s.runtime.values
+    with pytest.raises(ValueError, match="restricted execution"):
+        run_source(source, s.entry)
+    assert "read_file" not in s.runtime.values and "read_file" not in s.entry.values
+    assert "read_file" not in s.entry.entry_declared_runtime_owned
+    assert "read_file" not in s.entry.inspection_bindings()
 
 
 # ---------------------------------------------------------------- R15 -------------------------
