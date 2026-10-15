@@ -1,8 +1,9 @@
 # Decision note: metacircular reflection (R10 / R34) — awaiting maintainer ruling
 
-Parent #1067; tracker #1229; debt #1238. Status: **UNRESOLVED — merge blocker.** No
-runtime behavior was changed for this item. Documentation is not approval; this note
-asks for a ruling and does not make one.
+Parent #1067; tracker #1229; debt #1238. Status: **RESOLVED — Option A approved by the maintainer** on PR #1244 (comment 6197128489,
+2026-10-15), after this note was written; implemented in `62a9916` against red commit `77034c3`.
+The note below is the historical decision request and is otherwise unchanged. Documentation alone
+was never treated as approval.
 
 ## Question
 

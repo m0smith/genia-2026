@@ -388,3 +388,16 @@ Truth audit (independent): first pass FAIL on the real STATE word gate (43029 > 
 `str.split`) plus stale `GENIA_REPL_README.md` `:env` wording and a stale F-integration docstring; all three corrected
 in the following commit and re-verified. Accepted non-blocking debt (#1238): duplicated reflective-binding snippet in
 `lookup` and `_resolve_identifier`; fail-closed guard checks only `fallback_events`; help sink ownership not pinned.
+
+### Optional #1226 dogfooding observation (corrections task)
+
+Not a merge gate; no issue opened; no messages posted to #1226. Based on this task's actual artifacts.
+
+| Support computation | Class | Reason |
+|---|---|---|
+| Python harness inspecting `Env` internals: barrier-forced membership-check race, thread-ident hits, probes of `entry_declared_runtime_owned` | D | Inspects Python-host internals and host threads; Genia source has no equivalent API |
+| Python/`sed` in-place edits of repository docs and test files | D | Source-editing action, not a data transformation or validation pipeline |
+| Word count of `GENIA_STATE.md` (`wc -w` vs `str.split`, the gate's definition) | None | One-line check already enforced by a Python test; no Genia comparison attempted. Notable only because `wc -w` gave a false pass (42894 vs 43029) |
+| `tail`/`grep` summarization of regression logs | None | Mundane log reading |
+
+No A/B/C candidate was established, no Genia equivalent was written or run, and no productivity claim is made.
