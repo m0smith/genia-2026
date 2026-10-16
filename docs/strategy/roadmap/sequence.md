@@ -68,8 +68,11 @@ R27 — C++ Flow & Pipe Mode ✓ COMPLETE
 R28 — Genia MCP Server         R42 — Persistent Interactive Sessions & Jupyter
  |
  v
-R20 follow-up — Unified Function Model & Open-Function Repairs (#1067)
+R20 follow-up — Unified Function Model & Open-Function Repairs (#1067) ✓ HISTORICAL
  |              (unnumbered follow-up; does not expand R28)
+ v
+Pre-R29 semantic gate — function openness and immutable bindings (#1249 → #1250 → #1251)
+ |              (unnumbered follow-up; decision/implementation/audit before R29)
  v
 R29 — Sheet Record Pipelines
  |
@@ -171,6 +174,14 @@ debt is archived in [#1238](https://github.com/m0smith/genia-2026/issues/1238)
 for measurement-led consideration alongside R34; it does not block P2 closeout
 or R29. Minor residual observations remain in that record for consideration
 when related code changes; no new implementation work is authorized here.
+
+## Pre-R29 function-openness and immutable-binding semantics gate
+
+This is an unnumbered **new semantic follow-up**, not a reopening of completed R20 or the historical #1067 work, and not an R28 expansion. Candidate syntax is `f(pattern) = expr` for open-by-default functions, `name =: expr` for immutable lexical bindings, and `f(pattern) =: expr` for closed functions. **None of these proposed changes is implemented or approved by roadmap placement.** Current `GENIA_STATE.md` and `GENIA_RULES.md` remain the behavior authority.
+
+**Gate order:** [#1249](https://github.com/m0smith/genia-2026/issues/1249) is the pre-flight and contract decision; [#1250](https://github.com/m0smith/genia-2026/issues/1250) is approved-contract-only failing specs and bounded implementation; [#1251](https://github.com/m0smith/genia-2026/issues/1251) is integration, host-conformance, documentation truth, and skeptical audit. Do not start language-facing R29 implementation until #1249 explicitly resolves the default-openness, immutable-binding, closed-function clause, and module-extension authority questions, and #1251 records acceptance for any changes deemed prerequisites. R29 planning and independent maintenance may proceed in parallel.
+
+**Hard invariant:** default local openness must not grant implicit cross-module mutation/extension rights. Existing R20 `extend`/`use` authority and dispatch remain in force unless an explicit approved contract changes them. #1067 deliberately excluded removing `open`; that historical constraint must not be silently rewritten. Carry the semantic dependency review forward at R32, R33, R38, and R41 pre-flights to avoid encoding unsettled syntax/IR semantics into new subsystems. Preserve the **independent** R29 implementation gate and 2026-12-14 checkpoint for module compatibility fallback [#1230](https://github.com/m0smith/genia-2026/issues/1230); do not absorb it into these issues. Unrelated cleanup and #1101 legacy documentation remediation remain release-aligned non-blockers.
 
 ## Interactive sessions and Jupyter
 
