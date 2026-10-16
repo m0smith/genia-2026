@@ -220,3 +220,63 @@ Independent second review of commit `3fa80b3` found the earlier shape-conflict a
 | `make(k) = { f(x)=x+k; f }` | rejected, as at baseline | no accidental nested named-function expansion |
 
 **Approval status:** This is a third-review **candidate only**, not an approved semantic choice or a merged language contract. The ordinary *later-declaration annotation/metadata* compatibility rule is still specifically flagged for verification against the current implementation and subsequent explicit wording. Do not begin #1250 tests/implementation, claim PASS, or merge #1255 as an approved contract until that rule and the other maintainer-visible choices are resolved and independent review returns PASS. #1251 must include every acceptance case above, alongside §8.5's shared-spec, host-truth, documentation and MCP language-profile synchronization obligations.
+
+## 10. Fourth-review candidate: metadata, failure boundaries, and escaped provisional values (NOT APPROVED)
+
+The independent review of commit `b8262d5` again returned **REVISE**, while accepting §9's entry binding placement, incremental ordinary clause accumulation, alias visibility and nested named-function exclusion. This section states the observable proposals needed to resolve its remaining HIGH findings. **Where §§8–9 differ, §10 is the current proposal for review, not an implemented or approved rule.**
+
+### 10.1 Explicit metadata ownership and observable lookup
+
+Metadata is **not** a single universal map. Preserve three distinguishable channels for existing *ordinary* function declarations:
+
+1. **Binding-owned annotation metadata.** `@doc`, `@meta` and other currently legal ordinary declaration annotations attach to the declaring name's lexical binding. Successful later annotations on noncontiguous clauses merge into that binding in evaluation order: later values replace equal keys; unmentioned keys persist. A plain unannotated alias `a = f` receives no copied binding annotations. An alias's own annotations belong to the alias binding.
+2. **Legacy callable-owned inline documentation.** The existing ordinary inline docstring belongs to the shared callable group and is observable through unannotated aliases when their binding has no effective `@doc`. Preserve existing consistency checks before clause installation: a conflicting later inline docstring rejects the new clause, rather than adding it and later failing metadata validation.
+3. **Effective help metadata.** Preserve the existing ordinary callable-group help presentation separately from `doc(name)` / `meta(name)`: annotations on an alias may update the underlying ordinary group's help-facing metadata without replacing the distinct annotations of other bindings. Consequently, for `@doc "first"; f(x)=x; @doc "alias"; a=f`, `doc("f")` remains `"first"`, `doc("a")` is `"alias"`, but `help("f")` and `help("a")` both present the effective shared `"alias"` text. Do not collapse help metadata onto binding annotation lookup.
+
+**Ordinary lookup precedence:** `doc(name)` reads the named binding's effective `@doc` first, then callable inline documentation if present, otherwise returns existing missing-doc behavior. `meta(name)` returns binding-owned metadata for that name (including its effective `doc` key when annotated), or `{}` for an unannotated alias. `help(name)` retains the callable group's shared effective help metadata; the binding's independent `doc` and `meta` are not rewritten by another alias.
+
+**Compatible explicit-R20 `open` declarations:** retain R20's historically interface-owned `@doc`/`@meta` rules, declaration-site restrictions, and the linked-view `doc`/`meta`/`help` projection of the interface owner. Do not retroactively re-interpret existing explicit `open` source as legacy ordinary binding-owned metadata. A default-open *ordinary-source* function preserves the ordinary three-channel metadata observations above even when its callable is eligible for cross-module extension. This is a **source compatibility distinction**, not a second dispatcher.
+
+**Linked views created from default-open ordinary bases:** at `use` time, snapshot the base interface's effective callable/group documentation and interface-level metadata *as of successful completed base-module initialization* into that immutable linked view for introspection. Linked-view `help` includes selected clause provenance per R20; contributor metadata never overwrites the base interface's metadata. For `doc(view-name)` and `meta(view-name)`, an explicit annotation on the local *view binding* takes precedence only for that binding's lookup, without mutating the base interface or other views. If this view-binding exception is incompatible with the existing R20 `use` behavior, treat it as an explicit compatibility delta requiring maintainer approval, not an implementation convenience.
+
+**Required observable compatibility:** existing ordinary `@doc "first"; @meta {a:1,keep:"yes"}; f(x)=x; @doc "second"; @meta {a:2,b:3}; f(x,y)=x+y` retains `[doc("f"),meta("f")]` of `["second",{doc:"second",a:2,keep:"yes",b:3}]`. `a=f` aliases share later arities, but `doc("a")` remains missing without inline docs or its own `@doc`. The exact legacy help anomaly above is intentionally maintained pending independent review.
+
+### 10.2 Ordinary publication and failure ordering
+
+- Existing ordinary `f(...)=...` declarations **install the clause before evaluating dynamic declaration annotations**. If an annotation expression then fails validation or raises, the newly installed clause remains callable; metadata updates only to the extent that earlier annotation steps have successfully committed under current ordinary evaluation order. Never apply closed-declaration rollback semantics to ordinary noncontiguous additions.
+- An inline docstring inconsistency is structurally rejected **before** the conflicting ordinary clause is installed; an invalid dynamic `@doc` expression can fail **after** that clause is installed. Both boundaries are intentional compatibility guarantees.
+- The existing ordinary `@doc 7; f(x,y)=x+y` case therefore leaves a callable new arity despite its annotation error; prior `"inline"` documentation remains visible if that is the previously valid callable docstring.
+- Existing ordinary source's annotation evaluation may refer to its already-published function as presently supported. A default-open interface must retain that observation while still preventing an *external* `extend` or `use` of an imported base that has not successfully completed its module initialization.
+
+### 10.3 Escaped provisional closed callable after failure
+
+For the proposed `f(...)=:` closed-declaration path, choose **failed-publication invalidation**, rather than leaving escaped provisional callables silently usable:
+
+- A provisional callable created for structural-success self-reference is in a bounded **initializing** state and may be invoked by its own annotation expressions while the declaration is initializing. It resolves recursive self-calls through its own captured provisional self-reference, not by re-looking-up a same-spelled later binding.
+- On successful completion of dynamic annotations, its state becomes **committed** and the immutable defining name is published. Any reference escaped during annotation evaluation then refers to the same committed closed callable.
+- On annotation failure, the provisional callable's state irreversibly becomes **failed** before its provisional defining name is withdrawn. Any escaped reference retained in a Ref/Cell, closure, map or external effect stays physically present, but invoking it, deriving a new callable alias/view from it, or inspecting it through callable `doc`/`meta`/`help` must produce a deterministic **closed-function-failed-publication** error (diagnostic identity is portable; wording host-local). It may never be extended.
+- Recursive calls by a failed provisional callable must fail at the failed-state gate **before** evaluating any clause body; they must not resolve a later declaration with the same name, invoke a different callable, or revive the failed object. A future fresh `f` declaration, if the enclosing session permits it, is a *distinct* binding and callable identity.
+- External effects of the initializer/annotations, including the stored escaped reference, are not rolled back. Only the provisional binding publication and viability of its provisional callable are undone. No partially valid metadata is exposed through a failed callable.
+
+This differs deliberately from current *ordinary* declarations, where an escaped callable can remain usable after a dynamic annotation failure. The difference is justified by the new `=:` promise of atomic **closed** definition publication, and must receive maintainer acceptance before implementation.
+
+### 10.4 Module initialization prerequisite — precise wording
+
+> Before `use` constructs a linked view, the **imported module supplying the base interface** and **each selected contribution module** must have completed initialization successfully. The consuming module may still be executing its own top-level statements. No dependency on completion of the consumer's own module initialization is implied.
+
+This is not a circular-initialization waiver; an imported provider that is incomplete cannot be linked.
+
+### 10.5 Explicit decision checklist for next independent review
+
+| Decision | Current proposed outcome | Status |
+| --- | --- | --- |
+| Later ordinary annotations | Binding-owned, merge later successful values; no alias annotation inheritance | Review proposal |
+| Inline documentation | Callable-owned; aliases see it; conflicting inline text prevents installing clause | Review proposal |
+| Ordinary `help` anomaly | Preserve shared callable help metadata updated by alias annotation; distinct per-binding `doc`/`meta` | Review proposal |
+| Explicit historical R20 `open` metadata | Preserve R20 interface-owned behavior and restrictions | Review proposal |
+| Default-open ordinary bases' linked views | Snapshot completed base's effective metadata; no contributor override; view-binding annotation lookup must be reconciled with R20 | **Explicit compatibility approval needed** |
+| Ordinary annotation failure | Clause persists after dynamic annotation failure; structural inline conflict prevents publication | Review proposal |
+| Closed annotation failure with escaped provisional | Permanently invalid callable, predictable error on call/introspection, no recursion redirection | **Explicit semantic approval needed** |
+| `use` initialization requirement | Imported base and contributor modules finished; consumer may be executing | Review proposal |
+
+**Disposition:** #1249 remains **REVISE / NO-GO** for #1250, and this is **contract-only** work. Independent review must check that the proposed linked-view metadata rule is compatible with R20 and that failed provisional values cannot leak a callable through alternate invocation or introspection paths. No implementation, shared spec, root truth documentation, or host claims change in this PR. After implementation, #1251 must verify these observations across source/direct IR and supported hosts and synchronize `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, semantic registry/MCP profile, and release evidence.
