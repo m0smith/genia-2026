@@ -577,8 +577,9 @@ transition is required; a broader historical-IR loader is not.
 **CONDITIONAL GO ONLY for the next bounded failing-test phase.**
 Claude's independent review identified one explicit maintainer grammar decision,
 plus capability-evidence and diagnostic details addressed as proposals in §13.
-The A red-test gate remains closed until §13.1 grammar is confirmed, build CI
-passes, and a focused independent re-review returns PASS. This is not GO for runtime implementation, whole-release
+The §13.1 grammar choice was approved by the maintainer on 2026-10-16.
+The A red-test gate remains closed until build CI passes and a focused
+independent re-review returns PASS. This is not GO for runtime implementation, whole-release
 parity claims or R29 behavior. The operational risks above are red-test and
 implementation acceptance obligations. Stop if a direct-IR or key counterexample
 requires a new semantic choice; resolve it in #1249 rather than let a host decide.
@@ -632,9 +633,9 @@ must be reported separately from future implementation evidence.
 
 ### 13.1 Header grammar — explicit additional maintainer decision required (F1)
 
-**Proposed syntax**, subject to maintainer confirmation: ordinary and closed named function headers use the existing historical explicit-R20-`open` lambda-parameter-pattern grammar, `name(<lambda-parameter-pattern-list>) [? guard]`, followed by the otherwise permitted declaration separator/body (`=`, `=:`, `->`, or block where already legal). Pattern types and guard placement must exactly follow the portable existing `open` restrictions; do not invent a matcher language. Grouped `IrCase` bodies require an identifier-only header with no header guard (same rejection as `open`). Identifier-only ordinary headers retain their existing normalized wire form. A closed declaration containing a pattern header must remain one child of its atomic group. **Do not authorize pattern-headed shared red tests until the maintainer approves this syntax choice.**
+**Maintainer-approved syntax extension (2026-10-16):** ordinary and closed named function headers use the existing historical explicit-R20-`open` lambda-parameter-pattern grammar, `name(<lambda-parameter-pattern-list>) [? guard]`, followed by the otherwise permitted declaration separator/body (`=`, `=:`, `->`, or block where already legal). Pattern types and guard placement must exactly follow the portable existing `open` restrictions; do not invent a matcher language. Grouped `IrCase` bodies require an identifier-only header with no header guard (same rejection as `open`). Identifier-only ordinary headers retain their existing normalized wire form. A closed declaration containing a pattern header must remain one child of its atomic group. **Maintainer confirmed this syntax choice on 2026-10-16.** Pattern-headed shared red tests may proceed once the remaining design gates pass.
 
-The present contract's phrase `f(pattern) = expr` is insufficient to settle the exact grammar on its own. This is the review's one unresolved explicit semantic choice, not an implementation detail.
+The present contract's phrase `f(pattern) = expr` is insufficient to settle the exact grammar on its own. This was the review's one additional explicit semantic choice; it is now maintainer-approved, but remains unimplemented.
 
 ### 13.2 IR carrier, source/direct IR and phased acceptance (F3, F7, F8)
 
