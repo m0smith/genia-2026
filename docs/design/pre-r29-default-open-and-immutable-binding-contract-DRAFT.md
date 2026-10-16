@@ -1,8 +1,8 @@
 # #1249 — Default-open function interfaces and immutable bindings: proposed semantic contract
 
-**Status: PROPOSED — NOT YET MAINTAINER-APPROVED OR IMPLEMENTED.** Independent Codex focused semantic review of revision `5060d52` returned **PASS** on 2026-10-16 (no new blocker in that focused diff). This document consolidates the previously reviewed decisions without adding implementation authority. `GENIA_STATE.md` remains the source of truth for what Genia currently implements.
+**Status: MAINTAINER-APPROVED SEMANTIC CONTRACT (2026-10-16) — NOT IMPLEMENTED.** Maintainer explicitly approved the consolidated Model B semantics in conversation on 2026-10-16. Independent Codex focused semantic review of revision `5060d52` returned **PASS** (no new blocker in that focused diff). The subsequent consolidation was checked for preservation of the reviewed semantic decisions; neither the focused PASS nor approval constitutes implementation or host parity evidence. `GENIA_STATE.md` remains the source of truth for what Genia currently implements.
 
-**Scope:** New default function openness, additive cross-module contribution coherence, `=:` immutable lexical bindings, `f(...)=:` closed function definitions, compatibility and portability boundaries. Applies prospectively after #1249 is approved and #1250/#1251 are implemented and audited. Existing R20 behavior is unchanged until then.
+**Scope:** New default function openness, additive cross-module contribution coherence, `=:` immutable lexical bindings, `f(...)=:` closed function definitions, compatibility and portability boundaries. Applies prospectively after #1250/#1251 implementation, tests, documentation synchronization, and audit. Existing R20 behavior is unchanged until then.
 
 **Evidence and history:** merged pre-flight `docs/analysis/pre-r29-function-immutability-preflight-DRAFT.md`; implemented R20 and `docs/design/r20-open-functions-contract.md`; incremental review/correction commits `de68abba`, `3151ff6`, `3fa80b3`, `b8262d5`, `f578efa`, `3abbb59`, `5060d52`. Git history preserves the full successive drafts. The final PASS was a **focused contract review**, with read-only Python baseline probes, not a runtime implementation, full regression, C++ parity certification, or maintainer approval.
 
@@ -121,11 +121,11 @@ For example, where the defining binding has `@doc "canonical"`, the callable inl
 
 ### 6.2 Approval and independence
 
-- The maintainer selected **Model B as direction**, not yet every detailed policy in §§2–5. Explicit approval is still needed for conservative fixed/varargs rejection, immutable runtime-reserved-name rejection, historical metadata compatibility and frozen linked-view introspection, and failed provisional-callable invalidation.
-- Independent Codex review yielded a **focused PASS on `5060d52`** after the preceding REVISE cycles; this does not itself constitute maintainer approval or runtime/host verification. Consolidation has not been re-reviewed for semantic equivalence to the PASS-ed candidate.
-- #1250 must **not** begin implementation or red tests until #1249's contract is explicitly accepted; then design → committed red shared specs → bounded implementation → maintainability review.
+- The maintainer **explicitly approved the consolidated Model B contract on 2026-10-16**, including conservative fixed/varargs cross-unit rejection, runtime-reserved-name rejection for `=:`, legacy metadata compatibility/frozen linked-view introspection, and failed provisional-callable invalidation. Any material post-approval semantic change requires another contract decision.
+- Independent Codex review yielded a **focused PASS on `5060d52`** after preceding REVISE cycles. A subsequent structural semantic-preservation check compared consolidation to the reviewed candidate; no additional independent Codex equivalence verdict or runtime/host conformance is claimed.
+- With #1249 contract approval recorded, #1250 may proceed **only in phase order**: portable design → committed failing shared R16 specs/evidence → bounded host implementations → maintainability review; no code changes are authorized directly by this contract PR.
 - #1251 follows verified implementation: truth-doc/MCP profile sync → skeptic audit → distillation. Do not treat the roadmap placement, open PR or green CI as semantic implementation approval.
 - #1229/#1230 own independent module-scope/compatibility closeout. PR #1254 merged the fallback removal; do not restore removed behavior or silently close those gates. R29 language-facing implementation remains separately gated.
 - No runtime code, shared specs, protected registry, authoritative implemented-language docs, C++ host claims or unrelated issues are altered by this contract-only PR.
 
-**Contract disposition: CONSOLIDATED PROPOSAL — FOCUSED REVIEW PASS, AWAITING MAINTAINER APPROVAL.**
+**Contract disposition: APPROVED MODEL B SEMANTIC CONTRACT — FOCUSED REVIEW PASS; NOT IMPLEMENTED.**
