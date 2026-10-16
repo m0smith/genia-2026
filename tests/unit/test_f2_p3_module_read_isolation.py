@@ -112,6 +112,7 @@ def test_fallback_host_surface_is_gone():
 
 
 def _run_cli(tmp_path, main_source, lib_source, strict=None):
+    """Run the real CLI on `main.genia` importing `lib.genia`; `strict` sets the removed switch to prove it is ignored."""
     (tmp_path / "lib.genia").write_text(lib_source, encoding="utf-8")
     (tmp_path / "main.genia").write_text(main_source, encoding="utf-8")
     env = {key: value for key, value in os.environ.items() if key != "GENIA_STRICT_MODULE_SCOPE"}
