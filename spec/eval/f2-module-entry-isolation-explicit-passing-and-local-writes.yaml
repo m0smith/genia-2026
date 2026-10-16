@@ -1,0 +1,29 @@
+name: f2-module-entry-isolation-explicit-passing-and-local-writes
+category: eval
+description: F2 contract 4.2/4.4/5 a module reaches entry values only through explicit arguments, keeps legitimate runtime access, and a module write to a same-spelled name never changes the entry binding
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          add_to(x) = x + 1
+          local_write() = {
+            entry_only = 99
+            entry_only
+          }
+          use_runtime() = map((x) -> x + 1, [1, 2])
+      - path: main.genia
+        source: |
+          import lib
+
+          entry_only = 5
+
+          [lib.add_to(entry_only), lib.local_write(), lib.use_runtime(), entry_only]
+expected:
+  stdout: "[6, 99, [2, 3], 5]\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - multi_file_eval
+  - prelude_autoload
