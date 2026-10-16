@@ -596,7 +596,7 @@ permanent configuration option.
   `log = 5`, or redefining a prelude function such as `map`) still writes through to R and is visible to
   modules and the prelude, as pinned by
   `test_B4_A_module_scope_operations_preserve_module_isolation[runtime_owned]`. Ending that is the
-  write-through / shadowing retirement (D2/D2b, A1), a separate decision. Module and prelude reads of
+  write-through / shadowing retirement (D2/D2b, A1), a separate decision tracked by #1257. Module and prelude reads of
   such bindings (A1(b)) were measured for modules only: two observed reads, both in deliberate P2
   tests. Prelude reads were not counted.
 
