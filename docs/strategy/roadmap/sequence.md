@@ -167,9 +167,12 @@ F2/P2 (module/entry scope isolation) landed through
 closeout; #1220 and #1221 are complete and closed.
 [#1230](https://github.com/m0smith/genia-2026/issues/1230) owned the temporary
 module-to-entry fallback's retirement. The maintainer ruled that implicit module
-lookup of entry variables must not become permanent, and the removal change
-deletes the fallback and its strict switch; the R29 hard gate is satisfied when
-that removal merges, with no exception mechanism used. Optional maintenance
+lookup of entry variables must not become permanent, and
+[#1254](https://github.com/m0smith/genia-2026/pull/1254) deleted the fallback and
+its strict switch (merged 2026-10-16T16:55:36Z, after a warning-enabled exposure
+of about 19 hours from [#1247](https://github.com/m0smith/genia-2026/pull/1247)).
+The R29 module-fallback hard gate is therefore satisfied; no exception mechanism
+was used, and absence of third-party reliance was never established. Optional maintenance
 debt is archived in [#1238](https://github.com/m0smith/genia-2026/issues/1238)
 for measurement-led consideration alongside R34; it does not block P2 closeout
 or R29. Minor residual observations remain in that record for consideration
@@ -181,7 +184,7 @@ This is an unnumbered **new semantic follow-up**, not a reopening of completed R
 
 **Gate order:** [#1249](https://github.com/m0smith/genia-2026/issues/1249) is the pre-flight and contract decision; [#1250](https://github.com/m0smith/genia-2026/issues/1250) is approved-contract-only failing specs and bounded implementation; [#1251](https://github.com/m0smith/genia-2026/issues/1251) is integration, host-conformance, documentation truth, and skeptical audit. Do not start language-facing R29 implementation until #1249 explicitly resolves the default-openness, immutable-binding, closed-function clause, and module-extension authority questions, and #1251 records acceptance for any changes deemed prerequisites. R29 planning and independent maintenance may proceed in parallel.
 
-**Hard invariant:** default local openness must not grant implicit cross-module mutation/extension rights. Existing R20 `extend`/`use` authority and dispatch remain in force unless an explicit approved contract changes them. #1067 deliberately excluded removing `open`; that historical constraint must not be silently rewritten. Carry the semantic dependency review forward at R32, R33, R38, and R41 pre-flights to avoid encoding unsettled syntax/IR semantics into new subsystems. Preserve the **independent** R29 implementation gate and 2026-12-14 checkpoint for module compatibility fallback [#1230](https://github.com/m0smith/genia-2026/issues/1230); do not absorb it into these issues. Unrelated cleanup and #1101 legacy documentation remediation remain release-aligned non-blockers.
+**Hard invariant:** default local openness must not grant implicit cross-module mutation/extension rights. Existing R20 `extend`/`use` authority and dispatch remain in force unless an explicit approved contract changes them. #1067 deliberately excluded removing `open`; that historical constraint must not be silently rewritten. Carry the semantic dependency review forward at R32, R33, R38, and R41 pre-flights to avoid encoding unsettled syntax/IR semantics into new subsystems. The former module-compatibility-fallback R29 gate and 2026-12-14 checkpoint ([#1230](https://github.com/m0smith/genia-2026/issues/1230)) are no longer active obligations because the fallback was removed by #1254; this gate neither inherits nor replaces them. Retirement of runtime-owned-name write-through (contract D2/D2b, amendment A1) is a separate, still-open P3 decision and is not absorbed into these issues. Unrelated cleanup and #1101 legacy documentation remediation remain release-aligned non-blockers.
 
 ## Interactive sessions and Jupyter
 
