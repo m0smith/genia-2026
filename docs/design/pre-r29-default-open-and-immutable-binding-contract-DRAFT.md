@@ -169,3 +169,54 @@ This section is the **current, precise candidate** for resolving the Codex REVIS
 | IR and multi-host evidence | Portable contract first, shared specs, exact host support/gaps; no IR-breaking shortcut | Awaiting design and evidence |
 
 **Decision gate:** Independent review remains **REVISE**, and #1249 remains **NO-GO** for #1250 until all must-approve rows are reviewed, any disputed semantics receive an explicit maintainer decision, and a fresh independent contract review returns PASS. #1229/#1230 work and the independent R29 fallback closeout gate are not modified or subsumed.
+
+## 9. Third-review candidate: observable decisions from second Codex REVISE (NOT APPROVED)
+
+Independent second review of commit `3fa80b3` found the earlier shape-conflict and all-writer immutability invariants satisfactorily specified in the draft. It still returned **REVISE**, because observable binding placement, ordinary-open declaration accumulation, annotation evaluation, and nested named function syntax remained unclear. The following proposals explicitly fill those gaps, superseding §§8.1, 8.3, and 8.4 only where more specific. Maintainer acceptance and independent re-review are still required.
+
+### 9.1 Immutable declarations and runtime-owned names
+
+- `name =: initializer` declares in the **current lexical declaration scope**, *not* via the nearest-existing-binding `=` routing. An existing binding in that same declaration scope causes a duplicate-binding error before evaluating the initializer.
+- **Conservative reserved-runtime-name exception:** in an entry program, names owned or reserved for runtime/prelude publication in parent runtime scope are not eligible for a new `=:` declaration in the entry scope, even when the prelude entry has not yet been lazily materialized. Reject them deterministically **before** evaluating an initializer. For example, `print =: 7` is rejected rather than freezing or replacing `print` in runtime scope or shadowing it in entry scope. This restriction does not prohibit ordinary nested `=:` shadowing of a non-reserved outer user binding.
+- When `name` is a non-reserved name already declared in an outer lexical scope, explicit nested `name =:` creates a distinct local immutable binding, leaving the outer binding unchanged; plain `name = expr` still resolves the nearest existing binding and respects its immutability. Parameter bindings remain mutable.
+- This **changes/adds observable entry declaration restrictions** and therefore requires explicit owner approval, exact identification of reserved runtime/prelude names (including unloaded names), and shared source/direct-IR evidence. Do not silently change existing `=` runtime-owned write-through routing, nor confuse #1229/#1230 scope closeout with approval of new `=:` semantics.
+
+### 9.2 Ordinary open function base-unit lifetime and aliases
+
+- Module-owned ordinary `f(...)` declarations of compatible clause shapes belong to **one base unit per function identity**, including **noncontiguous** declarations separated by ordinary statements. Clauses append in source execution order; repeated same-key clauses remain errors, and mixed closed/open declarations of the same binding remain invalid.
+- During **declaration/initialization of the defining module or entry**, the base unit is an incrementally assembled, identity-bearing callable interface. Calls and aliases observe only clauses already published at the current execution point. A plain `a = f` binds the *same callable interface identity*, not a snapshot, so a later `f(x,y) = ...` makes the additional arity visible through `a`, preserving existing observable ordinary-function behavior.
+- For the executable baseline `f(x)=x; a=f; f(x,y)=x+y; a(1,2)`, the result is `3`. Likewise `f(x)=x; unrelated=3; f(x,y)=x+y; f(1,2)` returns `3`. Prior calls made before later declarations are not retroactively changed.
+- The module's base unit reaches its completed ordinary declaration state when the defining module's top-level evaluation finishes successfully; entry/REPL sessions may accept subsequent declarations according to existing session semantics, and earlier same-interface aliases continue observing additions. Exported module interfaces expose the completed base unit to external `extend`/consumer `use`.
+- A consumer-local `use` creates one **immutable linked view of the selected clause set**, never a writable reference to a global contribution registry. Existing already-linked views are unaffected by later contributions, ordinary imports, or another module's future changes. This distinction between *local declaration-time accumulation* and *immutable linked views* is essential: the no-overwriting rule protects clause records and selected views, not the existence of later legitimate same-unit clause additions.
+- Metadata and annotations preserve **existing ordinary function evaluation timing and documented ownership** for existing source forms. An interface's module-owned documentation/provenance identity is stable, but the exact metadata update rules for noncontiguous later ordinary declarations must be stated and conformance-tested against the existing ordinary-function baseline; do not apply the current R20 first-`open`-only metadata restriction blindly. **Review-required choice:** preserve existing ordinary later-annotation evaluation and metadata behavior for the initial transition; if this conflicts with immutable R20 interface metadata, use a documented compatibility rule rather than introducing silent changes.
+- Do not expose a partially initialized imported module as a valid cross-module `extend` target or link a view before its own module initialization has completed. Implementation mechanisms can be settled during design; these execution observations are part of the contract.
+
+### 9.3 Closed function annotations and atomic publication
+
+- A maximal contiguous `f(...) =:` group is **structurally validated in full first** (shape, duplicate keys, mixed operators, permitted metadata and same-scope declaration collision). Structural failures publish no binding and evaluate no clause bodies or annotation expressions.
+- On structural success, a **provisional self-referential closed callable binding** becomes visible *to that declaration's annotation expressions and recursive function bodies*. Evaluate existing permitted annotations in source order using that provisional binding; then atomically commit the finished **immutable defining name** and immutable closed callable metadata.
+- **Annotation failure:** if any annotation expression raises or fails validation, withdraw the provisional name and publish **no completed lexical binding**. Side effects that actually occurred during annotation evaluation retain ordinary effects; rollback applies to *binding publication*, not arbitrary effects or external IO. The same declaration name may be retried by a later submission only under existing REPL/session error-recovery rules. No stale partial metadata survives.
+- The proposed `@doc f(0); f(x) =: "self documentation"` may evaluate `f(0)` against the assembled provisional function before final publication, retaining self-reference ergonomics. An attempt to modify the provisional binding from an annotation must be rejected as a protected write. Clause bodies themselves are not evaluated merely to construct a definition, except when explicitly invoked by an annotation.
+- Completing a REPL submission seals the closed clause group. A later submission cannot append to, reopen, or rebind its immutable defining name. Aliases never turn its closed callable into an externally extendable interface.
+
+### 9.4 Nested named-function boundary
+
+- This release **does not add nested named function declarations** of the form `make(k) = { f(x) = x + k; f }`. The currently rejected form remains rejected. Ordinary lexical factories returning lambdas remain supported unchanged; a lambda returned on each call captures its own environment and is not automatically eligible for module-owned `extend`/`use`.
+- Local expression-level `name =: expr` immutable values are within scope, but do not implicitly authorize nested `f(...) =` or `f(...) =:` statement syntax. A future local-named-function feature requires its own explicit scope and identity contract.
+
+### 9.5 Third-review acceptance examples and gating
+
+| Proposed source situation | Exact proposed observation | Remaining approval/evidence |
+| --- | --- | --- |
+| Entry `print =: 7` | deterministic reserved-name declaration rejection before initializer | owner approval; runtime/prelude reservation registry boundary |
+| Entry unloaded prelude name `name =: side_effect()` | same reserved-name rejection without evaluating initializer | evidence for lazy names |
+| Nested ordinary `x =: 1` where outer user `x` exists | distinct local shadow; outer unchanged | lexical scope cases |
+| `f(x)=x; a=f; f(x,y)=x+y; a(1,2)` | `3`; alias retains interface identity and sees later arity | source and direct-IR evidence |
+| `f(x)=x; unrelated=3; f(x,y)=x+y; f(1,2)` | `3`; noncontiguous accumulation | grouped and annotation compatibility |
+| A call to `a(1,2)` **before** second arity declaration | existing no-matching/arity behavior; no future clause visible | execution ordering |
+| Existing ordinary later annotations | retain current timing and ownership; exact metadata rules to be derived before final approval | **open review item** |
+| `@doc f(0); f(x) =: "self documentation"` | annotation sees provisional closed callable | annotation self-call and failure evidence |
+| A closed declaration whose annotation fails | error and no completed function binding; effects already run persist | session and effect ordering |
+| `make(k) = { f(x)=x+k; f }` | rejected, as at baseline | no accidental nested named-function expansion |
+
+**Approval status:** This is a third-review **candidate only**, not an approved semantic choice or a merged language contract. The ordinary *later-declaration annotation/metadata* compatibility rule is still specifically flagged for verification against the current implementation and subsequent explicit wording. Do not begin #1250 tests/implementation, claim PASS, or merge #1255 as an approved contract until that rule and the other maintainer-visible choices are resolved and independent review returns PASS. #1251 must include every acceptance case above, alongside §8.5's shared-spec, host-truth, documentation and MCP language-profile synchronization obligations.
