@@ -600,15 +600,15 @@ Exact next bounded task:
 
 ## 12. Sources and evidence limits
 
-- [Implemented STATE](../../GENIA_STATE.md), [RULES](../../GENIA_RULES.md),
-  [REPL](../../GENIA_REPL_README.md), [README](../../README.md), in that order.
+- `GENIA_STATE.md`, `GENIA_RULES.md`,
+  `GENIA_REPL_README.md`, `README.md`, in that order.
 - [Approved Model B contract](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md),
   especially §§2.2–2.3, 3, 4, 5 and 6; historical
   [R20 contract](r20-open-functions-contract.md) and
   [syntax/IR design](r20-open-functions-syntax-ir-design.md).
 - [Core IR boundary](../architecture/core-ir-portability.md),
   [executable conformance](../architecture/executable-semantic-conformance.md),
-  [run-change](../process/run-change.md), [killer workflow](../strategy/killer-workflow.md),
+  `docs/process/run-change.md`, `docs/strategy/killer-workflow.md`,
   [roadmap](../strategy/release-roadmap.md), [sequence](../strategy/roadmap/sequence.md).
 - [#1249](https://github.com/m0smith/genia-2026/issues/1249),
   [#1250](https://github.com/m0smith/genia-2026/issues/1250),
@@ -622,3 +622,52 @@ Exact next bounded task:
 This design does not claim Model B tests pass, full regression, executed C++
 parity, or resolution of separate #1229/#1257 work. Verification of this document
 must be reported separately from future implementation evidence.
+
+
+## 13. Independent Claude design review — required corrections (2026-10-16; NOT IMPLEMENTED)
+
+**Verdict: REVISE.** Independent review of PR #1259 head `3fad20d` found no fundamental Model B architectural contradiction, but the Slice A TEST ONLY gate must stay **CONDITIONAL / NOT YET AUTHORIZED** until the following decisions are incorporated and independently re-checked. The rules below **supersede conflicting earlier design wording**, without changing the approved contract or claiming implemented behavior.
+
+### 13.1 Header grammar — explicit additional maintainer decision required (F1)
+
+**Proposed syntax**, subject to maintainer confirmation: ordinary and closed named function headers use the existing historical explicit-R20-`open` lambda-parameter-pattern grammar, `name(<lambda-parameter-pattern-list>) [? guard]`, followed by the otherwise permitted declaration separator/body (`=`, `=:`, `->`, or block where already legal). Pattern types and guard placement must exactly follow the portable existing `open` restrictions; do not invent a matcher language. Grouped `IrCase` bodies require an identifier-only header with no header guard (same rejection as `open`). Identifier-only ordinary headers retain their existing normalized wire form. A closed declaration containing a pattern header must remain one child of its atomic group. **Do not authorize pattern-headed shared red tests until the maintainer approves this syntax choice.**
+
+The present contract's phrase `f(pattern) = expr` is insufficient to settle the exact grammar on its own. This is the review's one unresolved explicit semantic choice, not an implementation detail.
+
+### 13.2 IR carrier, source/direct IR and phased acceptance (F3, F7, F8)
+
+Choose a **distinct `IrPatternFuncDef`** for an ordinary or closed pattern-headed clause, instead of adding optional `pattern`/`guard` fields to the legacy `IrFuncDef` that an old evaluator could ignore. It has `name`, one required full tuple pattern, optional guard, body, annotations and span; it has **no competing `params/rest_param` interpretation**. Legacy identifier-header `IrFuncDef` wire normalization remains byte-stable. `IrClosedFuncDef.declarations` contains nonempty ordered declaration records of legacy `IrFuncDef` or `IrPatternFuncDef`, only after grammar approval. Unknown carriers and malformed direct IR must reject explicitly, never downgrade semantics. Iterators, normalizers and optimizers must traverse *all* children (including existing R20 nodes) and reject host-local nested nodes.
+
+**Mixed operator phase:** a contiguous same-name declaration run containing both `=` and `=:` fails at parse/lower time with proposed normalized category `mixed-function-declaration-operators`, before evaluation. A later same-name declaration separated by another statement or another completed REPL submission instead fails at runtime as same-scope binding collision. This exact category is a design proposal; no implemented-error claim.
+
+**Slice A partial support:** if Slice A accepts/lower `=:` but cannot execute it yet, evaluation must fail explicitly under proposed `model-b-not-implemented` category, not treat it as mutable `=`. Update `GENIA_STATE.md` and relevant book/reference truth at Slice A merge to say **parse/lower supported; evaluation explicitly unsupported**, without advertising executable Model B. MCP language-profile executable claims wait for verified execution. Alternatively land IR carriers without enabling source acceptance; however Slice A shared parse tests then must be postponed. The test phase must fix this choice before implementation.
+
+**Versioning:** Do not unilaterally require Core IR `0.2.0`: existing manifest `core_ir_version` lacks an enforcing consumer and R20 already added carriers without such a bump. Existing R16 `contract_revision` is the conformance pin. A version-label change requires an independently justified/approved consumer boundary rather than presumed R41 framework work. Add manifest `minimal_portable_node_families` and `_MINIMAL_PORTABLE_NODE_FAMILIES` to Slice A inventory.
+
+### 13.3 Optional host capabilities and honest C++ gaps (F2)
+
+Three new independently claimable **optional** capability surfaces are justified: `immutable_bindings`, `default_open_functions`, `closed_functions`. Add to `spec/manifest.json` in the relevant TEST/implementation evidence phase, not as a design-only implementation claim. Python may claim each supported only with passing shared evidence; C++ begins with unsupported claims and exact #1250-owned entries in `spec/known_host_gaps.json`, including affected cases, host, cause and removal condition.
+
+Required `parser`, `ast_lowering`, `core_ir_eval` and `doc_help` are **not eligible for optional capability gap entries**. New syntax cases must be tagged so an old host claiming parser/lowering support cannot silently pass a wrong parse or downgrade; distinguish capability-gated executable semantics from unconditional syntax obligations. Existing C++ explicit-R20-open duplicate-clause discrepancies are a separate pre-existing issue to track and must not be concealed as an optional Model B gap or counted as conformance. An unsupported C++ negative diagnostic is not PASS. The R16 runner, protocol, and existing capability registry remain unchanged in architecture.
+
+### 13.4 Structural dispatch keys and matcher scopes (F4, F5, F6)
+
+**Numeric keys** use lowered portable wire values, not unavailable original decimal source spellings: tagged Boolean and Integer differ; binary64 values get their distinct non-integer-float type tag with shortest round-trip representation; `1` versus `1.0` must be distinct. Distinct decimal spellings rounding to the *same binary64* generate the same key. This intentionally changes existing Python R20 numeric/Boolean collision behavior; log it as a compatibility delta. `IrPatNamed` is currently not a portable normalized pattern carrier; until separately added, exclude it from shared direct-IR key cases and label host-local coverage honestly.
+
+The ordinary-function **header frame is constructed once per call and acts as parent environment for pattern matching, named matchers, arm guards and function bodies**. Match-local bindings shadow header bindings. Do not evaluate an effectful guard twice when dispatch and invocation are adapted. Preserve legacy ordinary error identities for previously defined duplicate, ambiguous or no-matching failures; use normalized R20 `open-function-*` categories for newly introduced cross-unit key/shape/ambiguity errors. Document ordinary same-required-arity fixed/varargs historical rejection becoming newly permitted, where approved shape-stratum rules make it valid.
+
+### 13.5 Writers, closure state and full-consumer inventory (F9–F11)
+
+The **self frame of a provisional closed callable must itself contain an immutable binding**: assigning to the closed name from a function body is rejected and must not redirect recursion. An annotation helper resolving a newly provisional name must see the active declaration reservation before an outer lexical/prelude name, without leaking it to another process/thread. The environment's checked write preparation and commit must be atomic against concurrently racing writers (lock or compare-and-commit).
+
+Expand Slice A/implementation inventories to include `ir.py:iter_ir_nodes` (currently misses children of some existing R20 nodes), `server_route_binding.py`, native-test discovery, `tools/code_documentation.py`, optimizers, projections and `_MINIMAL_PORTABLE_NODE_FAMILIES`. Preserve permitted ordinary annotations, including `@route`, `@test`, `@doc` and `@category`, for closed declaration groups where their ordinary counterpart is already legal; whole-group discovery must not silently omit these. Test a host-local IR node nested in a closed child, and require traversal to reject it. Do not treat metacircular child frames as direct user-Env writers without evidence; inspect `Env.set` and `Env.assign` and all publications.
+
+Existing exports are current module top-level bindings; failed module loads may be retried. Preserve file/entry diagnostic provenance without leaking host-only absolute paths, captured values or protected data. Lexer's `TOKEN_SPEC` and `PUNCTUATION_TOKENS` both require `=:` handling.
+
+### 13.6 Precise pre-red-test gate and checks (F12)
+
+Six invalid relative Markdown links in the original PR caused a **red strict-MkDocs build**. They are replaced in this revision with explicit code-path references, pending CI verification. No claim that CI is green is made before its status is actually checked.
+
+**Expanded Slice A TEST ONLY inventory:** longest-match `=:` and lookalike strings/comments/map punctuation; invalid declaration targets and missing bodies; grouped boundaries across whitespace/comments/prefix annotations/statement/submission; operator-mixing parse-time error; per-clause annotation/inline-doc handling; authorized pattern headers with guards and grouped-case rejection; ordinary noncontiguous `IrFuncDef` nodes; stable baseline ordinary and explicit-R20 snapshots; malformed direct closed-group children, walker traversal, unimplemented-node error, and minimal portable node-family inventories. Host capability/known-gap evidence must be accurate for any newly added cases. Later red-test families must cover guard visibility of header bindings, preserved ordinary diagnostics, quantized numeric keys, immutable closed self-binding and helper lexical resolution.
+
+**Gate:** after maintainer confirms §13.1 grammar, strict docs build is green, and a focused independent reviewer returns PASS on these corrections, merge design PR #1259. **Only then** start A TEST ONLY, commit red test SHA, and later implement A on a separate reviewed slice. No A–E implementation, tests, or premature runtime truth sync occurs in this design PR.
