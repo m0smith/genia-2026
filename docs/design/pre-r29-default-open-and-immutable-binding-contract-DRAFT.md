@@ -4,39 +4,58 @@ Status: **PROPOSED, NOT APPROVED; non-authoritative**. This records the Contract
 
 ## 1. Problem and goal
 
-Today R20 requires explicit `open` to introduce an extensible interface, plain function syntax is closed by default, and `name = expr` creates or updates nearest lexical name. The user prefers `=:` for immutable binding, rejects `@closed`, and proposes open function declarations as the default. The design must not silently grant third parties the right to change imported functions. #1067 was scoped to preserving existing semantics; it did not approve this redesign.
+Today R20 requires explicit `open` to introduce an extensible interface, plain function syntax is closed by default, and `name = expr` creates or updates nearest lexical name. The user prefers `=:` for immutable binding, rejects `@closed`, and proposes open function declarations as the default. The chosen Model B permits third-party additive clause contributions to any exported open function, but never silent replacement of an equivalent clause and never automatic activation of imported contributions. Distinct overlapping clauses can make calls ambiguous, and this behavioral compatibility limit must be explicit. #1067 was scoped to preserving existing semantics; it did not approve this redesign.
 
-## 2. Proposed decision — for maintainer review, not GO
+## 2. Recorded extensibility decision: Model B — for contract review, not GO
 
-**Candidate B: default-open local clause model with explicit cross-module authority.**
+**Maintainer direction (2026-10-16): choose Model B: exact duplicate protection with deterministic ambiguity detection.** Functions are open to extension by default, including cross-module contributions to exported open functions, and are **not overwritable by ordinary contribution**. This supersedes the prior draft's Candidate B (local-only openness requiring separate opt-in authorization per exported function). The contract remains **PROPOSED / NOT APPROVED FOR IMPLEMENTATION** pending review of remaining details.
 
-1. `name = expr`: unchanged lexical assignment semantics, except that assignment targeting an existing immutable binding fails deterministically. Does not silently rebind a function via a function-clause declaration.
-2. `name =: expr`: creates a **new immutable lexical binding in the current scope**, not a freeze operation on an existing one. The initializer is evaluated once on declaration; any later assignment to that exact binding fails. This does not promise deep immutability of value graphs. Shadowing rules must be explicit and must not undermine current module ownership.
-3. `f(pattern) = expr`: defines an **open-by-default local function clause run**. Adjacent clauses for the same declared function form one ordered unit. *Local openness does not itself authorize foreign extension*. R20 unit-local first-match and ambiguity semantics remain the baseline. Plain-identifier ordinary declarations, pattern-headed declarations, grouped-body syntax and nested scope behavior require an explicit compatibility decision before GO.
-4. `f(pattern) =: expr`: defines a **closed multi-clause declaration group**. The contiguous group is one atomic definition, then further clauses and `extend` attempts are rejected. Mixing `=` and `=:` in a single group is rejected before execution. A closed function's name should also be immutable **only if** that lexical behavior is explicitly approved; the two concepts must not be accidentally conflated.
-5. Cross-module contribution remains a separate authorized action, with no implicit selection on import. Current `extend` and `use` must either retain a positive opt-in target declaration or use a similarly explicit authority mechanism. **Open by default for local clauses must not mean exported functions are automatically extension-capable**. Do not invent a global mutable method table.
-6. Preserve existing R20 provenance, stable identity, clause ordering, guards, shape stratum, explicit selected contribution sets, duplicate and ambiguity rejection, Outcome propagation, TCO and import inertness except for separately approved compatibility changes.
+1. `name = expr`: retains existing nearest-lexical-binding assignment except that writing an immutable binding established by `=:` fails deterministically.
+2. `name =: expr`: creates a **new immutable lexical name binding**, with single initialization and no subsequent reassignment of that binding, even via a nested closure. An explicit new local binding's shadowing behavior still needs a scope decision. This is **not** deep immutability of reachable objects.
+3. `f(pattern) = expr`: declares an **open-by-default** function; adjacent clauses belong to one source-ordered base unit. When exported, the interface is eligible for third-party `extend` without any special opt-in declaration by its author. An ordinary import **does not** activate contributions.
+4. `f(pattern) =: expr`: declares a **closed** function formed from its contiguous multi-clause declaration run. New clauses and cross-module extension of that function are prohibited after its initial group; mixing `=` and `=:` in one declaration group is invalid. The treatment of later same-name lexical rebinding is a separate binding-rule decision that must not undermine closed-function semantics.
+5. **No overwriting:** a contribution with an identical **normalized structural dispatch key** to an existing base or included contribution clause is rejected, not substituted, even if the contributing module differs. Key equivalence follows R20's span-free alpha-normalized dispatch identity (including guard structure). This *extends* current R20's build-time duplicate rejection, which is only within one unit; the changed cross-unit behavior needs explicit new shared evidence. No value or source-order "last-wins" rule.
+6. **Distinct patterns may overlap.** Unlike disjointness-only Model A, an extension with a distinct key is permitted to exist even when it could match arguments already matched by another clause. On invocation, use R20's fixed/varargs shape stratum and first-match-per-unit behavior; if multiple participating units supply candidates, the call fails with deterministic ambiguity (rather than choosing the newest clause). No implicit specificity priority, override, or import-order preference.
+7. **Selection remains explicit.** `extend base.f(pattern) = expr` still forms an inert contribution unit in the contributing module; `use f from base with contribution` selects units to form an immutable local linked view. Base module and unrelated consumers are unchanged. Contributions retain their own lexical closure and provenance. Merely importing a module never activates its extensions.
+8. **Closed means no external extension.** `=:` is not a blanket permission for method replacement, and Model B does not introduce a privilege escalation or override authorization mechanism. Genuine intentional replacement is a later, separately gated proposal.
+9. Preserve R20 function identity, origin/provenance, source-ordered base clauses, module-scoped linked views, Outcome propagation, TCO and diagnostic hygiene unless a later contract decision explicitly changes them. Avoid global mutable method tables and breaking portable Core IR consolidation.
 
-**Unresolved design fork requiring approval:** What exact source declaration makes an exported default-open local function eligible for cross-module `extend`? Preferred conservative option is to retain `open f(...)=...` temporarily as the *cross-module authorization marker* while allowing `f(...)=...` to be locally open. This is *not* `@closed`, and the `open` keyword has a narrower purpose. Alternative: a separate export/extension permission, but that expands scope into module syntax. Do not remove `open` until a concrete alternative is approved.
+### Duplicate versus overlap — essential distinction
 
-## 3. Semantic decision table (candidate / expected tests)
+A different-looking pattern is not necessarily disjoint: `f(0)` and `f(x)` both match input `0`; `f({status: "ready"})` and `f({status: s})` overlap on ready records. Model B permits the structurally distinct clause but **never silently prioritizes it over an already matching clause from another unit**.
 
-| Source / situation | Proposed outcome | Open question |
+An identical dispatch key is rejected in the *effective composed view*, including across different contributing units and between base and contributions. Whether duplicate keys are rejected at contribution declaration time versus link-time depends on whether the target's base unit is available and on module identity; the final contract must pin a deterministic check boundary. Two different units' duplicate clauses **must not** survive into a callable linked view. This is a deliberate divergence from the current R20 rule (cross-unit duplicate keys are presently call-time ambiguity, not build-time duplicate errors).
+
+### Remaining review decisions (do not assume settled)
+
+- **Duplicate detection stage:** validation at `extend` declaration, at `use` linked-view construction, or both where possible; deterministic error identity and diagnostic provenance.
+- **Base unit versus contributed unit:** overlapping but different clauses in different units cause ambiguity; within one base/contribution unit existing R20 first-match order remains. Verify this is the intended meaning of "not overwritable" and document that new same-unit clauses can match earlier inputs without overriding earlier first-match choices.
+- **Open function compatibility:** existing `open f(...)` spelling, ordinary-function parameter patterns and grouped clauses, and closed-source migration must be reconciled without silently changing dispatch.
+- **Closed function name binding:** ensure that `f(...) =:` prohibits extension even if the callable is aliased; decide whether same-name lexical rebinding is separately prohibited.
+- **Scope/portability:** nested functions, immutable shadowing and error stage/classes, runtime module/entry separation (#1229/#1230), `IrFuncDef` versus `IrOpenFuncDef`, Python/C++ capabilities and shared specs.
+
+## 3. Semantic decision table (Model B candidate / expected tests)
+
+| Source / situation | Proposed outcome | Open contract detail |
 | --- | --- | --- |
-| `x =: 1; x = 2` in same lexical binding | error, no write | exact error stage/class |
-| `x =: 1; x =: 2` same scope | duplicate declaration error | duplicate diagnostic identity |
-| outer `x =: 1`; nested `x =: 2` | lexical shadow only if new local declaration is permitted | shadowing policy vs #1229/#1230 |
-| outer `x =: 1`; nested `x = 2` | reject nearest-immutable write, no implicit shadow | stage/class |
-| `f(0) = 1; f(n) = 2` contiguous | one local open function with source-order clauses | prevent overlap incompatibility with old ordinary function path |
-| `f(0) =: 1; f(n) =: 2` contiguous | one sealed group after construction | first declaration time/atomicity |
-| `f(0) = 1; f(n) =: 2` | reject mixed group | parse vs lowering error |
-| `f(0) =: 1; unrelated = 3; f(n) =: 2` | reject late clause, not reopen | treatment of a new scoped binding |
-| imported `module.f` with no explicit cross-module authority | foreign `extend` rejected | exact authorization mechanism |
-| imported authorized `module.f` + matching `extend` + `use` | existing R20 selected-view rules | how local default-open interfaces are represented |
-| plain `f = other_callable` | ordinary name assignment; not clause extension | compatibility with callable rebinding |
-| `f(pattern) = body` nested in function/block | no new nested-open semantics without separate approval | likely keep current nested restrictions |
+| `x =: 1; x = 2` in same lexical binding | immutable write error; no write | error stage/class |
+| `x =: 1; x =: 2` same lexical scope | duplicate immutable declaration error | diagnostic identity |
+| outer `x =: 1`; nested `x =: 2` | explicit local shadow, if allowed | decide scope rule vs #1229/#1230 |
+| outer `x =: 1`; nested `x = 2` | reject nearest immutable write | stage/class |
+| `f(0) = 1; f(n) = 2` contiguous | one open base unit; source-order matching | compatibility with ordinary grouped function |
+| `f(0) =: 1; f(n) =: 2` contiguous | closed multi-clause initial group | finalize grouping/atomicity |
+| `f(0) = 1; f(n) =: 2` same run | reject mixed open/closed group | parse/lowering policy |
+| `f(0) =: 1; unrelated = 3; f(n) =: 2` | reject late closed extension | treatment of redeclaration |
+| `base.f(0) = ...` and external `extend base.f(0) = ...` | exact duplicate rejected in composed view, no replacement | detection stage/diagnostics |
+| `base.f(0) = ...` and external `extend base.f(x) = ...` | distinct pattern permitted; on a call with 0, ambiguity if both units match | normalize key and ambiguity |
+| exported open `base.f`, external `extend base.f(1)=...` | permitted without owner opt-in; inert until explicit `use` | extension authorization by openness |
+| ordinary `import` of base and contribution | no activation; base's behavior unchanged | import inertness |
+| `use f from base with contrib` | linked view includes selected clauses only, with deterministic collision policy | duplicate check |
+| `extend base.closed(...)` where base defines `=:` | reject; no linkable contribution | stable closed identity |
+| `f = other_callable` | lexical assignment, not clause replacement | collision/rebinding policy |
+| nested `f(pattern) = body` | no newly approved nested-open semantics | explicit restriction unless approved |
 
-All entries remain proposals until contract approval. Clauses marked `=:` are *not* claimed executable in today's runtime.
+All source examples involving `=:` or default-open functions are **proposed**, not executable behavior in current Genia.
 
 ## 4. Compatibility matrix / migration budget
 
@@ -51,7 +70,7 @@ All entries remain proposals until contract approval. Clauses marked `=:` are *n
 
 1. **Observable semantic boundary:** source parsing, lexical assignment/declaration, function clause grouping/dispatch, module extension authority, diagnostics, REPL persistence. Authority remains STATE/RULES until implementation lands.
 2. **Portable representation/Core IR:** existing `IrAssign`, `IrFuncDef`, `IrOpenFuncDef`, `IrOpenContribution`, `IrOpenUse` supply baseline; immutability and default-local-open indicators require a design-proven carrier. No breaking IR rewrite or host-derived semantics.
-3. **Shared executable evidence:** propose capability-scoped shared spec YAML for immutable assignment, function declaration/dispatch, authorized/unselected cross-module extension, parity of errors and source grouping; tests originate in #1250 after contract approval.
+3. **Shared executable evidence:** propose capability-scoped shared spec YAML for immutable assignment, function declaration/dispatch, default-eligible/unselected cross-module extension and cross-unit duplicate-versus-overlap distinction, parity of errors and source grouping; tests originate in #1250 after contract approval.
 4. **Capability applicability:** inspect existing `spec/manifest.json` `open_functions` and multi-file capabilities and reuse where accurate; do not invent a capability/runner merely for convenience. Differentiate existing ordinary function/assignment surface from optional extension surface.
 5. **Host claims:** Python full reference host currently implements R20; C++ is bounded R27 and reports specific unsupported cases. #1250 must verify actual capabilities and update host matrix/spec gating with measured evidence; no parity claim yet.
 6. **Host-gap policy:** portable changes must have Python and C++ shared evidence or explicit issue-backed `spec/known_host_gaps.json` entry naming host, affected cases, reason and removal condition before claiming merge-ready compatibility. Do not mask gaps as successful tests.
@@ -63,7 +82,7 @@ All entries remain proposals until contract approval. Clauses marked `=:` are *n
 
 - #1253 analysis is merged; roadmap gate PR #1252 may be merged separately.
 - #1229 owns P2 execution closeout and #1230 owns compatibility fallback/retirement. Do not edit their runtime scope files or decide their acceptance here. Refresh module/entry-scope baseline before finalizing this contract.
-- Review and resolve §2 extension-authority fork, closed function binding semantics, nested/local definition scope, parameter immutability and duplicate-definition diagnostics before recording GO.
+- Model B extensibility direction is recorded, but review and resolve §2 duplicate-detection stage, closed-function name binding, nested/local definition scope, immutable shadowing, parameter behavior, module-boundary effects and duplicate-definition diagnostics before recording GO.
 - No #1250 implementation, red tests, or authoritative language-state edits until the pre-flight fields and contract decisions are formally accepted by maintainer.
 - Once approved: #1250 phases design → failing shared tests → bounded Python/C++ implementation and host gaps → maintainability review; #1251 documentation truth → audit → distillation. Instructions for Codex must keep all four root docs, semantic registry/MCP profile, and release evidence up to date when behavior lands.
 - R29 language-facing implementation is blocked until approved semantic prerequisite and integration gate; independent planning remains allowed; #1230 remains a second independent R29 gate.
