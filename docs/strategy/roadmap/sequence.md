@@ -158,14 +158,19 @@ closed by default. Portable repairs require shared evidence and accurate
 Python/C++ conformance claims. Breaking Core IR consolidation remains deferred
 to R41 or another separately approved versioned-IR gate.
 
-F2 (module/entry scope isolation) execution is tracked in
-[#1229](https://github.com/m0smith/genia-2026/issues/1229) (P2-B through P2-G; contract §16 is approved and the
-P2 stack is published as unmerged stacked PRs #1235, #1239–#1242 plus P2-G) and the temporary compatibility
-fallback's evidence-gated removal in
-[#1230](https://github.com/m0smith/genia-2026/issues/1230). Completion also
-requires #1220 and #1221. The fallback removal is a blocker for R29
-implementation intake unless a recorded revised decision says otherwise.
-F2/P2 is not complete until the stack is merged to `main`.
+F2/P2 (module/entry scope isolation) landed through
+[#1247](https://github.com/m0smith/genia-2026/pull/1247).
+[#1229](https://github.com/m0smith/genia-2026/issues/1229) owns final execution
+closeout; #1220 and #1221 are complete and closed.
+[#1230](https://github.com/m0smith/genia-2026/issues/1230) owns the temporary
+fallback's evidence-gated retirement and approved A2 exception mechanism:
+before R29 implementation, remove the fallback or record a revised decision
+naming owner, reason, remaining evidence and a new absolute date. Its mandatory
+review checkpoint is 2026-12-14 UTC, not automatic removal. Optional maintenance
+debt is archived in [#1238](https://github.com/m0smith/genia-2026/issues/1238)
+for measurement-led consideration alongside R34; it does not block P2 closeout
+or R29. Minor residual observations remain in that record for consideration
+when related code changes; no new implementation work is authorized here.
 
 ## Interactive sessions and Jupyter
 
