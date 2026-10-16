@@ -97,7 +97,7 @@ def test_entry_only_names_are_invisible_to_meta_frame_reflection_without_transfe
     assert _is_missing(_show(entry, 'eval(quote(meta("undocumented_entry_only")), empty_env())'), "meta")
 
 
-def test_module_metacircular_reflection_gets_no_entry_fallback(tmp_path):
+def test_module_metacircular_reflection_cannot_see_entry_names(tmp_path):
     (tmp_path / "meta_mod.genia").write_text(
         'probe() = eval(quote(doc("documented")), empty_env())\n',
         encoding="utf-8",
@@ -105,7 +105,6 @@ def test_module_metacircular_reflection_gets_no_entry_fallback(tmp_path):
     entry = _entry()
     run_source("import meta_mod", entry, filename=str(tmp_path / "entry.genia"))
     assert _is_missing(_show(entry, "meta_mod.probe()"), "doc")
-    assert not entry.runtime_scope().fallback_events
 
 
 def test_rebinding_a_reflective_name_in_the_meta_frame_wins_over_the_runtime_builtin():

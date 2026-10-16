@@ -18,7 +18,6 @@ if __package__ in (None, ""):
     from genia.utf8 import format_debug, format_display
     from genia.equality import genia_equal
     from genia.environment import Env
-    from genia.module_fallback import temporary_compatibility_fallback_read
     from genia.errors import GeniaQuietBrokenPipe
     from genia.ast_nodes import (
         Assign, Binary, Block, Boolean, Call, CaseClause, CaseExpr, Delay,
@@ -64,7 +63,6 @@ else:
     from .utf8 import format_debug, format_display
     from .equality import genia_equal
     from .environment import Env
-    from .module_fallback import temporary_compatibility_fallback_read
     from .errors import GeniaQuietBrokenPipe
     from .ast_nodes import (
         Assign, Binary, Block, Boolean, Call, CaseClause, CaseExpr, Delay,
@@ -551,7 +549,7 @@ class GeniaMetaEnv:
     metacircular operators) and extended by `extend`, which makes a child frame. A frame sees names
     bound in it by `define`/`extend`, rebinds the nearest assignable one with `assign`, and otherwise
     resolves up the chain to R. `lookup` binds raw `doc`/`meta`/`help` to the
-    frame it is read in; no module-to-entry compatibility fallback applies to this class.
+    frame it is read in.
     """
 
     def __init__(self, env: Env):
@@ -567,8 +565,8 @@ class GeniaMetaEnv:
         A raw runtime reflective builtin (`doc`/`meta`/`help`) is returned bound to this
         frame, so it sees names supplied through `define`/`extend` (contract 16.2, maintainer
         ruling on PR #1244). Any other value, including an already scope-bound callable
-        transferred into the frame, is returned unchanged and keeps its captured scope. No
-        compatibility fallback applies here; the chain is the frame up to the runtime root.
+        transferred into the frame, is returned unchanged and keeps its captured scope. The
+        chain is the frame up to the runtime root.
         """
         try:
             value = self._env.get(name)
@@ -1231,12 +1229,9 @@ class Evaluator:
         try:
             value = self.env.get(name)
         except NameError:
-            if self.env.try_autoload(name, autoload_arity):
-                value = self.env.get(name)
-            else:
-                found, value = temporary_compatibility_fallback_read(self.env, name)
-                if not found:
-                    raise
+            if not self.env.try_autoload(name, autoload_arity):
+                raise
+            value = self.env.get(name)
         if type(value) is FunctionType:
             binder = getattr(value, Env.SCOPE_BINDER_ATTR, None)
             if binder is not None:

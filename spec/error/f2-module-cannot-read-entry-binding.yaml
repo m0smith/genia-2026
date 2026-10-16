@@ -1,0 +1,26 @@
+name: f2-module-cannot-read-entry-binding
+category: error
+description: F2 contract 4.2/5 a module free-name read never resolves to an entry-program binding, so the read is an ordinary undefined-name error even though the entry program declares the name
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          read_entry() = entry_only
+      - path: main.genia
+        source: |
+          import lib
+
+          entry_only = 5
+
+          lib.read_entry()
+expected:
+  stdout: ""
+  stderr: "Error: Undefined name: entry_only\n"
+  exit_code: 1
+requires:
+  - multi_file_eval
+notes: |
+  error_phase: eval
+  error_category: NameError

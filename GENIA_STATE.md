@@ -2923,15 +2923,14 @@ Core IR shape includes:
 `make_program_env` paths register entry scope E (child of runtime scope R); caller-created
 roots register none. Entry bindings of runtime-owned names (runtime bindings, autoloads, prelude
 declarations, including unregistered helpers such as `map_acc`) write through to R and stay
-visible to modules and the prelude until P3; other entry bindings live in E, hidden from both.
+visible to modules and the prelude until a separate shadowing decision; others live in E, hidden from both.
 `empty_env()` is R-based; raw `doc`/`meta`/`help` inside `eval` bind to the meta frame (an
 already-bound one keeps its scope); the `help()` catalogue/sink are runtime-owned.
 `:env`, debugger globals and native discovery show the entry/unit scope plus runtime-owned names
 the entry bound successfully.
-TEMPORARY COMPATIBILITY FALLBACK (removal tracked in #1230): a module identifier read missing
-normal lookup returns the entry scope's own binding, with one value-free stderr warning per
-distinct (module, name) per execution; never for writes, reflection, exports, prelude, `eval` or host lookup.
-`GENIA_STRICT_MODULE_SCOPE=1`, read once at runtime construction, makes it the ordinary `NameError`.
+A module cannot read or write entry variables by implicit lookup: a module identifier read missing
+its chain, the runtime and autoload is the ordinary `Undefined name` `NameError` (fallback and switch
+removed, #1230); module assignments stay local. Entry values reach modules only via arguments or entry closures.
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension

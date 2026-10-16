@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import os
 import sys
-import threading
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
@@ -20,15 +18,6 @@ def _interpreter_runtime() -> Any:
     from . import interpreter
 
     return interpreter
-
-
-def strict_module_scope_requested() -> bool:
-    """Read the strict module-scope switch (`GENIA_STRICT_MODULE_SCOPE=1`) from the process environment.
-
-    The single capture point's reader: callers read it once when they establish a runtime's fallback
-    state (`Env.init_fallback_state`) and never again for that execution.
-    """
-    return os.environ.get("GENIA_STRICT_MODULE_SCOPE") == "1"
 
 
 def _check_host_visibility(visibility: str) -> None:
@@ -102,14 +91,6 @@ class Env:
     # F2/P2-D: evaluation-bound reflective callables created for this lexical scope,
     # keyed by the original runtime target. Created lazily so ordinary frames pay nothing.
     _scope_bound: "dict[Any, Any] | None" = None
-    # F2/P2-E temporary module fallback state, assigned on the runtime scope R by
-    # `init_fallback_state` (see module_fallback.py): the per-execution set of distinct
-    # (module identity, name) events, the lock making "claim an unseen pair" atomic, and
-    # the strict switch captured once. All three stay None/False on an unregistered
-    # caller-created single-root harness, which has no fallback.
-    fallback_events: "set[tuple[str, str]] | None" = None
-    _fallback_lock: "threading.Lock | None" = None
-    strict_module_scope: bool = False
     # Name of the function attribute marking a runtime reflective builtin as bindable
     # to the scope where its identifier is evaluated (set by builtins, read by the evaluator).
     SCOPE_BINDER_ATTR = "__genia_scope_binder__"
@@ -266,36 +247,6 @@ class Env:
         runtime = self.runtime_scope()
         return runtime if runtime._entry is not None else self
 
-    def init_fallback_state(self, *, strict_module_scope: bool) -> None:
-        """Establish this runtime's per-execution fallback accounting (R only, once).
-
-        Creates the empty event set and its lock and records the strict switch. The
-        strict switch is passed in so the caller owns the capture point: the program
-        factory captures it when it builds R, `create_entry_scope` when it registers E
-        on a runtime the factory did not build. Raises RuntimeError if the state already
-        exists, so the capture cannot be redone mid-execution. PYTHON REFERENCE HOST ONLY.
-        """
-        if self.fallback_events is not None:
-            raise RuntimeError("fallback state is already established for this runtime")
-        self.fallback_events = set()
-        self._fallback_lock = threading.Lock()
-        self.strict_module_scope = strict_module_scope
-
-    def claim_fallback_event(self, pair: tuple[str, str]) -> bool:
-        """Atomically record `pair`; True only for the one caller that first recorded it.
-
-        The check and the add share one per-runtime critical section, so concurrent
-        readers of the same pair elect exactly one winner (who then writes the single
-        warning, outside this lock). Different runtimes never contend. Holds no other
-        lock and performs no I/O. Requires both the event set and the lock and raises
-        TypeError if either is missing; the one caller checks only the event set first.
-        """
-        with self._fallback_lock:
-            if pair in self.fallback_events:
-                return False
-            self.fallback_events.add(pair)
-            return True
-
     def create_entry_scope(self) -> "Env":
         """Allocate and register the execution's entry scope E as a child of this runtime.
 
@@ -304,11 +255,7 @@ class Env:
         of the execution. Failure: raises RuntimeError when called on a non-runtime
         Env, or when an entry scope is already registered; the first registration
         is never replaced. Side effects: marks R as sealed against late
-        runtime-public host work (contract 16.1.6); when R was not built by the program
-        factory (no fallback state yet) it also establishes that state here and captures
-        `GENIA_STRICT_MODULE_SCOPE` once, so every registered execution has fallback
-        accounting. A factory-built R keeps the state and strict switch it captured at
-        construction. PYTHON REFERENCE HOST ONLY.
+        runtime-public host work (contract 16.1.6). PYTHON REFERENCE HOST ONLY.
         """
         if self.parent is not None:
             raise RuntimeError("entry scope registration is an operation on the runtime scope")
@@ -318,8 +265,6 @@ class Env:
         entry._unit_scope = entry
         entry._is_entry = True
         entry.entry_declared_runtime_owned = set()
-        if self.fallback_events is None:
-            self.init_fallback_state(strict_module_scope=strict_module_scope_requested())
         self._entry = entry
         return entry
 

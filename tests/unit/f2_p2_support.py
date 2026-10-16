@@ -89,20 +89,3 @@ def wrong_accessor(monkeypatch, owner, accessor, replacement):
     """
     assert getattr(owner, accessor)() is not replacement
     monkeypatch.setattr(owner, accessor, lambda: replacement)
-
-
-def fallback_events(runtime):
-    """Expose the approved R event set without requiring a public API name.
-
-    P2-E chooses storage; accept a set-valued fallback field or zero-argument
-    fallback_events accessor. Missing measurement never becomes an empty set.
-    """
-    for name in dir(runtime):
-        if "fallback" not in name:
-            continue
-        value = getattr(runtime, name)
-        if isinstance(value, (set, frozenset)):
-            return value
-        if name in ("fallback_events", "module_fallback_events") and callable(value):
-            return value()
-    pytest.fail("P2-C API missing: R-owned fallback event measurement (§16.3.2; green-making P2-E)")

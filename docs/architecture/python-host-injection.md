@@ -75,28 +75,12 @@ discovery read the entry scope plus its declared runtime-owned names via
 `Env.inspection_bindings()`/`Env.binding_owner()`; debug hooks and mode live on R once
 E is registered (`Env.debug_state_scope()`); error and test-report sinks read R.
 
-## F2/P2-E temporary module compatibility fallback (Python reference host only)
+## Module reads of entry names (Python reference host only)
 
-`src/genia/module_fallback.py` (`temporary_compatibility_fallback_read`, marker
-`TEMPORARY COMPATIBILITY FALLBACK`) is called from exactly one place:
-`Evaluator._resolve_identifier`, after the module chain, runtime, trusted internals and
-one autoload retry all missed. It returns the entry scope's **own** binding of the name
-when an entry is registered, the evaluating unit is a module (R20 contribution clauses
-count as their declaring module; entry, prelude and runtime never do) and strict mode is
-off. Each distinct `(canonical module identity, name)` pair is added once, atomically
-(`Env.claim_fallback_event`, a per-runtime lock held only for the check and add; the
-warning is written after release), to
-`runtime.fallback_events` (per execution, on R) and produces one warning line on the
-runtime `stderr` sink (module and name only; no value, path or exception text; a failing
-stream is ignored). `GENIA_STRICT_MODULE_SCOPE=1`, read exactly once per execution (in
-`make_global_env`, or in `create_entry_scope()` for a runtime the factory did not build), makes the same read raise the ordinary `Undefined name` `NameError`
-and records nothing. It is never used for writes, `doc`/`meta`/`help`, exports,
-metacircular `eval`/`empty_env()`, host `Env.get`, REPL/debugger/discovery inspection or
-runtime-owned names (entry-declared runtime-owned names live in R and need no fallback).
-Caller-created roots register no entry, so they never use it. Removal (P3) is deleting
-the module, its one call, two `Env` class attributes and the two construction lines in
-`make_global_env`; the retirement gate is tracked in #1230 (approved amendment A2:
-evidence criteria, R29 start as a hard planning gate, sixty days after warning-enabled P2
-first reaches `main` as a mandatory review checkpoint, never an automatic deletion).
-CI runs the default and strict suites (`.github/workflows/ci.yml`); tests that exercise
-the fallback clear the variable themselves. No other host implements this.
+A module free-name read follows the module chain, then the runtime scope (including trusted
+internals and one autoload retry) in `Evaluator._resolve_identifier`; when that misses, the ordinary
+`Undefined name` `NameError` is raised. There is no module-to-entry compatibility path: the
+F2/P2-E fallback (`module_fallback.py`, its per-execution event set and `GENIA_STRICT_MODULE_SCOPE`
+switch) was removed under #1230. Entry-declared runtime-owned names are written through to R and stay visible
+to modules and the prelude (STATE section 9, until the separately gated shadowing decision); all other
+entry bindings stay in E. Caller-created roots register no entry. No other host implements this.

@@ -383,7 +383,7 @@ Required constraints:
 - Invalid targets such as `(a + b) = 3` must raise `SyntaxError("Assignment target must be a simple name")`.
 - Module evaluation keeps its own module environment boundary, so module top-level assignment must not rebind names in the importing root environment.
 - Builtin/root names are not protected from rebinding inside the same root environment in the current implementation.
-- PYTHON REFERENCE HOST (F2/P2): on host-constructed entry paths module code does not see the entry program's own bindings, and `doc`/`meta`/`help` resolve in the scope where they are evaluated. Exceptions, both temporary and Python-host-only (STATE section 9): entry definitions of runtime-owned names stay visible to modules and the prelude, and the marked compatibility fallback (`GENIA_STRICT_MODULE_SCOPE=1` disables it) lets a module identifier read reach an entry binding with a warning.
+- PYTHON REFERENCE HOST (F2/P2): on host-constructed entry paths module code does not see the entry program's own bindings, and `doc`/`meta`/`help` resolve in the scope where they are evaluated. A module identifier read of an entry binding is the ordinary `Undefined name` error, and no environment switch changes this. One exception, temporary and Python-host-only (STATE section 9): entry definitions of runtime-owned names stay visible to modules and the prelude.
 
 ## 8.3.1) Named function definition surface forms
 

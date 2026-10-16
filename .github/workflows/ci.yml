@@ -1,5 +1,4 @@
-# Main CI: docs coverage, cheatsheets, fast tests (default and strict module-scope), VS Code extension, MCP client acceptance.
-# Strict module-scope steps (F2/P2-E, #1230) prove the repository does not rely on the temporary module fallback.
+# Main CI: docs coverage, cheatsheets, fast tests, VS Code extension, MCP client acceptance.
 name: CI
 
 on:
@@ -86,22 +85,6 @@ jobs:
       - name: Run non-slow loopback tests
         run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 --cov=genia --cov-append --cov-report=term-missing -m "not slow and loopback" -n auto
       - name: Run semantic specs
-        run: python -m uv run --python "$UV_PYTHON" python -m tools.spec_runner
-      # F2/P2-E (issue #1230): the temporary module-to-entry fallback must be unused by the
-      # repository's own tests and programs. Strict mode turns any fallback read into the
-      # ordinary undefined-name error; tests that intentionally exercise the fallback clear
-      # GENIA_STRICT_MODULE_SCOPE themselves. Python-host-only check; no C++ claim.
-      - name: Run non-slow, non-loopback tests in strict module-scope mode
-        env:
-          GENIA_STRICT_MODULE_SCOPE: "1"
-        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 -m "not slow and not loopback" -n auto
-      - name: Run non-slow loopback tests in strict module-scope mode
-        env:
-          GENIA_STRICT_MODULE_SCOPE: "1"
-        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 -m "not slow and loopback" -n auto
-      - name: Run semantic specs in strict module-scope mode
-        env:
-          GENIA_STRICT_MODULE_SCOPE: "1"
         run: python -m uv run --python "$UV_PYTHON" python -m tools.spec_runner
 
   extension:

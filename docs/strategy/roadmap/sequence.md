@@ -165,11 +165,11 @@ F2/P2 (module/entry scope isolation) landed through
 [#1247](https://github.com/m0smith/genia-2026/pull/1247).
 [#1229](https://github.com/m0smith/genia-2026/issues/1229) owns final execution
 closeout; #1220 and #1221 are complete and closed.
-[#1230](https://github.com/m0smith/genia-2026/issues/1230) owns the temporary
-fallback's evidence-gated retirement and approved A2 exception mechanism:
-before R29 implementation, remove the fallback or record a revised decision
-naming owner, reason, remaining evidence and a new absolute date. Its mandatory
-review checkpoint is 2026-12-14 UTC, not automatic removal. Optional maintenance
+[#1230](https://github.com/m0smith/genia-2026/issues/1230) owned the temporary
+module-to-entry fallback's retirement. The maintainer ruled that implicit module
+lookup of entry variables must not become permanent, and the removal change
+deletes the fallback and its strict switch; the R29 hard gate is satisfied when
+that removal merges, with no exception mechanism used. Optional maintenance
 debt is archived in [#1238](https://github.com/m0smith/genia-2026/issues/1238)
 for measurement-led consideration alongside R34; it does not block P2 closeout
 or R29. Minor residual observations remain in that record for consideration
