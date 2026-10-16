@@ -60,6 +60,12 @@ distillation gates. Detailed parking-lot disposition is recorded in
 [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
 Named pipeline composition [#1236](https://github.com/m0smith/genia-2026/issues/1236) is a non-blocking R29–R31 follow-up; its contract gate is in the [release sequence](roadmap/sequence.md#named-pipeline-composition-ergonomics-r29r31-non-blocking). It is not implemented behavior.
+## Pre-R29 semantic foundation gate: default-open functions and immutable bindings
+
+A **new unnumbered R20 semantic follow-up** is scheduled after the historical #1067 unified-function repairs and before R29 **language-facing implementation**. The proposal explores default-open `f(pattern) = expr`, immutable lexical `name =: expr`, and explicitly closed `f(pattern) =: expr`. These are **candidates, not implemented syntax**; current behavior and authoritative `GENIA_STATE.md` remain unchanged until contracted, tested and merged. In particular, local default openness must not silently authorize cross-module extension.
+
+Ordered issues: [#1249 contract/pre-flight](https://github.com/m0smith/genia-2026/issues/1249) → [#1250 specs/implementation](https://github.com/m0smith/genia-2026/issues/1250) → [#1251 integration/truth audit](https://github.com/m0smith/genia-2026/issues/1251). #1249 must decide whether the change is GO/NO-GO, how source compatibility and module authority are handled, and the exact prerequisites for R29. R29 planning may continue, but the affected implementation should not proceed until the semantic gate is resolved and approved implementation/audit land. #1230's module-compatibility-fallback R29 start gate remains separate and mandatory. For detailed schedule and downstream pre-flight checks see [`roadmap/sequence.md`](roadmap/sequence.md). Neither the completed #1067 nor R28 scope is reopened.
+
 ## Promoted R20 follow-up: Unified Function Model and Open-Function Repairs
 
 Issue #1067 is the primary promoted R20 follow-up, scheduled **after R28 and before R29** without a new release number or R28 scope expansion. Detailed staging and guardrails live in [`roadmap/sequence.md`](roadmap/sequence.md) and [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
