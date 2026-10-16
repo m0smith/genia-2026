@@ -50,7 +50,7 @@ result for the same SHA, reused (not re-executed).
 
 | Requirement | Tested SHA/tree | Result | Source | Remaining gap |
 |---|---|---|---|---|
-| Default full regression, non-loopback (includes slow tests; `-m "not loopback"`) | `22de326a` / `bef5310f` | **6975 passed, 60 skipped, 0 failed** (402.86 s) | Local | 60 skips not individually classified here |
+| Default full regression, non-loopback (includes slow tests; `-m "not loopback"`) | `22de326a` / `bef5310f` | **6975 passed, 60 skipped, 0 failed** (402.86 s) | Local | 60 environmental skips, classified in F-4 |
 | Strict full regression, non-loopback (`GENIA_STRICT_MODULE_SCOPE=1`) | `22de326a` / `bef5310f` | **6975 passed, 60 skipped, 0 failed** (395.59 s) | Local | same |
 | Default loopback | `22de326a` | **31 passed** | Local | none |
 | Strict loopback | `22de326a` | **31 passed** | Local | none |
@@ -59,7 +59,7 @@ result for the same SHA, reused (not re-executed).
 | Nightly multi-Python Regression workflow | `22de326a` (run 38900800273, `schedule`, attempt 1, 2026-10-16T12:28Z) | **FAILURE**: job "Compatibility (py3.10)" failed `tests/unit/test_f2_p2_corrections.py::test_r16_event_set_without_lock_raises_type_error_and_never_grants_the_read` with `AttributeError: __enter__` (`src/genia/environment.py:293`); `--maxfail=1` stopped it at 1 failed / 1717 passed / 35 skipped, so py3.10 loopback and specs were skipped. Success: py3.11, 3.12, 3.13, 3.14 (non-loopback, loopback, specs), py3.15 (experimental), full Python protocol conformance (py3.14), slow unit/spec/demo (py3.14). | CI | Classified below (section 5); py3.10 coverage gap closed locally by the supplementary rows below |
 | Python 3.10 full regression, non-loopback | `22de326a` | **6974 passed, 1 failed, 60 skipped** (428.34 s); the one failure is the test above | Local (3.10.20) | Genuine deterministic failure on the supported minimum interpreter, in a fallback-only test later removed by #1254 |
 | Python 3.10 loopback / specs | `22de326a` | 31 passed / 829/829 | Local (3.10.20) | none |
-| Isolated reproduction | `22de326a`, py3.10.20 | Test fails alone (`AttributeError: __enter__`); passes on 3.12 in the full run | Local | none |
+| Isolated reproduction | `22de326a`, py3.10.20 | Test fails alone (`AttributeError: __enter__`); passes on 3.12 in the full run | Local (terminal output, no retained log; re-verified independently by the reviewer) | none |
 | Python 3.10 full regression + loopback + specs | `e551021a` | **6946 passed, 60 skipped, 0 failed**; loopback 31; specs 831/831 | Local (3.10.20) | none |
 | Fast tests (non-slow) default+strict, loopback, specs | `22de326a` | success (run 38814088066, job "Fast tests (py3.14)", all 12 steps incl. strict steps) | CI | partition is *not* full regression; counts not retrieved (job-log tails only showed cleanup) |
 | Documentation truth | `22de326a` | `tests/doc` ran inside full regression (above); CI "Docs" run 38814088189 (strict mkdocs), "Validate LLM instructions" 38814088007 success; CI "Docs coverage" job success; cheatsheet job success | Local + CI | none |
@@ -106,7 +106,7 @@ Raw logs are retained for the pytest/spec runs only; the ruff, `gen_function_doc
 not independently re-verifiable from retained logs.
 
 A first `lint_doc.py --require-coverage` call without `--scan-dir` raised `IndexError` (wrong invocation by this task,
-not a repository defect); re-run with the CI arguments passed. No test was retried; no failure occurred.
+not a repository defect); re-run with the CI arguments passed. No test was retried. The Python 3.12 runs had no failures; the Python 3.10 run on `22de326a` had one failure (see section 5).
 
 ## 4. Historical evidence reused, and why
 
@@ -126,8 +126,10 @@ not a repository defect); re-run with the CI arguments passed. No test was retri
   `TypeError`, which the test and the method docstring expect. This is a deterministic compatibility defect in a fallback-only code
   path and test, not a flake and not a one-off: it reproduced on 3.10.20 locally, and the full local 3.10 run on the same tree shows
   it as the only failure (6974 passed / 1 failed). It was removed along with the fallback by #1254 (`e551021a`), where the 3.10 full
-  regression is clean (6946 passed). No production code was modified by this task. The failure is a real defect of the merged tree on
-  a supported interpreter; its consequence is limited to the removed code path.
+  regression is clean (6946 passed). No production code was modified by this task. The failure is a real, version-dependent defect of the merged tree on
+  a supported interpreter, but reachable only from a deliberately half-initialised runtime (the test sets `_fallback_lock = None`; supported
+  construction always installs both the event set and the lock). More precisely: a version-dependent exception type documented in the
+  docstring and pinned by the test, not a failure reachable through the supported API. Its consequence is limited to the removed code path.
 - No retries were performed. Tool-access limits (artifact download 403; job-log tails returned only cleanup lines) are in the matrix.
 - Known load flake, not observed in these runs: #1254 reports `test_r28_mcp_stdio_lifecycle[SIGINT]` timing out (60 s `uv run`
   subprocess) under `-n 4` load, also on a pristine baseline. It did not occur in any run recorded here.
@@ -152,7 +154,31 @@ not a repository defect); re-run with the CI arguments passed. No test was retri
 
 ## 7. Independent review
 
-(see appended section)
+Reviewer: independent skeptical subagent, read-only, separate from the executing session.
+
+- **Round 1 (draft v1): FAIL.** Blocking finding: the draft omitted scheduled Regression run 38900800273 (red py3.10 job on the exact merged
+  SHA) and said no test failed. Also required: skip classification, SDK-skip disclosure, "29 tests" wording, closed-tracker note, F-1 precision,
+  host-parity caveat, retained-log caveat, load-flake note. All were verified against evidence and addressed; the py3.10 failure was
+  additionally reproduced in isolation and the py3.10 full regression was run on both trees.
+- **Round 2 (this revision): PASS WITH FINDINGS.** Reviewer re-verified the 3.10 logs, the root cause (`with None:` raises `AttributeError` on
+  3.10 and `TypeError` on 3.11/3.12), the nightly-run row, and that sections 7/8 were placeholders. Four remaining wording/precision items
+  (section 3 sentence, skip-cell wording, defect reachability qualifier, reproduction-row evidence note) are applied in this version.
+
+Non-blocking limitations that remain: host parity and official-SDK acceptance rest on CI conclusions without retrieved counts; some tooling
+results lack retained raw logs; C++ commit exercised by CI parity is unidentified; the cancelled "Docs" run on `e551021` was not re-run.
+
+**Verdict: PASS WITH FINDINGS.** Both rounds are recorded; the round-1 FAIL was a defect in this report's draft, not in the repository.
+
+## 8. Recommendation
+
+- **#1229: leave closed.** Default and strict full regression including loopback and shared specs passed on the exact merge commit (Python 3.12.3);
+  Python 3.10 on the same tree has one deterministic failure in a fallback-only test, since removed by #1254. Documentation, maintained-code
+  documentation, ruff and generated-reference checks pass. Host parity, official SDK and VS Code are green in CI only.
+- No reopening is warranted: no unmet #1229 acceptance criterion remains once the limitations above are accepted. The py3.10 red nightly on
+  `22de326a` is superseded by a clean 3.10 run on current `main`.
+- **#1230** needs maintainer reconciliation (F-1): the fallback was removed by #1254, yet #1230 is open and describes it as active. This task did not alter it.
+- **#1238** untouched. #1249, #1250, #1251 and R29 not started. A smallest follow-up is optional: confirm the next scheduled Regression run on current `main` is green on py3.10.
+- #1249 pre-R29 contract work is not blocked by anything in this report.
 
 ## 8. Recommendation
 
