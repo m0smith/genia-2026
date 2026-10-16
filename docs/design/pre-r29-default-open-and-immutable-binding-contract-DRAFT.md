@@ -112,3 +112,60 @@ All source examples involving `=:` or default-open functions are **proposed**, n
 **Scope note:** review found PR #1254 merged fallback removal into main (`e551021`). This draft should not continue asserting the temporary fallback is still active; #1230 remains a separate closeout tracking item subject to verified GitHub state. Do not edit Claude's module-scope implementation or evidence.
 
 **Current disposition: CONTRACT DRAFT / REVISE / NO-GO for implementation.** Resolve BLOCKER/HIGH findings, seek maintainer decisions, and commission a fresh independent semantic review before authorizing #1250.
+
+## 8. Proposed resolution package for second review (NOT APPROVED)
+
+This section is the **current, precise candidate** for resolving the Codex REVISE findings, and supersedes ambiguous earlier statements in this draft wherever they differ. Nothing here is implemented or accepted solely because it appears in the document. Explicit maintainer contract approval and fresh independent audit remain mandatory.
+
+### 8.1 Open-by-default and linking
+
+- Each **module-owned** ordinary named function declaration defines an open interface by default, without changing the ordinary body scope, accepted annotations, inline documentation, alternate body spellings or current lexical binding of its parameter names. This is observable openness of module-owned definitions, not an implicit conversion of every callable value (lambda, builtin, host callable or local factory) into a cross-module contribution target.
+- Existing `open name(...)` is accepted as compatible explicit syntax during migration and has the same interface behavior; this design does not force historical R20 users to rewrite source.
+- External `extend alias.name(...)` of an exported module-owned open interface is permitted without an author-side opt-in. Declaration is inert; only an explicit `use` selects contributions for a consumer-local linked view. Import alone neither selects clauses nor mutates any existing view.
+- Closed callables created by `f(...)=:` cannot be `extend` targets under any alias. Plain assignment of an ordinary callable does not endow that callable with extendable interface ownership. A re-exported base interface preserves its original identity; linked-view values remain non-targetable until a separate explicit design decision.
+- Within a unit, existing source-order first-match semantics remain. Across units there is no implicit priority, "last wins", specificity ranking or replacement permission.
+
+### 8.2 Collision and shape validation (review approval required)
+
+- A **dispatch key** is a host-neutral structural, source-syntactic identity for a clause's pattern, guard and shape, with type-tagged literal encodings (so Boolean `true` is not Integer `1`), binder-aware alpha-normalization, and explicit treatment of free names as *syntactic references*. Keys make **no assertion** that two distinct clauses have disjoint accepted inputs or that equal free-name syntax has equal captured values across modules. Never evaluate a guard, named matcher or clause body to compute keys.
+- Reject duplicate keys within a base/contribution unit at construction as already required by R20. At `use` time, before a linked view is published, validate *all* selected base and contribution units together and reject **cross-unit duplicate keys** atomically with diagnostic provenance for both clauses. A contributor's inert declaration may exist even when selecting it would be invalid. Selection/order/alias changes must not change the rejection result.
+- **Proposed conservative shape-coherence rule:** refuse to link a view containing a fixed arity `n` in one participating unit and a varargs minimum arity `m <= n` in a *different* participating unit. Reject before any call rather than allowing fixed-arity selection to suppress a base varargs handler. Preserve existing shape selection *within* one unit.
+- For structurally distinct patterns with compatible shapes, link successfully even when their matches may overlap. During a call, choose the existing shape stratum and at most the first matching clause of each unit; if two or more units match, emit deterministic clause-ambiguity diagnostics, not a winner. A catch-all base clause can therefore make newly selected specializations ambiguous.
+- This guarantees **no clause record is silently replaced or overwritten**, but not full observational preservation: guards or named matchers may perform effects or fail during candidate discovery, and adding an Option-aware clause may alter argument-propagation behavior as defined in R20. State the scope of determinism as *candidate selection and diagnostics after successful matching*, not guard-effect execution order.
+
+### 8.3 Lexical immutability
+
+- `name =: initializer` declares a *fresh* immutable binding in the current lexical scope; it cannot freeze or overwrite an already-defined same-scope name (including a parameter, import alias or builtin in that scope). A valid initializer executes exactly once.
+- An explicit nested `name =:` declaration may shadow an outer binding by creating a distinct binding. Plain `name = value` retains existing nearest-binding resolution and **rejects assignment to the resolved immutable binding**, rather than implicitly shadowing it.
+- Every language-visible operation that writes a binding must respect this invariant, including ordinary assignment, `use`, import aliases, named declarations and autoload/prelude publication. No operation may overwrite an existing immutable binding as an implementation shortcut. An invalid write whose target can be resolved before evaluating its initializer is rejected **before initializer evaluation and side effects**. A value's internal Ref/Cell or other permitted mutation capability is unaffected by the binding's immutability.
+- Function parameters remain assignable under their current semantics unless individually declared otherwise in a separate proposal. Distinguish runtime-owned/entry prelude shadow/write-through from immutable user bindings; #1229/#1230 closeout determines the scope boundary, not this draft.
+
+### 8.4 Closed declarations and lifetime
+
+- A maximal consecutive run of clauses `f(pattern) =: expression` in one lexical declaration context creates **one closed callable** under **one immutable defining name**. Comments and blank lines do not break the run; any unrelated statement ends it. Validate the entire run before publishing its binding. A completed REPL submission terminates the run and cannot be reopened by a later submission.
+- A mixed `=`/`=:` run is invalid; reintroducing `f` as another same-scope declaration after the group is sealed is invalid. A plain attempted rebinding of its immutable defining name is also invalid. Closedness belongs to the callable (aliases cannot extend it); binding immutability belongs to the defining lexical name (alias names keep their own assignment policy).
+- Source-order matching, grouped patterns, recursion/TCO, annotations and doc metadata should retain currently accepted ordinary-function behavior. Do not import R20's stricter `open`-header-capture, `@doc`/`@meta`-only, or no-inline-doc rules automatically into ordinary declarations.
+- **Local named functions:** preserve currently accepted lexical factories and distinct captured callable instances. Do not assign per-execution local closures the global module/export interface key and do not permit cross-module `extend` of such instances. The precise local clause accumulation policy and direct-IR carrier are design prerequisites, not inferred from top-level interface identity.
+
+### 8.5 Portability, migration and evidence boundaries
+
+- This is a **portable semantic change**, not a Python-only parser rewrite. The design phase must define source syntax, lowering, direct-IR validation, stable identity, immutable binding storage and normalized diagnostic identities *independently* of any host's implementation.
+- The implementation phase cannot start until supported Python/C++ behavior is mapped to existing R16 shared specs and capability claims, with owned and removal-conditioned known gaps for unsupported host surfaces. No host may mask regressions in an already supported ordinary-function surface.
+- Inventory existing ordinary grouped bodies, free header captures, alternate function syntaxes (`=`, `->`, block), `@category`/`@route`/`@test` and other annotations, inline docstrings, public prelude functions and autoload behavior. Preserve old accepted forms unless an explicitly approved breaking change records migration and shared cases.
+- #1251 must audit cross-unit collision/shape behavior, `true` vs `1` matching-key agreement, all binding-writing operations, atomic closed groups, REPL boundaries, linked view aliasing, source/direct-IR conformance, Python/C++ host truth, plus synchronization of `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, semantic registry and generated MCP language profile **after verified implementation**.
+
+### 8.6 Concrete approval checklist
+
+| Decision | Candidate | Approval status |
+| --- | --- | --- |
+| Default cross-module eligibility | All exported module-owned ordinary open functions; explicit consumer `use` | Model B direction selected; exact contract not yet approved |
+| Fixed/varargs cross-unit conflict | Reject at link-time for fixed n vs varargs m <= n in different units | **Awaiting explicit approval** |
+| Cross-unit duplicate keys | Tagged portable structural key, reject atomically at link-time | **Awaiting explicit approval** |
+| Guards/free variables | Syntactic key only, not semantic equivalence or disjointness proof | Awaiting explicit approval |
+| Immutability enforcement | Every binding writer, reject known invalid writes before initializer | **Awaiting explicit approval** |
+| `=:` closed function | Immutable defining name plus sealed multi-clause callable, one source/REPL group | Awaiting explicit approval |
+| Existing ordinary syntax | Preserve grouped body/header bindings, annotations, documentation, alternate spellings | Awaiting compatibility evidence and approval |
+| Local function identity | Distinct invocation-captured callable instances, no external extension target | Awaiting design proof |
+| IR and multi-host evidence | Portable contract first, shared specs, exact host support/gaps; no IR-breaking shortcut | Awaiting design and evidence |
+
+**Decision gate:** Independent review remains **REVISE**, and #1249 remains **NO-GO** for #1250 until all must-approve rows are reviewed, any disputed semantics receive an explicit maintainer decision, and a fresh independent contract review returns PASS. #1229/#1230 work and the independent R29 fallback closeout gate are not modified or subsumed.
