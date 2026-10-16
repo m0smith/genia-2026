@@ -19,6 +19,7 @@ import pytest
 
 from genia import make_global_env, run_source
 from genia.environment import Env
+from hosts.python.mcp_worker_profile import prune_environment
 from tests.unit.f2_p2_support import ROOT, load_program_module, program_env, separated_scopes
 
 
@@ -75,6 +76,28 @@ def test_module_write_of_an_entry_spelled_name_never_changes_the_entry_binding(t
     module = s.load("write() = {\n  entry_marker = 99\n  entry_marker\n}", "writer_module")
     assert module.exports["write"]() == 99
     assert run_source("entry_marker", s.entry) == 5
+
+
+def test_pruned_capabilities_stay_undefined_for_modules_and_an_entry_lookalike_is_not_visible(tmp_path):
+    """MCP pruning: denied capabilities are undefined in modules, and an entry value spelled like one is not conjured."""
+    s = separated_scopes(tmp_path, prune=prune_environment)
+    run_source("secret_get = 5", s.entry)
+    module = s.load("a() = secret_get\nb() = read_file\nc() = http_operation", "pruned_module")
+    for name in ("a", "b", "c"):
+        with pytest.raises(NameError, match="^Undefined name: "):
+            module.exports[name]()
+    assert "secret_get" not in s.runtime.values
+
+
+def test_inspection_and_host_lookup_from_a_module_scope_do_not_see_entry_names(tmp_path):
+    """REPL/debugger inspection views, binding_owner and host get never expose an entry binding to a module scope."""
+    s = separated_scopes(tmp_path)
+    run_source("entry_marker = 17", s.entry)
+    module = s.load("probe() = entry_marker", "inspect_module")
+    scope = module.exports["probe"].get(0).closure
+    assert "entry_marker" not in scope.inspection_bindings() and scope.binding_owner("entry_marker") is None
+    with pytest.raises(NameError):
+        scope.get("entry_marker")
 
 
 def test_fallback_host_surface_is_gone():

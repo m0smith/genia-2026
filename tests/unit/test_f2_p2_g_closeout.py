@@ -1,13 +1,10 @@
 """Python-only F2/P2-G closeout guards (issue #1067, tracker #1229, retirement #1230, follow-up #1238).
 
-Pins two implemented facts the closeout documentation states: the temporary fallback is one isolated,
-marked, singly-called path (so P3 removal is a deletion), and the entry-declaration record lists successful
+Pins two implemented facts the closeout documentation states: the temporary module-to-entry fallback is gone
+from code and STATE (removed under #1230), and the entry-declaration record lists successful
 declarations only (a failed declaration of an existing runtime-owned name never lists that runtime binding
 in the entry inspection view; #1238 N1 / R01, corrected after the independent review of PR #1244).
 """
-
-import ast
-import re
 
 import pytest
 
@@ -17,19 +14,12 @@ from tests.unit.f2_p2_support import ROOT
 MARKER = "TEMPORARY COMPATIBILITY FALLBACK"
 
 
-def test_fallback_is_one_isolated_marked_path_with_one_call_site():
-    """The marker names the single fallback function; only the evaluator's identifier resolution calls it."""
-    callers = []
+def test_removed_fallback_leaves_no_marker_in_source_or_state():
+    """P3 removal (#1230): the temporary fallback's marker and symbols remain nowhere in code or STATE."""
     for path in sorted((ROOT / "src").rglob("*.py")):
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Call) and getattr(node.func, "id", getattr(node.func, "attr", "")) == "temporary_compatibility_fallback_read":
-                callers.append((str(path.relative_to(ROOT)), node.lineno))
-    assert [path for path, _ in callers] == ["src/genia/evaluator.py"], callers
-    module = (ROOT / "src/genia/module_fallback.py").read_text(encoding="utf-8")
-    function = next(n for n in ast.parse(module).body if isinstance(n, ast.FunctionDef) and n.name == "temporary_compatibility_fallback_read")
-    assert MARKER in ast.get_docstring(function)
-    assert len(re.findall(MARKER, (ROOT / "GENIA_STATE.md").read_text(encoding="utf-8"))) == 1
+        text = path.read_text(encoding="utf-8")
+        assert MARKER not in text and "temporary_compatibility_fallback_read" not in text, path
+    assert MARKER not in (ROOT / "GENIA_STATE.md").read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize("source,error", [("first(x) = x", TypeError), ("open log(x) = x", Exception)])

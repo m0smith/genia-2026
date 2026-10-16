@@ -2,7 +2,7 @@
 
 §16.2 reflection observations are shared-spec candidates (doc_help,
 multi_file_eval); this file observes host integration, not portable authority.
-Strict/fallback behavior is Python-only §16.3 (P2-E); reflection/eval is P2-D.
+Module read denial (the removed temporary fallback, issue #1230) is Python-observed here; reflection/eval is P2-D.
 No manually allocated child pretends to be a registered entry.
 """
 
@@ -14,9 +14,8 @@ from tests.unit.f2_p2_support import load_program_module, program_env, separated
 
 
 @pytest.mark.parametrize("kind", ["call", "top_level", "contribution"])
-def test_B4_B_strict_module_read_rejects_entry_binding(tmp_path, monkeypatch, kind):
-    """§16.3.2/3: P2-E must raise ordinary NameError at all eligible read sites."""
-    monkeypatch.setenv("GENIA_STRICT_MODULE_SCOPE", "1")
+def test_B4_B_module_read_rejects_entry_binding(tmp_path, kind):
+    """§4.2/5: a module free-name read of an entry binding is the ordinary NameError at every read site."""
     entry = program_env()
     run_source("entry_marker = 5", entry)
     with pytest.raises(NameError, match="^Undefined name: entry_marker$"):
@@ -30,44 +29,8 @@ def test_B4_B_strict_module_read_rejects_entry_binding(tmp_path, monkeypatch, ki
     assert not entry.runtime_scope().loading_modules
 
 
-@pytest.mark.parametrize("kind", ["call", "top_level", "contribution"])
-def test_B4_B_fallback_warns_once_per_module_name_pair(tmp_path, monkeypatch, capsys, kind):
-    """§16.3.2/4: P2-E preserves reads with a bounded value-free warning stream."""
-    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
-    entry = program_env()
-    run_source('entry_marker = "P2_B_WARNING_PAYLOAD_SENTINEL"', entry)
-    if kind == "contribution":
-        (tmp_path / "base.genia").write_text('open dispatch("base", x) = x', encoding="utf-8")
-        load_program_module(tmp_path, entry, 'import base\nextend base.dispatch("ext", x) = entry_marker', "extension")
-        source = 'import base\nuse dispatch from base with extension\ndispatch("ext", 41)'
-        assert run_source(source, entry, filename=str(tmp_path / "entry.genia")) == "P2_B_WARNING_PAYLOAD_SENTINEL"
-        assert run_source('dispatch("ext", 41)', entry) == "P2_B_WARNING_PAYLOAD_SENTINEL"
-    else:
-        module = load_program_module(tmp_path, entry, "probe() = entry_marker" if kind == "call" else "snapshot = entry_marker\nprobe() = snapshot")
-        assert module.exports["probe"]() == "P2_B_WARNING_PAYLOAD_SENTINEL"
-        assert module.exports["probe"]() == "P2_B_WARNING_PAYLOAD_SENTINEL"
-    warning = capsys.readouterr().err
-    assert warning.count("TEMPORARY COMPATIBILITY FALLBACK") == 1, f"P2-E warning absent/undedupe: {warning!r}"
-    assert "entry_marker" in warning and "1230" in warning
-    assert "P2_B_WARNING_PAYLOAD_SENTINEL" not in warning
-    assert str(tmp_path) not in warning and "Traceback" not in warning
-
-
-def test_B4_B_distinct_pairs_warn_independently(tmp_path, monkeypatch, capsys):
-    """§16.3.2: P2-E dedupes pairs, rather than suppressing a second name/module."""
-    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
-    e = program_env()
-    run_source("entry_a = 17\nentry_b = 19", e)
-    for name in ("one", "two"):
-        load_program_module(tmp_path, e, "probe() = [entry_a, entry_b]", name)
-        assert run_source(f"{name}.probe()", e) == [17, 19]
-        assert run_source(f"{name}.probe()", e) == [17, 19]
-    assert capsys.readouterr().err.count("TEMPORARY COMPATIBILITY FALLBACK") == 4
-
-
-def test_B4_B_host_get_never_uses_fallback(tmp_path, monkeypatch):
-    """§16.3.2(d): P2-E must exclude host Env.get even with default fallback on."""
-    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
+def test_B4_B_host_get_never_resolves_entry_binding(tmp_path):
+    """Host Env.get from a module scope never reaches an entry binding."""
     e = program_env()
     run_source("entry_marker = 17", e)
     module = load_program_module(tmp_path, e, "probe() = entry_marker")
@@ -92,9 +55,8 @@ def test_B5_B_module_local_reflection_resolves_actual_owner(tmp_path, reflection
 
 
 @pytest.mark.parametrize("reflection", ["doc", "meta", "help"])
-def test_B5_B_module_reflection_never_falls_back_to_entry(tmp_path, monkeypatch, reflection):
-    """§16.2/§16.3.6: P2-D/E denies reflection, even while identifier fallback works."""
-    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
+def test_B5_B_module_reflection_never_falls_back_to_entry(tmp_path, reflection):
+    """§16.2: module reflection never reaches entry metadata."""
     output = []
     e = program_env(output_handler=output.append)
     run_source('@doc "ENTRY_DOCUMENTATION_SENTINEL"\nentry_subject(x) = x', e)
@@ -220,45 +182,9 @@ def test_B5_A_reflection_binding_identity_and_explicit_grants(tmp_path, path):
     assert s.entry.get("entry_subject") is group
 
 
-def test_B4_B_strict_switch_is_captured_once_at_runtime_construction(tmp_path, monkeypatch, capsys):
-    """§16.3.3: P2-E must not read process state dynamically at each name lookup."""
-    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
-    e = program_env()
-    run_source("entry_marker = 17", e)
-    module = load_program_module(tmp_path, e, "probe() = entry_marker")
-    monkeypatch.setenv("GENIA_STRICT_MODULE_SCOPE", "1")
-    assert module.exports["probe"]() == 17
-    assert "TEMPORARY COMPATIBILITY FALLBACK" in capsys.readouterr().err
-    strict_entry = program_env()
-    run_source("entry_marker = 19", strict_entry)
-    strict_module = load_program_module(tmp_path, strict_entry, "probe() = entry_marker", "strict_probe")
-    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
-    with pytest.raises(NameError, match="^Undefined name: entry_marker$"):
-        strict_module.exports["probe"]()
-
-
-def test_B4_A_event_measurement_is_deduplicated_and_execution_local(tmp_path, monkeypatch):
-    """§16.3.2: P2-E exposes exact module/name pairs, never values or cross-run state."""
-    from tests.unit.f2_p2_support import fallback_events
-
-    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
-    s = separated_scopes(tmp_path)
-    run_source("entry_a = 17\nentry_b = 19", s.entry)
-    for name in ("one", "two"):
-        s.load("probe() = [entry_a, entry_b]", name)
-        assert run_source(f"{name}.probe()", s.entry) == [17, 19]
-        assert run_source(f"{name}.probe()", s.entry) == [17, 19]
-    assert fallback_events(s.runtime) == {(name, key) for name in ("one", "two") for key in ("entry_a", "entry_b")}
-    other = separated_scopes(tmp_path / "other")
-    assert not fallback_events(other.runtime)
-
-
 @pytest.mark.parametrize("operation", ["write", "export", "reflection", "runtime_owned", "local", "eval", "host_get"])
-def test_B4_A_fallback_exclusions_preserve_scope_and_emit_no_events(tmp_path, monkeypatch, operation):
-    """§16.3.2/6: P2-E fallback is evaluator free-name-only, never a general Env path."""
-    from tests.unit.f2_p2_support import fallback_events
-
-    monkeypatch.delenv("GENIA_STRICT_MODULE_SCOPE", raising=False)
+def test_B4_A_module_scope_operations_preserve_module_isolation(tmp_path, operation):
+    """Writes, exports, reflection, runtime-owned reads, locals, eval and host get keep module scope isolated from E."""
     s = separated_scopes(tmp_path)
     run_source('@doc "entry docs"\nentry_subject(x) = x\nentry_marker = 17\nlog = 5', s.entry)
     source = {
@@ -286,7 +212,6 @@ def test_B4_A_fallback_exclusions_preserve_scope_and_emit_no_events(tmp_path, mo
     else:
         with pytest.raises(NameError, match="^Undefined name: entry_marker$"):
             scope.get("entry_marker") if operation == "host_get" else module.exports["probe"]()
-    assert not fallback_events(s.runtime)
 
 
 @pytest.mark.parametrize("name", ["doc", "meta", "help"])
