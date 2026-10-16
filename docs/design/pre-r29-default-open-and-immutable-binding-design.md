@@ -1,6 +1,6 @@
 # Pre-R29 default-open functions and immutable bindings: portable design
 
-Status: **DESIGN PROPOSAL — NOT IMPLEMENTED.** Issue [#1250](https://github.com/m0smith/genia-2026/issues/1250).
+Status: **DESIGN REVISED AFTER INDEPENDENT REVISE — NOT IMPLEMENTED; CONDITIONAL GO ONLY.** Issue [#1250](https://github.com/m0smith/genia-2026/issues/1250).
 Scope: portable design gate only. This document is enduring architecture, not
 execution evidence or a replacement language contract. No runtime, shared test,
 capability claim, or implemented-truth change accompanies it.
@@ -574,9 +574,11 @@ Cycles between self closures and environments need the host's existing ownership
 discipline; no new garbage-collection semantics are specified. The version
 transition is required; a broader historical-IR loader is not.
 
-**GO for the next bounded failing-test phase: implementation A's parser/Core IR
-inventory only, after this design is accepted.** No unresolved contract choice
-has been identified. This is not GO for runtime implementation, whole-release
+**CONDITIONAL GO ONLY for the next bounded failing-test phase.**
+Claude's independent review identified one explicit maintainer grammar decision,
+plus capability-evidence and diagnostic details addressed as proposals in §13.
+The A red-test gate remains closed until §13.1 grammar is confirmed, build CI
+passes, and a focused independent re-review returns PASS. This is not GO for runtime implementation, whole-release
 parity claims or R29 behavior. The operational risks above are red-test and
 implementation acceptance obligations. Stop if a direct-IR or key counterexample
 requires a new semantic choice; resolve it in #1249 rather than let a host decide.
