@@ -69,7 +69,7 @@ No option is approved. Prefer minimal surface and explicit module authority; do 
 
 **#1229:** currently owns evidence for separated module/entry runtime scopes. Contract design may describe logical lexical environments but may not prescribe a competing runtime scope implementation while #1229 is closing.
 
-**#1230:** currently owns temporary module-to-entry read fallback and R29 removal/exception gate. Avoid sharing its files, branch or tests. Resolve function openness in the *intended* isolated module model; measure compatibility fallback interactions only after Claude's work is settled. No assumption that #1230 is closed or has passed.
+**#1230:** currently owns temporary module-to-entry read fallback and R29 removal/exception gate. Avoid sharing its files, branch or tests. Resolve function openness in the *intended* isolated module model; measure compatibility fallback interactions only after Claude's work is settled. No assumption that #1230 is closed or has passed. (Update 2026-10-16: the fallback it tracked was removed by #1254; the assumption above is historical.)
 
 **#1250:** blocked until #1249 has a recorded approved contract/GO decision; no early parser or evaluator writes.
 
