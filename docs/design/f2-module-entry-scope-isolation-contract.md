@@ -589,11 +589,12 @@ permanent configuration option.
 - **Evidence limits.** Repository tests and the measured executed programs show no repository
   dependency; they do not establish the absence of third-party reliance, which is unknown. Only
   registered-entry executions could produce fallback events, and function bodies of repository modules
-  ran only where existing suites call them. Strict-mode CI on `main` (`22de326`) ran the non-slow
-  default, loopback and shared-spec partitions with zero fallback events; slow tests ran in default mode
+  ran only where existing suites call them. Strict-mode CI on `main` (`22de326`, CI run 38814088066, steps "strict module-scope mode") ran the non-slow
+  default, loopback and shared-spec partitions green, i.e. with no fallback read; slow tests ran in default mode
   only (nightly), and after removal all partitions run without any fallback.
 - **Residual (not part of this removal).** An entry declaration of a runtime-owned name (for example
-  `log = 5`) still writes through to R and is visible to modules and the prelude, as pinned by
+  `log = 5`, or redefining a prelude function such as `map`) still writes through to R and is visible to
+  modules and the prelude, as pinned by
   `test_B4_A_module_scope_operations_preserve_module_isolation[runtime_owned]`. Ending that is the
   write-through / shadowing retirement (D2/D2b, A1), a separate decision. Module and prelude reads of
   such bindings (A1(b)) were measured for modules only: two observed reads, both in deliberate P2
