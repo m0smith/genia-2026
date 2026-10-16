@@ -60,18 +60,17 @@ distillation gates. Detailed parking-lot disposition is recorded in
 [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
 Named pipeline composition [#1236](https://github.com/m0smith/genia-2026/issues/1236) is a non-blocking R29–R31 follow-up; its contract gate is in the [release sequence](roadmap/sequence.md#named-pipeline-composition-ergonomics-r29r31-non-blocking). It is not implemented behavior.
+## Pre-R29 semantic foundation gate: default-open functions and immutable bindings
+
+This unnumbered R20 follow-up proposes, but does not implement, default-open functions, immutable lexical bindings, and explicitly closed functions. [#1249](https://github.com/m0smith/genia-2026/issues/1249) → [#1250](https://github.com/m0smith/genia-2026/issues/1250) → [#1251](https://github.com/m0smith/genia-2026/issues/1251) gate R29 language-facing implementation; [#1230](https://github.com/m0smith/genia-2026/issues/1230) remains a separate hard gate. See [sequence](roadmap/sequence.md) for compatibility, module authority and approval conditions. STATE remains authoritative.
+
 ## Promoted R20 follow-up: Unified Function Model and Open-Function Repairs
 
 Issue #1067 is the primary promoted R20 follow-up, scheduled **after R28 and before R29** without a new release number or R28 scope expansion. Detailed staging and guardrails live in [`roadmap/sequence.md`](roadmap/sequence.md) and [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
 ## Current state
 
-R15 through R28 are complete (`docs/releases/R25.md`, `docs/releases/R26.md`, `docs/releases/R27.md`, `docs/releases/R28.md`;
-R24's E24-8 skeptical release audit records PASS). R23's E23-11 third,
-independent skeptical release truth audit recorded PASS in
-`docs/analysis/r23-release-truth-audit.md`, after two genuine, narrow
-findings during its audit gate -- E23-7 and E23-9 -- were each repaired
-and re-verified. Python remains the reference and full-language host;
+R15 through R28 are complete (release pages R25–R28; R24's E24-8 audit records PASS). R23's E23-11 third independent truth audit recorded PASS in `docs/analysis/r23-release-truth-audit.md` after E23-7 and E23-9 findings were repaired and re-verified. Python remains the reference and full-language host;
 `m0smith/genia-cpp` is the bounded R27 production host (R24's minimal
 floor, R25's stateful runtime, R26's scripted REPL/strict JSON data
 bridge, and R27's Flow phase 1 and pipe mode), not feature parity. R28 adds the Genia MCP server (native `apps/mcp/mcp.genia` over local stdio on the Python reference host, exactly four tools after follow-up amendment A6: `genia_capabilities`, `genia_parse`, `genia_run`, and `genia_language_profile`; the original three-tool surface was accepted by an authentic VS Code + GitHub Copilot run); it adds no Genia language semantics and no C++ MCP support.
@@ -166,7 +165,6 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 - Release R22 — Exact Numeric Runtime ✓ COMPLETE
 - Release R23 — Numeric Representation and Interchange ✓ COMPLETE
 - Release R24 — C++ Minimal Conforming Host ✓ COMPLETE
-- Release R21 — Numeric Source and Portable Representation ✓ COMPLETE
 
 ## Release status
 
