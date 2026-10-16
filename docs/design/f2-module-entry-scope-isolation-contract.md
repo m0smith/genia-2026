@@ -485,6 +485,12 @@ F3–F5 of the unified-function-model draft remain paused throughout.
 
 ## 11. Compatibility fallback (temporary)
 
+> **REMOVED (P3, issue #1230).** The maintainer ruled that implicit module-to-entry variable lookup must
+> not become permanent behavior, and the Python reference host no longer contains the fallback, its
+> warning, its event accounting or the `GENIA_STRICT_MODULE_SCOPE` switch. §11.1–§11.5 and §16.3 below
+> are retained as the historical specification of what was removed; §11.6 records the removal.
+> Implemented behavior is in `GENIA_STATE.md` section 9.
+
 ### 11.1 Status
 
 The fallback is a **temporary compatibility mechanism of the Python reference
@@ -563,6 +569,35 @@ permanent configuration option.
 - The author of P3 is responsible for removing the code path and the marker,
   updating the documents in §13, and closing the migration issue; P3 is not
   complete while the marker or the code path exists.
+
+### 11.6 Removal record (P3, issue #1230)
+
+- **Decision.** Maintainer decision on #1230: remove the fallback; invariant: *a module cannot read or
+  write a calling program's variables through implicit scope lookup.* No exception under amendment A2 was
+  sought or used, and no replacement compatibility mechanism was introduced.
+- **Removed.** `src/genia/module_fallback.py`; the single call in `Evaluator._resolve_identifier`; the
+  `Env` fallback attributes and `init_fallback_state`/`claim_fallback_event`; the two construction
+  lines in `make_global_env`/`create_entry_scope`; `strict_module_scope_requested`; the strict CI steps;
+  the fallback-only tests. A module read missing the module chain, the runtime and autoload is the
+  ordinary `Undefined name` error.
+- **Unchanged.** Lexical scope and closures, imports and exports, prelude and runtime access, explicit
+  argument passing, module-local writes, reflection (§7, §16.2), `empty_env()` (§16.4), and write-through
+  of entry-declared runtime-owned names (§16.1), which remains gated by D2/D2b and amendment A1.
+- **Exposure window.** The warning-enabled fallback was on `main` from 2026-10-15T22:00:32Z (PR #1247)
+  until this removal, under two calendar days. That is far shorter than the sixty-day checkpoint (A2) and
+  is not claimed to be a sufficient window to observe external users.
+- **Evidence limits.** Repository tests and the measured executed programs show no repository
+  dependency; they do not establish the absence of third-party reliance, which is unknown. Only
+  registered-entry executions could produce fallback events, and function bodies of repository modules
+  ran only where existing suites call them. Strict-mode CI on `main` (`22de326`) ran the non-slow
+  default, loopback and shared-spec partitions with zero fallback events; slow tests ran in default mode
+  only (nightly), and after removal all partitions run without any fallback.
+- **Residual (not part of this removal).** An entry declaration of a runtime-owned name (for example
+  `log = 5`) still writes through to R and is visible to modules and the prelude, as pinned by
+  `test_B4_A_module_scope_operations_preserve_module_isolation[runtime_owned]`. Ending that is the
+  write-through / shadowing retirement (D2/D2b, A1), a separate decision. Module and prelude reads of
+  such bindings (A1(b)) were measured for modules only: two observed reads, both in deliberate P2
+  tests. Prelude reads were not counted.
 
 ## 12. Portability
 
