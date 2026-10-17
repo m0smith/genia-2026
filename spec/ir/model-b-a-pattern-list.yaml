@@ -1,0 +1,23 @@
+name: model-b-a-pattern-list
+category: ir
+description: 'Approved Model B Slice A: pattern-list'
+input:
+  source: f([x,..xs]) = x
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatList
+        items:
+        - node: IrPatBind
+          name: x
+        - node: IrPatRest
+          name: xs
+    body:
+      node: IrVar
+      name: x
+requires:
+- ast_lowering

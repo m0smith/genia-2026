@@ -1,0 +1,12 @@
+name: model-b-a-target
+category: parse
+description: 'Approved Model B Slice A: target'
+input:
+  source: 'a.key =: 1'
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: Assignment target must be a simple name
+requires:
+- parser

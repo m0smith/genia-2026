@@ -1,0 +1,16 @@
+name: model-b-a-legacy-rest
+category: ir
+description: 'Approved Model B Slice A: legacy-rest'
+input:
+  source: f(..xs) = xs
+expected:
+  ir:
+  - node: IrFuncDef
+    name: f
+    params: []
+    body:
+      node: IrVar
+      name: xs
+    rest_param: xs
+requires:
+- ast_lowering

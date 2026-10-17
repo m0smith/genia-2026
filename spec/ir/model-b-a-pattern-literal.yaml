@@ -1,0 +1,19 @@
+name: model-b-a-pattern-literal
+category: ir
+description: 'Approved Model B Slice A: pattern-literal'
+input:
+  source: f("key") = x
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatLiteral
+        value: key
+    body:
+      node: IrVar
+      name: x
+requires:
+- ast_lowering

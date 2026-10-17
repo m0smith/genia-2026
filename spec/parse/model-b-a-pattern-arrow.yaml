@@ -1,0 +1,12 @@
+name: model-b-a-pattern-arrow
+category: parse
+description: 'Approved Model B Slice A: pattern-arrow'
+input:
+  source: f([x]) -> x
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: pattern/guard
+requires:
+- parser

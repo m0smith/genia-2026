@@ -1,0 +1,12 @@
+name: model-b-a-index
+category: parse
+description: 'Approved Model B Slice A: index'
+input:
+  source: 'a[0] =: 1'
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: Assignment target must be a simple name
+requires:
+- parser

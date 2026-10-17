@@ -1,0 +1,12 @@
+name: model-b-a-missing-body
+category: parse
+description: 'Approved Model B Slice A: missing-body'
+input:
+  source: 'f(x) =:'
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: Unexpected
+requires:
+- parser

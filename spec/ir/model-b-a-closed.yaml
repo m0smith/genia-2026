@@ -1,0 +1,19 @@
+name: model-b-a-closed
+category: ir
+description: 'Approved Model B Slice A: closed'
+input:
+  source: 'f(x) =: x'
+expected:
+  ir:
+  - node: IrClosedFuncDef
+    name: f
+    declarations:
+    - node: IrFuncDef
+      name: f
+      params:
+      - x
+      body:
+        node: IrVar
+        name: x
+requires:
+- ast_lowering

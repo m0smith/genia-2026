@@ -1,0 +1,48 @@
+name: model-b-a-closed-run
+category: ir
+description: 'Approved Model B Slice A: closed-run'
+input:
+  source: '@doc "binding"
+
+    f(x) =: x
+
+    # comment
+
+
+    @category "other"
+
+    f(x,y) =: y'
+expected:
+  ir:
+  - node: IrClosedFuncDef
+    name: f
+    declarations:
+    - node: IrFuncDef
+      name: f
+      params:
+      - x
+      body:
+        node: IrVar
+        name: x
+      annotations:
+      - node: IrAnnotation
+        name: doc
+        value:
+          node: IrLiteral
+          value: binding
+    - node: IrFuncDef
+      name: f
+      params:
+      - x
+      - y
+      body:
+        node: IrVar
+        name: y
+      annotations:
+      - node: IrAnnotation
+        name: category
+        value:
+          node: IrLiteral
+          value: other
+requires:
+- ast_lowering

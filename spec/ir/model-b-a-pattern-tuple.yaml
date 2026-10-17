@@ -1,0 +1,23 @@
+name: model-b-a-pattern-tuple
+category: ir
+description: 'Approved Model B Slice A: pattern-tuple'
+input:
+  source: f((x,y)) = x
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatTuple
+        items:
+        - node: IrPatBind
+          name: x
+        - node: IrPatBind
+          name: y
+    body:
+      node: IrVar
+      name: x
+requires:
+- ast_lowering

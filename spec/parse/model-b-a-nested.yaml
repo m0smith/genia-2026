@@ -1,0 +1,12 @@
+name: model-b-a-nested
+category: parse
+description: 'Approved Model B Slice A: nested'
+input:
+  source: 'make(k) = { f(x) =: x; f }'
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: Assignment target must be a simple name
+requires:
+- parser

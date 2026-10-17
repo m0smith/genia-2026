@@ -1,0 +1,39 @@
+name: model-b-a-split
+category: ir
+description: 'Approved Model B Slice A: split'
+input:
+  source: 'f(x) =: x
+
+    a = "other"
+
+    f(x,y) =: y'
+expected:
+  ir:
+  - node: IrClosedFuncDef
+    name: f
+    declarations:
+    - node: IrFuncDef
+      name: f
+      params:
+      - x
+      body:
+        node: IrVar
+        name: x
+  - node: IrAssign
+    name: a
+    expr:
+      node: IrLiteral
+      value: other
+  - node: IrClosedFuncDef
+    name: f
+    declarations:
+    - node: IrFuncDef
+      name: f
+      params:
+      - x
+      - y
+      body:
+        node: IrVar
+        name: y
+requires:
+- ast_lowering
