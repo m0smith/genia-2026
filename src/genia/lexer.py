@@ -1,3 +1,4 @@
+"""Tokenize source with longest-match operators; strings and comments remain opaque."""
 from __future__ import annotations
 
 import re
@@ -26,6 +27,7 @@ TOKEN_SPEC = [
     ("PIPE_FWD", r"\|>"),
     ("AT_CHECK", r"@\?"),
     ("AT_ASSERT", r"@!"),
+    ("IMMUTABLE_ASSIGN", r"=:"),
     ("ASSIGN", r"="),
     ("LT", r"<"),
     ("GT", r">"),
@@ -70,6 +72,7 @@ PUNCTUATION_TOKENS = [
     ("AT_CHECK", "@?"),
     ("AT_ASSERT", "@!"),
     ("DOTDOT", ".."),
+    ("IMMUTABLE_ASSIGN", "=:"),
     ("ASSIGN", "="),
     ("LT", "<"),
     ("GT", ">"),

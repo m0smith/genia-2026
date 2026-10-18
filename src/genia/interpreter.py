@@ -154,6 +154,7 @@ else:
 # ---------------------------------------------------------------------------
 
 def is_complete(source: str) -> bool:
+    """Return whether REPL delimiters and trailing declaration/body introducers are complete."""
     brace = paren = bracket = 0
     in_str: Optional[str] = None
     esc = False
@@ -187,7 +188,7 @@ def is_complete(source: str) -> bool:
     if not lines:
         return True
     last = lines[-1].rstrip()
-    return not (last.endswith("=") or last.endswith("|") or last.endswith("->") or last.endswith("?"))
+    return not (last.endswith("=") or last.endswith("=:") or last.endswith("|") or last.endswith("->") or last.endswith("?"))
 
 
 def run_source(

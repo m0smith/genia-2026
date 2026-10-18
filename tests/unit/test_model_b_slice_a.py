@@ -30,6 +30,7 @@ def test_repl_missing_initializer_incomplete(source):
 
 @pytest.mark.parametrize('source', ['x =: 1','f(x) =: x','f([x]) = x','f(x) ? true = x'])
 def test_transitional_rejection(run, source):
+    """Reject new declaration execution instead of silently using legacy mutable semantics."""
     with pytest.raises(Exception, match='model-b-not-implemented'):
         run(source)
 
@@ -78,3 +79,46 @@ def test_new_node_inventory_and_optional_normalization():
     assert names == set(manifest['core_ir_contract']['minimal_portable_node_families'])
     result = normalize_portable_ir(lower_program(Parser(lex('f([x]) = x')).parse_program()))[0]
     assert 'annotations' not in result and 'guard' not in result and 'span' not in result
+
+
+def test_direct_closed_body_rejects_nested_declaration():
+    child = declaration()
+    child.body = ir.IrClosedFuncDef('f', [declaration()])
+    with pytest.raises(ValueError, match='nested'):
+        ir.assert_portable_core_ir([ir.IrClosedFuncDef('f', [child])])
+
+
+def test_direct_pattern_rejects_competing_header_channel():
+    child = ir.IrPatternFuncDef('f', IrPatTuple([IrPatBind('x')]), None, ir.IrVar('x'))
+    child.params = ['x']
+    with pytest.raises(ValueError, match='competing'):
+        ir.assert_portable_core_ir([child])
+
+
+def test_transitional_rejection_precedes_initializer_effects(run):
+    with pytest.raises(RuntimeError, match='model-b-not-implemented'):
+        run('x =: undefined_initializer()')
+
+
+def test_direct_evaluation_validates_before_transitional_rejection():
+    from genia import make_global_env
+    from genia.evaluator import Evaluator
+    with pytest.raises(ValueError, match='closed'):
+        Evaluator(make_global_env()).eval(ir.IrClosedFuncDef('f', []))
+
+
+def test_closed_pattern_annotation_traversal_retains_source_spans():
+    source = '@test "pattern"\nf([x]) ? true =: x'
+    nodes = lower_program(Parser(lex(source), source=source).parse_program())
+    child = nodes[0].declarations[0]
+    assert isinstance(child, ir.IrPatternFuncDef)
+    assert child.pattern.span is not None and child.guard.span is not None
+    assert [a.name for a in child.annotations] == ['test']
+    assert child.annotations[0] in list(ir.iter_ir_nodes(nodes))
+
+
+def test_native_discovery_explicitly_rejects_closed_test():
+    from genia.native_test_runner import identify_tests
+    source = '@test "closed"\nf() =: true'
+    with pytest.raises(RuntimeError, match='model-b-not-implemented'):
+        identify_tests(Parser(lex(source)).parse_program())

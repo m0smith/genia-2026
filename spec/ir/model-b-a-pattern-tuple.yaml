@@ -2,7 +2,7 @@ name: model-b-a-pattern-tuple
 category: ir
 description: 'Approved Model B Slice A: pattern-tuple'
 input:
-  source: f((x,y)) = x
+  source: f("key",x) = x
 expected:
   ir:
   - node: IrPatternFuncDef
@@ -10,12 +10,10 @@ expected:
     pattern:
       node: IrPatTuple
       items:
-      - node: IrPatTuple
-        items:
-        - node: IrPatBind
-          name: x
-        - node: IrPatBind
-          name: y
+      - node: IrPatLiteral
+        value: key
+      - node: IrPatBind
+        name: x
     body:
       node: IrVar
       name: x

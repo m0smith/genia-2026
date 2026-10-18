@@ -28,7 +28,7 @@ if __package__ in (None, ""):
     )
     from genia.ir import (
         IrAnnotation, IrAssign, IrBinary, IrBlock, IrCall, IrCase, IrDelay,
-        IrExprStmt, IrFuncDef, IrImport, IrLambda, IrList, IrListTraversalLoop,
+        IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef, IrExprStmt, IrFuncDef, IrImport, IrLambda, IrList, IrListTraversalLoop,
         IrLiteral, IrMap, IrNamedPatternDef, IrNode, IrOpenContribution,
         IrOpenFuncDef, IrOpenUse, IrOptionNone, IrOptionSome, IrPipeline,
         IrQuote, IrQuasiQuote, IrShellStage, IrSpread, IrUnary, IrUnquote,
@@ -73,7 +73,7 @@ else:
     )
     from .ir import (
         IrAnnotation, IrAssign, IrBinary, IrBlock, IrCall, IrCase, IrDelay,
-        IrExprStmt, IrFuncDef, IrImport, IrLambda, IrList, IrListTraversalLoop,
+        IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef, IrExprStmt, IrFuncDef, IrImport, IrLambda, IrList, IrListTraversalLoop,
         IrLiteral, IrMap, IrNamedPatternDef, IrNode, IrOpenContribution,
         IrOpenFuncDef, IrOpenUse, IrOptionNone, IrOptionSome, IrPipeline,
         IrQuote, IrQuasiQuote, IrShellStage, IrSpread, IrUnary, IrUnquote,
@@ -1359,6 +1359,10 @@ class Evaluator:
         may return a `TailCall` for the caller's trampoline. Unknown nodes and
         language errors raise; there is no recovery here.
         """
+        if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
+            from .ir import assert_portable_core_ir
+            assert_portable_core_ir([node])
+            raise RuntimeError("model-b-not-implemented: declaration evaluation is not available")
         if isinstance(node, IrShellStage):
             raise SyntaxError("shell stage $(...) is only valid as a pipeline stage")
         if isinstance(node, IrExprStmt):

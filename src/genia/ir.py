@@ -303,6 +303,34 @@ class IrListTraversalLoop(IrNode):
     span: SourceSpan | None = None
 
 
+@dataclass
+class IrImmutableBind(IrNode):
+    """Fresh current-scope declaration; Slice A rejects execution explicitly."""
+    name: str
+    expr: IrNode
+    annotations: list[IrAnnotation] = field(default_factory=list)
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrPatternFuncDef(IrNode):
+    """One full tuple-pattern declaration, without a competing params channel."""
+    name: str
+    pattern: IrPattern
+    guard: IrNode | None
+    body: IrNode
+    annotations: list[IrAnnotation] = field(default_factory=list)
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrClosedFuncDef(IrNode):
+    """Atomic nonempty same-name declaration records; not separately published."""
+    name: str
+    declarations: list[IrFuncDef | IrPatternFuncDef]
+    span: SourceSpan | None = None
+
+
 # Portable/shared Core IR node families produced by AST->IR lowering.
 PORTABLE_CORE_IR_NODE_TYPES: tuple[type[IrNode], ...] = (
     IrAnnotation,
@@ -328,6 +356,9 @@ PORTABLE_CORE_IR_NODE_TYPES: tuple[type[IrNode], ...] = (
     IrCase,
     IrLambda,
     IrAssign,
+    IrImmutableBind,
+    IrPatternFuncDef,
+    IrClosedFuncDef,
     IrFuncDef,
     IrNamedPatternDef,
     IrImport,
@@ -354,7 +385,19 @@ def iter_ir_nodes(root: IrNode | Iterable[IrNode]) -> Iterator[IrNode]:
         yield node
 
         children: list[IrNode] = []
-        if isinstance(node, IrOptionNone):
+        if isinstance(node, IrAnnotation):
+            children.append(node.value)
+        elif isinstance(node, IrClosedFuncDef):
+            children.extend(node.declarations)
+        elif isinstance(node, IrPatternFuncDef):
+            children.extend(node.annotations)
+            if node.guard is not None:
+                children.append(node.guard)
+            children.append(node.body)
+        elif isinstance(node, (IrOpenFuncDef, IrOpenContribution)):
+            children.extend(getattr(node, "annotations", []))
+            children.extend(node.clauses)
+        elif isinstance(node, IrOptionNone):
             if node.reason is not None:
                 children.append(node.reason)
             if node.context is not None:
@@ -395,14 +438,14 @@ def iter_ir_nodes(root: IrNode | Iterable[IrNode]) -> Iterator[IrNode]:
             children.extend(node.clauses)
         elif isinstance(node, IrLambda):
             children.append(node.body)
-        elif isinstance(node, IrAssign):
-            children.extend(annotation.value for annotation in node.annotations)
+        elif isinstance(node, (IrAssign, IrImmutableBind)):
+            children.extend(node.annotations)
             children.append(node.expr)
         elif isinstance(node, IrFuncDef):
-            children.extend(annotation.value for annotation in node.annotations)
+            children.extend(node.annotations)
             children.append(node.body)
         elif isinstance(node, IrNamedPatternDef):
-            children.extend(annotation.value for annotation in node.annotations)
+            children.extend(node.annotations)
             children.append(node.body)
         elif isinstance(node, IrListTraversalLoop):
             children.extend([node.empty_clause, node.zero_clause])
@@ -411,10 +454,75 @@ def iter_ir_nodes(root: IrNode | Iterable[IrNode]) -> Iterator[IrNode]:
 
 
 def assert_portable_core_ir(nodes: Iterable[IrNode]) -> None:
-    """Raise when host-local post-lowering IR appears in a portable/lowered program."""
+    """Validate lowered programs, including direct Model B declaration carriers.
+
+    Reject malformed closed groups and pattern headers before a consumer can
+    interpret them, and host-local optimized nodes at any executable IR depth.
+    No annotation, guard, initializer or matcher is evaluated here.
+    """
     for node in iter_ir_nodes(nodes):
+        if isinstance(node, IrClosedFuncDef):
+            if (not isinstance(node.declarations, list) or not node.declarations or any(type(child) not in (IrFuncDef, IrPatternFuncDef)
+                    or child.name != node.name for child in node.declarations)):
+                raise ValueError("invalid closed function declaration group")
+        if isinstance(node, IrPatternFuncDef):
+            _validate_model_b_pattern(node.pattern)
+            if any(key in vars(node) for key in ("params", "rest_param", "docstring")):
+                raise ValueError("pattern declaration has competing header representations")
+            if isinstance(node.body, IrCase) or (isinstance(node.body, IrBlock)
+                    and node.body.exprs and isinstance(node.body.exprs[-1], IrCase)):
+                raise ValueError("pattern declaration cannot have a grouped case body")
+        if isinstance(node, IrClosedFuncDef):
+            for child in node.declarations:
+                if any(isinstance(nested, (IrFuncDef, IrPatternFuncDef, IrClosedFuncDef))
+                       for nested in iter_ir_nodes([child.body])):
+                    raise ValueError("nested declarations in closed function body")
+        if isinstance(node, (IrImmutableBind, IrPatternFuncDef)):
+            expression = node.expr if isinstance(node, IrImmutableBind) else node.body
+            if not isinstance(expression, IrNode):
+                raise ValueError("invalid declaration expression")
+            if (not isinstance(node.annotations, list)
+                    or any(type(annotation) is not IrAnnotation for annotation in node.annotations)):
+                raise ValueError("invalid declaration annotations")
+            if isinstance(node, IrPatternFuncDef) and node.guard is not None and not isinstance(node.guard, IrNode):
+                raise ValueError("invalid pattern declaration guard")
+        if isinstance(node, (IrImmutableBind, IrPatternFuncDef, IrClosedFuncDef)):
+            if not isinstance(node.name, str) or not node.name or "." in node.name:
+                raise ValueError("invalid declaration name")
+
         if isinstance(node, HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES):
             raise RuntimeError(
                 "Portable Core IR validation failed: host-local post-lowering node "
                 f"{type(node).__name__} appeared before host-local optimization."
             )
+
+
+def _validate_model_b_pattern(pattern: IrPattern) -> None:
+    """Validate direct-IR full tuple headers recursively, without evaluating matchers.
+
+    Reject expression carriers and unknown pattern subclasses at every depth.
+    Existing R20/lambda parsers own source grammar; this protects bypass callers.
+    """
+    from dataclasses import fields
+    from .pattern_match import (IrPatTuple, IrPatList, IrPatMap, IrPatBind,
+        IrPatLiteral, IrPatWildcard, IrPatRest, IrPatSome, IrPatNone,
+        IrPatErr, IrPatNamed, IrPatGlob)
+    allowed = (IrPatTuple, IrPatList, IrPatMap, IrPatBind, IrPatLiteral,
+               IrPatWildcard, IrPatRest, IrPatSome, IrPatNone, IrPatErr,
+               IrPatNamed, IrPatGlob)
+    if not isinstance(pattern, IrPatTuple):
+        raise ValueError("function header pattern must be a tuple pattern")
+    pending = [pattern]
+    while pending:
+        current = pending.pop()
+        if type(current) not in allowed:
+            raise ValueError("invalid function header pattern carrier")
+        if isinstance(current, (IrPatTuple, IrPatList)):
+            if any(isinstance(item, IrPatRest) for item in current.items[:-1]):
+                raise ValueError("rest pattern must be final")
+        for field_info in fields(current):
+            value = getattr(current, field_info.name)
+            if field_info.name == "items":
+                pending.extend(item[1] if isinstance(item, tuple) else item for item in value)
+            elif field_info.name in {"inner", "reason", "context"} and value is not None:
+                pending.append(value)

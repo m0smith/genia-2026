@@ -17,7 +17,7 @@ from genia.ir import (
     IrCase,
     IrDelay,
     IrExprStmt,
-    IrFuncDef,
+    IrFuncDef, IrImmutableBind, IrPatternFuncDef, IrClosedFuncDef,
     IrImport,
     IrLambda,
     IrList,
@@ -39,7 +39,7 @@ from genia.ir import (
     IrVar,
      assert_portable_core_ir,)
 from genia.pattern_match import (
-        IrPatBind,
+        IrPatBind, IrPatErr, IrPatNamed,
         IrPatGlob,
         IrPatList,
         IrPatLiteral,
@@ -70,6 +70,7 @@ def normalize_portable_ir(nodes: Iterable[IrNode]) -> list[dict[str, Any]]:
 
 
 def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
+    """Serialize a validated portable node without spans, omitting absent optional fields."""
     if isinstance(node, IrAnnotation):
         return {
             "node": "IrAnnotation",
@@ -206,9 +207,20 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
         if node.pattern is not None:
             normalized["pattern"] = _normalize_pattern(node.pattern)
         return normalized
-    if isinstance(node, IrAssign):
+    if isinstance(node, IrClosedFuncDef):
+        return {"node": "IrClosedFuncDef", "name": node.name,
+                "declarations": [_normalize_ir_node(child) for child in node.declarations]}
+    if isinstance(node, IrPatternFuncDef):
+        normalized = {"node": "IrPatternFuncDef", "name": node.name,
+            "pattern": _normalize_pattern(node.pattern), "body": _normalize_ir_node(node.body)}
+        if node.guard is not None:
+            normalized["guard"] = _normalize_ir_node(node.guard)
+        if node.annotations:
+            normalized["annotations"] = [_normalize_ir_node(a) for a in node.annotations]
+        return normalized
+    if isinstance(node, (IrAssign, IrImmutableBind)):
         normalized = {
-            "node": "IrAssign",
+            "node": type(node).__name__,
             "name": node.name,
             "expr": _normalize_ir_node(node.expr),
         }
@@ -282,6 +294,7 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
 
 
 def _normalize_pattern(pattern: IrPattern) -> dict[str, Any]:
+    """Serialize portable matcher carriers recursively, retaining optional Outcome context."""
     if isinstance(pattern, IrPatLiteral):
         return {
             "node": "IrPatLiteral",
@@ -325,11 +338,17 @@ def _normalize_pattern(pattern: IrPattern) -> dict[str, Any]:
             "node": "IrPatGlob",
             "pattern": pattern.matcher.source,
         }
+    if isinstance(pattern, IrPatNamed):
+        return {"node": "IrPatNamed", "name": pattern.name,
+                "inner": _normalize_pattern(pattern.inner)}
+    if isinstance(pattern, IrPatErr):
+        return {"node": "IrPatErr", "reason": _normalize_pattern(pattern.reason),
+                "context": None if pattern.context is None else _normalize_pattern(pattern.context)}
     if isinstance(pattern, IrPatSome):
-        return {
-            "node": "IrPatSome",
-            "inner": _normalize_pattern(pattern.inner),
-        }
+        result = {"node": "IrPatSome", "inner": _normalize_pattern(pattern.inner)}
+        if pattern.context is not None:
+            result["context"] = _normalize_pattern(pattern.context)
+        return result
     if isinstance(pattern, IrPatNone):
         return {
             "node": "IrPatNone",
