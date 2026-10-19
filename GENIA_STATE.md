@@ -729,7 +729,7 @@ with one full tuple pattern and optional guard under R20 grammar. They reject
 `->` and grouped bodies; grouped bodies require unguarded identifier headers.
 Their post-`=` string is a body, never documentation. No nested named/closed
 declarations or nested tuple-pattern atoms are added. Normalization omits source
-spans and absent annotations/guards.
+spans and absent annotations/guards. `IrPatErr`/`IrPatNamed` are portable pattern carriers.
 
 PYTHON REFERENCE HOST: parse/lower only; evaluation fails with `model-b-not-implemented`
 before initializer/annotation/guard/body effects.

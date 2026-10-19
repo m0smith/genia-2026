@@ -70,6 +70,8 @@ Pattern families in the portable contract are:
 - `IrPatGlob`
 - `IrPatSome`
 - `IrPatNone`
+- `IrPatErr`
+- `IrPatNamed`
 
 ## Lowering Invariants Hosts Must Preserve
 
@@ -193,6 +195,18 @@ full `IrPatTuple` header; it has no params/rest_param/docstring alternative.
 of same-name `IrFuncDef` or `IrPatternFuncDef` records. Nested groups/declarations
 in closed bodies, expression-as-pattern carriers, competing header fields and
 pattern/guard headers with grouped case bodies are invalid direct IR.
+
+Pattern wire delta (Slice A): `IrPatErr(reason, context)` and `IrPatNamed(name, inner)`
+are now declared portable pattern carriers. Before Slice A, normalizing any
+program containing them raised `unsupported pattern`; the normalizer now
+serializes them in every position, including ordinary lambda and case patterns,
+so previously unnormalizable programs normalize. `IrPatErr` serializes an absent
+context as `null` (as `IrPatNone` does); `IrPatNamed` carries the name only and
+resolution stays host semantics. `IrPatSome.context` is the one position-dependent
+field: it is serialized only inside `IrPatternFuncDef` headers, and omitted
+elsewhere to preserve the legacy wire. Shared cases `model-b-a-pattern-err*`,
+`model-b-a-pattern-named` and `model-b-a-legacy-lambda-*` pin both positions.
+C++ support for these carriers is not claimed (issue #1250 gap).
 
 Legacy `IrFuncDef` wire fields remain unchanged. New absent annotations and
 guards are omitted, and spans are never serialized. Patterns/guards/annotations
