@@ -1,3 +1,9 @@
+"""Check portability documentation and manifest consistency with Python carriers.
+
+These repository metadata checks complement shared semantic specs; they do not
+establish host conformance or execution support for declared wire families.
+"""
+
 import json
 import re
 from pathlib import Path

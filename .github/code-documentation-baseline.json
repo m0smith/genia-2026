@@ -1716,7 +1716,6 @@
     "tests/doc/test_loopback_pytest_partition.py::binding::_run_pytest": "4bf926e3730410cbaeef5f72840b2b2e051b31177f7a9a4fcea7bc6a56822c5f",
     "tests/doc/test_loopback_pytest_partition.py::module::<module>": "45d135b5d08b067f48e4489b1e3e7a467a12fe759c6ce243be4953e69171b5a8",
     "tests/doc/test_portability_contract_sync.py::binding::read_text": "ec912cb0b2147de1f9749347f1a289a5eca41769fe671dc7620d72aba1e7323f",
-    "tests/doc/test_portability_contract_sync.py::module::<module>": "691c725a09a061dd32ba0377a2a230177d9eb599622c87e926f4df8643918318",
     "tests/doc/test_r11_release_truth_audit_618.py::binding::_read": "ac939ddd9a8bd2bc202bf2d0721322a1e00e8eaf458a81b08f0ed7b928b987b5",
     "tests/doc/test_r11_release_truth_audit_618.py::module::<module>": "df513ff3998cc05ebe0a6638fffad4ca5ccd86e4dc36df223b0ecf40f8766b38",
     "tests/doc/test_r11_release_truth_sync_617.py::binding::_read": "ac939ddd9a8bd2bc202bf2d0721322a1e00e8eaf458a81b08f0ed7b928b987b5",
