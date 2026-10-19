@@ -212,7 +212,7 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
                 "declarations": [_normalize_ir_node(child) for child in node.declarations]}
     if isinstance(node, IrPatternFuncDef):
         normalized = {"node": "IrPatternFuncDef", "name": node.name,
-            "pattern": _normalize_pattern(node.pattern), "body": _normalize_ir_node(node.body)}
+            "pattern": _normalize_pattern(node.pattern, model_b=True), "body": _normalize_ir_node(node.body)}
         if node.guard is not None:
             normalized["guard"] = _normalize_ir_node(node.guard)
         if node.annotations:
@@ -293,8 +293,8 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
     )
 
 
-def _normalize_pattern(pattern: IrPattern) -> dict[str, Any]:
-    """Serialize portable matcher carriers recursively, retaining optional Outcome context."""
+def _normalize_pattern(pattern: IrPattern, *, model_b: bool = False) -> dict[str, Any]:
+    """Serialize matcher carriers; preserve legacy wire omissions outside Model B headers."""
     if isinstance(pattern, IrPatLiteral):
         return {
             "node": "IrPatLiteral",
@@ -315,12 +315,12 @@ def _normalize_pattern(pattern: IrPattern) -> dict[str, Any]:
     if isinstance(pattern, IrPatTuple):
         return {
             "node": "IrPatTuple",
-            "items": [_normalize_pattern(item) for item in pattern.items],
+            "items": [_normalize_pattern(item, model_b=model_b) for item in pattern.items],
         }
     if isinstance(pattern, IrPatList):
         return {
             "node": "IrPatList",
-            "items": [_normalize_pattern(item) for item in pattern.items],
+            "items": [_normalize_pattern(item, model_b=model_b) for item in pattern.items],
         }
     if isinstance(pattern, IrPatMap):
         return {
@@ -328,7 +328,7 @@ def _normalize_pattern(pattern: IrPattern) -> dict[str, Any]:
             "items": [
                 {
                     "key": key,
-                    "value": _normalize_pattern(value),
+                    "value": _normalize_pattern(value, model_b=model_b),
                 }
                 for key, value in pattern.items
             ],
@@ -340,20 +340,20 @@ def _normalize_pattern(pattern: IrPattern) -> dict[str, Any]:
         }
     if isinstance(pattern, IrPatNamed):
         return {"node": "IrPatNamed", "name": pattern.name,
-                "inner": _normalize_pattern(pattern.inner)}
+                "inner": _normalize_pattern(pattern.inner, model_b=model_b)}
     if isinstance(pattern, IrPatErr):
-        return {"node": "IrPatErr", "reason": _normalize_pattern(pattern.reason),
-                "context": None if pattern.context is None else _normalize_pattern(pattern.context)}
+        return {"node": "IrPatErr", "reason": _normalize_pattern(pattern.reason, model_b=model_b),
+                "context": None if pattern.context is None else _normalize_pattern(pattern.context, model_b=model_b)}
     if isinstance(pattern, IrPatSome):
-        result = {"node": "IrPatSome", "inner": _normalize_pattern(pattern.inner)}
-        if pattern.context is not None:
-            result["context"] = _normalize_pattern(pattern.context)
+        result = {"node": "IrPatSome", "inner": _normalize_pattern(pattern.inner, model_b=model_b)}
+        if model_b and pattern.context is not None:
+            result["context"] = _normalize_pattern(pattern.context, model_b=model_b)
         return result
     if isinstance(pattern, IrPatNone):
         return {
             "node": "IrPatNone",
-            "reason": None if pattern.reason is None else _normalize_pattern(pattern.reason),
-            "context": None if pattern.context is None else _normalize_pattern(pattern.context),
+            "reason": None if pattern.reason is None else _normalize_pattern(pattern.reason, model_b=model_b),
+            "context": None if pattern.context is None else _normalize_pattern(pattern.context, model_b=model_b),
         }
 
     raise TypeError(
