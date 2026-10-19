@@ -715,38 +715,31 @@ Pipeline (Phase 2) evaluation model:
   other.
 ### Model B declaration syntax (Partial: parse/lower only)
 
-LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`. Consecutive
+LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`; consecutive
 same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
-Comments, blank lines and prefix annotations preserve grouping and per-clause
-metadata; unrelated statements and completed REPL submissions end it.
-Mixing `=`/`=:` in a same-name declaration run raises
-`mixed-function-declaration-operators`.
+Comments/blank lines/prefix annotations preserve grouping and per-clause metadata;
+unrelated statements and completed REPL submissions end it. Mixed `=`/`=:` runs
+raise `mixed-function-declaration-operators`.
 
-Historical ordinary `=` dotted targets remain literal binding names (including
-function declaration targets), not property writes. New `=:` targets and new
-pattern/guard declaration targets require simple names.
+Historical ordinary dotted targets are literal binding names, not property
+writes. New `=:` and pattern/guard targets require simple names. Legacy unguarded
+identifier headers retain `IrFuncDef`, its normalized wire shape, grouped bodies,
+inline documentation and varargs. Pattern/guard headers use `IrPatternFuncDef`
+with one full tuple pattern and optional guard under R20 grammar. They reject
+`->` and grouped bodies; grouped bodies require unguarded identifier headers.
+Their post-`=` string is a body, never documentation. No nested named/closed
+declarations or nested tuple-pattern atoms are added. Normalization omits source
+spans and absent annotations/guards.
 
-Legacy unguarded identifier headers retain `IrFuncDef` and its normalized wire
-shape, including grouped case bodies, inline documentation and varargs.
-Ordinary guarded or non-identifier pattern headers use `IrPatternFuncDef`,
-with one full tuple pattern and optional guard, using the existing R20 header
-grammar. Pattern/guard headers reject `->` and grouped case bodies; grouped
-bodies require identifier-only headers without header guards. A string after
-`=` on a pattern header is the body, never an inline docstring. No nested
-named/closed declarations or nested tuple-pattern atom syntax is added.
-Absent annotations/guards and source spans are omitted from normalized IR.
-
-PYTHON REFERENCE HOST: Model B declarations currently support parsing/lowering
-only; evaluation fails with `model-b-not-implemented` before their initializer,
-annotations, guard or body executes. Direct entry-file route/server/CORS
-discovery also rejects these carriers before environment lookups, including
-unannotated declarations. Immutable binding execution, default-open
-ordinary dispatch, cross-module linking changes and closed publication are
-not implemented. Existing ordinary execution and explicit R20 `open` behavior
-remain in effect. An unfinished `=:` initializer keeps REPL input incomplete;
-a later completed submission never appends to the previous parsed group.
-C++ does not implement these new syntax/carriers in the current host evidence;
-parser acceptance is not an executable capability claim.
+PYTHON REFERENCE HOST: parse/lower only. Evaluation raises
+`model-b-not-implemented` before initializer/annotation/guard/body effects.
+Direct entry-file route/server/CORS discovery rejects these carriers, even
+unannotated, before environment lookups. Immutable execution, default-open
+dispatch, linking changes and closed publication remain unimplemented; ordinary
+and explicit R20 execution remain. Unfinished `=:` keeps REPL input incomplete;
+completed submissions cannot extend earlier groups. C++ new syntax/carriers
+remain unsupported in current evidence; parser acceptance grants no execution
+capability.
 
 ## 4) Functions and dispatch
 
