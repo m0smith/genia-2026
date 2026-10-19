@@ -6,7 +6,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from .ir import IrAssign, IrNode
+from .ir import IrAssign, IrNode, IrClosedFuncDef, IrPatternFuncDef, IrImmutableBind
 from .values import GeniaMap, _is_nil_none, _runtime_type_name
 
 
@@ -209,7 +209,13 @@ def discover_entry_file_server_config_binding(
     Source indices come from that list; the supplied identity is assigned to
     each candidate, not inferred from its span. Lookup failures propagate.
     Discovery validates metadata without evaluating assignments or serving.
+    Slice A declarations reject with model-b-not-implemented before any
+    environment lookup, even for direct callers and unannotated declarations.
     """
+
+    for node in nodes:
+        if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
+            raise RuntimeError("model-b-not-implemented: server discovery is not available")
 
     declarations: list[ServerConfigDeclaration] = []
     for source_index, node in enumerate(nodes):

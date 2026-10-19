@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .callable import GeniaFunction, GeniaFunctionGroup
-from .ir import IrFuncDef, IrNode, IrClosedFuncDef, IrPatternFuncDef
+from .ir import IrFuncDef, IrNode, IrClosedFuncDef, IrPatternFuncDef, IrImmutableBind
 from .values import GeniaMap, _runtime_type_name
 
 
@@ -202,16 +202,16 @@ def discover_entry_file_route_bindings(
     this function tags declarations with the supplied source identity rather
     than deriving it from spans. Environment lookup errors propagate. Handlers
     are not invoked; validation/order/conflicts use discover_route_bindings.
-    Slice A closed/pattern declarations reject with model-b-not-implemented
-    even for direct discovery callers; they cannot silently omit handlers.
+    Slice A declarations reject with model-b-not-implemented before any
+    environment lookup, even for direct callers and unannotated declarations.
     """
+
+    for node in nodes:
+        if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
+            raise RuntimeError("model-b-not-implemented: server discovery is not available")
 
     declarations: list[RouteDeclaration] = []
     for source_index, node in enumerate(nodes):
-        if isinstance(node, (IrClosedFuncDef, IrPatternFuncDef)):
-            # Source execution normally rejects first; direct discovery callers
-            # must also get the transitional failure rather than lose routes.
-            raise RuntimeError("model-b-not-implemented: route declaration evaluation is not available")
         if not isinstance(node, IrFuncDef):
             continue
         if not any(annotation.name == "route" for annotation in node.annotations):

@@ -737,7 +737,9 @@ Absent annotations/guards and source spans are omitted from normalized IR.
 
 PYTHON REFERENCE HOST: Model B declarations currently support parsing/lowering
 only; evaluation fails with `model-b-not-implemented` before their initializer,
-annotations, guard or body executes. Immutable binding execution, default-open
+annotations, guard or body executes. Direct entry-file route/server/CORS
+discovery also rejects these carriers before environment lookups, including
+unannotated declarations. Immutable binding execution, default-open
 ordinary dispatch, cross-module linking changes and closed publication are
 not implemented. Existing ordinary execution and explicit R20 `open` behavior
 remain in effect. An unfinished `=:` initializer keeps REPL input incomplete;
