@@ -215,8 +215,9 @@ and existing R20 clauses and annotation values; portable validation rejects
 nested host-local optimized nodes.
 
 PYTHON REFERENCE HOST: parsing, lowering, normalization and validation are
-implemented; evaluation rejects new declarations with `model-b-not-implemented`
-before child effects. This adds no Model B dispatcher, immutable-write policy,
+implemented. Slice B evaluates `IrImmutableBind` with an Env-owned immutable-write
+policy (no Core IR change); closed and pattern declarations still reject with
+`model-b-not-implemented` before child effects. This adds no Model B dispatcher,
 linker or closed-publication state machine. Optimizers preserve the atomic group.
 C++ new-carrier support is not claimed; issue #1250 owns that follow-up.
 `core_ir_version` and R16 protocol stay unchanged; exact `contract_revision`

@@ -12,14 +12,16 @@ The strongest end-to-end proof is the [validated pipeline demo](#run-the-validat
 
 > **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R27 production host with Ref, Cell, local Process, a scripted REPL, Bytes/UTF-8 plus strict JSON data bridges, Flow phase 1, and pipe mode. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
 
-## Model B declarations: partial syntax support
+## Model B declarations: partial support
 
-Python accepts and lowers immutable `name =: expr`, atomic closed-function
-clause groups, and ordinary pattern/guard headers. Their evaluation explicitly
-fails with `model-b-not-implemented`; immutable assignment enforcement,
-default-open execution, cross-module linking changes and closed publication
-remain unimplemented. Ordinary functions and explicit R20 `open` retain their
-existing execution behavior. C++ support for the new syntax is not claimed.
+Python executes immutable `name =: expr` (optional capability `immutable_bindings`):
+a fresh binding in the current scope, rejected before its initializer on any
+same-scope or runtime-reserved name, and rejecting later `=`/function/import
+writes to it before their effects. Binding immutability is shallow. Atomic closed-function
+clause groups and ordinary pattern/guard headers are accepted and lowered, but
+their evaluation fails with `model-b-not-implemented`; default-open execution,
+cross-module linking changes and closed publication remain unimplemented.
+Ordinary `=` and explicit R20 `open` retain their existing execution behavior. C++ support for the new syntax is not claimed.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.

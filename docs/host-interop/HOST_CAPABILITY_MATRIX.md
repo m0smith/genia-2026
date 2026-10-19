@@ -69,13 +69,25 @@ Browser playground adapter note:
 | open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval`; the host has no tail-call optimization (call-depth limit 300), so deep mutual-tail-call cases report unsupported; a grouped open clause that captures a header name (contract section 3.3) is refused as unsupported, not diagnosed |
 | multi-file eval fixture (R16/#836) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Optional protocol-v1 `eval.input.modules` transport, advertised as `multi_file_eval`; independent of `open_functions`, and never sent to a host that does not claim it supported |
 
-### Model B Slice A: parser/lowering boundary
+### Model B Slices A–B: parser/lowering and immutable-binding boundary
 
 Python parses and lowers `=:` declarations, atomic closed groups and ordinary
 pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
-`IrPatternFuncDef`. Evaluation explicitly rejects these new declarations with
-`model-b-not-implemented`. This is partial syntax/IR support, not an immutable,
-default-open or closed-function execution capability claim.
+`IrPatternFuncDef`. Python evaluation executes `IrImmutableBind` (Slice B,
+optional capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`);
+closed groups and pattern headers are still rejected with `model-b-not-implemented`.
+This is not a default-open or closed-function execution capability claim. C++ does
+not claim `immutable_bindings`: it is a listed gap in `spec/known_host_gaps.json`
+(tracking `genia-2026#1261`; parser/lowering owned by genia-cpp #50).
+
+Python Slice B details (implemented; `GENIA_STATE.md` section 3 is authoritative):
+diagnostics are `Cannot assign to immutable binding: x`, `Cannot rebind immutable
+binding: x` and `Cannot declare immutable binding x: name is already bound in this
+scope` / `name is reserved by the runtime`. Import, `open` and `use` targets are
+checked before loading or linking. Direct route/server/CORS discovery rejects closed
+and pattern carriers and a `=:` annotated `@route`/`@server`/`@cors`; an ordinary
+`=:` is a plain statement there. Earlier statements' effects stand before an
+unimplemented declaration.
 
 The C++ adapter used for Slice A evidence reports the new syntax outside its
 supported scope. That ancestor-pinned evidence is not current pinned conformance

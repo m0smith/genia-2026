@@ -7,10 +7,20 @@ If anything here disagrees with GENIA_STATE.md, GENIA_STATE.md wins.
 
 Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest. Examples are classified as **Valid** if directly tested, **Likely valid** if not directly tested, **Illustrative** if not runnable, or **Invalid** if contradicted by implementation.
 
-Model B `=:` declarations and ordinary pattern/guard headers are **parse/lower
-only in Python**: evaluation rejects with `model-b-not-implemented`. Continue
-using the executable ordinary/R20 forms below. No immutable/default-open/closed
-execution or new C++ syntax support is claimed.
+Model B `name =: expr` is an **immutable binding in Python** (optional
+capability `immutable_bindings`; no C++ support): a fresh name in the current
+scope, rejected before its initializer if the name is already bound there or is
+runtime-owned, and later `name = ...` fails before evaluating the right-hand side.
+Ordinary pattern/guard headers and closed `f(x) =: body` functions are
+**parse/lower only**: evaluation rejects with `model-b-not-implemented`.
+
+<!-- [case: core-immutable-binding-shallow] -->
+```genia
+r =: ref(0)
+ref_set(r, 5)
+ref_get(r)
+```
+Classification: **Valid** (directly tested, Python only)
 
 ## Language Forms
 
@@ -20,6 +30,7 @@ execution or new C++ syntax support is claimed.
 | function | `f(x) = expr` | named functions are first-class |
 | lambda | `(x) -> expr`, `([a, b]) -> expr`, `(..xs) -> expr` | single-arm pattern lambdas and varargs supported |
 | assignment | `name = expr` | lexical define/rebind |
+| immutable binding | `name =: expr` | fresh, shallow-immutable binding in the current scope (Python only) |
 | annotations | `@doc "..."`, `@meta {...}`, `@since "..."`, `@deprecated "..."`, `@category "..."`, `@route {...}`, `@server {...}`, `@cors {...}` | top-level metadata; Experimental R8 descriptors are inert |
 | block | `{ expr1 expr2 ... }` | returns final expression |
 | pipeline | `x |> f |> g` | explicit pipeline IR stage list |

@@ -6,10 +6,9 @@ Only includes currently implemented Genia CLI and Flow behavior. All shell pipel
 
 Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest. Examples are classified as **Valid** if directly tested, **Likely valid** if not directly tested, **Illustrative** if not runnable, or **Invalid** if contradicted by implementation.
 
-Model B `=:` declarations and ordinary pattern/guard headers are **parse/lower
-only in Python**: evaluation rejects with `model-b-not-implemented`. Continue
-using the executable ordinary/R20 forms below. No immutable/default-open/closed
-execution or new C++ syntax support is claimed.
+Model B `name =: expr` executes in Python as an immutable binding; pattern/guard
+headers and closed `f(...) =: body` are **parse/lower only** (`model-b-not-implemented`).
+No default-open/closed execution or C++ `=:` support is claimed.
 
 ## Core CLI Shapes
 

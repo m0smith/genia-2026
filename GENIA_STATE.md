@@ -713,7 +713,7 @@ Pipeline (Phase 2) evaluation model:
   execution (an exact argv, no shell, no PATH search) under a portable
   contract currently implemented by Python. Neither wraps or replaces the
   other.
-### Model B declaration syntax (Partial: parse/lower only)
+### Model B declarations (Partial: `=:` bindings execute; closed/pattern forms parse/lower only)
 
 LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`; consecutive
 same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
@@ -722,24 +722,29 @@ unrelated statements and completed REPL submissions end it. Mixed `=`/`=:` runs
 raise `mixed-function-declaration-operators`.
 
 Historical ordinary dotted targets are literal binding names, not property
-writes. New `=:` and pattern/guard targets require simple names. Legacy unguarded
-identifier headers retain `IrFuncDef`, its normalized wire shape, grouped bodies,
-inline documentation and varargs. Pattern/guard headers use `IrPatternFuncDef`
-with one full tuple pattern and optional guard under R20 grammar. They reject
-`->` and grouped bodies; grouped bodies require unguarded identifier headers.
-Their post-`=` string is a body, never documentation. No nested named/closed
-declarations or nested tuple-pattern atoms are added. Normalization omits source
-spans and absent annotations/guards. `IrPatErr`/`IrPatNamed` are portable pattern carriers.
+writes; new `=:` and pattern/guard targets require simple names. Legacy unguarded
+identifier headers keep `IrFuncDef`, grouped bodies, inline documentation and
+varargs. Pattern/guard headers use `IrPatternFuncDef` (one full tuple pattern,
+optional guard, R20 grammar), reject `->` and grouped bodies, and their post-`=`
+string is a body, never documentation. Wire shapes and carriers (`IrPatErr`, `IrPatNamed`): `docs/architecture/core-ir-portability.md`.
 
-PYTHON REFERENCE HOST: parse/lower only; evaluation fails with `model-b-not-implemented`
-before initializer/annotation/guard/body effects.
-Direct entry-file route/server/CORS discovery rejects these carriers, even
-unannotated, before environment lookups. Immutable execution, default-open
-dispatch, linking changes and closed publication remain unimplemented; ordinary
-and explicit R20 execution remain. Unfinished `=:` keeps REPL input incomplete;
-completed submissions cannot extend earlier groups. C++ new syntax/carriers
-remain unsupported in current evidence; parser acceptance grants no execution
-capability.
+LANGUAGE CONTRACT (optional capability `immutable_bindings`): `name =: init`
+declares a fresh immutable binding in the current lexical scope. Before the
+initializer runs it fails on any same-scope binding (including parameters, import
+aliases, functions) and, at entry scope, on any runtime-owned name, even an
+unloaded prelude name (static manifest, no autoload). The initializer runs once;
+commit revalidates, so a reentrant or racing write fails the commit without
+rolling back initializer effects. A nested `=:` may shadow an outer user binding. `name = v` fails before evaluating `v` if the nearest binding is
+immutable. Functions, named patterns, import aliases, `open` and `use` cannot
+overwrite it.
+Immutability is shallow; Ref/Cell mutation, parameter assignment, `=` and entry write-through are unchanged.
+
+PYTHON REFERENCE HOST: an Env-owned policy enforces `=:` under one lock never held across user code.
+Closed and pattern-header evaluation fails with
+`model-b-not-implemented` before initializer/annotation/guard/body effects.
+Default-open dispatch, linking and closed publication remain unimplemented.
+Unfinished `=:` keeps REPL input incomplete; completed submissions cannot extend
+earlier groups. C++ lacks `=:` (known gap `immutable_bindings`, genia-cpp#50).
 
 ## 4) Functions and dispatch
 
@@ -3617,8 +3622,8 @@ PYTHON REFERENCE HOST (MCP adapter):
   `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`,
   `examples` and `discovery`. Executable `gcd` and `factorial` examples return `6`
   and `120`. `idioms.clauses` requires explicit `open` for executable pattern
-  dispatch; Model B ordinary pattern/guard headers and `=:` currently parse/lower
-  but reject evaluation with `model-b-not-implemented` (section 3).
+  dispatch; `name =: expr` executes (section 3); Model B pattern/guard
+  headers and closed `f(...) =: body` still reject evaluation with `model-b-not-implemented`.
 - `idioms.pipelines`, `idioms.outcomes` and `idioms.flow` restate sections 2, 3,
   5 and 6: validated pipelines, Outcome lifting/short-circuiting and explicit
   recovery, lazy single-use Flow, bounded terminals and explicit stdin adaptation.
@@ -3639,21 +3644,19 @@ PYTHON REFERENCE HOST (MCP adapter):
   is claimed. The catalogue grants no execution authority, is not an exhaustive inventory, performs no live discovery, is at most 16,384 UTF-8 bytes with summaries at most 256 bytes (static output bounds, not runtime
   limits), and is identical in plain file mode.
 - **Evidence:** `tests/unit/test_r28_mcp_language_profile.py`, `tests/unit/test_r28_mcp_language_registry.py`, `tests/unit/test_r28_mcp_language_outcomes.py` (A9), `tests/unit/test_r28_mcp_language_flow.py` (A10), `tests/unit/test_r28_mcp_language_absence.py` (A11), `tests/doc/test_state_anchors_and_registry_sync.py`, and the golden wire snapshot
-  `tests/data/mcp_language_profile.golden.json`; matrix rows D1, D5, D6, D9, D10 in `docs/mcp/conformance-matrix.md`. The authentic client acceptance runs (1-3) predate A6 and A7 and describe the three-tool surface; no new
-  authentic client run is claimed. Not done: source-specific parse or run diagnostic hints.
+  `tests/data/mcp_language_profile.golden.json`; matrix rows D1, D5, D6, D9, D10 in `docs/mcp/conformance-matrix.md`. Authentic client runs (1-3) predate A6 and A7; no new run is claimed. Not done: source-specific parse/run diagnostic hints.
 
 ## 9.51) R28 MCP grounded-evidence example
 
-LANGUAGE CONTRACT: unchanged. This is one checked-in example program and tests, not a new Genia feature.
+LANGUAGE CONTRACT: unchanged; one checked-in example program and tests, not a new feature.
 
-PYTHON REFERENCE HOST (MCP example): `examples/mcp/grounded_evidence.genia` runs through the existing `genia_run` tool. It validates client-supplied document literals, chunks valid documents with Experimental R12 `chunk/2`,
-and prints one strict JSON evidence package on stdout (the question, retained validated input documents, selected evidence with exact `chunk/2` source spans, first-occurrence sources, indexed diagnostics, and a selection
-descriptor whose claim is `ordinary_example_selection_not_r12_retrieve`). It uses only ordinary Genia plus existing public helpers and adds no MCP tool, resource, prompt, transport, authority, builtin, parser/evaluator
-behavior, Core IR node, provider, or host capability; no C++ MCP or cross-host parity is claimed.
+PYTHON REFERENCE HOST (MCP example): `examples/mcp/grounded_evidence.genia` runs through the existing `genia_run` tool. It validates document literals, chunks them with Experimental R12 `chunk/2`,
+and prints one strict JSON evidence package (question, validated documents, evidence with exact `chunk/2` spans, sources, indexed diagnostics, and a selection
+descriptor whose claim is `ordinary_example_selection_not_r12_retrieve`). It adds no MCP surface, builtin, parser/evaluator
+behavior, Core IR node, provider or host capability; no C++ MCP or cross-host parity is claimed.
 
-The selection step is a deterministic example-local exact-term overlap over the checked-in source literals. It is not R12 `retrieve/4`, semantic retrieval, embedding, reranking, RAG, citation validation, answer generation,
-or evidence authenticity; answer generation remains outside Genia with the MCP client. Document ids and metadata are client-asserted labels; the example preserves supplied spans and diagnostics but does not verify
-origin or trust. Evidence: `tests/unit/test_r28_mcp_grounded_evidence_example.py`.
+Selection is deterministic example-local exact-term overlap, not R12 `retrieve/4`, semantic retrieval, reranking, RAG, citation validation or answer generation.
+Ids and metadata are unverified client labels. Evidence: `tests/unit/test_r28_mcp_grounded_evidence_example.py`.
 
 
 ## Development documentation infrastructure
@@ -3661,4 +3664,3 @@ origin or trust. Evidence: `tests/unit/test_r28_mcp_grounded_evidence_example.py
 The maintained-code documentation policy and native-language coverage checker
 are development infrastructure, not language semantics or host capabilities.
 See `docs/contract/code-documentation.md` and `docs/process/code-documentation.md`.
-Existing source-documentation debt is tracked separately from semantic host gaps.
