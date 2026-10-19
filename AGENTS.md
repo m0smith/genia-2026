@@ -139,6 +139,14 @@ Prefer references over duplicated semantic rules.
 
 ---
 
+## Temporary Genia Dogfooding Observation Pilot (#1226)
+
+For the **next four eligible, independent substantial Genia development tasks** after the first prospective observation recorded on #1226 (five prospective tasks total), **Codex and Claude** should leave a short, evidence-based post-task observation on [issue #1226](https://github.com/m0smith/genia-2026/issues/1226) whenever they run such a task. This is a **time-limited, non-blocking observation request**, not a new mandatory lifecycle phase, CI gate, or requirement to rewrite working host tooling in Genia. The retrospective five PRs do not count toward the five prospective observations.
+
+At the end of a task, briefly record: task/PR link; Python, Bash, JS, or other support tooling encountered; whether a bounded portion could have been written in **currently implemented** Genia (check `GENIA_STATE.md` and executable evidence); any actual comparison/test, mismatch or limitation; a grounded classification (**A** already fits, **B** awkward ergonomics, **C** missing feature, **D** another tool is better, **E** unknown, or **none**); and review effort/time if measured (otherwise say not measured). Include negative results. Redact credentials, protected data, and private inputs. Do not invent performance savings, unimplemented syntax, or speculative feature tickets. A useful observation can simply say that no Genia substitution was appropriate.
+
+Once #1226 has **five distinct prospective task observations total**, stop this reminder and aggregate the evidence on #1226 for an **ADOPT / REVISE / DO NOT ADOPT** decision. Do not silently make this a permanent policy; any subsequent instruction change requires its own approved follow-up. Keep the source-of-truth and documentation-update rules above unchanged.
+
 ## Product Priority
 
 Before proposing or implementing new feature work, read:
