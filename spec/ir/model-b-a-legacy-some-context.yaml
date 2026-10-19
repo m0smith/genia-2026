@@ -1,0 +1,27 @@
+name: model-b-a-legacy-some-context
+category: ir
+description: Pin legacy wire compatibility and full new-carrier header context separately
+input:
+  source: f(x) = (some(y,c)) -> y
+expected:
+  ir:
+  - node: IrFuncDef
+    name: f
+    params:
+    - x
+    body:
+      node: IrCase
+      clauses:
+      - node: IrCaseClause
+        pattern:
+          node: IrPatTuple
+          items:
+          - node: IrPatSome
+            inner:
+              node: IrPatBind
+              name: y
+        result:
+          node: IrVar
+          name: y
+requires:
+- ast_lowering
