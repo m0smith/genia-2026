@@ -202,12 +202,15 @@ def discover_entry_file_route_bindings(
     this function tags declarations with the supplied source identity rather
     than deriving it from spans. Environment lookup errors propagate. Handlers
     are not invoked; validation/order/conflicts use discover_route_bindings.
-    Slice A declarations reject with model-b-not-implemented before any
-    environment lookup, even for direct callers and unannotated declarations.
+    Closed and pattern declarations, and an immutable binding carrying `@route`,
+    reject with model-b-not-implemented before any environment lookup, even for
+    direct callers; an ordinary immutable binding is a plain statement here.
     """
 
     for node in nodes:
-        if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
+        if isinstance(node, (IrClosedFuncDef, IrPatternFuncDef)) or (
+            isinstance(node, IrImmutableBind) and any(a.name == "route" for a in node.annotations)
+        ):
             raise RuntimeError("model-b-not-implemented: server discovery is not available")
 
     declarations: list[RouteDeclaration] = []

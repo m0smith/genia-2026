@@ -209,12 +209,15 @@ def discover_entry_file_server_config_binding(
     Source indices come from that list; the supplied identity is assigned to
     each candidate, not inferred from its span. Lookup failures propagate.
     Discovery validates metadata without evaluating assignments or serving.
-    Slice A declarations reject with model-b-not-implemented before any
-    environment lookup, even for direct callers and unannotated declarations.
+    Closed and pattern declarations, and an immutable binding carrying `@server`,
+    reject with model-b-not-implemented before any environment lookup, even for
+    direct callers; an ordinary immutable binding is a plain statement here.
     """
 
     for node in nodes:
-        if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
+        if isinstance(node, (IrClosedFuncDef, IrPatternFuncDef)) or (
+            isinstance(node, IrImmutableBind) and any(a.name == "server" for a in node.annotations)
+        ):
             raise RuntimeError("model-b-not-implemented: server discovery is not available")
 
     declarations: list[ServerConfigDeclaration] = []

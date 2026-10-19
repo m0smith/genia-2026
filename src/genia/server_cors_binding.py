@@ -173,12 +173,15 @@ def discover_entry_file_cors_binding(
     candidates receive its source identity and enumerated indices. Environment
     lookup failures propagate. Delegate policy/owner validation to discovery
     without evaluating assignments or wrapping handlers.
-    Slice A declarations reject with model-b-not-implemented before any
-    environment lookup, even for direct callers and unannotated declarations.
+    Closed and pattern declarations, and an immutable binding carrying `@cors`,
+    reject with model-b-not-implemented before any environment lookup, even for
+    direct callers; an ordinary immutable binding is a plain statement here.
     """
 
     for node in nodes:
-        if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
+        if isinstance(node, (IrClosedFuncDef, IrPatternFuncDef)) or (
+            isinstance(node, IrImmutableBind) and any(a.name == "cors" for a in node.annotations)
+        ):
             raise RuntimeError("model-b-not-implemented: server discovery is not available")
 
     declarations: list[CorsDeclaration] = []

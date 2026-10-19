@@ -7,7 +7,7 @@ input:
     x =: 5
     doc("x")
 expected:
-  stdout: "demo\n"
+  stdout: "\"demo\"\n"
   stderr: ""
   exit_code: 0
 requires:

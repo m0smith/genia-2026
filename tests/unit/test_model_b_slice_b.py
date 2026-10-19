@@ -15,7 +15,6 @@ import pytest
 
 import genia
 from genia import ir
-from genia.environment import Env
 from genia.evaluator import Evaluator
 
 
@@ -141,13 +140,15 @@ def test_merge_metadata_rejected_outside_declaration(sealed):
         sealed.merge_binding_metadata("x", GeniaMap().put("doc", "late"))
 
 
-def test_metacircular_set_and_define_rejected():
-    env = fresh_entry()
-    ev(env, bind("x", 1))
-    with pytest.raises(RuntimeError, match="immutable binding: x"):
-        genia.run_source("meta_set(meta_empty_env(), quote(x), 2)", env)
-    # the metacircular frame is a separate scope over the same entry env
-    assert env.get("x") == 1
+def test_metacircular_set_and_define_rejected(sealed):
+    from genia.evaluator import GeniaMetaEnv
+
+    meta = GeniaMetaEnv(sealed)
+    with pytest.raises(RuntimeError, match="Cannot assign to immutable binding: x"):
+        meta.assign("x", 2)
+    with pytest.raises(RuntimeError, match="Cannot rebind immutable binding: x"):
+        meta.define("x", 2)
+    assert sealed.get("x") == 1
 
 
 def test_import_alias_writer_rejected_before_module_load(tmp_path, monkeypatch):
@@ -256,3 +257,27 @@ def test_shallow_cell_mutation_allowed_after_immutable_bind():
     env = genia.make_global_env([])
     source = "c =: cell(1)\ncell_send(c, (s) -> s + 1)\ncell_get(c)"
     assert genia.run_source(source, env) in (1, 2)  # asynchronous worker; only no rejection is asserted
+
+
+@pytest.mark.parametrize('discovery', ['route', 'server', 'cors'])
+def test_unannotated_immutable_binding_is_ordinary_for_server_discovery(discovery):
+    from genia.server_route_binding import discover_entry_file_route_bindings
+    from genia.server_config_binding import discover_entry_file_server_config_binding
+    from genia.server_cors_binding import discover_entry_file_cors_binding
+    from genia.lexer import lex
+    from genia.interpreter import Parser, lower_program
+
+    class NoLookup:
+        def get(self, name):
+            raise AssertionError('no declaration should be looked up')
+
+        get_metadata = get
+
+    nodes = lower_program(Parser(lex('x =: 1\n')).parse_program())
+    kwargs = {'entry_source_identity': 'entry.genia'}
+    function = {'route': discover_entry_file_route_bindings,
+                'server': discover_entry_file_server_config_binding,
+                'cors': discover_entry_file_cors_binding}[discovery]
+    if discovery == 'cors':
+        kwargs.update(server_declaration_name='config', server_source_index=0)
+    function(nodes, NoLookup(), **kwargs)  # must not raise model-b-not-implemented

@@ -28,9 +28,9 @@ def test_repl_missing_initializer_incomplete(source):
     assert not is_complete(source)
 
 
-@pytest.mark.parametrize('source', ['x =: 1','f(x) =: x','f([x]) = x','f(x) ? true = x'])
+@pytest.mark.parametrize('source', ['f(x) =: x','f([x]) = x','f(x) ? true = x'])
 def test_transitional_rejection(run, source):
-    """Reject new declaration execution instead of silently using legacy mutable semantics."""
+    """Slice B executes `x =: expr`; the remaining declarations still reject execution instead of silently using legacy mutable semantics."""
     with pytest.raises(Exception, match='model-b-not-implemented'):
         run(source)
 
@@ -95,9 +95,9 @@ def test_direct_pattern_rejects_competing_header_channel():
         ir.assert_portable_core_ir([child])
 
 
-def test_transitional_rejection_precedes_initializer_effects(run):
+def test_transitional_rejection_precedes_body_effects(run):
     with pytest.raises(RuntimeError, match='model-b-not-implemented'):
-        run('x =: undefined_initializer()')
+        run('f(x) =: undefined_initializer()')
 
 
 def test_direct_evaluation_validates_before_transitional_rejection():
@@ -125,8 +125,10 @@ def test_native_discovery_explicitly_rejects_closed_test():
 
 
 @pytest.mark.parametrize('discovery', ['route', 'server', 'cors'])
-@pytest.mark.parametrize('source', ['x =: unknown()', 'f(x) =: x', 'f([x]) = x'])
-@pytest.mark.parametrize('annotated', [False, True])
+@pytest.mark.parametrize('source,annotated', [
+    ('x =: unknown()', True),  # unannotated immutable bindings are ordinary statements since Slice B
+    ('f(x) =: x', False), ('f(x) =: x', True), ('f([x]) = x', False), ('f([x]) = x', True),
+])
 def test_direct_server_discovery_rejects_before_environment_access(discovery, source, annotated):
     """Python discovery must reject the entire input before metadata/value lookups."""
     from genia.server_route_binding import discover_entry_file_route_bindings

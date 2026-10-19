@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import threading
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
@@ -20,6 +21,37 @@ def _interpreter_runtime() -> Any:
     return interpreter
 
 
+class ImmutableBindingError(RuntimeError):
+    """A language-visible write targeted, or declared over, a binding the policy forbids.
+
+    Raised for assignment to or rebinding of an immutable (`=:`) binding, and for
+    a fresh `=:` declaration over an existing same-scope or runtime-reserved name.
+    Messages never render the value.
+    """
+
+
+# One process-wide, non-reentrant lock makes every binding-policy check-and-write
+# atomic against concurrent writers (Processes run on threads). Held only for the
+# short check and table write, never across initializer, RHS or annotation
+# evaluation; code under it must not call another locking method.
+_BINDING_LOCK = threading.Lock()
+
+
+class DeclarationTicket:
+    """Internal proof that `prepare_immutable_declaration` accepted `name` in `env`.
+
+    Not language authority and not a reservation: the declaration is revalidated
+    at commit, because the initializer may have run arbitrary code in between.
+    """
+
+    __slots__ = ("env", "name", "committed")
+
+    def __init__(self, env: "Env", name: str):
+        self.env = env
+        self.name = name
+        self.committed = False
+
+
 def _check_host_visibility(visibility: str) -> None:
     """Reject an undeclared host class before installation, without rendering values."""
     if not isinstance(visibility, str) or visibility not in ("runtime-public", "entry-only"):
@@ -31,10 +63,14 @@ def _declared_prelude_names(path: str) -> frozenset[str]:
     """Parse one autoload-target prelude file and return its top-level declared names.
 
     Inert: the file is parsed, never evaluated. Functions, named patterns,
-    assignments and open declarations count; an annotated declaration is
+    assignments, immutable (`=:`) bindings, pattern-headed and closed function
+    declarations and open declarations count; an annotated declaration is
     unwrapped. Cached per process because prelude sources are immutable.
     """
-    from .ast_nodes import AnnotatedNode, Assign, FuncDef, NamedPatternDef, OpenFuncDef
+    from .ast_nodes import (
+        AnnotatedNode, Assign, ClosedFuncDef, FuncDef, ImmutableBind, NamedPatternDef, OpenFuncDef,
+        PatternFuncDef,
+    )
 
     runtime = _interpreter_runtime()
     source, key = runtime._load_source_from_path(path)
@@ -42,7 +78,8 @@ def _declared_prelude_names(path: str) -> frozenset[str]:
     for node in runtime.Parser(runtime.lex(source), source=source, filename=key).parse_program():
         while isinstance(node, AnnotatedNode):
             node = node.target
-        if isinstance(node, (Assign, FuncDef, NamedPatternDef, OpenFuncDef)):
+        if isinstance(node, (Assign, FuncDef, NamedPatternDef, OpenFuncDef,
+                             ImmutableBind, PatternFuncDef, ClosedFuncDef)):
             names.add(node.name)
     return frozenset(names)
 
@@ -86,6 +123,9 @@ class Env:
     # pruning, so the runtime-owned manifest is never shrunk by pruning.
     _entry: "Env | None" = None
     _is_entry: bool = False
+    # Names declared immutable (`=:`) in this scope's own table. Class-level empty
+    # frozenset keeps ordinary frames free; commit replaces it, never mutates it.
+    _immutable: frozenset[str] = frozenset()
     entry_declared_runtime_owned: "set[str] | None" = None
     prelude_paths: frozenset[str] = frozenset()
     # F2/P2-D: evaluation-bound reflective callables created for this lexical scope,
@@ -336,6 +376,100 @@ class Env:
         """
         return self._entry_route(name)
 
+    def immutable_names(self) -> frozenset[str]:
+        """Names this scope itself has declared immutable (`=:`)."""
+        return self._immutable
+
+    def _reject_immutable_write(self, name: str, verb: str) -> None:
+        """Raise when `name` is an immutable binding of this scope; `verb` is assign or rebind."""
+        if name in self._immutable:
+            phrase = "assign to" if verb == "assign" else verb
+            raise ImmutableBindingError(f"Cannot {phrase} immutable binding: {name}")
+
+    def check_assign_target(self, name: str) -> None:
+        """Reject, before any right-hand side runs, a write that would hit an immutable binding.
+
+        Follows the same routing and nearest-binding walk as `assign` and raises only
+        for an immutable target. Other failures (non-assignable, pruned runtime name)
+        keep their existing post-RHS timing, so this adds no earlier error class.
+        """
+        try:
+            home = self._entry_route(name)
+        except ValueError:
+            return
+        env: Env = home
+        while True:
+            if name in env.values:
+                env._reject_immutable_write(name, "assign")
+                return
+            if env.parent is None or not env.rebind_parent:
+                return
+            env = env.parent
+
+    def check_rebind_target(self, name: str) -> None:
+        """Reject, before loading or linking effects, publishing `name` over an immutable binding."""
+        try:
+            home = self._entry_route(name)
+        except ValueError:
+            return
+        home._reject_immutable_write(name, "rebind")
+
+    def _check_declaration(self, name: str) -> None:
+        """Validate a fresh immutable declaration of `name` in this scope (no writes).
+
+        Fails on any existing own binding (including a parameter or import alias)
+        and, in the entry scope or an unregistered single-root harness, on a
+        runtime-owned name. Reservation uses the static, non-acquiring manifest, so
+        it never depends on whether a lazy prelude name has loaded.
+        """
+        entry_scope = self._is_entry
+        harness_root = self.parent is None and self._entry is None
+        if entry_scope and self.is_runtime_owned(name):
+            raise ImmutableBindingError(
+                f"Cannot declare immutable binding {name}: name is reserved by the runtime"
+            )
+        if name in self.values:
+            raise ImmutableBindingError(
+                f"Cannot declare immutable binding {name}: name is already bound in this scope"
+            )
+        if harness_root and self.is_runtime_owned(name):
+            raise ImmutableBindingError(
+                f"Cannot declare immutable binding {name}: name is reserved by the runtime"
+            )
+
+    def prepare_immutable_declaration(self, name: str) -> DeclarationTicket:
+        """Check that `name` may be declared immutable here, before its initializer runs.
+
+        Publishes nothing and reserves nothing; `commit_immutable_declaration`
+        revalidates. Raises ImmutableBindingError on a collision or reserved name.
+        """
+        with _BINDING_LOCK:
+            self._check_declaration(name)
+        return DeclarationTicket(self, name)
+
+    def commit_immutable_declaration(
+        self, ticket: DeclarationTicket, value: Any, *, metadata: GeniaMap | None = None,
+    ) -> None:
+        """Atomically revalidate and publish the prepared immutable declaration.
+
+        The initializer may have changed this scope after preparation (a reentrant
+        write, a racing thread), so the full declaration check runs again under the
+        binding lock. Effects of the initializer are never rolled back.
+        """
+        if ticket.env is not self or ticket.committed:
+            raise ValueError("declaration ticket does not belong to this scope or was already committed")
+        name = ticket.name
+        with _BINDING_LOCK:
+            self._check_declaration(name)
+            self.values[name] = value
+            if metadata is not None:
+                self.binding_metadata[name] = metadata
+            else:
+                self.binding_metadata.pop(name, None)
+            self.assignable.discard(name)
+            self._immutable = self._immutable | {name}
+            ticket.committed = True
+
     def get(self, name: str) -> Any:
         env: Env | None = self
         while env is not None:
@@ -370,6 +504,15 @@ class Env:
                      preserve_metadata=preserve_metadata)
             self._record_entry_declaration(name)
             return
+        with _BINDING_LOCK:
+            self._write_binding(name, value, assignable, metadata, preserve_metadata)
+
+    def _write_binding(
+        self, name: str, value: Any, assignable: bool, metadata: GeniaMap | None, preserve_metadata: bool,
+    ) -> None:
+        """Policy-checked table write; the caller holds `_BINDING_LOCK`."""
+        if name in self._immutable:
+            raise ImmutableBindingError(f"Cannot rebind immutable binding: {name}")
         self.values[name] = value
         if metadata is not None:
             self.binding_metadata[name] = metadata
@@ -453,18 +596,21 @@ class Env:
             home.assign(name, value, metadata=metadata)
             self._record_entry_declaration(name)
             return
-        target_env = self.find_assign_target(name)
-        if target_env is None:
-            self.set(name, value, assignable=True, metadata=metadata, preserve_metadata=metadata is None)
-            return
-        target_env.values[name] = value
-        if metadata is not None:
-            target_env.binding_metadata[name] = _merge_metadata_maps(target_env.binding_metadata.get(name), metadata)
+        with _BINDING_LOCK:
+            target_env = self.find_assign_target(name)
+            if target_env is None:
+                self._write_binding(name, value, True, metadata, metadata is None)
+                return
+            target_env.values[name] = value
+            if metadata is not None:
+                target_env.binding_metadata[name] = _merge_metadata_maps(target_env.binding_metadata.get(name), metadata)
 
     def find_assign_target(self, name: str) -> Optional["Env"]:
         env: Env = self
         while True:
             if name in env.values:
+                if name in env._immutable:
+                    raise ImmutableBindingError(f"Cannot assign to immutable binding: {name}")
                 if name in env.assignable:
                     return env
                 raise NameError(f"Cannot assign to non-assignable name: {name}")
@@ -488,6 +634,7 @@ class Env:
             home.define_function(fn, metadata=metadata)
             self._record_entry_declaration(fn.name)
             return
+        self._reject_immutable_write(fn.name, "rebind")
         existing = self.values.get(fn.name)
         if existing is None:
             group = GeniaFunctionGroup(fn.name)
@@ -517,12 +664,24 @@ class Env:
             return self.parent.get_metadata(name)
         raise NameError(f"Undefined name: {name}")
 
-    def merge_binding_metadata(self, name: str, metadata: GeniaMap) -> None:
+    def merge_binding_metadata(
+        self, name: str, metadata: GeniaMap, *, declaration: "DeclarationTicket | None" = None,
+    ) -> None:
+        """Merge `metadata` onto the nearest binding of `name`.
+
+        An immutable binding accepts metadata only from the committed declaration
+        that created it (`declaration`); any later writer is rejected.
+        """
         GeniaFunctionGroup = _interpreter_runtime().GeniaFunctionGroup
 
         env: Env = self
         while True:
             if name in env.values:
+                if name in env._immutable and not (
+                    declaration is not None and declaration.committed
+                    and declaration.env is env and declaration.name == name
+                ):
+                    raise ImmutableBindingError(f"Cannot rebind immutable binding: {name}")
                 merged = _merge_metadata_maps(env.binding_metadata.get(name), metadata)
                 env.binding_metadata[name] = merged
                 value = env.values[name]
