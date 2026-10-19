@@ -156,6 +156,7 @@
         "model-b-b-repl-failed-initializer-name-reusable",
         "model-b-b-repl-immutable-persists",
         "model-b-b-annotation-metadata-attaches",
+        "model-b-b-cell-mutation-observable",
         "model-b-b-closure-write-rejected",
         "model-b-b-duplicate-immutable-rejected",
         "model-b-b-existing-mutable-blocks-declaration",
