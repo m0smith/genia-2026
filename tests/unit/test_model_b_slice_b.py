@@ -19,15 +19,18 @@ from genia.evaluator import Evaluator
 
 
 def fresh_entry():
+    """Return a registered entry scope over a fresh runtime, as a real execution uses."""
     runtime = genia.make_global_env([])
     return runtime.create_entry_scope() if runtime._entry is None else runtime._entry
 
 
 def ev(env, node):
+    """Evaluate one Core IR node directly in `env`, bypassing source parsing."""
     return Evaluator(env).eval(node)
 
 
 def bind(name, value):
+    """Build a direct-IR immutable declaration of a literal."""
     return ir.IrImmutableBind(name, ir.IrLiteral(value))
 
 
@@ -46,7 +49,7 @@ def test_prepare_then_commit_publishes_immutable_binding():
 
 def test_prepare_rejects_existing_local_binding_before_any_commit():
     env = fresh_entry()
-    env.set("x", 1)
+    env.assign("x", 1)  # ordinary mutable binding
     with pytest.raises(RuntimeError, match="Cannot declare immutable binding x: name is already bound"):
         env.prepare_immutable_declaration("x")
 
@@ -63,7 +66,7 @@ def test_prepare_rejects_unloaded_runtime_owned_name_without_autoload():
 def test_reentrant_write_during_initializer_fails_commit_without_rollback():
     env = fresh_entry()
     ticket = env.prepare_immutable_declaration("x")
-    env.set("x", "from-initializer")  # a reentrant writer wins the race
+    env.assign("x", "from-initializer")  # a reentrant writer wins the race
     with pytest.raises(RuntimeError, match="already bound"):
         env.commit_immutable_declaration(ticket, "late")
     assert env.get("x") == "from-initializer"
@@ -77,6 +80,7 @@ def test_racing_commits_publish_exactly_once():
     results = []
 
     def commit(index):
+        """Commit the ticket at `index` once both threads reach the barrier."""
         barrier.wait()
         try:
             env.commit_immutable_declaration(tickets[index], index)
@@ -94,12 +98,66 @@ def test_racing_commits_publish_exactly_once():
     assert env.get("x") == winner
 
 
-def test_racing_set_cannot_overwrite_a_committed_immutable_binding():
+def test_set_after_commit_cannot_overwrite_immutable_binding():
     env = fresh_entry()
     env.commit_immutable_declaration(env.prepare_immutable_declaration("x"), 1)
     with pytest.raises(RuntimeError, match="Cannot rebind immutable binding: x"):
-        env.set("x", 2)
+        env.set_host("x", 2, visibility="entry-only")
     assert env.get("x") == 1
+
+
+def test_commit_versus_racing_assign_never_loses_the_immutable_value():
+    """Whichever writer wins, the end state is one of two coherent outcomes."""
+    for _ in range(200):
+        env = fresh_entry()
+        ticket = env.prepare_immutable_declaration("x")
+        barrier = threading.Barrier(2)
+        outcome = {}
+
+        def commit():
+            """Racing commit of the prepared immutable declaration."""
+            barrier.wait()
+            try:
+                env.commit_immutable_declaration(ticket, "immutable")
+                outcome["commit"] = "ok"
+            except RuntimeError:
+                outcome["commit"] = "rejected"
+
+        def assign():
+            """Racing ordinary assignment to the same name."""
+            barrier.wait()
+            try:
+                env.assign("x", "mutable")
+                outcome["assign"] = "ok"
+            except RuntimeError:
+                outcome["assign"] = "rejected"
+
+        threads = [threading.Thread(target=commit), threading.Thread(target=assign)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        if outcome["commit"] == "ok":
+            assert outcome["assign"] == "rejected"
+            assert env.get("x") == "immutable" and "x" in env.immutable_names()
+        else:
+            assert outcome["assign"] == "ok"
+            assert env.get("x") == "mutable" and "x" not in env.immutable_names()
+
+
+def test_binding_lock_is_released_after_every_rejection(sealed):
+    from genia.environment import _BINDING_LOCK
+
+    for call in (
+        lambda: sealed.assign("x", 2),
+        lambda: sealed.set_host("x", 2, visibility="entry-only"),
+        lambda: sealed.prepare_immutable_declaration("x"),
+        lambda: sealed.prepare_immutable_declaration("print"),
+    ):
+        with pytest.raises(RuntimeError):
+            call()
+        assert _BINDING_LOCK.acquire(blocking=False)  # would deadlock/fail if a rejection leaked it
+        _BINDING_LOCK.release()
 
 
 # --- every language-visible writer is checked -----------------------------------
@@ -107,17 +165,20 @@ def test_racing_set_cannot_overwrite_a_committed_immutable_binding():
 
 @pytest.fixture
 def sealed():
+    """An entry scope in which `x` is already a committed immutable binding."""
     env = fresh_entry()
     env.commit_immutable_declaration(env.prepare_immutable_declaration("x"), 1)
     return env
 
 
 def test_assign_rejected(sealed):
+    """Ordinary assignment to a sealed name is rejected."""
     with pytest.raises(RuntimeError, match="Cannot assign to immutable binding: x"):
         sealed.assign("x", 2)
 
 
 def test_set_rejected(sealed):
+    """Raw `Env.set` rebinding of a sealed name is rejected."""
     with pytest.raises(RuntimeError, match="Cannot rebind immutable binding: x"):
         sealed.set("x", 2)
 
@@ -182,7 +243,7 @@ def test_direct_ir_commits_once_and_rejects_duplicate():
 def test_direct_ir_reserved_name_rejected_before_initializer():
     env = fresh_entry()
     sentinel = []
-    env.set("probe", lambda: sentinel.append("ran"))
+    env.set_host("probe", lambda: sentinel.append("ran"), visibility="entry-only")
     node = ir.IrImmutableBind("print", ir.IrCall(ir.IrVar("probe"), []))
     with pytest.raises(RuntimeError, match="reserved by the runtime"):
         ev(env, node)
@@ -192,7 +253,7 @@ def test_direct_ir_reserved_name_rejected_before_initializer():
 def test_direct_ir_assign_rejected_before_rhs_effects():
     env = fresh_entry()
     sentinel = []
-    env.set("probe", lambda: sentinel.append("ran"))
+    env.set_host("probe", lambda: sentinel.append("ran"), visibility="entry-only")
     ev(env, bind("x", 1))
     with pytest.raises(RuntimeError, match="Cannot assign to immutable binding: x"):
         ev(env, ir.IrAssign("x", ir.IrCall(ir.IrVar("probe"), [])))
@@ -268,7 +329,9 @@ def test_unannotated_immutable_binding_is_ordinary_for_server_discovery(discover
     from genia.interpreter import Parser, lower_program
 
     class NoLookup:
+        """Fail on any discovery lookup."""
         def get(self, name):
+            """Reject value access."""
             raise AssertionError('no declaration should be looked up')
 
         get_metadata = get

@@ -149,8 +149,8 @@
     },
     {
       "capability": "immutable_bindings",
-      "reason": "The bounded C++ host does not parse or lower the `=:` immutable-declaration token and has no Env binding-policy enforcement (Model B Slice B). Python is the reference implementation; this is an honest optional-capability gap, not parity.",
-      "tracking_issue": "m0smith/genia-cpp#50",
+      "reason": "The bounded C++ host does not parse or lower the `=:` immutable-declaration token and has no Env binding-policy enforcement (Model B Slice B). Python is the reference implementation; this is an honest optional-capability gap, not parity. The C++ parser/lowering work is owned by m0smith/genia-cpp#50.",
+      "tracking_issue": "m0smith/genia-2026#1261",
       "affected_host": "cpp",
       "affected_tests": [
         "model-b-b-repl-failed-initializer-name-reusable",

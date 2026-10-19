@@ -47,6 +47,7 @@ class DeclarationTicket:
     __slots__ = ("env", "name", "committed")
 
     def __init__(self, env: "Env", name: str):
+        """Record the scope and name that preparation accepted; not yet committed."""
         self.env = env
         self.name = name
         self.committed = False
@@ -606,6 +607,13 @@ class Env:
                 target_env.binding_metadata[name] = _merge_metadata_maps(target_env.binding_metadata.get(name), metadata)
 
     def find_assign_target(self, name: str) -> Optional["Env"]:
+        """Return the scope whose assignable binding of `name` an assignment would update, else None.
+
+        Walks from this scope through `rebind_parent` boundaries and stops at the
+        nearest binding. Raises ImmutableBindingError for an immutable one and
+        NameError for a non-assignable one; never searches past either. None means
+        the assignment defines `name` in this scope. The caller holds the binding lock.
+        """
         env: Env = self
         while True:
             if name in env.values:
