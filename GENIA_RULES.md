@@ -6,8 +6,10 @@ These are implementation invariants that contributors should preserve.
 
 Python executes immutable `name =: expr` (optional capability `immutable_bindings`):
 a fresh binding in the current scope, rejected before its initializer on any
-same-scope or runtime-reserved name, and rejecting later `=`/function/import
-writes to it before their effects. Binding immutability is shallow. Atomic closed-function
+same-scope binding and, **at entry scope only**, on any runtime-owned name
+(module and nested scopes may still declare such a name locally). Later
+`=`/function/import writes to it are rejected, `=` before its right-hand side
+runs. Binding immutability is shallow. Atomic closed-function
 clause groups and ordinary pattern/guard headers are accepted and lowered, but
 their evaluation fails with `model-b-not-implemented`; default-open execution,
 cross-module linking changes and closed publication remain unimplemented.
