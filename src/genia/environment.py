@@ -633,7 +633,10 @@ class Env:
         the existing group and merges `metadata`. Raises TypeError when the name
         already holds something that is not an ordinary function group: an open
         interface or linked view is named as such, anything else is reported as
-        a non-function value. A duplicate arity shape is rejected by the group.
+        a non-function value, ImmutableBindingError when the name is an immutable
+        binding of this scope, and the group's own error for a duplicate arity
+        shape. The ownership check and the group mutation share one critical
+        section under the binding lock.
         """
         GeniaFunctionGroup = _interpreter_runtime().GeniaFunctionGroup
 
@@ -642,28 +645,31 @@ class Env:
             home.define_function(fn, metadata=metadata)
             self._record_entry_declaration(fn.name)
             return
-        self._reject_immutable_write(fn.name, "rebind")
-        existing = self.values.get(fn.name)
-        if existing is None:
-            group = GeniaFunctionGroup(fn.name)
-            if metadata is not None:
-                group.merge_metadata(metadata)
-            group.add_clause(fn)
-            self.set(fn.name, group, assignable=True, metadata=group.metadata)
-            return
-        if not isinstance(existing, GeniaFunctionGroup):
-            from . import callable as _callable
+        with _BINDING_LOCK:
+            # Owner check, group lookup and group publication or mutation are one
+            # critical section, so an immutable commit cannot interleave (review M1).
+            self._reject_immutable_write(fn.name, "rebind")
+            existing = self.values.get(fn.name)
+            if existing is None:
+                group = GeniaFunctionGroup(fn.name)
+                if metadata is not None:
+                    group.merge_metadata(metadata)
+                group.add_clause(fn)
+                self._write_binding(fn.name, group, True, group.metadata, False)
+                return
+            if not isinstance(existing, GeniaFunctionGroup):
+                from . import callable as _callable
 
-            if isinstance(existing, (_callable.GeniaOpenFunction, _callable.GeniaLinkedOpenFunction)):
-                raise TypeError(
-                    f"Cannot define function {fn.name}/{fn.arity}: name is bound to an open function "
-                    "interface or linked view, which an ordinary definition cannot replace"
-                )
-            raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
-        if metadata is not None:
-            existing.merge_metadata(metadata)
-            self.binding_metadata[fn.name] = existing.metadata
-        existing.add_clause(fn)
+                if isinstance(existing, (_callable.GeniaOpenFunction, _callable.GeniaLinkedOpenFunction)):
+                    raise TypeError(
+                        f"Cannot define function {fn.name}/{fn.arity}: name is bound to an open function "
+                        "interface or linked view, which an ordinary definition cannot replace"
+                    )
+                raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
+            if metadata is not None:
+                existing.merge_metadata(metadata)
+                self.binding_metadata[fn.name] = existing.metadata
+            existing.add_clause(fn)
 
     def get_metadata(self, name: str) -> GeniaMap:
         if name in self.values:
@@ -678,27 +684,33 @@ class Env:
         """Merge `metadata` onto the nearest binding of `name`.
 
         An immutable binding accepts metadata only from the committed declaration
-        that created it (`declaration`); any later writer is rejected.
+        that created it (`declaration`); any later writer is rejected with
+        ImmutableBindingError, and an unbound name raises NameError. Owner lookup,
+        the authority check and publication are one critical section under the
+        binding lock, so they cannot interleave with an immutable commit.
         """
         GeniaFunctionGroup = _interpreter_runtime().GeniaFunctionGroup
 
-        env: Env = self
-        while True:
-            if name in env.values:
-                if name in env._immutable and not (
-                    declaration is not None and declaration.committed
-                    and declaration.env is env and declaration.name == name
-                ):
-                    raise ImmutableBindingError(f"Cannot rebind immutable binding: {name}")
-                merged = _merge_metadata_maps(env.binding_metadata.get(name), metadata)
-                env.binding_metadata[name] = merged
-                value = env.values[name]
-                if isinstance(value, GeniaFunctionGroup):
-                    value.metadata = merged
-                return
-            if env.parent is None:
-                raise NameError(f"Undefined name: {name}")
-            env = env.parent
+        with _BINDING_LOCK:
+            # Owner lookup, authority check and metadata publication are one
+            # critical section with immutable commit (review M2).
+            env: Env = self
+            while True:
+                if name in env.values:
+                    if name in env._immutable and not (
+                        declaration is not None and declaration.committed
+                        and declaration.env is env and declaration.name == name
+                    ):
+                        raise ImmutableBindingError(f"Cannot rebind immutable binding: {name}")
+                    merged = _merge_metadata_maps(env.binding_metadata.get(name), metadata)
+                    env.binding_metadata[name] = merged
+                    value = env.values[name]
+                    if isinstance(value, GeniaFunctionGroup):
+                        value.metadata = merged
+                    return
+                if env.parent is None:
+                    raise NameError(f"Undefined name: {name}")
+                env = env.parent
 
     def register_autoload(self, name: str, arity: int, path: str, *, trusted: bool = False) -> None:
         root = self.root()

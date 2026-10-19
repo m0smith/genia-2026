@@ -32,6 +32,7 @@ def run_in_thread(target):
     outcome = {}
 
     def body():
+        """Run the target and record its result or exception."""
         try:
             outcome["result"] = target()
         except BaseException as error:  # noqa: BLE001 - recorded for assertions
@@ -53,6 +54,7 @@ def test_m1_function_writer_cannot_extend_group_after_name_becomes_immutable(mon
     original = Env._reject_immutable_write
 
     def pausing(self, name, verb):
+        """Run the real check, then pause the designated writer after it passed."""
         original(self, name, verb)
         if name == "x" and threading.current_thread().name == "m1-writer":
             paused.set()
@@ -64,6 +66,7 @@ def test_m1_function_writer_cannot_extend_group_after_name_becomes_immutable(mon
     outcome = {}
 
     def write():
+        """Evaluate the competing function declaration and record the outcome."""
         try:
             outcome["result"] = Evaluator(env).eval(node)
         except BaseException as error:  # noqa: BLE001
@@ -74,6 +77,7 @@ def test_m1_function_writer_cannot_extend_group_after_name_becomes_immutable(mon
     assert paused.wait(WAIT), "function writer never reached its immutability check"
 
     def commit():
+        """Prepare and commit `x` immutable over the shared group."""
         ticket = env.prepare_immutable_declaration("x")
         env.commit_immutable_declaration(ticket, group)
 
@@ -101,10 +105,12 @@ class PausingAssignable(set):
     """Pauses the commit between value publication and policy publication."""
 
     def __init__(self, paused, release):
+        """Remember the events used to pause and release the commit."""
         super().__init__()
         self.paused, self.release = paused, release
 
     def discard(self, name):
+        """Discard `name`, then pause when it is the declared name `x`."""
         super().discard(name)
         if name == "x":
             self.paused.set()
@@ -118,6 +124,7 @@ def test_m2_metadata_writer_cannot_land_in_the_partial_publication_window():
     env.assignable = PausingAssignable(paused, release)
 
     def commit():
+        """Prepare and commit `x` with the value 1."""
         env.commit_immutable_declaration(env.prepare_immutable_declaration("x"), 1)
 
     committer, commit_outcome = run_in_thread(commit)

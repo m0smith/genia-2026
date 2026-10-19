@@ -314,10 +314,18 @@ def test_closed_and_pattern_declarations_remain_not_implemented():
             genia.run_source(source, genia.make_global_env([]))
 
 
-def test_shallow_cell_mutation_allowed_after_immutable_bind():
-    env = genia.make_global_env([])
-    source = "c =: cell(1)\ncell_send(c, (s) -> s + 1)\ncell_get(c)"
-    assert genia.run_source(source, env) in (1, 2)  # asynchronous worker; only no rejection is asserted
+def test_shallow_cell_mutation_is_observable_after_immutable_bind():
+    """Cell state is updated through an immutable binding and observed once the worker is idle.
+
+    Portable counterpart: spec/eval/model-b-b-cell-mutation-observable.yaml.
+    """
+    from importlib import import_module
+
+    env = import_module("hosts.python.exec_r25_concurrency_fixture")._build_env()
+    source = "c =: cell(1)\ncell_send(c, (s) -> s + 1)\n_r25_await_idle()\ncell_get(c)"
+    assert genia.run_source(source, env) == 2
+    with pytest.raises(RuntimeError, match="Cannot assign to immutable binding: c"):
+        genia.run_source("c = cell(9)", env)
 
 
 @pytest.mark.parametrize('discovery', ['route', 'server', 'cors'])
@@ -344,3 +352,12 @@ def test_unannotated_immutable_binding_is_ordinary_for_server_discovery(discover
     if discovery == 'cors':
         kwargs.update(server_declaration_name='config', server_source_index=0)
     function(nodes, NoLookup(), **kwargs)  # must not raise model-b-not-implemented
+
+
+@pytest.mark.parametrize("name", ["print", "map", "map_acc"])
+def test_runtime_reservation_applies_to_entry_scope_only(name):
+    """Current Python behavior: a nested scope may declare a runtime-owned name locally (review M3)."""
+    env = fresh_entry()
+    with pytest.raises(RuntimeError, match="reserved by the runtime"):
+        genia.run_source(f"{name} =: 7", env)
+    assert genia.run_source(f"f() = {{\n  {name} =: 7\n  {name}\n}}\nf()", env) == 7
