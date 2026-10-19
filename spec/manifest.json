@@ -46,7 +46,9 @@
       "IrPatMap",
       "IrPatGlob",
       "IrPatSome",
-      "IrPatNone"
+      "IrPatNone",
+      "IrPatErr",
+      "IrPatNamed"
     ],
     "host_local_post_lowering_nodes": [
       "IrListTraversalLoop"
