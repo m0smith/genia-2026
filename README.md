@@ -821,7 +821,7 @@ list = (..xs) -> xs
   - it rebinds the nearest existing lexical name when present
   - otherwise it defines a name in the current scope
   - function parameters are assignable
-  - assignment is limited to simple names in this phase
+  - assignment targets are identifier tokens; historical ordinary `=` dotted names remain literal bindings, not property writes
 - calls in tail position are guaranteed to run in constant stack space
 - promises are separate from Flow
   - promises are memoized delayed ordinary values

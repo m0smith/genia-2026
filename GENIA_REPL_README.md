@@ -153,7 +153,7 @@ CLI contract summary (actual behavior):
   - assignment defines a name in the current scope when none exists in the reachable lexical chain
   - otherwise it updates the nearest existing lexical binding
   - parameters are assignable
-  - assignment is limited to simple names in this phase
+  - assignment targets are identifier tokens; historical ordinary `=` dotted names remain literal bindings, not property writes
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - pipeline operator (phase 2): `|>` with Outcome-aware stage semantics
   - ordinary call shape is preserved: `x |> f` calls `f(x)`, `x |> f(y)` calls `f(y, x)`, and `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position

@@ -393,7 +393,7 @@ Required constraints:
 - Otherwise assignment creates `name` in the current scope.
 - Function parameters are ordinary assignable lexical bindings.
 - Closures observe rebinding through captured lexical environments.
-- Assignment is limited to simple names in this phase.
+- Assignment targets are identifier tokens; historical ordinary `=` dotted names remain literal bindings, not property writes.
 - Invalid targets such as `(a + b) = 3` must raise `SyntaxError("Assignment target must be a simple name")`.
 - Module evaluation keeps its own module environment boundary, so module top-level assignment must not rebind names in the importing root environment.
 - Builtin/root names are not protected from rebinding inside the same root environment in the current implementation.

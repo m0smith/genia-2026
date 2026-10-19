@@ -731,8 +731,8 @@ Their post-`=` string is a body, never documentation. No nested named/closed
 declarations or nested tuple-pattern atoms are added. Normalization omits source
 spans and absent annotations/guards.
 
-PYTHON REFERENCE HOST: parse/lower only. Evaluation raises
-`model-b-not-implemented` before initializer/annotation/guard/body effects.
+PYTHON REFERENCE HOST: parse/lower only; evaluation fails with `model-b-not-implemented`
+before initializer/annotation/guard/body effects.
 Direct entry-file route/server/CORS discovery rejects these carriers, even
 unannotated, before environment lookups. Immutable execution, default-open
 dispatch, linking changes and closed publication remain unimplemented; ordinary
