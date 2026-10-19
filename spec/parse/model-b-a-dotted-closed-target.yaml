@@ -1,0 +1,12 @@
+name: model-b-a-dotted-closed-target
+category: parse
+description: New declaration syntax retains its simple-name restriction.
+input:
+  source: 'a.b(x) =: x'
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: Function declaration target must be a simple name
+requires:
+- parser

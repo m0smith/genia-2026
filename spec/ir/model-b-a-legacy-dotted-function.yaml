@@ -1,0 +1,17 @@
+name: model-b-a-legacy-dotted-function
+category: ir
+description: Historical ordinary target compatibility; dotted identifier is a literal
+  binding name, not a property write.
+input:
+  source: a.b(x) = x
+expected:
+  ir:
+  - node: IrFuncDef
+    name: a.b
+    params:
+    - x
+    body:
+      node: IrVar
+      name: x
+requires:
+- ast_lowering
