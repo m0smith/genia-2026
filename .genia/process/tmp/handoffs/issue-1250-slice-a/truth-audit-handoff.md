@@ -1,5 +1,10 @@
 # Independent behavioral/documentation truth audit handoff
 
+Historical pre-audit handoff. The independent verdict at `c14fa139` is now
+**PASS WITH NON-BLOCKING FINDINGS**, superseding the earlier FAIL; see
+`07-audit.md` and `08-distillation.md` for the final decision and closeout.
+Earlier pinned counts below remain historical observations.
+
 PR: https://github.com/m0smith/genia-2026/pull/1260 . Branch: `issue-1250-slice-a`.
 Issue #1250 remains open. Scope is Slice A only. This document prepares an
 independent audit; Codex has not performed or certified that audit.
