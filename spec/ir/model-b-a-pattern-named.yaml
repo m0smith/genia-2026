@@ -1,0 +1,22 @@
+name: model-b-a-pattern-named
+category: ir
+description: Pin IrPatNamed as a Model B header pattern carrier.
+input:
+  source: f(P(x)) = x
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatNamed
+        name: P
+        inner:
+          node: IrPatBind
+          name: x
+    body:
+      node: IrVar
+      name: x
+requires:
+- ast_lowering
