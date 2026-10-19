@@ -1,0 +1,26 @@
+name: model-b-a-legacy-lambda-err
+category: ir
+description: Pin IrPatErr in an ordinary lambda pattern; legacy position emits it
+  too.
+input:
+  source: g = (err(r)) -> r
+expected:
+  ir:
+  - node: IrAssign
+    name: g
+    expr:
+      node: IrLambda
+      params: []
+      body:
+        node: IrVar
+        name: r
+      pattern:
+        node: IrPatTuple
+        items:
+        - node: IrPatErr
+          reason:
+            node: IrPatBind
+            name: r
+          context: null
+requires:
+- ast_lowering

@@ -1,0 +1,26 @@
+name: model-b-a-legacy-lambda-named
+category: ir
+description: Pin IrPatNamed in an ordinary lambda pattern; legacy position emits it
+  too.
+input:
+  source: g = (P(x)) -> x
+expected:
+  ir:
+  - node: IrAssign
+    name: g
+    expr:
+      node: IrLambda
+      params: []
+      body:
+        node: IrVar
+        name: x
+      pattern:
+        node: IrPatTuple
+        items:
+        - node: IrPatNamed
+          name: P
+          inner:
+            node: IrPatBind
+            name: x
+requires:
+- ast_lowering

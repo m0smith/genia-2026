@@ -1,0 +1,24 @@
+name: model-b-a-pattern-err-context
+category: ir
+description: Pin IrPatErr context pattern in a header.
+input:
+  source: f(err(r, c)) = c
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatErr
+        reason:
+          node: IrPatBind
+          name: r
+        context:
+          node: IrPatBind
+          name: c
+    body:
+      node: IrVar
+      name: c
+requires:
+- ast_lowering

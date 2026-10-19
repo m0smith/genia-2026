@@ -119,6 +119,22 @@ def test_manifest_core_ir_patterns_match_architecture_doc():
         assert f"`{name}`" in arch_doc, f"{name} missing from core-ir-portability.md"
 
 
+def test_every_normalized_pattern_carrier_is_a_declared_portable_family():
+    """The wire normalizer must not emit a pattern carrier the manifest does not declare."""
+    import inspect
+
+    from genia import pattern_match
+
+    emitted = sorted(
+        name
+        for name, cls in vars(pattern_match).items()
+        if inspect.isclass(cls) and name.startswith("IrPat") and cls is not pattern_match.IrPattern
+    )
+    manifest = json.loads((REPO / "spec" / "manifest.json").read_text(encoding="utf-8"))
+    declared = sorted(manifest["core_ir_contract"]["minimal_portable_pattern_families"])
+    assert emitted == declared, f"pattern carriers vs manifest: {set(emitted) ^ set(declared)}"
+
+
 def test_spec_category_dirs_allow_active_specs_only():
     """Current phase allows YAML files only in active shared spec category dirs."""
     spec_dir = REPO / "spec"
