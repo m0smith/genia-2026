@@ -2,6 +2,17 @@
 
 These are implementation invariants that contributors should preserve.
 
+## Model B declarations: partial syntax support
+
+Python accepts and lowers immutable `name =: expr`, atomic closed-function
+clause groups, and ordinary pattern/guard headers. Their evaluation explicitly
+fails with `model-b-not-implemented`; immutable assignment enforcement,
+default-open execution, cross-module linking changes and closed publication
+remain unimplemented. Ordinary functions and explicit R20 `open` retain their
+existing execution behavior. C++ support for the new syntax is not claimed.
+See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
+
+
 ## 1) Expression vs case grammar separation
 
 - Case syntax (`->`, `?`, `|`) is not a normal infix-expression system.

@@ -2,6 +2,17 @@
 
 This document describes the **actual current behavior** of the Python reference host prototype in `src/genia/interpreter.py`.
 
+## Model B declarations: partial syntax support
+
+Python accepts and lowers immutable `name =: expr`, atomic closed-function
+clause groups, and ordinary pattern/guard headers. Their evaluation explicitly
+fails with `model-b-not-implemented`; immutable assignment enforcement,
+default-open execution, cross-module linking changes and closed publication
+remain unimplemented. Ordinary functions and explicit R20 `open` retain their
+existing execution behavior. C++ support for the new syntax is not claimed.
+See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
+
+
 ## Run
 
 Run the REPL:

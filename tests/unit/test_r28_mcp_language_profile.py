@@ -203,9 +203,9 @@ def test_the_direct_evaluation_helper_really_evaluates():
     assert _direct("1 + 2") == 3  # guards the must-fail tests below against a broken helper
 
 
-def test_the_requested_literal_spelling_without_open_is_not_valid_genia():
-    # The profile must not teach text the language rejects: a literal first-parameter clause needs `open`.
-    with pytest.raises(Exception):
+def test_pattern_headers_parse_but_execution_requires_explicit_open():
+    # Slice A accepts the header for lowering; executable pattern dispatch still needs open.
+    with pytest.raises(RuntimeError, match="model-b-not-implemented"):
         _direct("gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)")
 
 

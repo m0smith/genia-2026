@@ -68,3 +68,19 @@ Browser playground adapter note:
 | external process execution `execution.process` | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Portable semantic contract (`docs/design/execution-process-contract.md`), implemented only by the Python reference host today. Registered as `execution_process` in `spec/manifest.json`'s `optional_capabilities` (self-declared `supported` by the Python protocol adapter, matching `shell_stage`/`debugger_stdio`'s existing name-only registration precedent); no shared-spec case requires it yet, since no host-neutral capability-provisioning fixture mechanism exists — see `docs/host-interop/capabilities.md`'s entry for the runtime-implementation-vs-conformance-evidence distinction. Distinct from `$(...)`: structured argv, no shell, no `PATH` search. See `GENIA_STATE.md` section 9.40. |
 | open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval`; the host has no tail-call optimization (call-depth limit 300), so deep mutual-tail-call cases report unsupported; a grouped open clause that captures a header name (contract section 3.3) is refused as unsupported, not diagnosed |
 | multi-file eval fixture (R16/#836) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Optional protocol-v1 `eval.input.modules` transport, advertised as `multi_file_eval`; independent of `open_functions`, and never sent to a host that does not claim it supported |
+
+### Model B Slice A: parser/lowering boundary
+
+Python parses and lowers `=:` declarations, atomic closed groups and ordinary
+pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
+`IrPatternFuncDef`. Evaluation explicitly rejects these new declarations with
+`model-b-not-implemented`. This is partial syntax/IR support, not an immutable,
+default-open or closed-function execution capability claim.
+
+The C++ adapter used for Slice A evidence reports the new syntax outside its
+supported scope. That ancestor-pinned evidence is not current pinned conformance
+or parity. Issue #1250 owns the bounded parser/lowering follow-up; removal of
+this boundary requires implementation and passing applicable shared Slice A
+cases. Required parser/ast_lowering cases are not hidden behind optional
+capabilities. Existing R20 execution and other host capability claims remain
+separately evidenced. `GENIA_STATE.md` section 3 is authoritative.

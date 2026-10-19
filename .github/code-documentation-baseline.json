@@ -2451,7 +2451,6 @@
     "tests/unit/test_r28_mcp_language_registry.py::binding::_manifest": "381fa5f6ca7f0c8730148a76ab641ef18e76cdb365b03c824885f39facf5c0dc",
     "tests/unit/test_r28_mcp_language_registry.py::binding::_mutate": "4e3a130892adc02bb10d1592a7e988bd1a17422134e30a82edc0564065acc26d",
     "tests/unit/test_r28_mcp_language_registry.py::binding::_probe_absent_forms_are_absent": "4b9ba361ef115edddce5940977720da2503e47533cf3beab950b212b8807a7b5",
-    "tests/unit/test_r28_mcp_language_registry.py::binding::_probe_open_clause_rule": "ee3cc092ba01c9bd7e6da74cce628cee0e4f6adbd878090ef33d287c647e5da1",
     "tests/unit/test_r28_mcp_language_registry.py::binding::_probe_pattern_dispatch_evaluates": "dc61d9b377e85c99d27c324b289d6a09538ad0075db04ab54031d5c5b1442388",
     "tests/unit/test_r28_mcp_language_registry.py::binding::_probe_pattern_kinds_evaluate": "330935e03046024f9e8177af84541b5e09b954f1b1c54bfbd954f7a9c4c73dea",
     "tests/unit/test_r28_mcp_language_registry.py::binding::_probe_supported_forms_evaluate": "668f32bc65223270a14b3948a867d22b4c3236370048ed626d252a5c8e6380b2",

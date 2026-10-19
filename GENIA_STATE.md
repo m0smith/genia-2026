@@ -712,6 +712,35 @@ Pipeline (Phase 2) evaluation model:
   execution (an exact argv, no shell, no PATH search) under a portable
   contract currently implemented by Python. Neither wraps or replaces the
   other.
+### Model B declaration syntax (Partial: parse/lower only)
+
+LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`. Consecutive
+same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
+Comments, blank lines and prefix annotations preserve grouping and per-clause
+metadata; unrelated statements and completed REPL submissions end it.
+Mixing `=`/`=:` in a same-name declaration run raises
+`mixed-function-declaration-operators`.
+
+Legacy unguarded identifier headers retain `IrFuncDef` and its normalized wire
+shape, including grouped case bodies, inline documentation and varargs.
+Ordinary guarded or non-identifier pattern headers use `IrPatternFuncDef`,
+with one full tuple pattern and optional guard, using the existing R20 header
+grammar. Pattern/guard headers reject `->` and grouped case bodies; grouped
+bodies require identifier-only headers without header guards. A string after
+`=` on a pattern header is the body, never an inline docstring. No nested
+named/closed declarations or nested tuple-pattern atom syntax is added.
+Absent annotations/guards and source spans are omitted from normalized IR.
+
+PYTHON REFERENCE HOST: Model B declarations currently support parsing/lowering
+only; evaluation fails with `model-b-not-implemented` before their initializer,
+annotations, guard or body executes. Immutable binding execution, default-open
+ordinary dispatch, cross-module linking changes and closed publication are
+not implemented. Existing ordinary execution and explicit R20 `open` behavior
+remain in effect. An unfinished `=:` initializer keeps REPL input incomplete;
+a later completed submission never appends to the previous parsed group.
+C++ does not implement these new syntax/carriers in the current host evidence;
+parser acceptance is not an executable capability claim.
+
 ## 4) Functions and dispatch
 
 - named functions are first-class values
@@ -3584,10 +3613,20 @@ PYTHON REFERENCE HOST (MCP adapter):
   `genia_capabilities` and `genia_language_profile` and the launcher advertises all four; `genia_capabilities.tools` reports the advertised set. No resources, prompts, pagination, or other protocol surface is added.
 - It takes no arguments (`arguments` omitted or `{}`; any other value is `-32602`), has the same input schema as `genia_capabilities`, and returns the normal `CallToolResult` with `structuredContent` and one text item holding
   the same `genia.mcp.v1` envelope (`result = {language: {...}}`).
-- `language` is a fixed constant except `contract_revision` (the launch revision `genia_capabilities` reports): `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`, `examples` (`gcd`, `factorial`; they
-  evaluate to `6` and `120` under direct command-source evaluation, verified by tests), and (A7) `discovery`. A literal-first-parameter multi-clause function needs its first clause declared `open`
-  (`open gcd(a, 0) = a`; the same text without `open` is rejected), and the profile states that rule in `idioms.clauses`. Amendment A8 (issue #1119) adds `idioms.pipelines`, anchored in `state:validated-pipelines`. Amendment A9 (issue #1084) adds `idioms.outcomes`, anchored in `state:outcome-propagation` and `state:syntax-forms`: it restates, for assistants, that `some`/`none`/`err` are values, that `|>` pipelines lift ordinary stages over `some` while `none` and `err` skip later stages unchanged, that `err` is not absence, that a direct call receives the Outcome itself (a `none` argument short-circuits the call unless the callee explicitly handles absence, per amendment A11), and that recovery wraps the whole expression (`unwrap_or(0, parse_int(s))`) rather than being a later stage. Amendment A10 (issue #1084) adds `idioms.flow`, anchored in `state:flow-semantics` (and `state:outcome-propagation` for the `stdin` capability sentence): it restates, for assistants, that a Flow is lazy, pull-based, and single-use, that a list stays a list, that `collect` returns a list and `run` consumes the Flow and returns `nil`, that `lines` takes a list of strings (or `stdin`) and rejects a bare string or non-strings, that unbounded sources such as `evolve` need `take` before `collect` or `run`, and that `stdin` is a host input adapted with `stdin |> lines` where the host supplies it. Portability is carried only by the fact summary, anchored in `state:host-status`: the C++ host supports a bounded Flow subset. `genia_run` supplies no stdin (section 9.41) and pipe mode supplies `stdin |> lines` itself (section 1); neither is restated on the wire. Amendment A11 (issue #1084) corrects only the A9 `idioms.outcomes` wording: it previously said a `none` argument short-circuits an "ordinary" call and now states the exception recorded in `state:outcome-propagation` (the call short-circuits unless the callee explicitly handles absence, such as `unwrap_or`). It is a profile wording correction with no change to language semantics, the fact count, or any other member. Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the
-  encoder's sorted order.
+- `language` is fixed except `contract_revision` (the launch revision). Its members are
+  `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`,
+  `examples` and `discovery`. Executable `gcd` and `factorial` examples return `6`
+  and `120`. `idioms.clauses` requires explicit `open` for executable pattern
+  dispatch; Model B ordinary pattern/guard headers and `=:` currently parse/lower
+  but reject evaluation with `model-b-not-implemented` (section 3).
+- `idioms.pipelines`, `idioms.outcomes` and `idioms.flow` restate sections 2, 3,
+  5 and 6: validated pipelines, Outcome lifting/short-circuiting and explicit
+  recovery, lazy single-use Flow, bounded terminals and explicit stdin adaptation.
+  Direct calls short-circuit on `none` unless the callee explicitly handles it;
+  `some` remains an explicit direct-call argument. `genia_run` supplies no stdin.
+  C++ supports a bounded Flow subset, not MCP.
+- Output is byte-identical across calls, protocol eras and namespace modes;
+  JSON member order is the encoder's sorted order.
 - **Provenance.** Each claim restates implemented behavior documented in the language sections of this file (control flow in `state:control-flow`, patterns in `state:pattern-matching`, tail calls in `state:tail-calls`, open
   clauses in `state:open-functions`). The governed members and the discovery catalogue are generated into a delimited block of `apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
   `docs/contract/semantic_facts.json`, a guarded projection source: this file stays the authority, and each registry fact carries semantic anchors (`<!-- anchor: state:... -->` markers in this file) and evidence (STATE

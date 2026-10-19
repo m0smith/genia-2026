@@ -12,6 +12,17 @@ The strongest end-to-end proof is the [validated pipeline demo](#run-the-validat
 
 > **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R27 production host with Ref, Cell, local Process, a scripted REPL, Bytes/UTF-8 plus strict JSON data bridges, Flow phase 1, and pipe mode. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
 
+## Model B declarations: partial syntax support
+
+Python accepts and lowers immutable `name =: expr`, atomic closed-function
+clause groups, and ordinary pattern/guard headers. Their evaluation explicitly
+fails with `model-b-not-implemented`; immutable assignment enforcement,
+default-open execution, cross-module linking changes and closed publication
+remain unimplemented. Ordinary functions and explicit R20 `open` retain their
+existing execution behavior. C++ support for the new syntax is not claimed.
+See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
+
+
 ## Quick start
 
 Start the REPL from a source checkout:

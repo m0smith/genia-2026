@@ -179,8 +179,9 @@ def _probe_supported_forms_evaluate():
 
 
 def _probe_open_clause_rule():
+    """Executable pattern dispatch needs open; Slice A parsing alone is not execution."""
     assert _direct("open gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)") == 6
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError, match="model-b-not-implemented"):
         _direct("gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)")
 
 
