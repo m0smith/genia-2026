@@ -750,3 +750,21 @@ input limit behavior, prompt-like text as inert data, and static denial of
 imports, private underscore host functions, and denied names.
 
 ~~~~~
+
+## Profile amendment wording at d85a56fa (A7–A11)
+
+Non-authoritative historical wording from `GENIA_STATE.md` section 9.50 at
+`d85a56fa66d3369806ab9951b7572c79db98eba3` (approved-design base). This is an
+additional provenance snapshot, separate from the #1099 baseline above. It
+preserves the displaced A7–A11 decisions and issue references verbatim; statements
+about then-rejected ordinary pattern headers are historical, not current syntax
+authority. Current behavior remains in STATE sections 3 and 9.50; the
+[R28 release history](../releases/R28.md#profile-amendment-history-a7a11) summarizes
+the amendments.
+
+~~~~~markdown
+- `language` is a fixed constant except `contract_revision` (the launch revision `genia_capabilities` reports): `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`, `examples` (`gcd`, `factorial`; they
+  evaluate to `6` and `120` under direct command-source evaluation, verified by tests), and (A7) `discovery`. A literal-first-parameter multi-clause function needs its first clause declared `open`
+  (`open gcd(a, 0) = a`; the same text without `open` is rejected), and the profile states that rule in `idioms.clauses`. Amendment A8 (issue #1119) adds `idioms.pipelines`, anchored in `state:validated-pipelines`. Amendment A9 (issue #1084) adds `idioms.outcomes`, anchored in `state:outcome-propagation` and `state:syntax-forms`: it restates, for assistants, that `some`/`none`/`err` are values, that `|>` pipelines lift ordinary stages over `some` while `none` and `err` skip later stages unchanged, that `err` is not absence, that a direct call receives the Outcome itself (a `none` argument short-circuits the call unless the callee explicitly handles absence, per amendment A11), and that recovery wraps the whole expression (`unwrap_or(0, parse_int(s))`) rather than being a later stage. Amendment A10 (issue #1084) adds `idioms.flow`, anchored in `state:flow-semantics` (and `state:outcome-propagation` for the `stdin` capability sentence): it restates, for assistants, that a Flow is lazy, pull-based, and single-use, that a list stays a list, that `collect` returns a list and `run` consumes the Flow and returns `nil`, that `lines` takes a list of strings (or `stdin`) and rejects a bare string or non-strings, that unbounded sources such as `evolve` need `take` before `collect` or `run`, and that `stdin` is a host input adapted with `stdin |> lines` where the host supplies it. Portability is carried only by the fact summary, anchored in `state:host-status`: the C++ host supports a bounded Flow subset. `genia_run` supplies no stdin (section 9.41) and pipe mode supplies `stdin |> lines` itself (section 1); neither is restated on the wire. Amendment A11 (issue #1084) corrects only the A9 `idioms.outcomes` wording: it previously said a `none` argument short-circuits an "ordinary" call and now states the exception recorded in `state:outcome-propagation` (the call short-circuits unless the callee explicitly handles absence, such as `unwrap_or`). It is a profile wording correction with no change to language semantics, the fact count, or any other member. Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the
+  encoder's sorted order.
+~~~~~

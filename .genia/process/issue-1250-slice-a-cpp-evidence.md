@@ -39,7 +39,7 @@ Existing R16 fetch_capabilities/execute_spec_via_host; timeout 10 seconds; parse
 
 Counts: {'unsupported': 27, 'pass': 2}
 
-UNSUPPORTED is the adapter’s explicit outside-scope response, not PASS. #1250 owns the bounded C++ parser/lowering follow-up. No executable capability claim changed.
+UNSUPPORTED is the adapter’s explicit outside-scope response, not PASS. The bounded C++ parser/lowering follow-up is now owned by [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50), under #1250. No executable capability claim changed.
 
 ## Closeout recheck (2026-10-19)
 
@@ -107,7 +107,51 @@ required parser/ast_lowering syntax gaps are recorded in this exact case ledger
 and `docs/host-interop/HOST_CAPABILITY_MATRIX.md`, under #1250. No required
 capability is weakened, no new optional syntax escape hatch is added, and a
 green optional-capability parity gate does not certify these cases. Owner:
-#1250 integration owner plus C++ implementer. Removal requires bounded C++
+m0smith integration owner plus C++ implementer, tracked in
+[genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50), under #1250. Removal requires bounded C++
 implementation and passing affected shared cases at a current contract revision.
 Until then the required-syntax boundary remains explicitly unmet; this report
 settles where to report it, not whether the host has implemented it.
+
+## Post-audit distillation: complete 43-case observation (2026-10-19)
+
+All 43 `spec/*/model-b-a-*.yaml` cases were actually rerun through the existing
+R16 `fetch_capabilities` / `execute_spec_via_host` APIs, with capability selection
+and the unchanged 10-second per-request timeout. Spec content was taken from
+`c14fa139c64eee49cfdaf601f90bac34185454de`; no shared case changed in distillation.
+The previous 38 classifications were reproduced unchanged. The five added cases
+returned the adapter's explicit outside-scope response:
+
+- `spec/ir/model-b-a-legacy-lambda-err.yaml`: **UNSUPPORTED**
+- `spec/ir/model-b-a-legacy-lambda-named.yaml`: **UNSUPPORTED**
+- `spec/ir/model-b-a-pattern-err-context.yaml`: **UNSUPPORTED**
+- `spec/ir/model-b-a-pattern-err.yaml`: **UNSUPPORTED**
+- `spec/ir/model-b-a-pattern-named.yaml`: **UNSUPPORTED**
+
+Combined ledger: **43 total / 5 PASS / 38 UNSUPPORTED / 0 failure-class outcomes**.
+The 38 rows above plus these five rows enumerate every selected case exactly
+once; this rerun is not an inference from the old ledger or Python's result.
+The added cases all require `ast_lowering`, which the adapter advertises as
+supported; their requests reached the adapter and were not capability-filtered.
+
+Provenance is unchanged from the closeout recheck: available source
+`bb7c7474001f18e2e27fd94b7be9e9b725ba3473` (clean), existing
+`build/genia-adapter` SHA-256
+`609d9807e5753574bd6e518ea4cad77c782b824ee45f9d154788e2853daf2df3`, advertising
+`6402e668ae85a1e7efe94b3ac3d51f233b730ca4` (verified ancestor of the tested main
+repository head). The binary was not rebuilt; its source-build provenance beyond
+the available checkout and advertised pin remains uncertified. Initial evidence's
+`9ab0d3a323c9add045d47db1f476aead96af1e77` pin is historical, not this rerun's pin.
+
+Raw selected observations, capability response, per-spec hashes and reasons are
+attached in `issue-1250-slice-a-cpp-43-results.json` beside this ledger. This is an
+appendix of the existing R16 observations, not a replacement conformance format.
+No current-pinned conformance, complete C++ suite, or new-carrier parity is claimed.
+
+Required parser/lowering implementation and removal of this gap are owned by
+**m0smith integration owner / C++ implementer**, tracked in
+[genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50), under #1250.
+Removal still requires the bounded implementation and passing affected shared
+cases at a current reproducible contract revision. Required capabilities remain
+required; UNSUPPORTED is not PASS or an optional-capability waiver. B–E runtime
+work remains separate.

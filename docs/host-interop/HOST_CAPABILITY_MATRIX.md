@@ -79,7 +79,8 @@ default-open or closed-function execution capability claim.
 
 The C++ adapter used for Slice A evidence reports the new syntax outside its
 supported scope. That ancestor-pinned evidence is not current pinned conformance
-or parity. Issue #1250 owns the bounded parser/lowering follow-up; removal of
+or parity. [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) owns the
+bounded parser/lowering follow-up under #1250; removal of
 this boundary requires implementation and passing applicable shared Slice A
 cases. Required parser/ast_lowering cases are not hidden behind optional
 capabilities. Existing R20 execution and other host capability claims remain
@@ -95,7 +96,14 @@ a passing diagnostic or an exemption granted by the optional-capability gate.
 Record this required-syntax boundary here and exact case outcomes in the #1250
 handoff/evidence. A green optional-capability gate does not certify it.
 
-Owner: #1250 integration owner and C++ implementer. Remove the temporary boundary
+The 43 selected Slice A cases were observed as 5 PASS / 38 UNSUPPORTED, including
+UNSUPPORTED for all five added `IrPatErr`/`IrPatNamed` IR cases, using an existing
+binary pinned to ancestor contract `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`.
+These are compatibility/gap observations, not current-contract conformance.
+
+Owner: m0smith integration owner and C++ implementer, tracked in
+[genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
+Remove the temporary boundary
 only after the bounded C++ parser/lowering implementation passes the affected
 shared cases at a current contract revision. Until then, no current Slice A C++
 conformance or new-carrier parity is claimed. B–E execution remains separate.
