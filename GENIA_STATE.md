@@ -243,6 +243,7 @@ guide is `docs/style/doc-style.md`; the displaced detailed text is in `docs/stat
   - lowered portable IR is validated before host-local optimization in the Python reference host
 - the current Python host may apply small post-lowering optimization rewrites such as `IrListTraversalLoop`
   - those optimized nodes are Python-host implementation details, not the minimal shared Core IR contract
+  - nth-style rewrite eligibility conservatively counts recursive calls inside list/map values; extra recursive case arms prevent the rewrite so their results are preserved
 - assignment is supported at top level and in lexical scopes (`name = expr`)
 - blocks evaluate expressions in order and return the last value
 - no statement/declaration split at runtime level

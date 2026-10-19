@@ -197,6 +197,9 @@ def recursive_call_count(node: IrNode, fn_name: str) -> int:
 
     Quoted syntax is not executable IR. This is a conservative shape check,
     not a scope-aware call-graph analysis or a declaration-reordering pass.
+    Calls inside list/map values also count: an extra recursive case arm must
+    prevent the nth-style rewrite from discarding that arm. This deliberately
+    narrows eligibility compared with the old incomplete child traversal.
     """
     from .ir import iter_ir_nodes
     return sum(isinstance(child, IrCall) and isinstance(child.fn, IrVar)
