@@ -1,0 +1,12 @@
+name: model-b-b-failed-initializer-leaves-name-unbound
+category: eval
+description: "A failed initializer commits nothing."
+input:
+  source: |
+    x =: undefined_name
+expected:
+  stdout: ""
+  stderr: "Error: Undefined name: undefined_name\n"
+  exit_code: 1
+requires:
+  - immutable_bindings

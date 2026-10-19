@@ -1,0 +1,14 @@
+name: model-b-b-closure-write-rejected
+category: eval
+description: "A nested write that resolves to an immutable outer binding is rejected, not shadowed."
+input:
+  source: |
+    x =: 1
+    f() = { x = 2 }
+    f()
+expected:
+  stdout: ""
+  stderr: "Error: Cannot assign to immutable binding: x\n"
+  exit_code: 1
+requires:
+  - immutable_bindings

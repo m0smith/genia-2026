@@ -1,0 +1,18 @@
+name: model-b-b-initializer-runs-once
+category: eval
+description: "The initializer runs exactly once and commits once."
+input:
+  source: |
+    f() = {
+      print("init")
+      7
+    }
+    x =: f()
+    x
+    x
+expected:
+  stdout: "init\n7\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - immutable_bindings

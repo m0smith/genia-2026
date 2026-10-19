@@ -1,0 +1,22 @@
+name: model-b-b-module-internal-reassignment-rejected
+category: eval
+description: "A module cannot reassign its own immutable binding."
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          x =: 1
+          x = 2
+      - path: main.genia
+        source: |
+          import lib
+          1
+expected:
+  stdout: ""
+  stderr: "Error: Cannot assign to immutable binding: x\n"
+  exit_code: 1
+requires:
+  - immutable_bindings
+  - multi_file_eval

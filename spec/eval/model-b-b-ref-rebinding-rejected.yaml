@@ -1,0 +1,14 @@
+name: model-b-b-ref-rebinding-rejected
+category: eval
+description: "Rebinding the name of a Ref is rejected even though the Ref is mutable."
+input:
+  source: |
+    r =: ref(0)
+    r = ref(1)
+expected:
+  stdout: ""
+  stderr: "Error: Cannot assign to immutable binding: r\n"
+  exit_code: 1
+requires:
+  - immutable_bindings
+  - refs

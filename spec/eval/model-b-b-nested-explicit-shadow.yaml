@@ -1,0 +1,18 @@
+name: model-b-b-nested-explicit-shadow
+category: eval
+description: "An explicit nested declaration shadows an outer user binding without modifying it."
+input:
+  source: |
+    x = 1
+    f() = {
+      x =: 2
+      x
+    }
+    print(f())
+    x
+expected:
+  stdout: "2\n1\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - immutable_bindings

@@ -1,0 +1,14 @@
+name: model-b-b-annotation-metadata-attaches
+category: eval
+description: "Annotations on a fresh immutable declaration attach to that binding."
+input:
+  source: |
+    @doc "demo"
+    x =: 5
+    doc("x")
+expected:
+  stdout: "demo\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - immutable_bindings

@@ -1,0 +1,13 @@
+name: model-b-b-existing-mutable-blocks-declaration
+category: eval
+description: "An existing mutable same-scope binding blocks a fresh immutable declaration before its initializer."
+input:
+  source: |
+    x = 1
+    x =: print("init")
+expected:
+  stdout: ""
+  stderr: "Error: Cannot declare immutable binding x: name is already bound in this scope\n"
+  exit_code: 1
+requires:
+  - immutable_bindings

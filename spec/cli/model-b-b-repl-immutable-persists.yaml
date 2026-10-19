@@ -1,0 +1,24 @@
+id: model-b-b-repl-immutable-persists
+name: model-b-b-repl-immutable-persists
+category: cli
+description: "A committed immutable binding persists across REPL submissions and rejects later assignment."
+requires: [repl, immutable_bindings]
+input:
+  source: |-
+    x =: 1
+    x = 2
+    x
+  file: null
+  command: null
+  stdin: |-
+    x =: 1
+    x = 2
+    x
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    1
+    1
+  stderr: "Error: Cannot assign to immutable binding: x"
+  exit_code: 0

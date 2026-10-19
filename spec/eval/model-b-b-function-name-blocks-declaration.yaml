@@ -1,0 +1,13 @@
+name: model-b-b-function-name-blocks-declaration
+category: eval
+description: "An existing same-scope named function blocks a fresh immutable declaration."
+input:
+  source: |
+    f(x) = x
+    f =: print("init")
+expected:
+  stdout: ""
+  stderr: "Error: Cannot declare immutable binding f: name is already bound in this scope\n"
+  exit_code: 1
+requires:
+  - immutable_bindings

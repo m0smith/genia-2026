@@ -1,0 +1,16 @@
+name: model-b-b-local-immutable-blocks-local-assignment
+category: eval
+description: "A function-local immutable binding rejects later assignment in that scope."
+input:
+  source: |
+    f() = {
+      y =: 1
+      y = 2
+    }
+    f()
+expected:
+  stdout: ""
+  stderr: "Error: Cannot assign to immutable binding: y\n"
+  exit_code: 1
+requires:
+  - immutable_bindings

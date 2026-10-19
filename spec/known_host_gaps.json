@@ -146,6 +146,40 @@
       "affected_host": "cpp",
       "affected_tests": ["execution.process requires-gated shared specs"],
       "removal_condition": "Remove when genia-cpp declares execution_process supported and the host parity gate reports the capability as PARITY_OK."
+    },
+    {
+      "capability": "immutable_bindings",
+      "reason": "The bounded C++ host does not parse or lower the `=:` immutable-declaration token and has no Env binding-policy enforcement (Model B Slice B). Python is the reference implementation; this is an honest optional-capability gap, not parity.",
+      "tracking_issue": "m0smith/genia-cpp#50",
+      "affected_host": "cpp",
+      "affected_tests": [
+        "model-b-b-repl-failed-initializer-name-reusable",
+        "model-b-b-repl-immutable-persists",
+        "model-b-b-annotation-metadata-attaches",
+        "model-b-b-closure-write-rejected",
+        "model-b-b-duplicate-immutable-rejected",
+        "model-b-b-existing-mutable-blocks-declaration",
+        "model-b-b-failed-initializer-leaves-name-unbound",
+        "model-b-b-fresh-entry-binding",
+        "model-b-b-function-name-blocks-declaration",
+        "model-b-b-import-alias-blocks-declaration",
+        "model-b-b-import-alias-collision-before-load",
+        "model-b-b-initializer-runs-once",
+        "model-b-b-local-immutable-blocks-local-assignment",
+        "model-b-b-module-binding-separation",
+        "model-b-b-module-internal-reassignment-rejected",
+        "model-b-b-named-function-writer-rejected",
+        "model-b-b-nested-explicit-shadow",
+        "model-b-b-parameter-blocks-declaration",
+        "model-b-b-reassign-rejected",
+        "model-b-b-reassign-rhs-effects-suppressed",
+        "model-b-b-ref-mutation-allowed",
+        "model-b-b-ref-rebinding-rejected",
+        "model-b-b-reserved-loaded-name",
+        "model-b-b-reserved-unloaded-prelude-name",
+        "model-b-b-reserved-unregistered-prelude-helper"
+      ],
+      "removal_condition": "Remove when genia-cpp lowers IrImmutableBind, enforces the shared immutable-binding policy, declares immutable_bindings supported, and the host parity gate reports the capability as PARITY_OK."
     }
   ]
 }
