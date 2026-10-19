@@ -122,3 +122,36 @@ def test_native_discovery_explicitly_rejects_closed_test():
     source = '@test "closed"\nf() =: true'
     with pytest.raises(RuntimeError, match='model-b-not-implemented'):
         identify_tests(Parser(lex(source)).parse_program())
+
+
+@pytest.mark.parametrize('discovery', ['route', 'server', 'cors'])
+@pytest.mark.parametrize('source', ['x =: unknown()', 'f(x) =: x', 'f([x]) = x'])
+@pytest.mark.parametrize('annotated', [False, True])
+def test_direct_server_discovery_rejects_before_environment_access(discovery, source, annotated):
+    """Python discovery must reject the entire input before metadata/value lookups."""
+    from genia.server_route_binding import discover_entry_file_route_bindings
+    from genia.server_config_binding import discover_entry_file_server_config_binding
+    from genia.server_cors_binding import discover_entry_file_cors_binding
+
+    class NoLookup:
+        """Fail on any discovery lookup, including an earlier ordinary declaration."""
+
+        def get(self, name):
+            raise AssertionError('value lookup before rejection')
+
+        def get_metadata(self, name):
+            raise AssertionError('metadata lookup before rejection')
+
+    functions = {
+        'route': discover_entry_file_route_bindings,
+        'server': discover_entry_file_server_config_binding,
+        'cors': discover_entry_file_cors_binding,
+    }
+    ordinary = 'g(x) = x' if discovery == 'route' else 'config = 1'
+    source = f'@{discovery} {{}}\n{ordinary}\n' + (f'@{discovery} {{}}\n' if annotated else '') + source
+    nodes = lower_program(Parser(lex(source)).parse_program())
+    kwargs = {'entry_source_identity': 'entry.genia'}
+    if discovery == 'cors':
+        kwargs.update(server_declaration_name='config', server_source_index=0)
+    with pytest.raises(RuntimeError, match='model-b-not-implemented'):
+        functions[discovery](nodes, NoLookup(), **kwargs)
