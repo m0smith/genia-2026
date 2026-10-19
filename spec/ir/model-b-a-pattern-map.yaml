@@ -1,0 +1,23 @@
+name: model-b-a-pattern-map
+category: ir
+description: 'Approved Model B Slice A: pattern-map'
+input:
+  source: f({key:x}) = x
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatMap
+        items:
+        - key: key
+          value:
+            node: IrPatBind
+            name: x
+    body:
+      node: IrVar
+      name: x
+requires:
+- ast_lowering

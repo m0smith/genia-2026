@@ -1,0 +1,19 @@
+name: model-b-a-pattern-string-body
+category: ir
+description: 'Approved Model B Slice A: pattern-string-body'
+input:
+  source: f("key") = "body"
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatLiteral
+        value: key
+    body:
+      node: IrLiteral
+      value: body
+requires:
+- ast_lowering

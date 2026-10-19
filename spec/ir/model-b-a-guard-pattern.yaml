@@ -1,0 +1,24 @@
+name: model-b-a-guard-pattern
+category: ir
+description: 'Approved Model B Slice A: guard-pattern'
+input:
+  source: f([x]) ? true = x
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatList
+        items:
+        - node: IrPatBind
+          name: x
+    body:
+      node: IrVar
+      name: x
+    guard:
+      node: IrLiteral
+      value: true
+requires:
+- ast_lowering

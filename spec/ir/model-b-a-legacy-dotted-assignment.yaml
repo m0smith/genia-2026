@@ -1,0 +1,17 @@
+name: model-b-a-legacy-dotted-assignment
+category: ir
+description: Historical ordinary target compatibility; dotted identifier is a literal
+  binding name, not a property write.
+input:
+  source: a.b = 1
+expected:
+  ir:
+  - node: IrAssign
+    name: a.b
+    expr:
+      node: IrLiteral
+      value:
+        kind: integer
+        digits: '1'
+requires:
+- ast_lowering

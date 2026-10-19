@@ -94,7 +94,7 @@ def discover(language, source, path):
                     visit(child, prefix)
         visit(root)
     elif language == 'genia':
-        from genia.ast_nodes import AnnotatedNode, FuncDef, OpenFuncDef, NamedPatternDef
+        from genia.ast_nodes import AnnotatedNode, FuncDef, OpenFuncDef, NamedPatternDef, PatternFuncDef
         from genia.lexer import lex
         from genia.parser import Parser
         from tools.lint_doc import lint_doc
@@ -111,7 +111,7 @@ def discover(language, source, path):
                         if a.name == 'doc' and isinstance(getattr(a.value, 'value', None), str)]
                 visit_genia(node.target, prefix, docs[0] if docs else None)
                 return
-            if isinstance(node, (FuncDef, OpenFuncDef, NamedPatternDef)):
+            if isinstance(node, (FuncDef, OpenFuncDef, NamedPatternDef, PatternFuncDef)):
                 name = prefix + node.name
                 span = node.span
                 region = '\n'.join(lines[span.line - 1:span.end_line]) if span else repr(node)

@@ -1,0 +1,22 @@
+name: model-b-a-annotated-immutable
+category: ir
+description: 'Approved Model B Slice A: annotated-immutable'
+input:
+  source: '@doc "binding"
+
+    x =: "value"'
+expected:
+  ir:
+  - node: IrImmutableBind
+    name: x
+    expr:
+      node: IrLiteral
+      value: value
+    annotations:
+    - node: IrAnnotation
+      name: doc
+      value:
+        node: IrLiteral
+        value: binding
+requires:
+- ast_lowering

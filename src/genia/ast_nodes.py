@@ -312,3 +312,29 @@ class OpenUseDef(Node):
 class ShellStage(Node):
     command: str
     span: SourceSpan | None = None
+
+
+@dataclass
+class ImmutableBind(Node):
+    """Fresh immutable declaration syntax; execution is not enabled by Slice A."""
+    name: str
+    expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class PatternFuncDef(Node):
+    """Named full-tuple pattern header, with no legacy parameter/docstring channel."""
+    name: str
+    pattern: Node
+    guard: Node | None
+    body: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class ClosedFuncDef(Node):
+    """One submission-local atomic group of ordered, possibly annotated declarations."""
+    name: str
+    declarations: list[Node]
+    span: SourceSpan | None = None

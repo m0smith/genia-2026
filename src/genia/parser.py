@@ -27,6 +27,7 @@ from .ast_nodes import (
     Delay,
     ErrPattern,
     ExprStmt,
+    ImmutableBind, ClosedFuncDef, PatternFuncDef,
     FuncDef,
     GlobPattern,
     ImportStmt,
@@ -187,6 +188,7 @@ class Parser:
         return name
 
     def function_header_has_body_starter(self, start_index: int) -> bool:
+        """Recognize balanced named headers followed by a declaration introducer or guard."""
         j = start_index + 1
         if j >= len(self.tokens) or self.tokens[j].kind != "LPAREN":
             return False
@@ -201,7 +203,7 @@ class Parser:
                     j += 1
                     while j < len(self.tokens) and self.tokens[j].kind == "NEWLINE":
                         j += 1
-                    return j < len(self.tokens) and self.tokens[j].kind in {"ASSIGN", "ARROW", "LBRACE"}
+                    return j < len(self.tokens) and self.tokens[j].kind in {"ASSIGN", "IMMUTABLE_ASSIGN", "QMARK", "ARROW", "LBRACE"}
             elif kind == "EOF":
                 return False
             j += 1
@@ -229,11 +231,12 @@ class Parser:
         return False
 
     def parse_program(self) -> list[Node]:
+        """Parse one submission, preserving order and merging only contiguous declaration groups."""
         out: list[Node] = []
         self.skip_separators()
         while not self.at("EOF"):
             node = self.parse_toplevel()
-            if not self._merge_open_toplevel(out, node):
+            if not self._merge_model_b_toplevel(out, node) and not self._merge_open_toplevel(out, node):
                 out.append(node)
             self.skip_separators()
         return out
@@ -363,6 +366,7 @@ class Parser:
             return None
 
     def parse_toplevel(self) -> Node:
+        """Parse a declaration or expression; reject computed assignment targets."""
         if self.at("AT"):
             annotations = self.parse_prefix_annotations()
             target = self.try_parse_bindable_toplevel()
@@ -389,7 +393,7 @@ class Parser:
         expr = self.parse_expr()
         if isinstance(expr, Var) and expr.name == "Format" and self.at("STRING"):
             raise SyntaxError('Format constructor requires call syntax: Format("...")')
-        if self.at("ASSIGN"):
+        if self.at("ASSIGN", "IMMUTABLE_ASSIGN"):
             raise SyntaxError("Assignment target must be a simple name")
         return ExprStmt(expr, span=expr.span)
 
@@ -417,6 +421,7 @@ class Parser:
         return None
 
     def try_parse_bindable_toplevel(self) -> Node | None:
+        """Parse an annotatable top-level binding or named declaration, or return None."""
         named_pattern = self.try_parse_named_pattern_def()
         if named_pattern is not None:
             return named_pattern
@@ -425,61 +430,103 @@ class Parser:
         if open_related is not None:
             return open_related
 
-        header = self.try_parse_function_header()
-        if header is not None:
-            name, params, rest_param, name_tok = header
-
-            if self.at("ASSIGN"):
-                self.eat("ASSIGN")
-                self.skip_separators()
-                docstring: str | None = None
-                if self.at("STRING"):
-                    save = self.i
-                    candidate = parse_string_literal(self.eat("STRING").text)
-                    if self.at_expr_start():
-                        docstring = candidate
-                    else:
-                        self.i = save
-                body = self.parse_function_body_after_intro(len(params))
-                return FuncDef(
-                    name,
-                    params,
-                    rest_param,
-                    docstring,
-                    body,
-                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
-                )
-
-            if self.at("LBRACE"):
-                body = self.parse_block(allow_final_case=True)
-                return FuncDef(
-                    name,
-                    params,
-                    rest_param,
-                    None,
-                    body,
-                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
-                )
-
-            if self.at("ARROW"):
-                self.eat("ARROW")
-                self.skip_separators()
-                body = self.parse_expr()
-                return FuncDef(
-                    name,
-                    params,
-                    rest_param,
-                    None,
-                    body,
-                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
-                )
-
-            raise SyntaxError("Internal parser error: expected function body")
+        function = self._try_parse_model_b_function()
+        if function is not None:
+            return function
 
         assign = self.try_parse_name_assignment()
         if assign is not None:
             return assign
         return None
+
+    def _try_parse_model_b_function(self) -> Node | None:
+        """Parse an ordinary/closed header only after balanced-call lookahead.
+
+        R20 supplies the pattern grammar. Legacy identifier headers keep their
+        body/docstring representation; guarded or structural headers get a
+        separate carrier and reject arrows and grouped-case bodies.
+        """
+        if not (self.at("IDENT") and self.peek(1).kind == "LPAREN"
+                and self.function_header_has_body_starter(self.i)):
+            return None
+        name_tok = self.eat("IDENT")
+        start = self.eat("LPAREN")
+        self.skip_newlines()
+        pattern, params, rest_param = self.parse_lambda_parameter_pattern()
+        end = self.eat("RPAREN")
+        pattern.span = self.span_for_tokens(start, end)
+        self.skip_newlines()
+        guard = None
+        if self.maybe("QMARK"):
+            self.skip_newlines()
+            guard = self.parse_expr()
+            self.skip_newlines()
+        legacy = (guard is None and self._open_header_is_trivial(pattern)
+                  and all(not isinstance(item, RestPattern) or item.name is not None
+                          for item in pattern.items))
+        if legacy:
+            # Keep the existing reserved-name and wildcard restrictions.
+            for name in params + ([rest_param] if rest_param is not None else []):
+                if name in RESERVED_LITERAL_IDENTIFIERS or name == "_":
+                    raise SyntaxError("Function definition cannot use reserved parameter " + repr(name))
+        closed = self.at("IMMUTABLE_ASSIGN")
+        if "." in name_tok.text and (closed or not legacy):
+            raise SyntaxError("Function declaration target must be a simple name")
+        docstring = None
+        if self.at("ARROW"):
+            if not legacy:
+                raise SyntaxError("pattern/guard function headers cannot use ->")
+            self.eat("ARROW")
+            self.skip_separators()
+            body = self.parse_expr()
+        elif self.at("LBRACE"):
+            body = self.parse_block(allow_final_case=True)
+        else:
+            self.eat("IMMUTABLE_ASSIGN" if closed else "ASSIGN")
+            self.skip_separators()
+            if legacy and self.at("STRING"):
+                save = self.i
+                candidate = parse_string_literal(self.eat("STRING").text)
+                if self.at_expr_start():
+                    docstring = candidate
+                else:
+                    self.i = save
+            body = self.parse_function_body_after_intro(len(pattern.items) - (rest_param is not None))
+        if not legacy:
+            grouped = isinstance(body, CaseExpr) or (isinstance(body, Block)
+                and body.exprs and isinstance(body.exprs[-1], CaseExpr))
+            if grouped:
+                raise SyntaxError("pattern/guard function header cannot have a grouped case body")
+        span = self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span)
+        declaration = (FuncDef(name_tok.text, params, rest_param, docstring, body, span=span)
+                       if legacy else PatternFuncDef(name_tok.text, pattern, guard, body, span=span))
+        return ClosedFuncDef(name_tok.text, [declaration], span=span) if closed else declaration
+
+    def _merge_model_b_toplevel(self, out: list[Node], node: Node) -> bool:
+        """Merge only consecutive same-name closed clauses; reject mixed operators.
+
+        Prefix annotations belong to the next child declaration, not the group.
+        No parser state persists across completed submissions.
+        """
+        target = node.target if isinstance(node, AnnotatedNode) else node
+        if isinstance(target, ClosedFuncDef) and isinstance(node, AnnotatedNode):
+            target.declarations[0] = AnnotatedNode(node.annotations, target.declarations[0], span=node.span)
+        if out:
+            previous = out[-1]
+            previous_target = previous.target if isinstance(previous, AnnotatedNode) else previous
+            if (isinstance(target, (FuncDef, PatternFuncDef, ClosedFuncDef))
+                    and isinstance(previous_target, (FuncDef, PatternFuncDef, ClosedFuncDef))
+                    and target.name == previous_target.name):
+                if isinstance(target, ClosedFuncDef) != isinstance(previous_target, ClosedFuncDef):
+                    raise SyntaxError("mixed-function-declaration-operators")
+                if isinstance(target, ClosedFuncDef):
+                    previous_target.declarations.extend(target.declarations)
+                    previous_target.span = self.merge_spans(previous_target.span, target.span)
+                    return True
+        if isinstance(target, ClosedFuncDef):
+            out.append(target)
+            return True
+        return False
 
     def try_parse_named_pattern_def(self) -> NamedPatternDef | None:
         if not (self.at("IDENT") and self.peek().text == "pattern"):
@@ -741,14 +788,18 @@ class Parser:
         return annotations
 
     def try_parse_name_assignment(self) -> Assign | None:
-        if not (self.at("IDENT") and self.peek(1).kind == "ASSIGN"):
+        """Parse bindings, preserving legacy dotted names only for ordinary =."""
+        if not (self.at("IDENT") and self.peek(1).kind in {"ASSIGN", "IMMUTABLE_ASSIGN"}):
             return None
         name_tok = self.eat("IDENT")
         name = name_tok.text
-        self.eat("ASSIGN")
+        immutable = self.at("IMMUTABLE_ASSIGN")
+        if immutable and "." in name:
+            raise SyntaxError("Assignment target must be a simple name")
+        self.eat("IMMUTABLE_ASSIGN" if immutable else "ASSIGN")
         self.skip_separators()
         expr = self.parse_expr()
-        return Assign(name, expr, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), expr.span))
+        return (ImmutableBind if immutable else Assign)(name, expr, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), expr.span))
 
     def at_expr_start(self) -> bool:
         return self.at("NUMBER", "STRING", "IDENT", "MINUS", "BANG", "LPAREN", "LBRACK", "LBRACE")
@@ -831,6 +882,7 @@ class Parser:
             return None
 
     def parse_block(self, allow_final_case: bool) -> Block:
+        """Parse a lexical block with simple bindings and optionally a final grouped case body."""
         start = self.eat("LBRACE")
         exprs: list[Node] = []
         self.skip_separators()
@@ -847,7 +899,7 @@ class Parser:
                 exprs.append(assign)
             else:
                 expr = self.parse_expr()
-                if self.at("ASSIGN"):
+                if self.at("ASSIGN", "IMMUTABLE_ASSIGN"):
                     raise SyntaxError("Assignment target must be a simple name")
                 exprs.append(expr)
             self.skip_separators()
@@ -1308,13 +1360,14 @@ class Parser:
         return MapPattern(items, span=self.span_for_tokens(start, end))
 
     def parse_quoted_form(self) -> Node:
+        """Parse inert quoted syntax using the same binding-target and case grammar."""
         assign = self.try_parse_name_assignment()
         if assign is not None:
             return assign
         if not self.at("LPAREN") and self.looks_like_case_start():
             return self.parse_case_expr(single_param_shorthand_ok=True)
         expr = self.parse_expr()
-        if self.at("ASSIGN"):
+        if self.at("ASSIGN", "IMMUTABLE_ASSIGN"):
             raise SyntaxError("Assignment target must be a simple name")
         return expr
 

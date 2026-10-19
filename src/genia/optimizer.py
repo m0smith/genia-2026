@@ -1,25 +1,19 @@
+"""Python-host post-lowering optimizations and conservative recursive-call analysis."""
 from __future__ import annotations
 
 from typing import Iterable
 
 if __package__ in (None, ""):
     from genia.ir import (
-        IrAssign,
         IrBinary,
-        IrBlock,
         IrCall,
         IrCase,
         IrCaseClause,
-        IrExprStmt,
         IrFuncDef,
-        IrLambda,
         IrListTraversalLoop,
         IrLiteral,
         IrNode,
         IrOptionNone,
-        IrOptionSome,
-        IrPipeline,
-        IrUnary,
         IrVar,
     )
     from genia.pattern_match import (
@@ -32,22 +26,15 @@ if __package__ in (None, ""):
     from genia.numeric_source import numeric_literal_runtime_value
 else:
     from .ir import (
-        IrAssign,
         IrBinary,
-        IrBlock,
         IrCall,
         IrCase,
         IrCaseClause,
-        IrExprStmt,
         IrFuncDef,
-        IrLambda,
         IrListTraversalLoop,
         IrLiteral,
         IrNode,
         IrOptionNone,
-        IrOptionSome,
-        IrPipeline,
-        IrUnary,
         IrVar,
     )
     from .pattern_match import (
@@ -206,31 +193,14 @@ def is_tail_recursive_step(clause: IrCaseClause, fn_name: str) -> bool:
 
 
 def recursive_call_count(node: IrNode, fn_name: str) -> int:
-    if isinstance(node, IrCall):
-        own = 1 if isinstance(node.fn, IrVar) and node.fn.name == fn_name else 0
-        return own + recursive_call_count(node.fn, fn_name) + sum(recursive_call_count(arg, fn_name) for arg in node.args)
-    if isinstance(node, IrPipeline):
-        return recursive_call_count(node.source, fn_name) + sum(recursive_call_count(stage, fn_name) for stage in node.stages)
-    if isinstance(node, IrOptionSome):
-        return recursive_call_count(node.value, fn_name)
-    if isinstance(node, IrOptionNone):
-        return (
-            recursive_call_count(node.reason, fn_name) if node.reason is not None else 0
-        ) + (
-            recursive_call_count(node.context, fn_name) if node.context is not None else 0
-        )
-    if isinstance(node, IrUnary):
-        return recursive_call_count(node.expr, fn_name)
-    if isinstance(node, IrBinary):
-        return recursive_call_count(node.left, fn_name) + recursive_call_count(node.right, fn_name)
-    if isinstance(node, IrBlock):
-        return sum(recursive_call_count(expr, fn_name) for expr in node.exprs)
-    if isinstance(node, IrExprStmt):
-        return recursive_call_count(node.expr, fn_name)
-    if isinstance(node, IrCase):
-        return sum(recursive_call_count(clause.result, fn_name) for clause in node.clauses)
-    if isinstance(node, IrAssign):
-        return recursive_call_count(node.expr, fn_name)
-    if isinstance(node, IrLambda):
-        return recursive_call_count(node.body, fn_name)
-    return 0
+    """Count syntactic calls across IR children, including new and R20 records.
+
+    Quoted syntax is not executable IR. This is a conservative shape check,
+    not a scope-aware call-graph analysis or a declaration-reordering pass.
+    Calls inside list/map values also count: an extra recursive case arm must
+    prevent the nth-style rewrite from discarding that arm. This deliberately
+    narrows eligibility compared with the old incomplete child traversal.
+    """
+    from .ir import iter_ir_nodes
+    return sum(isinstance(child, IrCall) and isinstance(child.fn, IrVar)
+               and child.fn.name == fn_name for child in iter_ir_nodes(node))

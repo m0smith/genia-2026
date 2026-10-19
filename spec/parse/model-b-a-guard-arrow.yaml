@@ -1,0 +1,12 @@
+name: model-b-a-guard-arrow
+category: parse
+description: 'Approved Model B Slice A: guard-arrow'
+input:
+  source: f(x) ? true -> x
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: pattern/guard
+requires:
+- parser

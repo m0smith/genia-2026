@@ -1,0 +1,14 @@
+name: model-b-a-immutable
+category: ir
+description: 'Approved Model B Slice A: immutable'
+input:
+  source: 'x =: "value"'
+expected:
+  ir:
+  - node: IrImmutableBind
+    name: x
+    expr:
+      node: IrLiteral
+      value: value
+requires:
+- ast_lowering

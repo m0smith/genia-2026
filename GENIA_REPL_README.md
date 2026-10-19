@@ -2,6 +2,20 @@
 
 This document describes the **actual current behavior** of the Python reference host prototype in `src/genia/interpreter.py`.
 
+## Model B declarations: partial syntax support
+
+Python accepts and lowers immutable `name =: expr`, atomic closed-function
+clause groups, and ordinary pattern/guard headers. Their evaluation explicitly
+fails with `model-b-not-implemented`; immutable assignment enforcement,
+default-open execution, cross-module linking changes and closed publication
+remain unimplemented. Ordinary functions and explicit R20 `open` retain their
+existing execution behavior. C++ support for the new syntax is not claimed.
+Historical ordinary `=` dotted targets remain literal binding names (including
+function declaration targets), not property writes. New `=:` targets and new
+pattern/guard declaration targets require simple names.
+See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
+
+
 ## Run
 
 Run the REPL:
@@ -139,7 +153,7 @@ CLI contract summary (actual behavior):
   - assignment defines a name in the current scope when none exists in the reachable lexical chain
   - otherwise it updates the nearest existing lexical binding
   - parameters are assignable
-  - assignment is limited to simple names in this phase
+  - assignment targets are identifier tokens; historical ordinary `=` dotted names remain literal bindings, not property writes
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - pipeline operator (phase 2): `|>` with Outcome-aware stage semantics
   - ordinary call shape is preserved: `x |> f` calls `f(x)`, `x |> f(y)` calls `f(y, x)`, and `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position

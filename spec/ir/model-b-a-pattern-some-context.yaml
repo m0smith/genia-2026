@@ -1,0 +1,24 @@
+name: model-b-a-pattern-some-context
+category: ir
+description: Pin legacy wire compatibility and full new-carrier header context separately
+input:
+  source: f(some(x,c)) = x
+expected:
+  ir:
+  - node: IrPatternFuncDef
+    name: f
+    pattern:
+      node: IrPatTuple
+      items:
+      - node: IrPatSome
+        inner:
+          node: IrPatBind
+          name: x
+        context:
+          node: IrPatBind
+          name: c
+    body:
+      node: IrVar
+      name: x
+requires:
+- ast_lowering

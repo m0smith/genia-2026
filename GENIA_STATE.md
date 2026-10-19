@@ -243,6 +243,7 @@ guide is `docs/style/doc-style.md`; the displaced detailed text is in `docs/stat
   - lowered portable IR is validated before host-local optimization in the Python reference host
 - the current Python host may apply small post-lowering optimization rewrites such as `IrListTraversalLoop`
   - those optimized nodes are Python-host implementation details, not the minimal shared Core IR contract
+  - nth-style rewrite eligibility conservatively counts recursive calls inside list/map values; extra recursive case arms prevent the rewrite so their results are preserved
 - assignment is supported at top level and in lexical scopes (`name = expr`)
 - blocks evaluate expressions in order and return the last value
 - no statement/declaration split at runtime level
@@ -712,6 +713,34 @@ Pipeline (Phase 2) evaluation model:
   execution (an exact argv, no shell, no PATH search) under a portable
   contract currently implemented by Python. Neither wraps or replaces the
   other.
+### Model B declaration syntax (Partial: parse/lower only)
+
+LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`; consecutive
+same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
+Comments/blank lines/prefix annotations preserve grouping and per-clause metadata;
+unrelated statements and completed REPL submissions end it. Mixed `=`/`=:` runs
+raise `mixed-function-declaration-operators`.
+
+Historical ordinary dotted targets are literal binding names, not property
+writes. New `=:` and pattern/guard targets require simple names. Legacy unguarded
+identifier headers retain `IrFuncDef`, its normalized wire shape, grouped bodies,
+inline documentation and varargs. Pattern/guard headers use `IrPatternFuncDef`
+with one full tuple pattern and optional guard under R20 grammar. They reject
+`->` and grouped bodies; grouped bodies require unguarded identifier headers.
+Their post-`=` string is a body, never documentation. No nested named/closed
+declarations or nested tuple-pattern atoms are added. Normalization omits source
+spans and absent annotations/guards. `IrPatErr`/`IrPatNamed` are portable pattern carriers.
+
+PYTHON REFERENCE HOST: parse/lower only; evaluation fails with `model-b-not-implemented`
+before initializer/annotation/guard/body effects.
+Direct entry-file route/server/CORS discovery rejects these carriers, even
+unannotated, before environment lookups. Immutable execution, default-open
+dispatch, linking changes and closed publication remain unimplemented; ordinary
+and explicit R20 execution remain. Unfinished `=:` keeps REPL input incomplete;
+completed submissions cannot extend earlier groups. C++ new syntax/carriers
+remain unsupported in current evidence; parser acceptance grants no execution
+capability.
+
 ## 4) Functions and dispatch
 
 - named functions are first-class values
@@ -727,7 +756,7 @@ Pipeline (Phase 2) evaluation model:
   - blocks create lexical scopes
   - function parameters are ordinary assignable lexical bindings
   - closures capture lexical environments, so rebinding is visible across calls to the same closure
-  - assignment is limited to simple names
+  - assignment targets are identifiers; historical dotted identifiers in ordinary `=` targets name literal bindings, not property writes
   - invalid targets such as `(a + b) = 3` raise `SyntaxError("Assignment target must be a simple name")`
   - module evaluation uses its own module environment, so module top-level assignment does not rebind names in the importing root environment
 - named function definitions may include an optional leading docstring string literal after `=`
@@ -3584,10 +3613,20 @@ PYTHON REFERENCE HOST (MCP adapter):
   `genia_capabilities` and `genia_language_profile` and the launcher advertises all four; `genia_capabilities.tools` reports the advertised set. No resources, prompts, pagination, or other protocol surface is added.
 - It takes no arguments (`arguments` omitted or `{}`; any other value is `-32602`), has the same input schema as `genia_capabilities`, and returns the normal `CallToolResult` with `structuredContent` and one text item holding
   the same `genia.mcp.v1` envelope (`result = {language: {...}}`).
-- `language` is a fixed constant except `contract_revision` (the launch revision `genia_capabilities` reports): `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`, `examples` (`gcd`, `factorial`; they
-  evaluate to `6` and `120` under direct command-source evaluation, verified by tests), and (A7) `discovery`. A literal-first-parameter multi-clause function needs its first clause declared `open`
-  (`open gcd(a, 0) = a`; the same text without `open` is rejected), and the profile states that rule in `idioms.clauses`. Amendment A8 (issue #1119) adds `idioms.pipelines`, anchored in `state:validated-pipelines`. Amendment A9 (issue #1084) adds `idioms.outcomes`, anchored in `state:outcome-propagation` and `state:syntax-forms`: it restates, for assistants, that `some`/`none`/`err` are values, that `|>` pipelines lift ordinary stages over `some` while `none` and `err` skip later stages unchanged, that `err` is not absence, that a direct call receives the Outcome itself (a `none` argument short-circuits the call unless the callee explicitly handles absence, per amendment A11), and that recovery wraps the whole expression (`unwrap_or(0, parse_int(s))`) rather than being a later stage. Amendment A10 (issue #1084) adds `idioms.flow`, anchored in `state:flow-semantics` (and `state:outcome-propagation` for the `stdin` capability sentence): it restates, for assistants, that a Flow is lazy, pull-based, and single-use, that a list stays a list, that `collect` returns a list and `run` consumes the Flow and returns `nil`, that `lines` takes a list of strings (or `stdin`) and rejects a bare string or non-strings, that unbounded sources such as `evolve` need `take` before `collect` or `run`, and that `stdin` is a host input adapted with `stdin |> lines` where the host supplies it. Portability is carried only by the fact summary, anchored in `state:host-status`: the C++ host supports a bounded Flow subset. `genia_run` supplies no stdin (section 9.41) and pipe mode supplies `stdin |> lines` itself (section 1); neither is restated on the wire. Amendment A11 (issue #1084) corrects only the A9 `idioms.outcomes` wording: it previously said a `none` argument short-circuits an "ordinary" call and now states the exception recorded in `state:outcome-propagation` (the call short-circuits unless the callee explicitly handles absence, such as `unwrap_or`). It is a profile wording correction with no change to language semantics, the fact count, or any other member. Output is byte-identical across calls, protocol eras, and namespace modes; JSON member order is the
-  encoder's sorted order.
+- `language` is fixed except `contract_revision` (the launch revision). Its members are
+  `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`,
+  `examples` and `discovery`. Executable `gcd` and `factorial` examples return `6`
+  and `120`. `idioms.clauses` requires explicit `open` for executable pattern
+  dispatch; Model B ordinary pattern/guard headers and `=:` currently parse/lower
+  but reject evaluation with `model-b-not-implemented` (section 3).
+- `idioms.pipelines`, `idioms.outcomes` and `idioms.flow` restate sections 2, 3,
+  5 and 6: validated pipelines, Outcome lifting/short-circuiting and explicit
+  recovery, lazy single-use Flow, bounded terminals and explicit stdin adaptation.
+  Direct calls short-circuit on `none` unless the callee explicitly handles it;
+  `some` remains an explicit direct-call argument. `genia_run` supplies no stdin.
+  C++ supports a bounded Flow subset, not MCP.
+- Output is byte-identical across calls, protocol eras and namespace modes;
+  JSON member order is the encoder's sorted order.
 - **Provenance.** Each claim restates implemented behavior documented in the language sections of this file (control flow in `state:control-flow`, patterns in `state:pattern-matching`, tail calls in `state:tail-calls`, open
   clauses in `state:open-functions`). The governed members and the discovery catalogue are generated into a delimited block of `apps/mcp/mcp.genia` from the `mcp_language_profile` registry in
   `docs/contract/semantic_facts.json`, a guarded projection source: this file stays the authority, and each registry fact carries semantic anchors (`<!-- anchor: state:... -->` markers in this file) and evidence (STATE

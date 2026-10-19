@@ -1,0 +1,14 @@
+name: model-b-a-mixed
+category: parse
+description: 'Approved Model B Slice A: mixed'
+input:
+  source: 'f(x)=x
+
+    f(y)=:y'
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: mixed-function-declaration-operators
+requires:
+- parser

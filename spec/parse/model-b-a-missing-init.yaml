@@ -1,0 +1,12 @@
+name: model-b-a-missing-init
+category: parse
+description: 'Approved Model B Slice A: missing-init'
+input:
+  source: 'x =:'
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: Unexpected
+requires:
+- parser

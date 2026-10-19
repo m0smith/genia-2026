@@ -23,6 +23,7 @@ if __package__ in (None, ""):
         Delay,
         ErrPattern,
         ExprStmt,
+        ImmutableBind, ClosedFuncDef, PatternFuncDef,
         FuncDef,
         GlobPattern,
         ImportStmt,
@@ -65,6 +66,7 @@ if __package__ in (None, ""):
         IrCaseClause,
         IrDelay,
         IrExprStmt,
+        IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef,
         IrFuncDef,
         IrImport,
         IrLambda,
@@ -119,6 +121,7 @@ else:
         Delay,
         ErrPattern,
         ExprStmt,
+        ImmutableBind, ClosedFuncDef, PatternFuncDef,
         FuncDef,
         GlobPattern,
         ImportStmt,
@@ -161,6 +164,7 @@ else:
         IrCaseClause,
         IrDelay,
         IrExprStmt,
+        IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef,
         IrFuncDef,
         IrImport,
         IrLambda,
@@ -236,9 +240,22 @@ def lower_node(node: Node) -> IrNode:
     raises `SyntaxError` for an annotation not allowed on its target and
     `RuntimeError` for an AST node kind this lowering does not know.
     """
+    if isinstance(node, ImmutableBind):
+        return IrImmutableBind(node.name, lower_node(node.expr), span=node.span)
+    if isinstance(node, PatternFuncDef):
+        return IrPatternFuncDef(node.name, lower_pattern(node.pattern),
+            lower_node(node.guard) if node.guard is not None else None,
+            lower_node(node.body), span=node.span)
+    if isinstance(node, ClosedFuncDef):
+        return IrClosedFuncDef(node.name, [lower_node(child) for child in node.declarations], span=node.span)
     if isinstance(node, AnnotatedNode):
         lowered_annotations = _lower_annotations(node.annotations)
         target = node.target
+        if isinstance(target, (ImmutableBind, PatternFuncDef)):
+            lowered = lower_node(target)
+            lowered.annotations = lowered_annotations
+            lowered.span = node.span
+            return lowered
         if isinstance(target, Assign):
             return IrAssign(target.name, lower_node(target.expr), annotations=lowered_annotations, span=node.span)
         if isinstance(target, FuncDef):
@@ -433,6 +450,14 @@ def _lower_open_clause(clause) -> IrCaseClause:
 
 
 def lower_pattern(pattern: Node) -> IrPattern:
+    """Lower an existing R20 pattern and retain its nonserialized source span."""
+    lowered = _lower_pattern_value(pattern)
+    lowered.span = pattern.span
+    return lowered
+
+
+def _lower_pattern_value(pattern: Node) -> IrPattern:
+    """Construct a portable matcher carrier without evaluating pattern code."""
     if isinstance(pattern, Number):
         return IrPatLiteral(pattern.value)
     if isinstance(pattern, String):

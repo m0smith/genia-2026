@@ -1,0 +1,36 @@
+name: model-b-a-closed-grouped
+category: ir
+description: 'Approved Model B Slice A: closed-grouped'
+input:
+  source: 'f(x) =: (y) -> y | (_) -> "fallback"'
+expected:
+  ir:
+  - node: IrClosedFuncDef
+    name: f
+    declarations:
+    - node: IrFuncDef
+      name: f
+      params:
+      - x
+      body:
+        node: IrCase
+        clauses:
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+            - node: IrPatBind
+              name: y
+          result:
+            node: IrVar
+            name: y
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+            - node: IrPatWildcard
+          result:
+            node: IrLiteral
+            value: fallback
+requires:
+- ast_lowering

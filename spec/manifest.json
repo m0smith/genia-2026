@@ -31,7 +31,10 @@
       "IrImport",
       "IrOpenFuncDef",
       "IrOpenContribution",
-      "IrOpenUse"
+      "IrOpenUse",
+      "IrImmutableBind",
+      "IrPatternFuncDef",
+      "IrClosedFuncDef"
     ],
     "minimal_portable_pattern_families": [
       "IrPatLiteral",
@@ -43,7 +46,9 @@
       "IrPatMap",
       "IrPatGlob",
       "IrPatSome",
-      "IrPatNone"
+      "IrPatNone",
+      "IrPatErr",
+      "IrPatNamed"
     ],
     "host_local_post_lowering_nodes": [
       "IrListTraversalLoop"

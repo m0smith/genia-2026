@@ -48,6 +48,9 @@ The minimal portable Core IR node families are:
 - `IrCase`
 - `IrLambda`
 - `IrAssign`
+- `IrImmutableBind`
+- `IrPatternFuncDef`
+- `IrClosedFuncDef`
 - `IrFuncDef`
 - `IrNamedPatternDef`
 - `IrImport`
@@ -67,6 +70,8 @@ Pattern families in the portable contract are:
 - `IrPatGlob`
 - `IrPatSome`
 - `IrPatNone`
+- `IrPatErr`
+- `IrPatNamed`
 
 ## Lowering Invariants Hosts Must Preserve
 
@@ -179,3 +184,40 @@ Not implemented today:
 
 - second host implementation
 - generic multi-host spec runner implementation
+
+## Model B Slice A declaration carriers (Partial)
+
+LANGUAGE CONTRACT: `GENIA_STATE.md` section 3 governs these additive carriers.
+`IrImmutableBind(name, expr, annotations=[], span)` represents a fresh binding.
+`IrPatternFuncDef(name, pattern, guard, body, annotations=[], span)` requires one
+full `IrPatTuple` header; it has no params/rest_param/docstring alternative.
+`IrClosedFuncDef(name, declarations, span)` is one atomic nonempty ordered list
+of same-name `IrFuncDef` or `IrPatternFuncDef` records. Nested groups/declarations
+in closed bodies, expression-as-pattern carriers, competing header fields and
+pattern/guard headers with grouped case bodies are invalid direct IR.
+
+Pattern wire delta (Slice A): `IrPatErr(reason, context)` and `IrPatNamed(name, inner)`
+are now declared portable pattern carriers. Before Slice A, normalizing any
+program containing them raised `unsupported pattern`; the normalizer now
+serializes them in every position, including ordinary lambda and case patterns,
+so previously unnormalizable programs normalize. `IrPatErr` serializes an absent
+context as `null` (as `IrPatNone` does); `IrPatNamed` carries the name only and
+resolution stays host semantics. `IrPatSome.context` is the one position-dependent
+field: it is serialized only inside `IrPatternFuncDef` headers, and omitted
+elsewhere to preserve the legacy wire. Shared cases `model-b-a-pattern-err*`,
+`model-b-a-pattern-named` and `model-b-a-legacy-lambda-*` pin both positions.
+C++ support for these carriers is not claimed (issue #1250 gap).
+
+Legacy `IrFuncDef` wire fields remain unchanged. New absent annotations and
+guards are omitted, and spans are never serialized. Patterns/guards/annotations
+retain source provenance internally. Walkers include new declaration children
+and existing R20 clauses and annotation values; portable validation rejects
+nested host-local optimized nodes.
+
+PYTHON REFERENCE HOST: parsing, lowering, normalization and validation are
+implemented; evaluation rejects new declarations with `model-b-not-implemented`
+before child effects. This adds no Model B dispatcher, immutable-write policy,
+linker or closed-publication state machine. Optimizers preserve the atomic group.
+C++ new-carrier support is not claimed; issue #1250 owns that follow-up.
+`core_ir_version` and R16 protocol stay unchanged; exact `contract_revision`
+continues to pin evidence. Syntax support implies no optional execution claim.

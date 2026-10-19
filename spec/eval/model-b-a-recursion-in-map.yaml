@@ -1,0 +1,14 @@
+name: model-b-a-recursion-in-map
+category: eval
+description: Collection-nested recursion in an extra clause preserves that clause
+  and its result.
+input:
+  source: "nth(n, xs) =\n  (_, []) -> nil |\n  (0, [x, .._]) -> x |\n  (1, [_, ..rest])\
+    \ -> {value: nth(0, rest)} |\n  (n, [_, ..rest]) -> nth(n - 1, rest)\nnth(1, [10,\
+    \ 20])"
+expected:
+  stdout: '{value: 20}
+
+    '
+  stderr: ''
+  exit_code: 0

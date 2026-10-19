@@ -1,0 +1,41 @@
+name: model-b-a-calls
+category: ir
+description: 'Approved Model B Slice A: calls'
+input:
+  source: 'f(1,2)
+
+    gcd(48,18)'
+expected:
+  ir:
+  - node: IrExprStmt
+    expr:
+      node: IrCall
+      fn:
+        node: IrVar
+        name: f
+      args:
+      - node: IrLiteral
+        value:
+          kind: integer
+          digits: '1'
+      - node: IrLiteral
+        value:
+          kind: integer
+          digits: '2'
+  - node: IrExprStmt
+    expr:
+      node: IrCall
+      fn:
+        node: IrVar
+        name: gcd
+      args:
+      - node: IrLiteral
+        value:
+          kind: integer
+          digits: '48'
+      - node: IrLiteral
+        value:
+          kind: integer
+          digits: '18'
+requires:
+- ast_lowering

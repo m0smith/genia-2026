@@ -1,0 +1,33 @@
+name: model-b-a-ordinary-independent
+category: ir
+description: 'Approved Model B Slice A: ordinary-independent'
+input:
+  source: 'f(x) = x
+
+    a = "other"
+
+    f(x,y) = y'
+expected:
+  ir:
+  - node: IrFuncDef
+    name: f
+    params:
+    - x
+    body:
+      node: IrVar
+      name: x
+  - node: IrAssign
+    name: a
+    expr:
+      node: IrLiteral
+      value: other
+  - node: IrFuncDef
+    name: f
+    params:
+    - x
+    - y
+    body:
+      node: IrVar
+      name: y
+requires:
+- ast_lowering

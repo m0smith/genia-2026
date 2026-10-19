@@ -1,0 +1,367 @@
+{
+  "classification": "Selected compatibility/gap observations, not full or current-pinned C++ conformance",
+  "case_revision": "c14fa139c64eee49cfdaf601f90bac34185454de",
+  "cpp_available_source": "bb7c7474001f18e2e27fd94b7be9e9b725ba3473",
+  "binary_sha256": "609d9807e5753574bd6e518ea4cad77c782b824ee45f9d154788e2853daf2df3",
+  "binary_source_build_provenance": "Not independently certified; existing binary not rebuilt",
+  "timeout_seconds": 10,
+  "capabilities": {
+    "kind": "ok",
+    "result": {
+      "capabilities": {
+        "allowlisted_host_interop": "unsupported",
+        "ast_lowering": "supported",
+        "bytes_utf8": "supported",
+        "cell_primitives": "supported",
+        "cli_command_mode": "supported",
+        "cli_file_mode": "supported",
+        "cli_pipe_mode": "supported",
+        "configuration_dotenv_snapshot": "unsupported",
+        "configuration_environment_snapshot": "unsupported",
+        "core_ir_eval": "partial",
+        "debugger_stdio": "unsupported",
+        "doc_help": "unsupported",
+        "embedding_deterministic_fixture": "unsupported",
+        "execution_process": "unsupported",
+        "flow_phase_1": "supported",
+        "http_outbound_transport": "unsupported",
+        "http_server": "unsupported",
+        "indexing_deterministic_fixture": "unsupported",
+        "json_compat": "unsupported",
+        "json_strict": "supported",
+        "model_deterministic_fixture": "unsupported",
+        "model_gemini_rest": "unsupported",
+        "multi_file_eval": "unsupported",
+        "open_functions": "supported",
+        "parser": "supported",
+        "prelude_autoload": "partial",
+        "process_primitives": "supported",
+        "refs": "supported",
+        "repl": "supported",
+        "reranking_deterministic_fixture": "unsupported",
+        "resource_io": "unsupported",
+        "retrieval_deterministic_fixture": "unsupported",
+        "shared_spec_runner": "partial",
+        "shell_stage": "unsupported"
+      },
+      "contract_revision": "6402e668ae85a1e7efe94b3ac3d51f233b730ca4",
+      "operations": [
+        "parse",
+        "lower",
+        "eval",
+        "cli"
+      ],
+      "protocol_version": "1"
+    },
+    "reason": null,
+    "stdout_raw": "{\"case_id\":\"__capabilities__\",\"operation\":\"capabilities\",\"protocol_version\":\"1\",\"result\":{\"capabilities\":{\"allowlisted_host_interop\":\"unsupported\",\"ast_lowering\":\"supported\",\"bytes_utf8\":\"supported\",\"cell_primitives\":\"supported\",\"cli_command_mode\":\"supported\",\"cli_file_mode\":\"supported\",\"cli_pipe_mode\":\"supported\",\"configuration_dotenv_snapshot\":\"unsupported\",\"configuration_environment_snapshot\":\"unsupported\",\"core_ir_eval\":\"partial\",\"debugger_stdio\":\"unsupported\",\"doc_help\":\"unsupported\",\"embedding_deterministic_fixture\":\"unsupported\",\"execution_process\":\"unsupported\",\"flow_phase_1\":\"supported\",\"http_outbound_transport\":\"unsupported\",\"http_server\":\"unsupported\",\"indexing_deterministic_fixture\":\"unsupported\",\"json_compat\":\"unsupported\",\"json_strict\":\"supported\",\"model_deterministic_fixture\":\"unsupported\",\"model_gemini_rest\":\"unsupported\",\"multi_file_eval\":\"unsupported\",\"open_functions\":\"supported\",\"parser\":\"supported\",\"prelude_autoload\":\"partial\",\"process_primitives\":\"supported\",\"refs\":\"supported\",\"repl\":\"supported\",\"reranking_deterministic_fixture\":\"unsupported\",\"resource_io\":\"unsupported\",\"retrieval_deterministic_fixture\":\"unsupported\",\"shared_spec_runner\":\"partial\",\"shell_stage\":\"unsupported\"},\"contract_revision\":\"6402e668ae85a1e7efe94b3ac3d51f233b730ca4\",\"operations\":[\"parse\",\"lower\",\"eval\",\"cli\"],\"protocol_version\":\"1\"},\"status\":\"ok\",\"unsupported_reason\":null}\n",
+    "stderr_raw": ""
+  },
+  "results": [
+    {
+      "path": "spec/eval/model-b-a-recursion-in-list.yaml",
+      "spec_sha256": "6265cfc8266151b7c8693793cbce39bdddab3e32d632c1c148d8d5876e42c81b",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/eval/model-b-a-recursion-in-map.yaml",
+      "spec_sha256": "73089422ebf21116caabf1439baa9755d3365812daf5e26beb6ce49b507e1f12",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-annotated-immutable.yaml",
+      "spec_sha256": "018ed9dc7e4c3741906645d1a8370a731ea05e1ab8d77ad4879b3df53dacd3d8",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-calls.yaml",
+      "spec_sha256": "f07c77d54eb4a8063e3e50eab32f1e94ea8d689f9e5526171340872c1ebaed37",
+      "kind": "pass",
+      "failures": [],
+      "reason": null
+    },
+    {
+      "path": "spec/ir/model-b-a-closed-grouped.yaml",
+      "spec_sha256": "82e68b95c71f43e6473134ca8e5ff1a708a23b3cb8c7f6925fcca0d270c702db",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-closed-run.yaml",
+      "spec_sha256": "7f3583d3c206169315bbcbfddcf777ac5854d0a8de8c7e1d4b66af699a77acc0",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-closed.yaml",
+      "spec_sha256": "c4a895ccfe9b6dc851fc55a1e637bc6f46e87ab57a625b8055cb94adb92f3fe0",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-guard-identifier.yaml",
+      "spec_sha256": "48155989fddb85d0e111d9155cd884b252a49b7e9bdc5fd693d9f4d1d86a6e63",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-guard-pattern.yaml",
+      "spec_sha256": "aec7f7c88769044b4354e32aa077ba11d94e6ce81052dd7ba4e39609fac7ef32",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-immutable.yaml",
+      "spec_sha256": "51ee0e0bed01c1135d09e6a3b9132e8f479bf357ba00baa2084a35b95bd7343d",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-legacy-dotted-assignment.yaml",
+      "spec_sha256": "623d6573ebcb8edb4d120eb58d30aa68e8b05f4e8e9758ea2ad5ed110276cc82",
+      "kind": "pass",
+      "failures": [],
+      "reason": null
+    },
+    {
+      "path": "spec/ir/model-b-a-legacy-dotted-function-arrow.yaml",
+      "spec_sha256": "10e6a53e720c25254a37bab546153bdae5c6c0024d60be8d2b728940b4a4794d",
+      "kind": "pass",
+      "failures": [],
+      "reason": null
+    },
+    {
+      "path": "spec/ir/model-b-a-legacy-dotted-function-block.yaml",
+      "spec_sha256": "4c5cb586c566d6d1853e0d1b942cc6d8542f9ca9eb1f44fa96b782dcc2c55cb9",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-legacy-dotted-function.yaml",
+      "spec_sha256": "f58f7b4e3d0a758a867e2d7abcff2414db0e482532736738ef7955fceef52c8f",
+      "kind": "pass",
+      "failures": [],
+      "reason": null
+    },
+    {
+      "path": "spec/ir/model-b-a-legacy-lambda-err.yaml",
+      "spec_sha256": "a570243bb15c919eafb07589e629240fe4da59864fbd7f2209f8ace634733373",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-legacy-lambda-named.yaml",
+      "spec_sha256": "735c5af4ab161c6804138454b1ad9d2be9118adf48e189cf35ce9b16a56a1580",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-legacy-rest.yaml",
+      "spec_sha256": "7e66bc100ecb85eab878c905e6b0cb2e5e478ea92946ef98eeba674fb9125465",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-legacy-some-context.yaml",
+      "spec_sha256": "0eb4d2216180e5c9cb36102102caef955650e11af82d9c627b1673f4c14dcd8a",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-ordinary-independent.yaml",
+      "spec_sha256": "2f2db0b2ffc276dfc173a0e3e3f4d8b87df14a676b037d4f9fc78ae961c07b49",
+      "kind": "pass",
+      "failures": [],
+      "reason": null
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-err-context.yaml",
+      "spec_sha256": "c14e51088440c3a37cbce8280dee8e825ddff2ed86a12f2ec27c1ad5eaeb29e4",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-err.yaml",
+      "spec_sha256": "3d27dca1fd0d83146115216c0f29d5fc5100aadcf9027de9b3e854b6181a8d09",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-list.yaml",
+      "spec_sha256": "6f92cdc5bbda5f8c5370b1de43bfaf6aa863b951e8f38b46866e74a4f507de18",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-literal.yaml",
+      "spec_sha256": "d3d9e8b81efa761b1f762b8c69cd8d6c20b47ec34208323f305e0d9f4e62ecf7",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-map.yaml",
+      "spec_sha256": "6ad0c15099c42ee40d91d659799004ce9152734ef84786e90bd0da4b6c14067a",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-named.yaml",
+      "spec_sha256": "c6d495d14f2b26bf5d940ba655dde796c5a1dcdb8b4752a3a46568d9aec1a728",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-some-context.yaml",
+      "spec_sha256": "0ea66ede554ca1a83e8b23418269d86fdc30e5e71cd5b19f32c4d1596e3026b5",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-string-body.yaml",
+      "spec_sha256": "d3626abea656fc5bea28c04c425ca4d87bd34baedfc3be166b02813f9843e069",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-pattern-tuple.yaml",
+      "spec_sha256": "8cedd2c33101cd659820b548ed6446912bd59d06f7b01c91c2ee8b4cef6ea247",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/ir/model-b-a-split.yaml",
+      "spec_sha256": "94984f4d08a30451addc44d5b6112a1999aa616b980b3046ef9c7d6d21f4a91f",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-dotted-closed-target.yaml",
+      "spec_sha256": "99c5fd50cb9376003874128d5e686b5867edb6ae88eb42acee0bf6e023daed11",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-dotted-guard-target.yaml",
+      "spec_sha256": "54649045664d5dbab79daf37d848a54e3ea05c4e0e902a4a9caaa0a740523426",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-dotted-pattern-target.yaml",
+      "spec_sha256": "b07bef9b17225724aae5d338b12cad57bbe548497e859c38a3b77cc682205a63",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-guard-arrow.yaml",
+      "spec_sha256": "60e78d5a93097217929345792dc6bb50fe51eb5b05b099d6af212c4ad82f3537",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-guard-grouped.yaml",
+      "spec_sha256": "08cd0d05414687224b2ef6c3da4f62dabcf57047539c96755599f0c3d6f65c46",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-index.yaml",
+      "spec_sha256": "5880f8396672b2122b3ef013064bae9fdffed05a089d41e14b0c6499e275089b",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-missing-body.yaml",
+      "spec_sha256": "eca504876d15cf63ab17277f494af9a7d561e5d0af176a1ec307e578f64257d9",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-missing-init.yaml",
+      "spec_sha256": "7fa5288d71bf5b4e8ef654e95a2aacf790aa24b2d10fefbe0fc1d6dff38e80a0",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-mixed-reverse.yaml",
+      "spec_sha256": "28c607b242c68f36984160532dfe9166c70f4911f8a6d86aab47095b5b1c8298",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-mixed.yaml",
+      "spec_sha256": "8c68de480e587fc2040a1d875bee0e6cfef276354d5f933c6793394a4b1e4f38",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-nested.yaml",
+      "spec_sha256": "4b63cb97f341d6cfa6b0213948b42b97cdf0e22fb025e8eb6c7651935880a726",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-pattern-arrow.yaml",
+      "spec_sha256": "d43264e25c1d7937ddca87a6ef811dc05c3eac18aa457ceb1d0c28c70be968dd",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-pattern-grouped.yaml",
+      "spec_sha256": "34e2f09f462f6b1e2b8dc234f6f0ca0b4187a67ecb97f3567ebc2c43236277e8",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    },
+    {
+      "path": "spec/parse/model-b-a-target.yaml",
+      "spec_sha256": "35526372c00b1e76944f13b6b763118f8a2acc5171b5d45f7dfd645747427774",
+      "kind": "unsupported",
+      "failures": [],
+      "reason": "genia-cpp implements only the E24-2..E24-7 vertical slice (integer/Decimal literals, unary minus, string/boolean/list/map literals, bare-name references, assignment, `+ - * / == != % < <= > >=` binary expressions -- including the full R22 exact-family (Integer/Decimal/Rational) arithmetic/division/floor-remainder/ordering promotion rules, not just Integer -- lambdas, named-function definitions (ordinary and local case/pattern-dispatch bodies), local R20 open functions (single module only), pipelines, `err(...)` Outcomes, `rational(...)` construction, closed-domain Float64 arithmetic, the R22 exact-family/Float64 equality and ordering bridge, cross-kind numeric map-key identity, R23 numeric field-format specs and strict numeric JSON shared cases, the one deterministic undefined-name runtime error, the R27 first-wave Flow kernel (stdin/list `lines`, `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`/`collect`/`run`/`reduce`), `-p` pipe mode over piped stdin, calls to this slice's native map_*/utf8_encode/utf8_decode/err/sum/print/upper/trim/contains/parse_int functions, and `-c`/file-mode CLI); this request is outside that scope -- see https://github.com/m0smith/genia-cpp AGENTS.md"
+    }
+  ],
+  "counts": {
+    "unsupported": 38,
+    "pass": 5
+  }
+}

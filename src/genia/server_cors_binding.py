@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .cors_policy import resolve_cors_policy
-from .ir import IrAssign, IrNode
+from .ir import IrAssign, IrNode, IrClosedFuncDef, IrPatternFuncDef, IrImmutableBind
 from .values import GeniaMap
 
 
@@ -173,7 +173,13 @@ def discover_entry_file_cors_binding(
     candidates receive its source identity and enumerated indices. Environment
     lookup failures propagate. Delegate policy/owner validation to discovery
     without evaluating assignments or wrapping handlers.
+    Slice A declarations reject with model-b-not-implemented before any
+    environment lookup, even for direct callers and unannotated declarations.
     """
+
+    for node in nodes:
+        if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
+            raise RuntimeError("model-b-not-implemented: server discovery is not available")
 
     declarations: list[CorsDeclaration] = []
     for source_index, node in enumerate(nodes):
