@@ -84,3 +84,18 @@ this boundary requires implementation and passing applicable shared Slice A
 cases. Required parser/ast_lowering cases are not hidden behind optional
 capabilities. Existing R20 execution and other host capability claims remain
 separately evidenced. `GENIA_STATE.md` section 3 is authoritative.
+
+### Required-syntax gap reporting (Model B Slice A)
+
+`spec/known_host_gaps.json` admits only optional-capability gaps. Required
+`parser`/`ast_lowering` obligations stay required; Model B syntax is not moved
+behind an optional execution capability. An adapter's `unsupported` response
+remains an unmet syntax obligation, including negative parse cases, rather than
+a passing diagnostic or an exemption granted by the optional-capability gate.
+Record this required-syntax boundary here and exact case outcomes in the #1250
+handoff/evidence. A green optional-capability gate does not certify it.
+
+Owner: #1250 integration owner and C++ implementer. Remove the temporary boundary
+only after the bounded C++ parser/lowering implementation passes the affected
+shared cases at a current contract revision. Until then, no current Slice A C++
+conformance or new-carrier parity is claimed. B–E execution remains separate.

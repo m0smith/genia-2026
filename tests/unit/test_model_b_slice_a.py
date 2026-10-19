@@ -137,9 +137,11 @@ def test_direct_server_discovery_rejects_before_environment_access(discovery, so
         """Fail on any discovery lookup, including an earlier ordinary declaration."""
 
         def get(self, name):
+            """Reject value access so the test proves rejection ordering."""
             raise AssertionError('value lookup before rejection')
 
         def get_metadata(self, name):
+            """Reject metadata access so the test proves rejection ordering."""
             raise AssertionError('metadata lookup before rejection')
 
     functions = {
