@@ -721,6 +721,10 @@ metadata; unrelated statements and completed REPL submissions end it.
 Mixing `=`/`=:` in a same-name declaration run raises
 `mixed-function-declaration-operators`.
 
+Historical ordinary `=` dotted targets remain literal binding names (including
+function declaration targets), not property writes. New `=:` targets and new
+pattern/guard declaration targets require simple names.
+
 Legacy unguarded identifier headers retain `IrFuncDef` and its normalized wire
 shape, including grouped case bodies, inline documentation and varargs.
 Ordinary guarded or non-identifier pattern headers use `IrPatternFuncDef`,
@@ -756,7 +760,7 @@ parser acceptance is not an executable capability claim.
   - blocks create lexical scopes
   - function parameters are ordinary assignable lexical bindings
   - closures capture lexical environments, so rebinding is visible across calls to the same closure
-  - assignment is limited to simple names
+  - assignment targets are identifiers; historical dotted identifiers in ordinary `=` targets name literal bindings, not property writes
   - invalid targets such as `(a + b) = 3` raise `SyntaxError("Assignment target must be a simple name")`
   - module evaluation uses its own module environment, so module top-level assignment does not rebind names in the importing root environment
 - named function definitions may include an optional leading docstring string literal after `=`

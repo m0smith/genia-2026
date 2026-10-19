@@ -450,8 +450,6 @@ class Parser:
                 and self.function_header_has_body_starter(self.i)):
             return None
         name_tok = self.eat("IDENT")
-        if "." in name_tok.text:
-            raise SyntaxError("Function declaration target must be a simple name")
         start = self.eat("LPAREN")
         self.skip_newlines()
         pattern, params, rest_param = self.parse_lambda_parameter_pattern()
@@ -472,6 +470,8 @@ class Parser:
                 if name in RESERVED_LITERAL_IDENTIFIERS or name == "_":
                     raise SyntaxError("Function definition cannot use reserved parameter " + repr(name))
         closed = self.at("IMMUTABLE_ASSIGN")
+        if "." in name_tok.text and (closed or not legacy):
+            raise SyntaxError("Function declaration target must be a simple name")
         docstring = None
         if self.at("ARROW"):
             if not legacy:
@@ -788,14 +788,14 @@ class Parser:
         return annotations
 
     def try_parse_name_assignment(self) -> Assign | None:
-        """Parse a simple mutable/immutable binding; reject dotted targets without evaluating it."""
+        """Parse bindings, preserving legacy dotted names only for ordinary =."""
         if not (self.at("IDENT") and self.peek(1).kind in {"ASSIGN", "IMMUTABLE_ASSIGN"}):
             return None
         name_tok = self.eat("IDENT")
         name = name_tok.text
-        if "." in name:
-            raise SyntaxError("Assignment target must be a simple name")
         immutable = self.at("IMMUTABLE_ASSIGN")
+        if immutable and "." in name:
+            raise SyntaxError("Assignment target must be a simple name")
         self.eat("IMMUTABLE_ASSIGN" if immutable else "ASSIGN")
         self.skip_separators()
         expr = self.parse_expr()
