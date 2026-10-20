@@ -185,7 +185,7 @@ Not implemented today:
 - second host implementation
 - generic multi-host spec runner implementation
 
-## Model B Slice A declaration carriers (Partial)
+## Model B declaration carriers (Partial)
 
 LANGUAGE CONTRACT: `GENIA_STATE.md` section 3 governs these additive carriers.
 `IrImmutableBind(name, expr, annotations=[], span)` represents a fresh binding.
@@ -196,11 +196,10 @@ of same-name `IrFuncDef` or `IrPatternFuncDef` records. Nested groups/declaratio
 in closed bodies, expression-as-pattern carriers, competing header fields and
 pattern/guard headers with grouped case bodies are invalid direct IR.
 
-Pattern wire delta (Slice A): `IrPatErr(reason, context)` and `IrPatNamed(name, inner)`
-are now declared portable pattern carriers. Before Slice A, normalizing any
-program containing them raised `unsupported pattern`; the normalizer now
-serializes them in every position, including ordinary lambda and case patterns,
-so previously unnormalizable programs normalize. `IrPatErr` serializes an absent
+Pattern wire delta: `IrPatErr(reason, context)` and `IrPatNamed(name, inner)`
+are declared portable pattern carriers. The normalizer serializes them in every
+position, including ordinary lambda and case patterns; programs containing them
+no longer raise `unsupported pattern`. `IrPatErr` serializes an absent
 context as `null` (as `IrPatNone` does); `IrPatNamed` carries the name only and
 resolution stays host semantics. `IrPatSome.context` is the one position-dependent
 field: it is serialized only inside `IrPatternFuncDef` headers, and omitted
@@ -215,8 +214,8 @@ and existing R20 clauses and annotation values; portable validation rejects
 nested host-local optimized nodes.
 
 PYTHON REFERENCE HOST: parsing, lowering, normalization and validation are
-implemented. Slice B evaluates `IrImmutableBind` with an Env-owned immutable-write
-policy (no Core IR change); closed and pattern declarations still reject with
+implemented. Evaluation executes `IrImmutableBind` with an Env-owned
+immutable-write policy (no Core IR change); closed and pattern declarations reject with
 `model-b-not-implemented` before child effects. This adds no Model B dispatcher,
 linker or closed-publication state machine. Optimizers preserve the atomic group.
 C++ new-carrier support is not claimed; issue #1250 owns that follow-up.

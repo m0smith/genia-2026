@@ -69,53 +69,40 @@ Browser playground adapter note:
 | open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval`; the host has no tail-call optimization (call-depth limit 300), so deep mutual-tail-call cases report unsupported; a grouped open clause that captures a header name (contract section 3.3) is refused as unsupported, not diagnosed |
 | multi-file eval fixture (R16/#836) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Optional protocol-v1 `eval.input.modules` transport, advertised as `multi_file_eval`; independent of `open_functions`, and never sent to a host that does not claim it supported |
 
-### Model B Slices A–B: parser/lowering and immutable-binding boundary
+### Model B declarations: parser/lowering and immutable-binding boundary
 
 Python parses and lowers `=:` declarations, atomic closed groups and ordinary
 pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
-`IrPatternFuncDef`. Python evaluation executes `IrImmutableBind` (Slice B,
-optional capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`);
-closed groups and pattern headers are still rejected with `model-b-not-implemented`.
-This is not a default-open or closed-function execution capability claim. C++ does
-not claim `immutable_bindings`: it is a listed gap in `spec/known_host_gaps.json`
+`IrPatternFuncDef`. Python evaluation executes `IrImmutableBind` (optional
+capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`); closed
+groups and pattern headers are rejected with `model-b-not-implemented`. This is
+not a default-open or closed-function execution capability claim. C++ does not
+claim `immutable_bindings`: it is a listed gap in `spec/known_host_gaps.json`
 (tracking `genia-2026#1261`; parser/lowering owned by genia-cpp #50).
 
-Python Slice B details (implemented; `GENIA_STATE.md` section 3 is authoritative):
-diagnostics are `Cannot assign to immutable binding: x`, `Cannot rebind immutable
-binding: x` and `Cannot declare immutable binding x: name is already bound in this
-scope` / `name is reserved by the runtime`. Import, `open` and `use` targets are
-checked before loading or linking. Direct route/server/CORS discovery rejects closed
-and pattern carriers and a `=:` annotated `@route`/`@server`/`@cors`; an ordinary
-`=:` is a plain statement there. Earlier statements' effects stand before an
+Python details (`GENIA_STATE.md` section 3 is authoritative): diagnostics are
+`Cannot assign to immutable binding: x`, `Cannot rebind immutable binding: x` and
+`Cannot declare immutable binding x: name is already bound in this scope` /
+`name is reserved by the runtime`. Import, `open` and `use` targets are checked
+before loading or linking. Direct route/server/CORS discovery rejects closed and
+pattern carriers and a `=:` annotated `@route`/`@server`/`@cors`; an ordinary `=:`
+is a plain statement there. Earlier statements' effects stand before an
 unimplemented declaration.
 
-The C++ adapter used for Slice A evidence reports the new syntax outside its
-supported scope. That ancestor-pinned evidence is not current pinned conformance
-or parity. [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) owns the
-bounded parser/lowering follow-up under #1250; removal of
-this boundary requires implementation and passing applicable shared Slice A
-cases. Required parser/ast_lowering cases are not hidden behind optional
-capabilities. Existing R20 execution and other host capability claims remain
-separately evidenced. `GENIA_STATE.md` section 3 is authoritative.
-
-### Required-syntax gap reporting (Model B Slice A)
-
-`spec/known_host_gaps.json` admits only optional-capability gaps. Required
-`parser`/`ast_lowering` obligations stay required; Model B syntax is not moved
-behind an optional execution capability. An adapter's `unsupported` response
-remains an unmet syntax obligation, including negative parse cases, rather than
-a passing diagnostic or an exemption granted by the optional-capability gate.
-Record this required-syntax boundary here and exact case outcomes in the #1250
-handoff/evidence. A green optional-capability gate does not certify it.
-
-The 43 selected Slice A cases were observed as 5 PASS / 38 UNSUPPORTED, including
-UNSUPPORTED for all five added `IrPatErr`/`IrPatNamed` IR cases, using an existing
-binary pinned to ancestor contract `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`.
-These are compatibility/gap observations, not current-contract conformance.
+The C++ adapter reports the new syntax outside its supported scope. Observations
+against a binary pinned to ancestor contract
+`6402e668ae85a1e7efe94b3ac3d51f233b730ca4` (43 parser/lowering cases: 5 PASS /
+38 UNSUPPORTED, including all five `IrPatErr`/`IrPatNamed` IR cases) are
+compatibility/gap observations, not current-contract conformance or parity.
+Required `parser`/`ast_lowering` obligations are not hidden behind optional
+capabilities: `spec/known_host_gaps.json` admits only optional-capability gaps,
+and an adapter's `unsupported` response (including for negative parse cases)
+remains an unmet syntax obligation, not a passing diagnostic. A green
+optional-capability gate does not certify it.
 
 Owner: m0smith integration owner and C++ implementer, tracked in
 [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
-Remove the temporary boundary
-only after the bounded C++ parser/lowering implementation passes the affected
-shared cases at a current contract revision. Until then, no current Slice A C++
-conformance or new-carrier parity is claimed. B–E execution remains separate.
+The boundary is removed only after the bounded C++ parser/lowering implementation
+passes the affected shared cases at a current contract revision. Until then, no
+C++ conformance or new-carrier parity is claimed. Default-open dispatch,
+cross-module linking changes and closed publication are not implemented on any host.

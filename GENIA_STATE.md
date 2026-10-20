@@ -726,7 +726,7 @@ writes; new `=:` and pattern/guard targets require simple names. Legacy unguarde
 identifier headers keep `IrFuncDef`, grouped bodies, inline documentation and
 varargs. Pattern/guard headers use `IrPatternFuncDef` (one full tuple pattern,
 optional guard, R20 grammar), reject `->` and grouped bodies, and their post-`=`
-string is a body, never documentation. Wire shapes and carriers (`IrPatErr`, `IrPatNamed`): `docs/architecture/core-ir-portability.md`.
+string is a body, never documentation. Wire shapes: `docs/architecture/core-ir-portability.md`.
 
 LANGUAGE CONTRACT (optional capability `immutable_bindings`): `name =: init`
 declares a fresh immutable binding in the current lexical scope. Before the
@@ -744,7 +744,7 @@ Closed and pattern-header evaluation fails with
 `model-b-not-implemented` before initializer/annotation/guard/body effects.
 Default-open dispatch, linking and closed publication remain unimplemented.
 Unfinished `=:` keeps REPL input incomplete; completed submissions cannot extend
-earlier groups. C++ lacks `=:` (known gap `immutable_bindings`, genia-cpp#50).
+earlier groups. C++ lacks `=:` (known gap `immutable_bindings`: genia-2026#1261; parser/lowering genia-cpp#50).
 
 ## 4) Functions and dispatch
 
@@ -3623,7 +3623,7 @@ PYTHON REFERENCE HOST (MCP adapter):
   `examples` and `discovery`. Executable `gcd` and `factorial` examples return `6`
   and `120`. `idioms.clauses` requires explicit `open` for executable pattern
   dispatch; `name =: expr` executes (section 3); Model B pattern/guard
-  headers and closed `f(...) =: body` still reject evaluation with `model-b-not-implemented`.
+  headers and closed `f(...) =: body` reject evaluation with `model-b-not-implemented`.
 - `idioms.pipelines`, `idioms.outcomes` and `idioms.flow` restate sections 2, 3,
   5 and 6: validated pipelines, Outcome lifting/short-circuiting and explicit
   recovery, lazy single-use Flow, bounded terminals and explicit stdin adaptation.
