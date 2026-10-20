@@ -193,6 +193,14 @@ checkouts, then runs:
 5. the repository's clang-tidy check
 6. the real shared conformance runner against `genia-adapter`
 
+Both this workflow and the host-parity workflow pin the C++ source checkout to
+`44456baea06b4bb7bdf727e39939dd7150261ee6` (merged `genia-cpp` #52),
+which corrects host-private Cell/Process staged-send quiescence. Changing that
+source pin does not change the adapter's declared semantic contract revision,
+`6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. A run against newer main remains
+compatibility evidence; exact-contract conformance requires that declared
+contract checkout. The pin itself makes no validation-result claim.
+
 This workflow proves the development image only. It does not replace the
 existing Python compatibility matrix or `genia-cpp`'s pinned conformance CI.
 
