@@ -6,6 +6,15 @@ Status: Planning history — non-authoritative. `GENIA_STATE.md` remains final a
 
 These are valuable, but not part of the near roadmap unless explicitly promoted:
 
+- Small self-contained native executables / ahead-of-time compilation — **low priority; unnumbered and unscheduled**
+  - goal: quick-starting, small-footprint Genia programs for Docker containers, AWS jobs, and distributed workers without requiring Python or a separately installed Genia interpreter
+  - distinguish executable packaging of the existing bounded C++ host from genuinely compiling Genia Core IR to native machine code; the former is a practical baseline, not fulfillment of the latter
+  - investigate generated C++ and/or LLVM as backend options; decide only after a scoped spike and deployment measurements, not by presupposing a backend
+  - runtime composition should avoid linking unused capabilities where practical; preserve pattern dispatch, recursion, Outcome, Flow, module, resource, and host boundary semantics with shared conformance evidence
+  - benchmark cold start, binary and container size, and process memory on specified platforms; any size or timing numbers remain hypotheses until measured
+  - candidate proof: an outcome-aware validated-record-processing worker deployed without Python, including a small Linux container demonstration
+  - potential dependencies: R34 cross-host performance baseline, R36 distributed execution as applicable, and R41 portable Core IR artifacts; these releases do not implicitly acquire native compiler scope
+  - no active implementation, ticket, release assignment, priority bump, or R29–R42 gate; promote only after concrete demand and normal pre-flight/contract/design/test/implementation/docs/audit/distillation process
 - Outcome composition ergonomics — **promoted to a near-term cross-cutting follow-up candidate**
   - motivating problem: ordinary application code should not need pervasive `apply_raw` to express full-Outcome composition
   - first contract candidate: a canonical full-Outcome bind/composition helper, working name `flat_map_outcome`
