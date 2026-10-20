@@ -31,7 +31,7 @@ Goal under test: *Genia should be something a capable engineer or agent, free to
 - *Discovery.* The cheatsheet (`docs/cheatsheet/`) has no recursion or `open` multi-clause section (searched: no match for "recurs" or `open name(`); the language profile does cover it, so the information exists but not where a task-driven agent looks first.
 - *Self-correction through MCP.* `genia_run` returns the same fixed message (`Genia source failed during evaluation`) for every runtime error. I got it for `is_number(1)`, `type_of(1)`, and an undefined name alike (Appendix). This is by design (`docs/mcp/reference.md:74`), but it means an agent cannot repair a typo through the tool; the CLI is the fallback (two prior observers did this).
 - *Name collisions.* Binding `input = [...]` returned `policy_denied: source requests a capability unavailable in the MCP v1 profile`, because `input` is a host builtin. Accurate but unhelpful to someone who just chose a natural variable name.
-- *Provenance in diagnostics.* A record-validation failure carries only field diagnostics plus `index`; the original line text from the parse stage is not in the aggregate (visible in §2 output). Mapping back to the source row needs a caller-added `row` field. Treated as E (one observation).
+- *Provenance in diagnostics.* A record-validation failure carries only field diagnostics plus `index`; the original line text from the parse stage is not in the aggregate (visible in the Appendix output). Mapping back to the source row needs a caller-added `row` field. Treated as E (one observation).
 - *Host reach.* Files, processes, YAML, hashing, regex, parsers, Git, CI APIs: Python/Bash retain clear advantages (retrospective O7/O8; Model B Slice A/B notes). Exit status for gate-style programs: a returned `err(...)` exits 0 (R39 already owns this).
 - *Portability.* Everything verified here ran on the Python host only. Compatibility JSON helpers (`json_parse`, `parse_jsonl_record`) are Python-host-only per `GENIA_STATE.md`; no C++ claim is made.
 
@@ -46,8 +46,8 @@ Goal under test: *Genia should be something a capable engineer or agent, free to
 | Timing formatter replacement not equivalent | same comment: `format("{n:.3}", {n: 1.2345})` → `"1.235"` vs Python `1.234` | Medium (reported, not re-run) |
 | End-to-end validated JSONL pipeline works on the Python host | Appendix, run 1 | High (run here, output captured), narrow |
 | Report aggregation (tally/total/filter) works | Appendix, run 2 | High, narrow |
-| MCP runtime errors are uniformly opaque | §2 runs 3–4; `docs/mcp/reference.md:74`; `apps/mcp/mcp.genia:836` | High |
-| `input` name triggers policy denial | §2 run 5 | High (single probe) |
+| MCP runtime errors are uniformly opaque | Appendix runs 3–4; `docs/mcp/reference.md:74`; `apps/mcp/mcp.genia:836` | High |
+| `input` name triggers policy denial | Appendix run 5 | High (single probe) |
 | Cheatsheet lacks recursion/`open` guidance | grep of `docs/cheatsheet/` here; Slice B comment 6277213915 | Medium-high |
 | Language profile does state `open` for multi-clause | `genia_language_profile` output (`idioms.clauses`, `examples.factorial`) | High |
 | Spec-runner lacks a case-name filter | Slice A and Slice B comments (one agent, one family) | Low-medium (count is 1 family) |
