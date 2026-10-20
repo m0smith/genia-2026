@@ -106,6 +106,14 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 
 The process correction is documented in `docs/analysis/exact-numeric-gate-postmortem.md`. New implementation is re-derived from current `main` in independently mergeable slices rather than mechanically cherry-picked from #839.
 
+## Deferred direction: Small native executables (parking lot)
+
+**Priority: Low / unscheduled.** Genia may eventually compile programs to small, self-contained native executables for fast-starting Docker containers, AWS jobs, and distributed workers. The intended deployment artifact would require neither Python nor a separate Genia interpreter installation. This is a strategic aspiration, **not implemented behavior**, a release commitment, or a prerequisite for R29–R42.
+
+Research a staged route: (1) package a Genia program with the bounded C++ host to establish a working no-Python deployment baseline, then (2) evaluate compilation from the existing portable Core IR into native code (e.g. via generated C++ or LLVM) using a modular, linkable runtime. Preserve the existing semantic authority, portable conformance, pattern dispatch, recursion, Outcomes, Flow, module boundaries, and honest Python/C++ capability distinctions. Optimize footprint only against measured cold-start latency, executable/container size, and memory; do not claim unmeasured targets or parity.
+
+Promotion requires a concrete validated-record-processing worker use case, a feasibility and dependency review (including R34 cross-host performance evidence, R36 distributed execution, and R41 Core IR artifacts where applicable), an explicit portability/runtime contract, and separate scoped work tickets. No release number, owner, or deadline is assigned. Details: [parking lot](roadmap/parking-lot.md#parking-lot--later).
+
 ## Roadmap files
 
 - **Completed releases R1–R14:** durable release summaries and runnable examples live in `docs/releases/R1.md` through `docs/releases/R14.md`.
