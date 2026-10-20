@@ -1,5 +1,3 @@
-name: Host parity gate
-
 # Enforces that a portable-semantic change cannot quietly pass in the Python
 # reference host while the bounded C++ host (m0smith/genia-cpp) silently
 # drifts, or the reverse. Reuses the existing E16 generic conformance runner
@@ -10,6 +8,8 @@ name: Host parity gate
 # gate fails. This is distinct from .github/workflows/docker-dev-environment.yml,
 # which stays scoped to proving the development image only (see
 # docs/architecture/development-container.md).
+
+name: Host parity gate
 
 on:
   push:
