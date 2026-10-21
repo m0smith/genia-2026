@@ -34,11 +34,29 @@ from tools.spec_runner.revision import current_revision
 # host by construction.
 _PARTIAL_CAPABILITIES = frozenset({"shared_spec_runner"})
 
+# Capability names that are in the spec/manifest.json vocabulary but whose
+# runtime behavior is not implemented yet. A name listed here is advertised
+# ``unsupported`` over the protocol, so the external-host applicability gate
+# (tools/spec_runner/capabilities.py::case_is_applicable) reports every case
+# that requires it ``unsupported`` without invoking this adapter. Empty in
+# production (issue #1269, C0): staging a name here never implements it.
+_VOCABULARY_ONLY_CAPABILITIES: frozenset[str] = frozenset()
+
 
 def _python_claimed_capabilities() -> dict[str, str]:
+    known = known_capabilities()
+    unknown = sorted(_VOCABULARY_ONLY_CAPABILITIES - known)
+    if unknown:
+        raise ValueError(
+            f"vocabulary-only capabilities not in the genia-2026 vocabulary: {unknown}"
+        )
     return {
-        name: ("partial" if name in _PARTIAL_CAPABILITIES else "supported")
-        for name in sorted(known_capabilities())
+        name: (
+            "unsupported"
+            if name in _VOCABULARY_ONLY_CAPABILITIES
+            else "partial" if name in _PARTIAL_CAPABILITIES else "supported"
+        )
+        for name in sorted(known)
     }
 
 
