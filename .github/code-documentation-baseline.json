@@ -1,10 +1,8 @@
 {
   "schema_version": 1,
   "gaps": {
-    ".github/workflows/docker-dev-environment.yml::module::<module>": "0f63071bfb43c546a36110fde26f62ed97ff4b4fd88b4eee23e6c7c084423ece",
     ".github/workflows/docs.yml::module::<module>": "96d526f93b97ccd915fd8a7c9ee0eac21fa9e49d8e5faa3b17c53529b6026b37",
     ".github/workflows/github-hosted-runner-canary.yml::module::<module>": "3f4721ca37d2d402d8c1b98f0a21b140cfc99a9e2d1a2fb0f87eebfca3ff4584",
-    ".github/workflows/host-parity.yml::module::<module>": "1fc061a2312a25522aa80c9bb6751f5d09943b7a386432122ba744b31becd3a2",
     ".github/workflows/regression.yml::module::<module>": "0651ba62313924a956eaf24f328b756e7cab958c443ccbcdcf87c61ee2a4db2d",
     ".github/workflows/self-hosted-runner-smoke.yml::module::<module>": "9359240c2167e6cd9462b99dc32cdecd97362d77c671ce40898f1381af2acbb3",
     ".github/workflows/validate-llm-instructions.yml::module::<module>": "422bd58be5e24174067c25857db46fa04b046fe378cc5293ebfa8b2d8c65a5cd",
