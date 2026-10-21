@@ -106,6 +106,8 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 
 The process correction is documented in `docs/analysis/exact-numeric-gate-postmortem.md`. New implementation is re-derived from current `main` in independently mergeable slices rather than mechanically cherry-picked from #839.
 
+Low-priority, unscheduled future direction: [small self-contained native executables for Docker/AWS/distributed workers](roadmap/parking-lot.md) (not an R29–R42 gate).
+
 ## Roadmap files
 
 - **Completed releases R1–R14:** durable release summaries and runnable examples live in `docs/releases/R1.md` through `docs/releases/R14.md`.

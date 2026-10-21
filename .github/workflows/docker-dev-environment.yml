@@ -1,3 +1,9 @@
+# Build the shared development image and exercise representative Python tests,
+# the pinned C++ host build/CTest, formatting, static analysis and shared specs.
+# Requires Docker on a GitHub-hosted runner. Nonzero check/conformance results
+# fail the job; newer reference checkouts prove compatibility, not exact-pin
+# conformance. This validates development tooling, not a production image or
+# full Python/C++ semantic parity.
 name: Docker development environment
 
 on:
@@ -33,7 +39,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: m0smith/genia-cpp
-          ref: main
+          ref: 44456baea06b4bb7bdf727e39939dd7150261ee6 # Reviewed Cell/Process quiescence correction (genia-cpp #52)
           path: workspace/genia-cpp
 
       - name: Build development image

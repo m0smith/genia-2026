@@ -69,6 +69,21 @@ Browser playground adapter note:
 | open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval`; the host has no tail-call optimization (call-depth limit 300), so deep mutual-tail-call cases report unsupported; a grouped open clause that captures a header name (contract section 3.3) is refused as unsupported, not diagnosed |
 | multi-file eval fixture (R16/#836) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Optional protocol-v1 `eval.input.modules` transport, advertised as `multi_file_eval`; independent of `open_functions`, and never sent to a host that does not claim it supported |
 
+### C++ integration source revision
+
+The host-parity and Docker development-environment workflows select
+`44456baea06b4bb7bdf727e39939dd7150261ee6`, the merge of
+[genia-cpp #52](https://github.com/m0smith/genia-cpp/pull/52). This revision
+corrects host-private Cell/Process causal completion accounting for staged
+sends; it adds no capability, public wait API, protocol or language semantics.
+
+The source revision is distinct from the adapter's declared semantic contract
+revision, `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. Runs using a newer
+`genia-2026` checkout provide ancestor-contract compatibility evidence, not
+exact-contract conformance or satisfaction of required Model B syntax gaps.
+Historical release counts above and below retain their original scope; selecting
+this source revision alone is not evidence of a passing workflow.
+
 ### Model B declarations: parser/lowering and immutable-binding boundary
 
 Python parses and lowers `=:` declarations, atomic closed groups and ordinary
