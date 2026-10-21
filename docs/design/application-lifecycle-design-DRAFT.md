@@ -1,13 +1,21 @@
-# Host-selected Application Lifecycle — companion design
+# Host-selected Application Lifecycle — companion design (Revision 2)
 
 Status: **PROPOSED — NOT APPROVED — NOT IMPLEMENTED**.
 
 Tracking: [#1271](https://github.com/m0smith/genia-2026/issues/1271).
 Normative candidate: [contract](application-lifecycle-contract-DRAFT.md).
 This companion records implementation mapping, classified illustrations,
-compatibility evidence, future R16/host validation, threats and decomposition.
-It does not implement behavior, write RED tests, approve its own contract or
-modify Slice C. Implementation release remains TBD; no R29 addition.
+compatibility evidence, decision cards, future R16/host validation, threats and
+decomposition. **It defines no externally observable behavior.** Anything a user,
+peer author, host embedder or reviewer can observe is normative in the contract;
+this document only shows how it could be realized and tested. It does not
+implement behavior, write RED tests, approve its own contract or modify Slice C.
+Implementation release remains TBD; no R29 addition.
+
+Revision 2 addresses technical-review findings B1–B5 (see the contract header).
+Private carriers, journals and polling mechanisms below are **design choices, not
+normative requirements**; a different realization that preserves the contract's
+observables is conforming. No independent review of Revision 2 has occurred.
 
 ## 1. Evidence and current authority
 
@@ -102,54 +110,122 @@ normalization uses str(error). An adapter over **unchanged** R14 cannot honestly
 promise robust owned cleanup for those paths. Empty peers do not fix stale
 handles or generic diagnostics, and enabling real peers would expose the gaps.
 
-Propose bounded hardening in the **existing** engine, with a host control bridge:
+Propose bounded hardening in the **existing** engine, with a host control
+bridge. The observables are in contract sections 6–8; the realization is:
 
-- Descriptor validation before acquisition; validate callback outcomes within
-  protected phase handling. Treat protocol misuse as its own fixed failure,
-  distinct from returned work err. If the callback's result violates the protocol,
-  remaining owned exits still get their opportunity.
-- One engine-owned acquisition journal and one unwind loop. Commit valid successful
-  enter/context publication consistently before accepting the next recoverable
-  cancellation. Do not create a second host-side resource journal to compensate.
-- Terminal handle invalidation in an unconditional recoverable-finalization path;
-  safe exception normalization must itself be guarded and non-effectful.
-- Recognized host controls are retained privately, not flattened into arbitrary
-  value-level err. After local unwind/invalidation, propagate a recognized control
-  through synchronously enclosing scopes so they unwind too. Otherwise an inner
-  scope could swallow Ctrl-C as ordinary data and outer main would continue.
-- A private completion/control carrier may retain the local existing LifecycleResult
-  for the host while re-propagating original control. It is not source-visible,
-  not a new public result variant and not an ambient control context. Inner scope
-  cleanup observations are retained privately with safe scope provenance for host
-  reporting; each public LifecycleResult keeps only its own scope's cleanup list.
-  Report nested cleanup in actual inner-to-outer unwind order. An earlier ordinary
-  primary within the same scope remains primary if its cleanup observes
-  interruption. A parent with no earlier failure records the propagated control
-  at its own callback position; child ordinary failures are not implicitly
-  promoted. Safe nested diagnostic observations preserve those distinct scopes.
-- D4 must approve the exact shared-engine/public-wrapper admission and propagation
-  seam before tests. Existing R14 public callers must not silently lose their
-  established misuse identity or acquire a new cancellation API. A private engine
-  completion path can preserve public re-raise policy after cleanup while allowing
-  the application adapter's safe result projection. This proposal is a design
-  obligation, not a claim that a public API already supports such a carrier.
+- **One algorithm, two consumers.** The engine keeps its single enter/work/unwind
+  algorithm. It gains an internal completion form that records, besides the
+  closed LifecycleResult, any *raised-not-returned* occurrence (misuse or control)
+  and nested observations. Two thin consumers read it:
+  - the **public wrapper** (`lifecycle_scope`/`lifecycle_child`/`lifecycle_repeat`)
+    returns the LifecycleResult for ordinary outcomes, and *re-raises* the
+    original misuse error or control after unwind and invalidation (contract
+    6.2). The public error type and message text are produced by the same code as
+    today so identity is preserved;
+  - the **application launcher** reads the completion record and projects it
+    (contract 6.3). It never needs to re-raise because no application code runs
+    between the scope's end and projection.
+  No host-side parallel journal and no second unwind loop (contract 6.3, last
+  paragraph).
+- **Validation inside protected phase handling.** Descriptor validation stays
+  before acquisition. Callback outcome checks move *inside* the per-callback
+  guarded step: a malformed outcome sets the failure at that position, marks that
+  peer not-owned (enter) or exit-attempted (exit), and falls into the existing
+  unwind loop, then the wrapper re-raises the misuse. The `exit → some(value)`
+  check compares to the contracted `"nil"`; this is the R3 change (valid-to-error
+  for programs relying on the permissive acceptance).
+- **Ownership commit.** Recording a peer in the owned list and publishing its
+  context happen together in one engine-internal step with no callback between
+  them (contract 7.4). The control bridge treats that step as non-deliverable.
+- **Terminal invalidation.** Setting the terminal lifetime moves into an
+  unconditional finalization of the scope operation (a `finally`-equivalent over
+  recoverable paths) so no misuse, control or normalization failure leaves the
+  handle readable.
+- **Guarded normalization.** Projection of any failure never calls `str`/`repr`
+  on the failure object. A raising `__str__` therefore cannot escape and skip
+  exits; any failure inside projection yields `application-host-failure` at the
+  original position.
+- **Recognized control retained, not flattened.** The engine records the control's
+  category privately and does not convert it to a value-level `err`. After local
+  unwind it re-raises through the public wrapper so enclosing synchronous scopes
+  unwind in turn (contract 7.3). A private nested-observation list travels with
+  the propagating control (for example as attributes on the control object or a
+  wrapper control type) so the top-level launcher can render inner F and K
+  (worked trace, section 2a). Nothing here is a new public result field.
+- **Python reference-host realization of delivery.** Do not blanket-catch
+  `BaseException`. Enumerate recognized controls: `KeyboardInterrupt` maps to
+  `interrupt`; no `cancel` bridge is installed in the first slice. `SystemExit`,
+  `GeneratorExit` and fatal runtime conditions pass through untouched.
+  Raw asynchronous `KeyboardInterrupt` can fire between a callback's return and
+  the ownership commit, so two realizations are compared:
 
-**Python reference-host realization:** do not blanket catch BaseException and
-pretend all conditions recover. Distinguish keyboard/cooperative controls from
-SystemExit, GeneratorExit, fatal allocation/runtime conditions and forced kills.
-A Python control bridge must enumerate delivery, deferral and supported platform
-behavior. Raw asynchronous KeyboardInterrupt can arrive between callback return
-and ownership bookkeeping; merely adding an except clause is insufficient.
-The design must establish safe delivery/short noninterruptible ownership-commit
-boundaries or explicitly narrow its guarantee. A caught control during callback
-entry does not make unpublished resources owned. Host callbacks still compensate
-partial acquisition themselves. No guarantee against a second uncontrolled
-signal or non-returning exit callback is made.
+  | Option | Mechanism | Strength | Cost |
+  |---|---|---|---|
+  | A. Latch and poll (recommended) | Launcher installs a SIGINT handler that only sets a latch flag; the engine and invoker check the latch at the contract's safe delivery points and then raise the control there | The commit window cannot be hit asynchronously; second request is naturally latched (contract 7.5) | Work that never reaches a poll point is not promptly interruptible; needs a repeated-request forced-abort policy (contract 7.5) |
+  | B. Asynchronous exception with narrowed guarantee | Leave default `KeyboardInterrupt`; catch it at callback boundaries | Smallest change | The commit window can leak a just-acquired resource; the contract then requires the host to document that it does not claim the full 7.2 guarantee |
 
-A callback-normalizing invoker alone is an alternative, but becomes unacceptable
-if it reimplements journaling/unwind or bypasses the runtime's own late validation.
-D4 therefore prefers focused engine hardening plus explicit host control identity;
-it does **not** authorize those changes now or rewrite R8's separate engine.
+  Option A is a design recommendation only; the contract accepts either as long as
+  the commit-window statement is honest. Neither promises anything after SIGKILL,
+  a crash, a fatal runtime condition, or a non-returning cleanup callback.
+- **Alternative rejected:** a callback-normalizing invoker without engine changes
+  is unacceptable if it reimplements journaling/unwind or bypasses the runtime's
+  own late validation. This design does not authorize those changes now or any
+  rewrite of R8's separate engine.
+
+### 2a. Worked trace: ordinary failure then nested interruption
+
+Illustrative host-level trace of contract 7.3 (classified: **proposed, not
+executable today**; today the same program has no exits run and the handle left
+readable). Outer scope O has one owned peer `p`. Its work calls a public inner
+scope I with owned peer `q`. I's work raises ordinary failure F. I's `q.exit`
+is then interrupted (K).
+
+| Step | Scope | Event | Primary | Cleanup list | Handle |
+|---|---|---|---|---|---|
+| 1 | I | work raises F | F (work) | — | active |
+| 2 | I | `q.exit` receives summary (error, work); K delivered | F (work) | [K at `q` exit] | exiting |
+| 3 | I | no earlier owned peer remains; unwind done | F (work) | [K] | invalid; control re-raised, no LifecycleResult returned |
+| 4 | O | K arrives in work | K (work) | — | active |
+| 5 | O | `p.exit` receives summary (error, work, no peer), returns ok | K (work) | [] | exiting |
+| 6 | O | unwind done | K (work) | [] | invalid; K re-raised to launcher |
+| 7 | Host | projection | primary = interruption, status 130 | nested: I primary F (depth 1, work) | — |
+
+Rendered shape (wording is part of D5, structure is contractual):
+
+```text
+Error: application-interrupted [work]
+  nested[1]: <identity of F> [work]
+  nested[1]: exit interrupted (this is the primary interruption)
+```
+
+Consequences to test later: F never becomes O's primary; the exit status is
+130 because only O's primary decides it; `q`'s exit is not retried; `p` still
+exits; both handles are expired; and K appears once as primary.
+
+If instead O had an *earlier* failure (for example O's own `p.enter` failed, so
+no work ran), O's primary stays that failure and status is 1; a control arriving
+later in O's cleanup is a secondary observation.
+
+### 2b. Diagnostic projection realization (contract 8.2)
+
+Today `_normalize_exception` reads `str(error)`. The projection needs a
+**structured supplier** at each raise site that is in the table: a small
+internal diagnostic record (identity token, trusted fields) that the raising
+code attaches to the error. The host reads only that record. Errors without it
+fall to `application-host-failure`. Parsing existing message text to recover
+fields (for example splitting `No matching case for function main/1 with
+arguments [...]`) is **not** an allowed bridge, because it would reintroduce
+untrusted text; the matching raise site is edited to supply callee/arity/location
+and to omit arguments from the projected form (legacy change L1).
+
+Consequence for scope: the first implementation slice would map only the
+categories whose raise sites can supply structure cheaply (`no-matching-case`,
+`undefined-name`, `call-shape`, `builtin-type`, lifecycle tokens, interruption,
+output failure) and send everything else to the fixed host failure. This is a
+visible usability reduction for unmapped errors, accepted under D5 until further
+categories are added by later approval. The technical review's read-only probe (comment 6327388782) showed the hazard: an exception
+whose `__str__` itself raises escapes the current normalizer and leaves exits
+unrun; the guarded path above removes that class of failure.
 
 ## 3. Entry compatibility and migration evidence
 
@@ -255,18 +331,38 @@ must demonstrate need; ambient lookup remains excluded.
 
 Use existing `examples/validated_pipeline_demo.genia` and
 `examples/r14_repeated_record_lifecycle_proving_case.genia` as implemented
-reference behavior. Proposed future launcher application consumes a bounded messy
-record fixture, explicitly parses JSONL, validates/reshapes with existing
-validate_each/collect_validated/Outcome helpers, and returns accepted records
-plus ordered diagnostics. A host test embedding supplies one actual output or
-diagnostic peer; per-record concerns remain explicit source lifecycle peers.
+reference behavior. The proposed future launcher application consumes a bounded
+messy record fixture, explicitly parses JSONL, validates/reshapes with existing
+validate_each/collect_validated/Outcome helpers, and **returns** the accepted
+records plus ordered diagnostics as one ordinary report value.
 
-Successful main owns one host acquisition/close. An invalid record represented
-by ordinary err contributes diagnostics without failing root. A thrown processing
-failure remains primary through failing cleanup. Bounded take consumes only the
-needed records, closes element work and outer owner. Import/discovery acquires
-nothing automatically. No Genia API is invented to mint the host resource,
-access a hidden provider, or replace Flow validation transformations.
+Output ownership in this scenario follows contract 8.3 (revised):
+
+| Stream | Owner | What happens |
+|---|---|---|
+| Host final stdout/stderr | Host (borrowed) | Receives the returned report and any failure diagnostics **after** unwind. No peer holds or closes it |
+| `rejects` sink (a file or sink for rejected-record lines) | A host-supplied embedding peer `rejects` | Opened in `rejects.enter`, written during work, flushed and closed in `rejects.exit` |
+| Anything else the work opens | The work or a source scope | Closed by its own owner before the application scope ends |
+
+An earlier draft of this scenario allowed "an actual output or diagnostic peer"
+and left unclear whether that peer could be the stream the host later uses for
+the final report. Closing a host final stream in `exit` would let R14 complete
+with status ok and then fail the host's final emission (reproduced by the
+technical review's composition probe). The revised scenario avoids that: the
+report travels as a **returned value**, the `rejects` sink is a different
+resource, and the host never writes to a peer-owned sink.
+
+Successful main owns one `rejects` acquisition/close. An invalid record
+represented by ordinary err contributes diagnostics without failing the root. A
+thrown processing failure remains primary through failing cleanup. Bounded take
+consumes only the needed records, closes element work and the outer owner.
+Import/discovery acquires nothing automatically. No Genia API is invented to mint
+the host resource, access a hidden provider, or replace Flow validation
+transformations.
+
+Final-emission failure after cleanup (contract 8.3 item 4) is tested separately:
+cleanup succeeds, then stdout write fails; the host exits 1 with a best-effort
+`application-output-failed` on stderr and does not re-enter the scope.
 
 ## 5. Threat model and maintainability review targets
 
@@ -284,6 +380,11 @@ access a hidden provider, or replace Flow validation transformations.
 | Returned Flow/callback keeps expired resources | Synchronous scope lifetime; no implicit retain/adopt/materialize |
 | Huge compatibility helper forks the dispatcher | One declaration-shape view, existing ordinary invocation and TCO; no clause selection |
 | Host “supported” label hides C++ gaps | Case-level R16 evidence and issue-backed gap decision; unsupported is not PASS |
+| Peer closes the stream the host needs for final output | Contract 8.3 item 1: non-closing views for host final streams; pre-emission writability check; report returned as a value |
+| Malformed callback outcome returned as ignorable data | Contract 6.2: misuse is still raised, after cleanup and invalidation |
+| Nested interruption swallowed by an inner scope | Contract 7.3: control re-raised after local unwind; exit status from the root's primary only |
+| Caller arguments or paths in a generated diagnostic | Contract 8.2 projection table; trusted structured suppliers only; synthetic fixed fallback |
+| Required CLI regression hidden behind an optional gap | Contract 11.1/11.6: required cases are not optional; merge blocked absent a separately authorized mechanism |
 
 The source program can already perform explicit authorized effects during entry
 initialization/preparation; the wrapper does not sandbox it or roll back output.
@@ -298,33 +399,57 @@ separate; no opportunistic merge of lifecycle implementations.
 
 ## 6. Portability and applicability plan
 
-The pre-flight record answers all seven fields before drafting: portable
-authority/observables, existing IR/value boundary, executable evidence plan,
-applicability, host claims, owned gaps and truth synchronization.
+The pre-flight record answers all seven fields: portable authority/observables,
+existing IR/value boundary, executable evidence plan, applicability, host claims,
+owned gaps and truth synchronization. This section corrects the Revision 1 plan,
+which treated the optional known-gap path as able to cover required CLI cases. It
+cannot (contract 11.6).
 
-| Area | Existing R16 applicability / future evidence | Host boundary |
+### 6.1 What the current R16 machinery actually does
+
+| Fact | Source at baseline | Consequence |
 |---|---|---|
-| Legacy main/argv/fallback | cli_file_mode, cli_command_mode; shared CLI stdout/stderr/status | C++ baseline lacks evidenced entry parity/file argv; do not mask under new optional tag |
-| Future ordinary pattern main | Future #1269 default_open_functions surface plus relevant CLI mode | Capability absent at this baseline; do not advertise now |
-| Aliases/import ownership | Existing ordinary call cases; multi_file_eval where modules used | C++ module support remains bounded/unsupported |
-| R14 values/order/cleanup | Existing eval/error categories, resource/config capabilities only when actually used | No standalone lifecycle tag exists; D8 must settle gap representation before RED |
-| Pipe/REPL/test/serve/MCP isolation | Existing capability-gated cases; Python-specific tests where no portable boundary | R8/MCP/native tests do not acquire C++ parity by association |
-| Signals and Python invoker mechanics | Host tests, deterministic injected controls and subprocess signal observations | OS mechanics/status mappings are host-local; portable primary/lifetime policy shared |
+| `cli_file_mode` and `cli_command_mode` are required capabilities | `spec/manifest.json` `required_capabilities` | Shared CLI cases without `requires:` are baseline required cases |
+| The file-mode main case has no `requires:` | `spec/cli/file_mode_main_argv.yaml` | It is required; changing or failing it is a required-behavior event |
+| Known-gap entries must name an optional capability | `load_known_gaps` rejects names outside `optional_capabilities` | A required case cannot be listed as a known gap |
+| The gate compares only the optional set | `host_parity_gate.check_parity` iterates `optional_capabilities()` | A green gate says nothing about required cases |
+| Unsupported is counted separately and is not in the failure-count veto fields | runner counts; `_FAILING_COUNT_FIELDS` | Unsupported is neither PASS nor failure; it must be read, never summed into PASS |
 
-Source inspection of `genia-cpp@44456baea06b4bb7bdf727e39939dd7150261ee6`
-showed adapter CLI -> engine evaluation without Python-style main orchestration;
-STATE already limits C++ argv to pipe mode. Prior prebuilt smoke observations
-were supplementary, not a certified source build. C++ R14/config/protected/MCP,
+### 6.2 Applicability by area
+
+| Area | Required or optional | Python | C++ | Evidence rule |
+|---|---|---|---|---|
+| Legacy main/argv/fallback (entry floor) | **Required** (`cli_file_mode`, `cli_command_mode`) | Implemented | Pinned evidence must be read per case; trailing-argument CLI is not evidenced | Existing shared cases must keep passing; no new tag |
+| Diagnostic redaction for application-phase failures | Changes expected stderr of any required case that observes it | Implemented host change | Would require matching shared expectation | Counts as a required-expectation migration (contract 11.5) |
+| Future ordinary pattern main | Needs the #1269 `default_open_functions` surface plus a CLI mode | Not at this baseline | Absent | Do not advertise now |
+| Aliases/import ownership | Existing ordinary-call and `multi_file_eval` cases | Implemented | Bounded/unsupported modules | Reuse existing cases |
+| Host-supplied peers, interruption mapping, final-stream lifetime | **No portable source observable exists** (default peers empty, no source API) | Host-local Python tests | Not applicable until a portable observable exists | Stays host-local; no capability advertised |
+| Any genuinely portable lifecycle surface | Would be optional if independently claimable | — | — | Needs separate authorization to name a capability (D8) |
+
+### 6.3 Gates (all blocking, none authorized here)
+
+1. Required entry-floor cases pass on every host that claims the required CLI
+   capabilities, or a **separately authorized** required-case exception/migration
+   decision exists with owner, tracking issue, affected host, exact cases,
+   reason and removal condition. No such mechanism exists today; this design does
+   not create it.
+2. Any change to an existing required expectation is made as a shared change
+   first, then implemented by both hosts, or covered by item 1.
+3. Pass, unsupported and failure counts are reported separately. Unsupported is
+   never PASS and is never described as "parity".
+4. An optional lifecycle capability is introduced only if a portable observable
+   exists and its name is separately authorized; it then needs the existing
+   issue-backed gap entry for any host that lacks it.
+
+Source inspection of `genia-cpp@44456baea06b4bb7bdf727e39939dd7150261ee6` showed
+adapter CLI → engine evaluation without Python-style main orchestration; STATE
+already limits C++ argv to pipe mode. Prior prebuilt smoke observations were
+supplementary, not a certified source build. C++ R14/config/protected/MCP,
 ordinary Model B and TCO remain unproved/unsupported as scoped in authorities.
 Existing historical R24–R27 zero-failure counts are not evidence for this feature.
 
-Do not create a new protocol, registry, profile or “application_supported” flag
-to avoid mandatory CLI regressions. If a genuinely independent new optional
-surface is needed, justify it with exact cases and policy before RED (D8).
-Required-capability partial gaps need the existing policy's explicit treatment,
-not optional skip entries. Python-first needs exact tracked host/cases/area,
-owner, reason and removal condition before a later merge. No gap/manifest edits
-are made in this proposal-only PR.
+Do not create a new protocol, registry, profile or "application_supported" flag.
+No gap/manifest edits are made in this proposal-only PR.
 
 ## 7. Future validation plan — not RED authorization
 
@@ -342,6 +467,11 @@ design gate, record concrete R16 RED cases and host tests on their own TEST comm
 | Security/output | Host sentinel/path/address non-leakage, protected carriers, safe legacy diagnostic identity, broken pipe plus cleanup, failed final rendering/stderr | Shared safe-value cases; Python host sinks and exception normalization |
 | Modes | Import/parse/discovery no automatic root; explicit top-level effects still run; pipe no-over-pull, REPL recovery, native report, R8 listener, MCP no main/kill-reap | Existing shared CLI/module observations and focused host suites |
 | Portability | Exact case applicability, both host revisions, pass/unsupported/failure counts and owned gaps | Existing R16 runner/comparator/protocol/parity evidence |
+| Public misuse (B1) | Malformed enter and malformed exit each still **raise** from public lifecycle_scope/child/repeat; earlier owned peers exited in reverse order first; handle expired; `exit → some(99)` newly raises; a returned work `err` is data; main running a public scope with malformed enter then returning 42 still exits 1 | Host-local Python tests (no portable observable for peers) |
+| Nested interruption (B2) | The worked trace in section 2a; interruption in enter, work, exit; commit-window behavior per chosen realization; second request latched; no cleanup claim after kill; status from root primary | Host tests with injected controls and barriers; allowed OS subprocess signals |
+| Diagnostic projection (B3) | One sentinel per redaction class (argument, path, address, protected value, peer context, exception text); a failure whose `__str__` raises; projection failure still runs every exit and expires the handle; each table identity | Host tests for sentinel absence; shared CLI cases only where a required expectation is touched |
+| Final streams (B4) | A peer attempting to close a host final stream; closed stream detected before emission; stdout failure after clean cleanup (exit 1, no re-entry); stderr failure; quiet broken pipe unchanged | Host-local Python tests |
+| Required CLI (B5) | Full pinned run of the existing required CLI cases on each host with counts reported separately | Existing R16 runner and comparator
 
 Shared CLI/error observations are stdout/stderr/status; no invented structured
 error assertion framework. Direct-IR twins stay host-local where protocol only
@@ -358,8 +488,10 @@ full regression from a sandbox-safe partition.
 
 These are proposed boundaries, not created issues or authorizations:
 
-1. **Contract/design decision closure:** independent exact-head Codex review and
-   maintainer decisions D1–D8; reconcile existing R14 amendments and host scope.
+1. **Contract/design decision closure:** exact-head review by a reviewer who is
+   neither the author of this draft nor of its technical review, then maintainer
+   decisions D1–D8; reconcile existing R14 amendments and host scope. The required
+   CLI gate (contract 11.6) is resolved here or recorded as blocking.
 2. **R14 robustness prerequisite:** its own RED -> GREEN -> review -> truth/audit
    gate for protected unwind, malformed outcomes, safe diagnostics and bounded
    control propagation in the same engine. No launcher rewrite or R8 rewire.
@@ -394,7 +526,188 @@ checks. Results belong in the PR/issue handoff, not fabricated as behavioral pro
 No new tests, full runtime regression, parity certification or independent review
 is claimed by writing these documents.
 
-Next gate: **later independent Codex review of the published exact head**, then
-maintainer D1–D8 decisions. This author does not self-approve or request an agent
-review in this publication task. Stop after draft PR and issue handoff; no RED,
-implementation, merge, release assignment or duplicate dogfooding note.
+Next gate: **exact-head review of the Revision 2 head by a genuinely different
+reviewer**, then maintainer D1–D8 decisions. The Revision 1 technical review was
+written by the original author of the draft and does not satisfy the
+author-independent requirement; repeated self-review is not independent approval.
+If no distinct reviewer is available, the gate remains unmet. Stop after
+documentation publication; no RED, implementation, merge, release assignment or
+duplicate dogfooding note.
+
+Eventual implementation must synchronize `GENIA_STATE.md`, `GENIA_RULES.md`,
+`GENIA_REPL_README.md` and `README.md`, the semantic facts and MCP language
+profile, host documentation, applicable release/roadmap material and executable
+evidence. None of these is touched by this PR.
+
+## 10. Decision cards D1–D8
+
+Each card expands the matching row of the contract's decision register (its last numbered part) with one small example.
+Examples are classified: **current** = observed at the inspection baseline in the
+technical review's read-only probes (existing APIs, not a prototype of the
+launcher); **proposed** = not implemented and not approved. Recommendations are
+advisory and are **not approvals**. "Needed before" names the earliest gate that
+must see an explicit maintainer answer.
+
+### D1 — Required-arity selection and whole-group invocation
+
+- **Question.** May the launcher pick main by structural required arity and call
+  the whole ordinary group once, instead of calling one internal arity record?
+- **Current.** The launcher reads key 1 then key 0 of the group and calls that
+  record directly. A rest record stored at key 1 or 0 is selected.
+- **Proposed.** Structural eligibility (required arity 1, else 0, else source
+  result), then one ordinary invocation of the whole group.
+- **Example (current vs proposed).**
+
+  ```genia
+  main(..a) = "zero"
+  main(x, ..r) = "one"
+  ```
+
+  With a trailing argument, current: `"one"` (key-1 record). Proposed: ordinary
+  dispatch sees minima 0 and 1 both admit one list argument and reports the
+  ordinary varargs ambiguity (the implemented explicit-`open` analogue raises
+  `OpenFunctionVarargsAmbiguityError`). Whether an ordinary, non-open group
+  behaves identically depends on the unmerged Model B work and must be confirmed
+  at integration.
+- **Compatibility.** Valid-to-error for varargs groups of this shape. Pattern-only
+  and mixed groups become newly eligible (new behavior, not a break). #1269's
+  generic D1 approval is not launcher-integration approval; Slice C's U2 is
+  untouched.
+- **Recommendation.** Approve the principle and the disclosed varargs change.
+- **Needed before.** Contract acceptance; integration RED.
+
+### D2 — Rebound argv and live callable identity
+
+- **Question.** Keep calling a rebound `argv()` once, outside the scope, and keep
+  main's identity live, accepting ordinary absence propagation?
+- **Current.** Rebound argv is called; its return is passed as the one argument
+  with no coercion; the selected record is called directly, so an absent argv
+  return does not stop main.
+- **Proposed.** Capture identity before argv; call argv once outside the scope;
+  invoke the group through the ordinary call bridge.
+- **Example.**
+
+  ```genia
+  argv = () -> nil
+  main(a) = 42
+  ```
+
+  Current: `42`, exit 0. Proposed: the ordinary call propagates absence, so the
+  program yields a nil-like absence and nothing is echoed (exit 0). With
+  `none("custom")` the absence value is returned instead of 42.
+- **Compatibility.** Result changes for programs that rebound argv to an absence
+  value. Scalar argv (`argv = () -> 9`) is unchanged. No coercion, string-list
+  validation, snapshot or skip-propagation flag is proposed.
+- **Recommendation.** Approve, acknowledging the absence change.
+- **Needed before.** Contract acceptance; integration RED.
+
+### D3 — Misuse: public raise versus private projection; `exit → some(99)`
+
+- **Question.** Do public `lifecycle_scope`/`child`/`repeat` keep raising on a
+  malformed callback outcome (now after cleanup), and is `exit → some(non-"nil")`
+  newly rejected?
+- **Current.** Malformed enter/exit outcomes raise at once: earlier owned exits do
+  not run and the handle stays readable. An exit returning `some(99)` is accepted
+  as success.
+- **Proposed.** Keep raising, but exit earlier owned peers and invalidate first;
+  the application root projects the same occurrence privately; newly reject
+  `some(non-"nil")`.
+- **Example.**
+
+  Pseudocode (not Genia source): `main(args)` runs a public `lifecycle_scope`
+  whose second peer's `enter` returns the integer 9 (malformed), ignores the
+  scope operation's result, and then returns 42.
+
+  Current: the error escapes, exit 1. Proposed: exit 1 as well (earlier peers
+  exit first). Returning a failed result instead would make the program return
+  42 and exit 0, which is why a return is rejected. A peer whose exit returns
+  `some(99)` is status ok today; proposed, it raises.
+- **Compatibility.** R1–R4 in contract 6.4; some(99) is valid-to-error.
+- **Recommendation.** Approve raise-after-cleanup; approve R3 only with explicit
+  acknowledgement; option (b) (keep permissive) is a legitimate alternative.
+- **Needed before.** Contract acceptance; R14-hardening RED.
+
+### D4 — Bounded interruption and nested projection
+
+- **Question.** Which interruptions are recoverable, what does cleanup guarantee,
+  and how are nested failures reported?
+- **Current.** A keyboard interrupt in work skips all exits and leaves the handle
+  active; the launcher does not catch it.
+- **Proposed.** Contract section 7: closed control set (`interrupt`; `cancel`
+  only with a documented bridge), safe delivery points, commit-window honesty,
+  latch for repeated requests, root-primary status, chronological nested
+  secondary diagnostics. No promise after SIGKILL, crash, fatal conditions or
+  non-returning cleanup.
+- **Example.** Section 2a: inner F then interrupted inner exit K → outer primary
+  K, status 130, F reported as a nested observation.
+- **Compatibility.** Exits that were skipped now run (R4); a new 130/1 mapping.
+- **Recommendation.** Approve the bounded section 7; choose latch-and-poll or
+  document the narrowed commit-window guarantee (section 2); defer async
+  cancellation, public tokens and a broader signal set.
+- **Needed before.** Contract acceptance; R14-hardening RED.
+
+### D5 — Safe diagnostic projection
+
+- **Question.** Is the contract 8.2 projection table, with a fixed host-failure
+  fallback, an accepted compatibility change?
+- **Current.** Failures print exception text, including caller arguments for a
+  grouped miss; file-mode locations may carry an absolute path.
+- **Proposed.** Structured, token-based projection; redaction classes; L1–L4
+  changes; L5 unchanged.
+- **Example (illustrative wording).** Current:
+  `Error: No matching case for function main/1 with arguments [["SYNTHETIC_ARG"]]`.
+  Proposed: `Error: no-matching-case main/1 [work]` plus a logical location. The
+  argument value never appears.
+- **Compatibility.** Argument and path redaction; unmapped categories show only
+  `application-host-failure` until added.
+- **Recommendation.** Approve the table and L1–L5; extend categories only by
+  later approval.
+- **Needed before.** Contract acceptance; implementation RED.
+
+### D6 — First-primary, quiet broken pipe, and final-stream ownership
+
+- **Question.** Keep first-primary ordering and quiet broken pipe, and make host
+  final streams non-closable by peers?
+- **Current.** Quiet broken pipe exits 0; no application scope exists.
+- **Proposed.** First-primary preserved; quiet pipe alone still 0; a genuine
+  cleanup failure is visible and exits 1; host final streams outlive unwind and
+  cannot be closed by peers; failed final emission after cleanup does not
+  re-enter the scope.
+- **Example.** A peer's `exit` closes the stream the host will print the report
+  to: R14 reports status ok, then final emission would fail. Proposed: the peer
+  receives only a non-closing view and the close fails as an exit failure; the
+  report is returned as a value and printed by the host.
+- **Compatibility.** Cleanup failure after a quiet pipe changes from silent 0 to
+  visible 1.
+- **Recommendation.** Approve with contract 8.3.
+- **Needed before.** Contract acceptance; implementation RED.
+
+### D7 — Thin adapter, no new surface
+
+- **Question.** Is the first slice a thin host adapter over R14 with empty default
+  peers and no source API or ambient scope?
+- **Current.** There is no application scope.
+- **Proposed.** Thin adapter; empty default peers; main gets no hidden-root
+  access; initialization and argument preparation outside the scope; REPL, pipe,
+  test, serve and MCP unchanged.
+- **Example.** `main(args) = args` behaves as today except for diagnostics and
+  status of failures; nothing is injected into it.
+- **Compatibility.** None for valid programs.
+- **Recommendation.** Approve.
+- **Needed before.** Contract acceptance.
+
+### D8 — R16 applicability and host gaps
+
+- **Question.** How are required CLI cases protected while lifecycle behavior is
+  added Python-first?
+- **Current.** Known-gap entries may name only optional capabilities; the gate
+  compares only the optional set; no required-case exception mechanism exists.
+- **Proposed.** Contract 11: required CLI cases stay required; lifecycle host
+  behavior stays host-local unless a portable observable is separately
+  authorized; merge blocked until a required-case path is separately authorized.
+- **Example.** The existing `file_mode_main_argv` case has no `requires:`. A
+  known-gap entry for it would be rejected by the loader; relabeling it optional
+  would hide a required regression.
+- **Compatibility.** None for programs; process-only.
+- **Recommendation.** Approve the separation; authorize no exception now.
+- **Needed before.** RED and merge.
