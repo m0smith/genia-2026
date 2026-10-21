@@ -1,6 +1,6 @@
-# #1269 / #1250 — Model B Slice C RED test plan, host plan and documentation plan (revision 2)
+# #1269 / #1250 — Model B Slice C RED test plan, host plan and documentation plan (revision 3)
 
-**Status: PLAN ONLY — no test, spec, manifest, adapter or production file is added by this document. RED is NO-GO** until the gate in `issue-1269-slice-c-preflight.md` §12 is cleared. Revision 2 supersedes `e01c4b39`; it incorporates the maintainer's **D1** approval (unified shape-stratum dispatch, P5 valid→error) and **numeric structural-key** approval (preflight §2), and Codex findings C1–C8.
+**Status: PLAN ONLY — no test, spec, manifest, adapter or production file is added by this document. RED is NO-GO** until the gate in `issue-1269-slice-c-preflight.md` §12 is cleared. Revision 3 (from reviewed head `db30181f`) keeps revision 2's D1, numeric-key and C1–C8 content and adds the maintainer's **D5, D3, D3b** approvals and **D8 Option A (pending Codex verification)** — preflight §2.3–2.6 and §11. **Every case labelled `PENDING D8 VERIFICATION` is not a locked oracle.** Literal strings for new diagnostics are RED oracles that are byte-characterized against the observed baseline before being locked (maintainer directive); none is locked by this plan.
 
 Conventions (reused, nothing new): shared cases are `spec/{eval,error,cli}/model-b-c-*.yaml` run by the existing R16 runner. **Old behavior keeps its original applicability** — a regression twin for behavior that needed `open_functions`, `multi_file_eval`, `repl`, `refs`, `flow_phase_1` or `immutable_bindings` keeps exactly that `requires`; behavior that was ungated stays ungated. Only genuinely new behavior is gated by `default_open_functions` (plus the concern-specific capabilities it uses). Required capabilities (`parser`, `ast_lowering`, `core_ir_eval`, `doc_help`) are never relaxed. Historical `r20-*` specs and `tests/unit/test_r20_*` are **not duplicated, renamed or edited**; where they already cover behavior this plan cites them and adds only the missing counterexamples.
 
@@ -10,7 +10,7 @@ Expected-output notation: `out:` = stdout, `err:` = stderr line (exact text, `Er
 
 1. Record `main` SHA and `python -m tools.spec_runner` counts (Slice B recorded 874 passed / 0 failed / 0 invalid; re-measure), plus the focused suites: `test_function_resolution_precedence.py`, `test_callable_runtime.py`, `test_lexical_assignment.py`, `test_r20_open_functions_*.py`, `test_model_b_slice_{a,b,b_races}.py`, `test_model_b_optimizer_regression.py`, `tests/spec/test_r20_open_functions_shared_specs.py`, F2 isolation, REPL characterization, `tests/doc`.
 2. Characterize the **to verify** items: the 5 unparseable corpus files; inline Genia in Python tests (groups with ≥2 varargs minima, alias declarations); whether any existing R20 spec/test expects `true`/`1` or `1`/`1.0` to be duplicates; exact current diagnostics of each arity-keyed consumer for a wrong-shape handler; exact `Available:` rendering for varargs shapes in `No matching function`.
-3. **C0 (separate reviewed commit, before RED)** — evidence plumbing that prevents a false capability claim (preflight §9.1): adapter constant `_VOCABULARY_ONLY_CAPABILITIES` reports listed names `unsupported`; `test_python_claimed_capabilities_covers_the_full_vocabulary` keeps `set(claimed) == known_capabilities()` and gains a vocabulary-only-is-unsupported assertion. No protocol/runner/manifest-format change.
+3. **C0 — DESIGN-ONLY at this revision (integration-owner conditional sign-off for design; no code authorized; Codex checking for false claims, hidden failures and applicability changes).** If authorized later it is a separate reviewed commit before RED — evidence plumbing that prevents a false capability claim (preflight §9.1): adapter constant `_VOCABULARY_ONLY_CAPABILITIES` reports listed names `unsupported`; `test_python_claimed_capabilities_covers_the_full_vocabulary` keeps `set(claimed) == known_capabilities()` and gains a vocabulary-only-is-unsupported assertion. No protocol/runner/manifest-format change.
 4. **RED commit:** `spec/manifest.json` gains `default_open_functions` **and** the name is added to `_VOCABULARY_ONLY_CAPABILITIES` (Python reports `unsupported`, honestly); `spec/known_host_gaps.json` gains the C++ entry (tracking `m0smith/genia-2026#1269`, exact case IDs); gated cases are added. Under the normal runner gated cases are **not applicable** to Python (skipped/unsupported counts, never counted as pass or fail). RED failures are produced by `tests/spec/test_model_b_slice_c_red.py`, which loads the gated cases and runs them through `hosts/python/adapter.run_case` directly (capability gating bypassed, documented, RED-only); it fails with recorded messages. Ungated/old-capability guards run normally and must pass.
 5. **GREEN commit:** remove the name from `_VOCABULARY_ONLY_CAPABILITIES` in the same commit that makes the cases pass, so `supported` is true when claimed. The Slice B provisional-claim precedent is acknowledged and not repeated.
 6. RED is a separate commit; GREEN cites its SHA. A case that cannot be written without a new semantic choice stops the phase and returns to #1249.
@@ -75,8 +75,11 @@ Installation **and dispatch** observations (C4):
 | model-b-c-disp-p7-same-arity-ambiguity | `f(a,..r); f(a,b,..s); f(1,2,3)` | `err: Ambiguous function resolution: f/3. Matching varargs: f/1+, f/2+` (G) |
 | model-b-c-disp-fixed-over-varargs | `pick(a,b)="exact"; pick(a,..rest)="varargs"; pick(1,2)` / `(1,2,3)` | `"exact"` / `"varargs"` (G; existing `test_function_resolution_precedence.py` stays) |
 | model-b-c-disp-fixed-and-varargs-same-arity | `f(a)=1; f(a,..r)=2; [f(1), f(1,2)]` | `out: [1, 2]` (P4, error→valid), R-gated |
-| model-b-c-disp-no-matching-function | P8 | legacy text (G) |
-| model-b-c-disp-case-miss-identity | `f(x) = (0 -> x); f(1)` | `err: No matching case for function f/1 with arguments [1]`; host-local assertion that the exception class is `RuntimeError` (G, P20) |
+| model-b-c-disp-no-matching-function | P8 | `err: No matching function: f/2. Available: f/1` byte-identical (G) |
+| model-b-c-disp-no-matching-function-new-group | `f(x)=1; f(x,y)=2; f(x,..r)=3; f()` | `err: No matching function: f/0. Available: f/1, f/2, f/1+` (R-gated; renderer = `OpenFunctionNoMatchingFunctionError`, re-characterized byte-for-byte before locking) |
+| model-b-c-disp-duplicate-pattern-header | `f([a,b])=1; f([c,d])=2` | `err: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)` (R-gated; class `OpenFunctionDuplicateClauseError`) |
+| model-b-c-disp-distinct-failure-classes | one program per class (duplicate / shape miss / case miss / varargs ambiguity / ownership) | host-local assertion of the five distinct exception classes: `TypeError`+legacy text, `OpenFunctionDuplicateClauseError`, `TypeError` shape-miss, `RuntimeError` case-miss, `TypeError` ambiguity, `FunctionDeclarationNotOwnerError` — they must not collapse into one another |
+| model-b-c-disp-case-miss-identity | `f(x) = (0 -> x); f(1)` | `err: No matching case for function f/1 with arguments [1]`; exception class `RuntimeError` (G, P20); same class and text for a **pattern group** miss `f(0)=1; f(5)` → `err: No matching case for function f/1 with arguments [5]` (R-gated) |
 | model-b-c-disp-no-clause-ambiguity-single-unit | overlapping clauses | first match; never `open-function-clause-ambiguity` (R-gated) |
 | model-b-c-disp-explicit-open-varargs-ambiguity | existing `error-r20-varargs-ambiguity` | unchanged (G, `open_functions`) |
 
@@ -104,13 +107,20 @@ Installation **and dispatch** observations (C4):
 ### C-OPT — Outcome/Option awareness
 Ordinary pattern-group twins of the four `r20-option-*` specs (`none-pattern-in-stratum-dispatches`, `other-arity-clause-not-aware`, `delegation-to-aware-callee`, `err-pipeline-value-short-circuits`) — R-gated; P9 `f(x)=x; f(none("r"))` → `none("r")` (G); `|>` lift case (G); unrelated or later-declared clauses cannot confer awareness at an earlier call. Validated-pipeline/killer-workflow specs unmodified.
 
-### C-OWN — ownership, aliases, boundaries (C5, D5 pending)
+### C-OWN — ownership (D5 APPROVED; exact texts are RED oracles locked after baseline characterization)
+Every rejection case also asserts the **state after rejection**: nothing installed, owner group unchanged, alias binding unchanged, rejected declaration's annotation expressions **not evaluated** (effect log via `Ref` empty), metadata of both names unchanged, a later legitimate owner declaration still works.
 | ID | Source | Expected |
 | --- | --- | --- |
-| model-b-c-own-alias-call-live | P1 | G |
-| model-b-c-own-declare-through-alias-same-scope | P10 | today `3`; target: rejection **before annotations**, `f` and alias keep prior clauses — **error identity pending D5(a)** |
-| model-b-c-own-declare-through-imported-alias | module `lib` + consumer (P11) | today `3`; target: rejection naming canonical module identity only, `lib.g(1, 2)` still arity-miss, base unchanged — **identity pending D5(b)**; `requires: default_open_functions, multi_file_eval` |
-| model-b-c-own-lambda-builtin-host-not-owner | alias of lambda/builtin/host callable declared over | not an owner; rejected per D5 |
+| model-b-c-own-alias-call-live | P1 | `out: 3` (G) |
+| model-b-c-own-immutable-alias-live | `f(x)=x; a =: f; f(x,y)=x+y; a(1,2)` | `out: 3` (G, `immutable_bindings`) |
+| **model-b-c-own-local-alias-rejected** | `f(x) = x`<br>`a = f`<br>`a(x, y) = x + y` | `err: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope`; then (separate case, same prefix) `f(1)`→`1`, `a(1)`→`1`, `f(1, 2)`→`No matching function: f/2. Available: f/1`; then `f(x, y) = x + y; a(1, 2)`→`3` (R-gated; today the declaration succeeds, P10) |
+| model-b-c-own-local-alias-pattern-clause | `a(0, y) = y` through the alias | same category and message with `a/2` (R-gated) |
+| model-b-c-own-local-alias-varargs | `a(x, ..r) = x` | `… cannot declare a/1+: …` (R-gated) |
+| model-b-c-own-alias-annotation-not-evaluated | `@doc (log_effect())` on the rejected declaration | rejection first; effect log empty (R-gated, `refs`) |
+| **model-b-c-own-imported-alias-rejected** | module `lib`: `g(x) = x`; entry: `import lib`, `h = lib.g`, `h(x, y) = x + y` | `err: function-declaration-not-owner: cannot declare h/2: 'h' refers to function 'g' owned by module 'lib'`; `lib.g(1, 2)` still `No matching function: g/2. Available: g/1`; `lib.g(1)` → `1` (R-gated, `multi_file_eval`; today `3`, P11) |
+| model-b-c-own-diagnostic-safety | both rejections above | message contains no filesystem path, `0x…` address, source span or captured/protected value (R10 sentinel as an argument default is absent); module rendered by canonical identity only (host-local + shared substring checks) |
+| model-b-c-own-lambda-builtin-host-unchanged | `g = (x) -> x; g(a, b) = 1`; `p = print; p(a, b) = 1` | existing `Cannot define function g/2: name already bound to non-function value` etc. **unchanged** — D5 does not re-label non-group bindings (G) |
+| model-b-c-own-explicit-open-unchanged | declaring over an open interface/view | existing `Cannot define function … open function interface or linked view` (G) |
 | model-b-c-own-import-inert | importing a module never changes dispatch elsewhere | G, `multi_file_eval` |
 | model-b-c-own-extend-ordinary-rejected | `extend base.f(0)=…` where `base.f` is ordinary | `open-function-target-not-open` unchanged (G, `multi_file_eval`+`open_functions`) |
 | model-b-c-own-use-ordinary-base-unchanged | `use f from base with c` over an ordinary base | current behavior characterized, unchanged (G) |
@@ -118,10 +128,35 @@ Ordinary pattern-group twins of the four `r20-option-*` specs (`none-pattern-in-
 | model-b-c-own-two-modules-independent | two modules each define `f(0)`/`f(n)` | independent groups |
 | model-b-c-own-entry-prelude-name | P12 | characterization: routing unchanged; existing prelude clauses not redirected for internal callers (D2) |
 | model-b-c-own-module-cannot-see-entry | F2 topology | G (existing `f2-*` unmodified) |
-| host-local | direct `Env.define_function` owner checks; ordinary group with provenance is **not** accepted by `IrOpenContribution`/`IrOpenUse` target checks via `isinstance` or duck typing |
+| host-local | direct `Env.define_function` owner checks (owner = `(module identity, name)` provenance, not `callable(value)`); ordinary group with provenance is **not** accepted by `IrOpenContribution`/`IrOpenUse` target checks via `isinstance` or duck typing |
 
-### C-CONSUMER — arity-keyed consumers (C5/D3b, pending confirmation)
-Host-local tests for `main`, `@route`, HTTP annotations, `@test`/native-test discovery, lifecycle binding, `help`/`doc`/`meta`, equality/rendering, each with: (a) legacy-only group → **identical** behavior to today (including the existing varargs-accepting `[1]` rule); (b) a group containing a pattern record → rejected with the consumer's existing signature-mismatch diagnostic (text pinned in the baseline); (c) **fixed+rest same-minimum negative** (`f(x)=…; f(x,..r)=…`) for route/HTTP/test/main, which must not be accepted merely because both report required arity 1; (d) no representative-clause selection anywhere.
+### C-CONSUMER — special consumers (D3b APPROVED)
+Legacy-only groups: **identical** behavior to today for every consumer (G, byte-for-byte, including `@test`'s existing absence of a rest-parameter check). New groups use each consumer's **existing** mismatch behavior; no representative record is ever chosen.
+| Consumer | Case | Expected |
+| --- | --- | --- |
+| `@route` | `@route(...)` handler `h(req) = …` legacy | accepted (G) |
+| `@route` | handler with a pattern clause `h({path: p}) = p`; handler `h(r)=…; h(r,..x)=…` (fixed+rest same minimum); handler `h(r, ..x)` alone | route discovery diagnostic `@route handler must expose exactly one fixed one-argument function arm` for the first two (R-gated); the third is unchanged (already rejected today, G) |
+| HTTP annotations (`@get`/`@post`, `send_annotated`) | zero-arg legacy accepted (G); pattern-bearing or `f(); f(..r)` mixed | `TypeError: send_annotated expected a fixed zero-argument function` (R-gated, host-local) |
+| `@test` | legacy `f()` accepted (G); legacy `f(..r)` as today (G); group with a pattern record, or a fixed+rest pair | discovery unit `@test functions must take zero arguments`; test body not run, no representative `get(0)` (R-gated) |
+| `main` | legacy `main/0`, `main/1` selected as today (G); pattern-bearing `main`, or `main(a); main(a,..r)` | **not selected**, program result returned, no error (existing "no qualifying main" behavior; uncertainty U2) (R-gated) |
+| lifecycle participants | legacy and pattern-bearing groups | no binding-time rejection (no signature gate exists today); dispatch via the unified resolver; baseline-characterized (uncertainty U3) |
+| `help` / `doc` / `meta` | legacy-only group | byte-identical output (G) |
+| `help` / `doc` / `meta` | group with pattern records / fixed+rest pair | **still work**; `help` lists records in declaration order deterministically (shape, guard present/absent), no host objects, no captured values, no extra provenance; `doc`/`meta` follow the three-channel rules (R-gated) |
+| negatives for all | fixed+rest same-minimum group `f(x)=…; f(x,..r)=…` (reports `sorted_arities() == [1]`) | rejected by route/HTTP/test/main where their contract is exact-one-record, proving arity-set inspection alone is insufficient |
+Host-local tests inspect each consumer predicate directly (no server/network); a table of `(group shape → accepted?)` per consumer is asserted, and a grep-level test ensures no consumer calls `get(n)` on a group with more than one record without a cardinality check.
+
+### C-D8 — grouped-body declaration identity (**PENDING D8 VERIFICATION — expected outputs below are Option A and are NOT locked until Codex confirms contract/design consistency; a "conflict" verdict changes only these rows**)
+| ID | Source | Expected under Option A |
+| --- | --- | --- |
+| model-b-c-d8-grouped-decl-one-key | `f(a) = (0) -> "z" \| (n) -> n + a` then `f(a, b) = a + b`; `[f(0), f(3), f(1, 2)]` | installs; `out: ["z", 6, 3]` (grouped case behaves as today; G for the legacy portion, ungated) |
+| model-b-c-d8-arm-vs-later-clause-no-dup | `f(x) = (0) -> "arm" \| (n) -> n`; `f(0) = "clause"`; `f(0)` | **no duplicate error** (distinct declaration-level keys); `out: "arm"` (header catch-all matches first; later clause unreachable, B8) — PENDING D8 VERIFICATION (design §3.2 tension) |
+| model-b-c-d8-clause-before-grouped | `f(0) = "clause"`; `f(x) = (0) -> "arm" \| (n) -> n`; `[f(0), f(5)]` | installs; `out: ["clause", 5]` — PENDING D8 VERIFICATION |
+| model-b-c-d8-case-miss-no-fallthrough | `f(x) = (0 -> x)`; `f(y) ? y > 5 = "later"`; `f(9)` | `err: No matching case for function f/1 with arguments [9]` — the grouped declaration's header matched first, so its miss does not reach the later clause — PENDING D8 VERIFICATION |
+| model-b-c-d8-legacy-dup-unchanged | `f(a) = (0) -> 1 \| (n) -> 2`; `f(b) = 3` | `err: Duplicate function definition: f/1` (same declaration-level key; preserved; G) |
+| model-b-c-d8-prefix-and-capture | block-prefix program (P19) and header-capture grouped program inside a multi-record group | prefix once per call, header capture preserved (G for legacy, unchanged) |
+| model-b-c-d8-optimizer-equivalence | `pick(n, xs)` recursion (C-OPTIM) inside a group that also has a pattern clause | optimized == unoptimized; derived arm info retained, same declaration key |
+| host-local `d8-derived-arms-retained-not-checked` | inspect the record: declaration key present; derived arm keys/ordinals retained; Slice C duplicate check consults only the declaration key | PENDING D8 VERIFICATION |
+If Codex reports a conflict with design §3.2, the alternative (arm keys participate: `model-b-c-d8-arm-vs-later-clause-no-dup` becomes the `open-function-duplicate-clause` error) goes to the maintainer; this plan does not choose it.
 
 ### C-IMM — Slice B interaction
 `x =: 1` then `x(a)=a` and `x(0)=1`: both fail before any clause installs (`err: Cannot rebind immutable binding: x`; exact text from Slice B specs); `f(a)=a; f =: 1` fails (`Cannot declare immutable binding f: name is already bound in this scope`); declaration over an import alias or parameter name per Slice B policy; `_meta_define` cannot append to an immutable-owned name (host-local).
