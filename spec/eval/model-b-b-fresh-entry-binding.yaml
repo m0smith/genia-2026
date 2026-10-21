@@ -1,0 +1,13 @@
+name: model-b-b-fresh-entry-binding
+category: eval
+description: "A fresh entry-scope immutable binding is readable."
+input:
+  source: |
+    x =: 1 + 2
+    x
+expected:
+  stdout: "3\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - immutable_bindings

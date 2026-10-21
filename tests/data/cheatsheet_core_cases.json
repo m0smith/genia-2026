@@ -118,5 +118,10 @@
     "id": "core-collect-validated-all-clean",
     "source": "collect_validated([some(1), some(2)])",
     "expected_result": "{clean: [1, 2], diagnostics: []}"
+  },
+  {
+    "id": "core-immutable-binding-shallow",
+    "source": "r =: ref(0)\nref_set(r, 5)\nref_get(r)",
+    "expected_result": "5"
   }
 ]

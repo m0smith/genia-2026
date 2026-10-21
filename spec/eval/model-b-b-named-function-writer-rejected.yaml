@@ -1,0 +1,13 @@
+name: model-b-b-named-function-writer-rejected
+category: eval
+description: "A named function declaration cannot overwrite an immutable binding."
+input:
+  source: |
+    x =: 1
+    x(y) = y
+expected:
+  stdout: ""
+  stderr: "Error: Cannot rebind immutable binding: x\n"
+  exit_code: 1
+requires:
+  - immutable_bindings

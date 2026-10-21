@@ -1362,7 +1362,9 @@ class Evaluator:
         if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
             from .ir import assert_portable_core_ir
             assert_portable_core_ir([node])
-            raise RuntimeError("model-b-not-implemented: declaration evaluation is not available")
+            if not isinstance(node, IrImmutableBind):
+                raise RuntimeError("model-b-not-implemented: declaration evaluation is not available")
+            return self._eval_immutable_bind(node)
         if isinstance(node, IrShellStage):
             raise SyntaxError("shell stage $(...) is only valid as a pipeline stage")
         if isinstance(node, IrExprStmt):
@@ -1465,6 +1467,7 @@ class Evaluator:
             return fn
 
         if isinstance(node, IrAssign):
+            self.env.check_assign_target(node.name)
             value = self.eval(node.expr)
             self.env.assign(node.name, value)
             if node.annotations:
@@ -1534,11 +1537,13 @@ class Evaluator:
                 self.env.merge_binding_metadata(node.name, metadata)
             return value
         if isinstance(node, IrImport):
+            self.env.check_rebind_target(node.alias)
             requester = node.span.filename if node.span is not None else None
             module_value = self.env.load_module(node.module_name, requester)
             self.env.set(node.alias, module_value)
             return module_value
         if isinstance(node, IrOpenFuncDef):
+            self.env.check_rebind_target(node.name)
             home = self.env.binding_scope(node.name)
             if node.name in home.values:
                 held = home.values[node.name]
@@ -1588,6 +1593,7 @@ class Evaluator:
             self.env.open_contributions[target.interface_key] = unit
             return unit
         if isinstance(node, IrOpenUse):
+            self.env.check_rebind_target(node.local_name)
             base_module = self.env.get(node.target_module_alias)
             if not isinstance(base_module, ModuleValue):
                 raise OpenFunctionTargetNotOpenError(node.target_module_alias)
@@ -1615,6 +1621,31 @@ class Evaluator:
         if isinstance(node, IrListTraversalLoop):
             raise RuntimeError("Optimized list traversal nodes are only valid as function bodies")
         raise RuntimeError(f"Unknown node: {node!r}")
+
+    def _eval_immutable_bind(self, node: IrImmutableBind) -> Any:
+        """Declare a fresh immutable binding in the current lexical scope (Model B Slice B).
+
+        Preparation (collision and runtime-reserved-name checks) runs before the
+        initializer, so a known-invalid target causes none of its effects. The
+        initializer runs once; commit revalidates because it may have changed the
+        scope, and never rolls back effects already performed. Annotations attach
+        only to the committed declaration, after commit, like ordinary assignment.
+        """
+        ticket = self.env.prepare_immutable_declaration(node.name)
+        value = self.eval(node.expr)
+        self.env.commit_immutable_declaration(ticket, value)
+        if node.annotations:
+            metadata = self.eval_annotations(
+                node.annotations,
+                target_name=node.name,
+                target_kind="assignment",
+            )
+            self._reject_route_metadata_replacement(node.name, metadata)
+            self._reject_server_metadata_replacement(node.name, metadata)
+            self._reject_cors_metadata_replacement(node.name, metadata)
+            self._reject_http_annotation_metadata_replacement(node.name, metadata)
+            self.env.merge_binding_metadata(node.name, metadata, declaration=ticket)
+        return value
 
     def eval_binary(self, node: IrBinary) -> Any:
         left = self.eval(node.left)

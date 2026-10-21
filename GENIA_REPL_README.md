@@ -2,14 +2,18 @@
 
 This document describes the **actual current behavior** of the Python reference host prototype in `src/genia/interpreter.py`.
 
-## Model B declarations: partial syntax support
+## Model B declarations: partial support
 
-Python accepts and lowers immutable `name =: expr`, atomic closed-function
-clause groups, and ordinary pattern/guard headers. Their evaluation explicitly
-fails with `model-b-not-implemented`; immutable assignment enforcement,
-default-open execution, cross-module linking changes and closed publication
-remain unimplemented. Ordinary functions and explicit R20 `open` retain their
-existing execution behavior. C++ support for the new syntax is not claimed.
+Python executes immutable `name =: expr` (optional capability `immutable_bindings`):
+a fresh binding in the current scope, rejected before its initializer on any
+same-scope binding and, **at entry scope only**, on any runtime-owned name
+(module and nested scopes may still declare such a name locally). Later
+`=`/function/import writes to it are rejected, `=` before its right-hand side
+runs. Binding immutability is shallow. Atomic closed-function
+clause groups and ordinary pattern/guard headers are accepted and lowered, but
+their evaluation fails with `model-b-not-implemented`; default-open execution,
+cross-module linking changes and closed publication remain unimplemented.
+Ordinary `=` and explicit R20 `open` retain their existing execution behavior. C++ support for the new syntax is not claimed.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.

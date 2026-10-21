@@ -1,0 +1,22 @@
+name: model-b-b-import-alias-blocks-declaration
+category: eval
+description: "An import alias in the same scope blocks a fresh immutable declaration."
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          print("loaded")
+          v = 1
+      - path: main.genia
+        source: |
+          import lib
+          lib =: print("init")
+expected:
+  stdout: "loaded\n"
+  stderr: "Error: Cannot declare immutable binding lib: name is already bound in this scope\n"
+  exit_code: 1
+requires:
+  - immutable_bindings
+  - multi_file_eval

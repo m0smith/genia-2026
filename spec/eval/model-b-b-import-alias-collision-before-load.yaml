@@ -1,0 +1,22 @@
+name: model-b-b-import-alias-collision-before-load
+category: eval
+description: "An import alias colliding with an immutable binding is rejected before the module loads."
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          print("loaded")
+          v = 1
+      - path: main.genia
+        source: |
+          x =: 1
+          import lib as x
+expected:
+  stdout: ""
+  stderr: "Error: Cannot rebind immutable binding: x\n"
+  exit_code: 1
+requires:
+  - immutable_bindings
+  - multi_file_eval

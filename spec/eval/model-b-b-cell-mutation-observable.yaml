@@ -1,0 +1,17 @@
+name: model-b-b-cell-mutation-observable
+category: eval
+description: "Immutable binding is shallow: a Cell bound with =: can still be updated, and the update is observable once the worker is idle."
+input:
+  fixtures: [r25_concurrency]
+  source: |
+    c =: cell(1)
+    cell_send(c, (s) -> s + 1)
+    _r25_await_idle()
+    cell_get(c)
+expected:
+  stdout: "2\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - immutable_bindings
+  - cell_primitives

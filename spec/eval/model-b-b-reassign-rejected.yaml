@@ -1,0 +1,13 @@
+name: model-b-b-reassign-rejected
+category: eval
+description: "Ordinary assignment to an immutable entry binding is rejected, never shadowing it."
+input:
+  source: |
+    x =: 1
+    x = 2
+expected:
+  stdout: ""
+  stderr: "Error: Cannot assign to immutable binding: x\n"
+  exit_code: 1
+requires:
+  - immutable_bindings

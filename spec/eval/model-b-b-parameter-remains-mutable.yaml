@@ -1,0 +1,14 @@
+name: model-b-b-parameter-remains-mutable
+category: eval
+description: "Parameters keep their existing assignability."
+input:
+  source: |
+    f(x) = {
+      x = x + 1
+      x
+    }
+    f(1)
+expected:
+  stdout: "2\n"
+  stderr: ""
+  exit_code: 0

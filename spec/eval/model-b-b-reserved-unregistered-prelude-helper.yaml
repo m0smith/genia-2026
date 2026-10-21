@@ -1,0 +1,13 @@
+name: model-b-b-reserved-unregistered-prelude-helper
+category: eval
+description: "An unregistered prelude helper name is reserved by the static manifest."
+input:
+  source: |
+    map_acc =: print("init")
+expected:
+  stdout: ""
+  stderr: "Error: Cannot declare immutable binding map_acc: name is reserved by the runtime\n"
+  exit_code: 1
+requires:
+  - immutable_bindings
+  - prelude_autoload

@@ -1,0 +1,13 @@
+name: model-b-b-reserved-unloaded-prelude-name
+category: eval
+description: "A not-yet-loaded prelude name is reserved independent of lazy autoload state."
+input:
+  source: |
+    map =: print("init")
+expected:
+  stdout: ""
+  stderr: "Error: Cannot declare immutable binding map: name is reserved by the runtime\n"
+  exit_code: 1
+requires:
+  - immutable_bindings
+  - prelude_autoload

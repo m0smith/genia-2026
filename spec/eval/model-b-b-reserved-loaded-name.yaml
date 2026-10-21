@@ -1,0 +1,12 @@
+name: model-b-b-reserved-loaded-name
+category: eval
+description: "A loaded runtime-owned name is rejected at entry scope before its initializer."
+input:
+  source: |
+    print =: print("init")
+expected:
+  stdout: ""
+  stderr: "Error: Cannot declare immutable binding print: name is reserved by the runtime\n"
+  exit_code: 1
+requires:
+  - immutable_bindings

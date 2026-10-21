@@ -1,0 +1,23 @@
+name: model-b-b-module-binding-separation
+category: eval
+description: "Entry and module immutable bindings are separate lexical owners."
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          x =: 1
+      - path: main.genia
+        source: |
+          import lib
+          x = 5
+          print(x)
+          lib.x
+expected:
+  stdout: "5\n1\n"
+  stderr: ""
+  exit_code: 0
+requires:
+  - immutable_bindings
+  - multi_file_eval

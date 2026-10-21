@@ -1,0 +1,24 @@
+id: model-b-b-repl-failed-initializer-name-reusable
+name: model-b-b-repl-failed-initializer-name-reusable
+category: cli
+description: "A failed REPL initializer leaves the name unbound so a later declaration succeeds."
+requires: [repl, immutable_bindings]
+input:
+  source: |-
+    x =: undefined_name
+    x =: 1
+    x
+  file: null
+  command: null
+  stdin: |-
+    x =: undefined_name
+    x =: 1
+    x
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    1
+    1
+  stderr: "Error: Undefined name: undefined_name"
+  exit_code: 0

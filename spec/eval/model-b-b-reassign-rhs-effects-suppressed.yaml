@@ -1,0 +1,13 @@
+name: model-b-b-reassign-rhs-effects-suppressed
+category: eval
+description: "Target-invalid assignment is rejected before the right-hand side runs."
+input:
+  source: |
+    x =: 1
+    x = print("rhs")
+expected:
+  stdout: ""
+  stderr: "Error: Cannot assign to immutable binding: x\n"
+  exit_code: 1
+requires:
+  - immutable_bindings
