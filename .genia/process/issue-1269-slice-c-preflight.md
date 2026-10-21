@@ -1,23 +1,35 @@
-# #1269 / #1250 — Model B Slice C pre-flight, revision 3 (default-open ordinary functions and pattern/guard-headed functions)
+# #1269 / #1250 — Model B Slice C pre-flight, revision 4 (default-open ordinary functions and pattern/guard-headed functions)
 
 **Status: PRE-FLIGHT ONLY. No RED, no GREEN, no production, test, spec, manifest or implemented-truth change accompanies this document.**
-**Gate: NO-GO for RED remains in effect.** Revision 3 incorporates the maintainer's D5/D3/D3b/D8 approval (PR #1270 comment `6322649763`) on top of revision 2 (`db30181f`). It is not a GO, does not self-certify any review, and does not authorize C0, RED, GREEN, manifest edits or merge.
+**Gate: NO-GO for RED remains in effect.** Revision 4 is a documentation-only final-delta revision on top of revision 3 (`abd10bdb`). It applies Codex's independent verification (`6324998154`), the integration reconciliation (`6325204788`) and the Slice C coordination comment (`6326404613`). It is not a GO, does not self-certify any review, and does not authorize C0, RED, GREEN, manifest edits or merge.
 
 | Item | Value |
 | --- | --- |
 | Tracking issue | [#1269](https://github.com/m0smith/genia-2026/issues/1269) (child of [#1250](https://github.com/m0smith/genia-2026/issues/1250)) |
 | Base | `main` at `6d50a36d23cc4b894f0456ee502deb5d7796e99b` (Slice B merge) |
-| Revision | 3 (starts from reviewed head `db30181f77adefbd7580d2de9b3523d6b9b661af`; `main` still `6d50a36`, no intervening commits on the branch or on `main`). Revisions 1–2 are preserved in git history only. |
+| Revision | 4 (starts from head `abd10bdb1aaf81147ae094063599020bb4dcd95a`, re-verified as the PR head before editing; `origin/main` still `6d50a36d23cc4b894f0456ee502deb5d7796e99b`, no intervening commits on the branch or on `main`). Revisions 1–3 are preserved in git history only. |
 | Authority | Contract #1255 (maintainer-approved 2026-10-16); design #1259 incl. §13 and the final #1259 review pins; implemented truth = `GENIA_STATE.md` |
-| Companion | `issue-1269-slice-c-red-test-plan.md` (revision 3) |
-| Maintainer decisions recorded | **D1 approved** (PR #1270 comment 6321690337). **Numeric structural-key rule approved** (comment 6321761534). **D5, D3, D3b approved; D8 Option A approved as the desired approach, subject to Codex contract/design verification** (comment 6322649763). **C0: integration-owner design-only conditional sign-off** (comment 6322246286; code not authorized). Each approval is scoped to what it says (§2). |
-| Roles | Implementer/pre-flight owner: Claude. Independent reviewer: Codex (re-review of revision 3 pending; also checking C0 staging and D8). Integration owner: m0smith. |
+| Companion | `issue-1269-slice-c-red-test-plan.md` (revision 4) |
+| Maintainer decisions recorded | **D1 approved** (PR #1270 comment 6321690337). **Numeric structural-key rule approved** (comment 6321761534). **D5, D3, D3b approved; D8 Option A approved as the desired approach, subject to Codex contract/design verification** (comment 6322649763). **C0: integration-owner design-only conditional sign-off** (comment 6322246286; code not authorized). **Codex independent verification: D8 Option A PASS as a contract interpretation, C0 PASS for design, pre-flight REVISE for bounded items** (comment 6324998154); **integration reconciliation: narrow REVISE** (6325204788); **`main` temporary compatibility boundary directed** (6326404613; architecture in [#1271](https://github.com/m0smith/genia-2026/issues/1271), not part of Slice C). Each approval is scoped to what it says (§2). |
+| Roles | Implementer/pre-flight owner: Claude. Independent reviewer: Codex (exact-head final-delta review of revision 4 requested). Integration owner: m0smith. |
 
 Evidence vocabulary: **observed** = I ran it on the Python host at the base SHA; **read** = from source/docs; **reviewer-observed** = reported by Codex in its review, not re-run by me; **to verify** = must be characterized in the RED baseline before being asserted.
 
 ## 0. Revision log
 
-**Revision 3 (this file):** D5 → §2.3 and §11; D3 → §2.4; D3b → §2.5 (and correction of §5.4); D8 → §2.6 (**pending Codex verification**); C0 re-stated as design-only (§9.1). Authority re-check: `origin/main` is still `6d50a36d23cc4b894f0456ee502deb5d7796e99b` (identical to the base), so none of `AGENTS.md`, `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, `docs/ai/LLM_CONTRACT.md`, `docs/process/run-change.md` or the contract/design has changed since they were read; the PR #1270 discussion (comments `6321690337`, `6321761534`, `6322246286`, `6322649763`, review `5603138617`) was re-read in full. Revision 2 corrections C1–C8 are retained unchanged.
+**Revision 4 (this file) — final pre-flight corrections, documentation only.** Authority re-check at the start of this revision: PR head is still `abd10bdb`; `origin/main` is still `6d50a36d`; `AGENTS.md` and the root authorities are unchanged on `main`. Changes:
+
+| ID | Correction | Where |
+| --- | --- | --- |
+| **U2** | Pattern-bearing `main` is a **temporary compatibility boundary**, not a language design. The legacy selector is unchanged (`main/1` with `argv()`, else `main/0`, else the source result); no pattern-based discovery, no new diagnostic, no representative clause; pipe/REPL/test/serve untouched; explicit direct calls use ordinary Slice C dispatch. Mixed legacy/pattern declarations are characterized, and the cases whose expectation would need an unapproved choice are recorded as **stop conditions**. Host-selected lifecycle is #1271. | §2.5.1, §6.2 B11, §11 |
+| **D8** | "Arm keys may be retained" replaced by a **MUST retain, or remain losslessly derivable from the unoptimized semantic structure** obligation. Local duplicate detection uses declaration-level keys for ordinary grouped bodies; explicit R20 `open` grouped-arm flattening is unchanged. Forward and reverse collisions, a terminal grouped miss and a legacy identical-header duplicate added. "Same-arity clauses install" qualified by declaration-key equality. D8 Option A is **verified as a contract interpretation** (Codex), so the `PENDING D8 VERIFICATION` labels are retired; the five invariants are mandatory. | §2.6, §5.3 |
+| **C0** | Capability-evidence terminology: external-host runs report gated cases as `unsupported`; a pytest skip is a different event; unsupported is never passing evidence; the in-process runner path is named and does not apply the gate; the direct RED harness uses the same YAML and existing comparator without hiding failures; a contract SHA is not frozen across commits. C0 stays design-approved but **not implementation-authorized**. | §9.1 |
+| **D3b** | Consumer facts re-stated from the independent verification: route and outbound HTTP annotations require fixed signatures with no rest parameter; `@test` and `main` have different arity behavior; lifecycle has no signature gate and ordinary callable groups remain callable; `help`/`doc`/`meta` remain usable for pattern groups. No blanket rejection merely because a callable has pattern clauses. | §2.5 |
+| U-register | U1, U3, U6 resolved; U2 dispositioned (boundary + stop conditions). | §11 |
+
+Nothing in D1, the numeric structural-key rule, D3, D5, D6, D7 or the D8 interpretation is reopened. C1–C8 implementation obligations and all original R20 conformance coverage are retained. Slice D (ordinary-base linking) and Slice E (closed publication) stay deferred.
+
+**Revision 3:** D5 → §2.3 and §11; D3 → §2.4; D3b → §2.5 (and correction of §5.4); D8 → §2.6 (**pending Codex verification**); C0 re-stated as design-only (§9.1). Authority re-check: `origin/main` is still `6d50a36d23cc4b894f0456ee502deb5d7796e99b` (identical to the base), so none of `AGENTS.md`, `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, `docs/ai/LLM_CONTRACT.md`, `docs/process/run-change.md` or the contract/design has changed since they were read; the PR #1270 discussion (comments `6321690337`, `6321761534`, `6322246286`, `6322649763`, review `5603138617`) was re-read in full. Revision 2 corrections C1–C8 are retained unchanged.
 
 **Revision 2 — findings C1–C8 and decisions**
 
@@ -136,35 +148,105 @@ Other observable identities unchanged: immutable-binding messages (Slice B), `op
 
 ### 2.5 D3b — special consumers (APPROVED 2026-10-21): conservative boundary
 
-Rule: **legacy-only groups behave exactly as today.** A group that contains any pattern-headed record, or a fixed+rest pair at the same required minimum (constructible only after Slice C, previously a duplicate error), is **not admissible** to a consumer whose existing signature contract cannot establish that exactly one valid handler record exists. The consumer never picks a representative record. Existing rejection mechanisms and texts are used; no new consumer message is introduced. A more flexible acceptance policy would be a separate design.
+Rule: **legacy-only groups behave exactly as today.** A group that contains any pattern-headed record, or a fixed+rest pair at the same required minimum (constructible only after Slice C, previously a duplicate error), is **not admissible** to a consumer **whose existing signature contract requires exactly one fixed handler record** (`@route`, outbound HTTP annotations, `@test`) and cannot establish that from an arity set. The consumer never picks a representative record. Existing rejection mechanisms and texts are used; no new consumer message is introduced. A more flexible acceptance policy would be a separate design.
+
+**Independently verified consumer facts (Codex `6324998154`; preserved here and not to be flattened into one rule):**
+- `@route` handlers and outbound HTTP annotations require **fixed signatures with no rest parameter** (`rest_param is None`).
+- `@test` and `main` have **different established arity behavior** from the route/HTTP pair: neither checks for a rest parameter today (`@test` requires `get(0)` with arity set `[0]`; `main` tries `get(1)` then `get(0)` and never diagnoses a mismatch). Their legacy behavior is preserved as is.
+- **Lifecycle binding has no new signature gate.** Ordinary callable groups remain callable.
+- **`help`, `doc` and `meta` remain usable** for the new pattern groups.
+- **No blanket rejection.** Pattern clauses are never rejected merely because they are pattern clauses. Rejection applies only where an existing exact-single-record signature contract is the consumer's established predicate.
 
 | Consumer (source) | Existing predicate (read) | Existing mismatch output | Slice C rule for pattern-bearing or fixed+rest-mixed groups |
 | --- | --- | --- | --- |
 | `@route` handler (`server_route_binding.py:261`) | `sorted_arities() == [1]`, `get(1)` is a `GeniaFunction`, `rest_param is None` | discovery diagnostic `@route handler must expose exactly one fixed one-argument function arm` | same diagnostic; admissible only if the group is exactly one legacy fixed arity-1 record |
 | HTTP annotation (`http_annotation_binding.py:55-78`) | `sorted_arities() == [0]`, `get(0)` fixed (no rest) | `TypeError: send_annotated expected a fixed zero-argument function` | same error; admissible only if exactly one legacy fixed arity-0 record |
 | `@test` (`test_cli.py:189-200`) | `get(0)` exists and `sorted_arities() == [0]` (**does not** check `rest_param`) | discovery unit `@test functions must take zero arguments` | same unit text; legacy-only behavior (including today's no-rest-check) unchanged; a group with a pattern record or a fixed+rest pair is rejected rather than choosing `get(0)` |
-| `main` (`interpreter.py:513-529`) | `main_group.get(1)` then `get(0)`; absence returns the program result silently (**no mismatch diagnostic exists**) | none | a pattern-bearing or fixed+rest-mixed `main` group is treated exactly like a group with neither a usable `main/1` nor `main/0` — not selected, program result returned. This is the existing "not a qualifying main" treatment; it is silent by existing design. **Residual uncertainty U2 (§11).** |
-| Lifecycle participants (`lifecycle_binding.py:199`) | accepts any `GeniaFunctionGroup`/`GeniaFunction`/callable; **no arity gate** | none | no binding-time rejection can be derived from an existing signature gate; participants run through ordinary dispatch with an exact argument count. Characterized in the RED baseline; flagged **U3** for Codex because the maintainer wording ("reject unless the existing signature contract demonstrably accepts") is met here by the absence of any gate. |
+| `main` (`interpreter.py:513-529`, `_resolve_program_result`) | `main_group.get(1)` then `get(0)` by arity key (a legacy rest-parameter `main(a, ..r)` is stored at key 1 and **is** selected today — observed §2.5.1); absence returns the program result silently (**no mismatch diagnostic exists**) | none | **Temporary compatibility boundary — see §2.5.1.** Legacy-only groups: unchanged. Pattern-bearing `main` is not auto-selected by the legacy selector; no new diagnostic; no representative clause. |
+| Lifecycle participants (`lifecycle_binding.py:199`) | accepts any `GeniaFunctionGroup`/`GeniaFunction`/callable; **no signature gate** | none | **Resolved (was U3).** No new binding-time signature rejection. Ordinary callable groups, including groups with pattern records, remain callable and use ordinary Slice C dispatch at invocation with the lifecycle's own argument count. Nothing to reject because the existing contract has no signature to violate. |
 | `help` / `doc` / `meta` | introspection, not invocation | — | **continue to work for pattern groups.** Legacy-only rendering byte-identical. New groups: deterministic declaration-order listing of records (shape, optional guard presence, declaration order), no host objects, no source spans beyond what legacy `help` already shows, no captured values. |
 
 **Correction to revision 2 (§5.4):** revision 2 asserted a "varargs-accepting `[1]` rule" for these consumers. That was wrong for `@route` and HTTP annotations (both require `rest_param is None`); only `@test` and `main` accept a rest parameter today. The corrected table above is authoritative. The fixed+rest same-minimum group `f(x)=…; f(x,..r)=…` reports `sorted_arities() == [1]` and would pass the *arity* check, which is exactly why record-cardinality checks are required.
 
-### 2.6 D8 — grouped-body clause identity (Option A APPROVED AS DESIRED APPROACH; **PENDING CODEX VERIFICATION**)
+### 2.5.1 U2 — `main` entry selection: temporary Slice C compatibility boundary (DIRECTED 2026-10-21, comment 6326404613)
 
-> **Condition (maintainer, comment 6322649763):** this interpretation is explicitly subject to Codex confirming consistency with the approved contract/design before its RED oracle is locked. If Codex finds a conflict, report it for maintainer decision; do not silently rewrite contract behavior. Everything in this section is therefore **proposed-normative, not certified**, and every D8 RED case is labelled `PENDING D8 VERIFICATION`.
+**This is a temporary compatibility boundary, not the long-term language design.** The long-term direction is [#1271](https://github.com/m0smith/genia-2026/issues/1271): the host-selected Genia Application Lifecycle will invoke an ordinary Genia `main` as the default lifecycle's conventional work entry (not special parser syntax; no new source-visible API in its initial design; it must preserve file/command `main/1` > `main/0` > source-result fallback, explicit serve/pipe/test modes, inert imports, Outcome distinctions and R14 cleanup rules). #1271 needs its own contract and design gates, is **not** part of Slice C, is **not** implemented, and does **not** block Slice C. Nothing below approves or pre-empts it.
 
-Option A:
-- A legacy identifier-header declaration (`f(a, b) = <expr | block | grouped case>`) contributes **one declaration-level structural key**: `(shape, all-bind header pattern, no guard)`.
-- Internal grouped-body `IrCase` arms are **not** independent top-level declarations and do not take part in duplicate detection against other clauses.
-- Per-arm keys and ordinals may still be **derived and retained** (not exposed, not used by Slice C duplicate checks) for future cross-unit use in Slice D.
-- Unchanged: first-match order; header capture and header-frame visibility; block-prefix effects (once per call); a selected grouped body's **case miss never falls through** to a later ordinary declaration (`RuntimeError: No matching case for function f/1 with arguments […]`); optimized/unoptimized equivalence; declaration order.
+**Observed baseline of the legacy selector (Python @ `6d50a36`, scripted file/`-c` runs; `argv` as given).** `_resolve_program_result` (`interpreter.py:513`) is called only from the `command` (`-c`) and `file` branches (`interpreter.py:671`, `:687`; read). It looks up `main` in the entry scope and, if it is a `GeniaFunctionGroup`, tries `group.get(1)` then `group.get(0)` by arity key, else returns the program result.
 
-**Contract/design grounding to be verified by Codex (stated so the check is concrete, including the tension I see).**
-- Supporting: contract §2.2 requires existing ordinary grouped-case bodies and header captures to remain compatible and says "the first matching clause *within that unit* wins according to currently accepted ordinary behavior"; contract §2.3 defines a key per "clause's patterns, guards and arity shape". Today a plain-identifier header matches every call of that arity, so the header is the clause; arms are internal case alternatives.
-- **Tension:** design §3.2 says "For structural duplicate checks, derive logical case-arm keys without discarding that pair … grouped arms derive keys from the argument-pattern/guard structure … Preserve both declaration and arm ordinals". Read literally, arm keys participate in duplicate checks, so `f(0) = 1` followed by `f(x) = (0) -> … | (n) -> …` could be a duplicate of arm `(0)`. Option A reads §3.2 as "derive and retain, for the cross-unit (Slice D) check", not as "reject in Slice C". If Codex reads §3.2 as normative for Slice C, Option A is a deviation and must go back to the maintainer.
-- Compatibility consequences if Option A holds: no previously valid program changes; a catch-all-header grouped declaration followed by any same-arity clause installs (distinct declaration key) but the later clause is unreachable, consistent with B8; a pattern clause *before* a grouped declaration is reachable first, and a call it misses reaches the grouped declaration's header, whose case may then miss (no fall-through).
+| # | Program (file mode unless noted) | Output (stdout) | Reading |
+| --- | --- | --- | --- |
+| M1 | `main(args) = { print("main1"); 11 }`; `main() = { print("main0"); 10 }`; `print("top")`; `42` | `top` / `main1` / `11` | `main/1` is preferred; `main/0` is not run; the `main` result replaces `42` |
+| M2 | `main()` only | `top` / `main0` / `10` | `main/0` fallback |
+| M3 | `main(a, ..r) = { print("mainrest"); 12 }` | `top` / `mainrest` / `12` | a **legacy rest-parameter** `main` stored at key 1 **is** selected today; "exact `main/1`" in legacy terms is *the record stored at arity key 1* |
+| M4 | `main(a, b) = …`; `print("top")`; `42` | `top` / `42` | no `main/1` or `main/0` → source result retained, no diagnostic |
+| M5 | `-c 'main(a) = { print("cmdmain"); a }\nprint("top")' x y` | `top` / `cmdmain` / `["x", "y"]` | command mode uses the same selector, with trailing args as `argv()` |
+| M6 | REPL submission `main() = { print("ran"); 1 }` | `<function main/0>` (no `ran`) | the REPL never calls the selector |
+| M7 | `main(_) = { print("wild"); 7 }` | `Error: model-b-not-implemented: declaration evaluation is not available` | a wildcard header is **pattern-headed** (not a legacy identifier header) |
+| existing | `spec/cli/file_mode_main_argv`, `spec/cli/pipe_mode_bypass_main` | per their YAML | pipe mode bypasses `main` dispatch |
 
-**D8 RED oracles (all `PENDING D8 VERIFICATION`; expected outputs under Option A):** see the companion plan, family C-D8. If Codex's verification returns "conflict", only those cases change; no other family depends on D8.
+**Boundary rules.**
+1. **Selection convention unchanged.** File/command mode selects `main/1` (called with `argv()`), otherwise `main/0`, otherwise retains the source result. M1–M5 stay byte-identical, including M3 (legacy rest-parameter `main` keeps being selected).
+2. **No pattern-based entry-point discovery in Slice C.** The selector does not match `argv()` against patterns, does not evaluate guards to choose an entry, and does not try clause records in turn.
+3. **A pattern-bearing `main` is not automatically selected by the current legacy selector.** "Pattern-bearing" includes wildcard-headed clauses (M7).
+4. **No new special diagnostic.** Non-selection is silent, like M4; no `main-*` error category is introduced.
+5. **No representative clause.** The selector never picks one record of a multi-record group to stand in for the group.
+6. **Pipe, REPL, test and serve activation are unchanged** (pipe bypass, M6, native `@test` discovery, `serve`).
+7. **Explicit direct calls use ordinary Slice C dispatch.** A program that calls `main(["--x"])` itself dispatches through the pattern group exactly like any other function (shape stratum, first match, case-miss identity). Calling it explicitly neither selects nor suppresses the entry convention.
+8. **Mixed declarations** are characterized in the table below. Only the pure cases are determinable without a new choice; the others are **stop conditions**.
+
+**Group classes and dispositions.**
+
+| Class | Shape of the `main` group | Disposition |
+| --- | --- | --- |
+| **L** legacy-only | every record a legacy identifier-header record (including rest-parameter records) | **unchanged** (rule 1); guard cases, ungated, original applicability |
+| **P** pure pattern | every record pattern-headed (e.g. `main(["--x"])`, `main(x) ? x == [] = …`, `main(_)`) | **not selected**; source result returned; no clause body, guard or matcher of the group executes at entry; nothing printed by the group; exit status as for the source result (determinable; R-gated, §2 C-MAIN in the plan) |
+| **X** explicit call | any group, called explicitly by program text | ordinary dispatch (rule 7) |
+| **M** mixed | at least one legacy record and at least one pattern record, or a fixed+rest pair at the same required minimum | see stop conditions |
+
+**Stop conditions (SC-MAIN) — no expectation is manufactured.** The cases below are *constructible only after Slice C* (before it, such groups are `model-b-not-implemented` or a duplicate-definition error), so no legacy behavior exists to preserve. Their behavior depends on a choice no approval makes:
+
+| ID | Mixed shape | Divergent readings (none approved) | Why this is a stop |
+| --- | --- | --- | --- |
+| SC-MAIN-1 | legacy `main()` + pattern record(s) of any other arity | (S) per-arity-key: `main/0` still runs; (G) whole-group: nothing is selected | rule 3 says "pattern-bearing `main`"; whether one pattern record disables an otherwise legacy `main/0` is not stated |
+| SC-MAIN-2 | legacy `main/1` + pattern record(s) of another arity | (S) `main/1` selected with `argv()`, pattern record not executed; (G) not selected | same |
+| SC-MAIN-3 | legacy `main/1` and a pattern `main` record of arity 1 (either order) | (G) not selected; (S-direct) call the legacy record, skipping a pattern record declared earlier; (S-dispatch) dispatch by declaration order | selecting the legacy record directly would silently bypass first-match order; dispatching is the pattern-based entry that rule 2 excludes |
+| SC-MAIN-4 | fixed+rest same minimum (`main(a)`; `main(a, ..r)`) | any choice picks a representative record | rule 5 |
+| SC-MAIN-5 | legacy rest `main(a, ..r)` + pattern arity-1 record | as SC-MAIN-3 | same |
+
+Resolution, if ever needed, belongs to a maintainer decision or to #1271's contract and design (host-selected lifecycle), **not** to Slice C. The recorded reading (G) is the one consistent with the D3b table in revision 3 ("pattern-bearing or fixed+rest-mixed group … not selected") and (S) is the one consistent with the literal phrase "exact-arity selector"; both are recorded so the conflict is visible, and **neither is chosen here**. RED must not contain an expectation for SC-MAIN-1…5; if the integration owner wants them covered before GREEN, they need an explicit disposition first. They must not be represented by a vacuous or "any outcome" case.
+
+**Documentation obligation at GREEN.** `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md` and `README.md` must carry a caveat that file/command entry selection only considers legacy-style `main` and that pattern-bearing `main` is not auto-selected, and must say the convention is the current temporary behavior pending the application lifecycle (#1271). The MCP language profile text must not imply that a pattern-bearing `main` is an entry point.
+
+### 2.6 D8 — grouped-body clause identity (Option A APPROVED; **VERIFIED as a contract interpretation by Codex, `6324998154`**, subject to the mandatory invariants below)
+
+Maintainer condition (comment 6322649763) was Codex confirmation of consistency with the approved contract/design. Codex returned **PASS as a contract interpretation** and the integration owner agreed (`6325204788`): no Model B contract amendment is required. The conflict reading of design §3.2 is therefore withdrawn. Do not claim that design §13 explicitly settled the local-versus-cross-unit boundary: **neither §3.2 nor §13 specifies it**; Option A supplies it, consistently with contract §2.2/§2.3 and design §§3.2/5.2.
+
+**Rule.**
+- A legacy identifier-header declaration (`f(a, b) = <expr | block | grouped case>`) contributes **one declaration-level structural key**: `(shape, all-bind header pattern, no guard)`. **Local duplicate detection uses declaration-level keys for ordinary grouped-body declarations.**
+- **Mandatory retention (corrects revision 3's "arm keys may be retained").** The original grouped-body arm keys, ordinals and the necessary provenance (header/body pairing, declaration ordinal, arm ordinal) **MUST be retained, or must remain losslessly derivable from the unoptimized semantic structure**, to satisfy design §§3.2/5.2. They are not exposed and Slice C's local duplicate check does not consult them; they exist for Slice D's cross-unit validation. Deriving them only *after* optimization is insufficient (§5.3).
+- **Explicit R20 `open` grouped-arm flattening is unchanged.** Contract §§3.1/3.3 and STATE §4.7 require explicit-open grouped arms to flatten, so `open f(x)=(0)->1 | (n)->2; f(0)=3` still rejects the duplicate zero arm (reviewer-observed). Applying Option A to `open` would violate that contract; Option A is ordinary-declaration behavior only.
+- Unchanged: first-match order; header capture and header-frame visibility; block-prefix effects (once per call); a selected grouped body's **case miss never falls through** to a later ordinary declaration; optimized/unoptimized equivalence; declaration order.
+
+**Mandatory invariants (Codex).**
+1. One local declaration record/key for a legacy identifier header. No user matcher, guard, prefix or body executes while computing keys. Internal arm order, keys and provenance are preserved separately.
+2. Shape selection precedes declaration selection. A selected grouped body's miss is terminal for that invocation (no later ordinary clause, no varargs rescue). An *earlier pattern-header* miss may continue to the next declaration.
+3. Build the positional header frame once. Execute a block prefix once before final-case matching and retain that prepared environment as the parent of arm locals. Arm bindings shadow headers. Matchers and guards run once per attempted match; only the selected result executes. Already-executed effects are preserved on failure.
+4. Capture semantic information **before** optimization, retain a lossless original representation, or decline the rewrite. `optimize_nth_style_recursion` (`optimizer.py:75`) replaces `IrCase` with `IrListTraversalLoop`, retaining the empty/zero arms but not the recursive arm (reviewer-observed). No new portable IR field is necessary.
+5. Source, unoptimized Core and optimized execution must agree on values, errors, effects, ordering and duplicate decisions, including a later declaration after an optimized one.
+
+**Oracles (expected outputs are recommendations from the verified interpretation; none was executed as Slice C evidence, because the baseline rejects pattern-header declarations with `model-b-not-implemented`).**
+
+| Case | Source | Expected |
+| --- | --- | --- |
+| Forward collision | `describe(x) = (0) -> "zero" \| (n) -> "other"`<br>`describe(0) = "ZERO"`<br>`[describe(0), describe(7)]` | both declarations install, **no arm-duplicate error**; `["zero", "other"]`. Keys: all-bind header vs literal-zero header (distinct). The earlier header wins; its body selects an arm; the later `describe(0)` is unreachable (B8) |
+| Reverse collision | `f(0) = "clause"`<br>`f(x) = (0) -> "arm" \| (n) -> n`<br>`[f(0), f(5)]` | installs; `["clause", 5]`. Local arm-key checking would wrongly reject; declaration keys differ and first-match order is preserved |
+| Terminal grouped miss | `f(x) = (0 -> x)`<br>`f(y) ? y > 5 = "later"`<br>`f(9)` | `RuntimeError: No matching case for function f/1 with arguments [9]`. Returning `"later"` disproves the implementation of Option A |
+| Legacy identical-header duplicate | `describe(x) = (0) -> "zero" \| (n) -> "other"`<br>`describe(y) = "later"` | the all-bind header key is identical → legacy `TypeError: Duplicate function definition: describe/1`, preserved byte for byte |
+
+**Qualification of "same-arity clauses install" (corrects revision 3).** A same-arity clause installs **unless its declaration-level structural key equals an existing key** — identical all-bind headers (`describe(x)` / `describe(y)`), identical pattern/guard keys under the typed numeric rule (§2.2). Revision 3's sentence "a catch-all-header grouped declaration followed by any same-arity clause installs" was wrong for a later plain identifier header and is withdrawn. Compatibility consequences: no previously valid program changes; a pattern clause *before* a grouped declaration is reachable first, and a call it misses reaches the grouped declaration's header, whose case may then miss with no fall-through.
+
+**Slice D boundary.** Retained arm keys are *evidence*, not permission to turn body alternatives into independent linked-view candidates. Slice D must reconcile its atomic cross-unit equal-key/shape rules with ordinary preparation and miss semantics. This revision does not lock new D linking oracles.
 
 ---
 
@@ -197,11 +279,11 @@ MCP language-knowledge impact: **Affected** — see §10; update STATE, the `mcp
 
 **9. DOC DISTILLATION CHECK.** Creates process artifacts: YES → Doc Distillation at the end of the implementation PR. Adds docs/design or docs/architecture files: NO. Drift risk: High.
 
-**10. PHILOSOPHY CHECK.** Minimalism YES; hidden behavior avoided YES (every valid→error delta is enumerated and approved; only D8's no-fall-through grouping oracle awaits Codex verification); semantics out of host YES; pattern-matching-first YES.
+**10. PHILOSOPHY CHECK.** Minimalism YES; hidden behavior avoided YES (every valid→error delta is enumerated and approved; D8 Option A is verified as a contract interpretation; the temporary `main` boundary is documented, and its mixed cases are stop conditions rather than invented behavior); semantics out of host YES; pattern-matching-first YES.
 
 **KILLER WORKFLOW ALIGNMENT.** Indirectly (Outcome, validation, record parsing). Validated-pipeline and Outcome specs must stay unmodified and green.
 
-**11. PROMPT PLAN.** Preflight (this, rev. 2) → decisions resolved (§11) → independent Codex re-review → integration GO/NO-GO → **C0** evidence-plumbing prerequisite (§9.1) → RED → GREEN → maintainability review → docs → skeptic audit → distillation → final-head CI.
+**11. PROMPT PLAN.** Preflight (this, rev. 4) → decisions resolved (§11) → independent Codex re-review → integration GO/NO-GO → **C0** evidence-plumbing prerequisite (§9.1) → RED → GREEN → maintainability review → docs → skeptic audit → distillation → final-head CI.
 
 **12. HOST PARITY / CONFORMANCE.** Affected hosts: Python (implement), C++ (gap). Portable semantics: YES. Python/C++ updated: Python only after GO. Cross-host behavior verified: not claimed. Can one host merge first: YES (optional capability, honest gap entry). C++ pattern-header parsing is already UNSUPPORTED (Slice A, genia-cpp#50).
 
@@ -274,12 +356,12 @@ Required behavior (preserved for legacy identifier headers and inherited by any 
 ### 5.3 Optimizer retention (C2)
 
 `interpreter.py:218` runs `optimize_program` on lowered IR before any declaration is evaluated. `optimizer.py` can rewrite an ordinary grouped `IrCase` body (the `pick(n, xs)` recursion over `(_, [])`, `(0, [x, .._])`, `(n, [_, ..rest])`) into the host-local `IrListTraversalLoop`, which does not retain the complete ordered arm sequence. Pre-flight requirement (mechanism chosen in GREEN design, observable fixed now):
-- Logical keys, ordered arm records and dispatch order must not depend on whether the optimizer ran. Either (a) skip the rewrite for bodies of declarations that need retained structure until equivalence is proved, or (b) keep the original `IrCase` as a host-local field on the optimized node. Neither is serialized as portable IR; `IrListTraversalLoop` stays host-local.
+- Logical keys, ordered arm records and dispatch order must not depend on whether the optimizer ran. **Original grouped-body arm keys, ordinals and necessary provenance MUST be captured before optimization, kept in a lossless original representation, or the rewrite declined (D8, §2.6 invariant 4); deriving them only from the optimized node is insufficient** (the rewrite keeps the empty/zero arms but not the recursive arm). Either (a) skip the rewrite for bodies of declarations that need retained structure until equivalence is proved, or (b) keep the original `IrCase` as a host-local field on the optimized node. Neither is serialized as portable IR; `IrListTraversalLoop` stays host-local.
 - RED requires optimized-vs-unoptimized equivalence (same results, same duplicate decisions, same ambiguity/miss errors), a late declaration added after an optimized one, and retention of the existing collection-recursion regressions (`model-b-a-recursion-in-list`, `-in-map`, `test_model_b_optimizer_regression.py`).
 
 ### 5.4 Ownership and arity-keyed consumers (C5)
 
-- `GeniaFunctionGroup` can no longer be only `dict[arity]`: distinct same-shape patterns need an ordered record list. The arity index, if kept, is a derived view for **legacy identifier-header fixed clauses** only. No inspection API may silently choose a representative of several clauses or miscount fixed/rest shapes.
+- `GeniaFunctionGroup` can no longer be only `dict[arity]`: distinct same-shape patterns need an ordered record list. The arity index, if kept, is a derived view for **legacy identifier-header records** only, keyed by required arity exactly as today (a legacy rest-parameter record stays at its required-arity key, which the `main` selector relies on — §2.5.1 M3). No inspection API may silently choose a representative of several clauses or miscount fixed/rest shapes.
 - **Consumers to inspect (read):** `Env.define_function`, `builtins.py:3220` (`_format_function_shapes`, `_describe_function_group`), `interpreter.py:518` (main), `server_route_binding.py:267` (`sorted_arities() != [1]`), `http_annotation_binding.py:61,75` (`!= [0]`), `test_cli.py:189`, `lifecycle_binding.py:202`, `equality.py`/`values.py` identity and rendering.
 - **Fixed+rest same-minimum hazard (C5/D3b):** `f(x)=…; f(x,..r)=…` both report required arity `[1]`, but the group is not an exact fixed one-argument handler. A distinct-arity-set rule would wrongly accept it. The per-consumer predicates and the approved conservative rule are in §2.5 (which also corrects revision 2's mistaken "varargs-accepting" claim: `@route` and HTTP annotations require `rest_param is None`).
 - Ownership rule (design §4, D5): a declaration appends only to the group owned by the declaring scope's own binding of that name. Aliases, imported bindings, lambdas, builtins and host callables are not owners. Calls through aliases stay live (P1); an **immutable alias of a mutable ordinary callable does not freeze its accumulation** (observed `a =: f; f(x,y)=…; a(1,2)` → `3` on `main`). Declaration through an alias is rejected with `function-declaration-not-owner` (APPROVED, §2.3).
@@ -328,7 +410,7 @@ Corpus (observed, scripted parse of repo `*.genia`): 183 files, 5 unparseable (n
 | B3 | fixed + varargs, same required arity | error → valid | per approved shape model |
 | B8 | later clause shadowed by an earlier catch-all is silently unreachable | n/a | no warning invented; documented |
 | B10 / D2 (P12) | entry write-through on prelude-owned names | **no change** | preserved; not retired in C |
-| B11 | arity-keyed consumers on groups with pattern or fixed+rest records | none for legacy-only; new groups rejected by `main`/`@route`/HTTP/`@test` via existing mismatch behavior | **APPROVED** (§2.5) |
+| B11 | arity-keyed consumers on groups with pattern or fixed+rest records | none for legacy-only; new groups rejected by `@route`/HTTP/`@test` via their existing predicates and diagnostics; `main` is **not auto-selected** under the temporary boundary (§2.5.1); lifecycle and `help`/`doc`/`meta` unaffected | **APPROVED** (§2.5); `main` boundary DIRECTED (6326404613) |
 | B12 | Core IR label | none | no bump (§13.2) |
 
 ### 6.3 Explicit-R20 compatibility matrix
@@ -367,20 +449,29 @@ Corpus (observed, scripted parse of repo `*.genia`): 183 files, 5 unparseable (n
 
 ## 9. Host capability plan and evidence staging
 
-### 9.1 Capability staging (C3) — C0 is DESIGN-ONLY at this revision
+### 9.1 Capability staging (C3) — C0 is design-approved, NOT implementation-authorized
 
-Defect: `hosts/python/protocol_adapter.py::_python_claimed_capabilities` claims `supported` for **every** manifest name except `shared_spec_runner`, and `tools/spec_runner/capabilities.case_is_applicable` applies gated cases only when the host declares `supported`. Adding the name to the manifest in RED would therefore advertise execution that does not exist. Revision 1 called this "provisional"; disclosure does not make a false claim accurate, and Slice B's precedent is acknowledged and **not repeated**.
+Defect: `hosts/python/protocol_adapter.py::_python_claimed_capabilities` (line 38) claims `supported` for **every** manifest name except `shared_spec_runner`, and `tools/spec_runner/capabilities.py` derives the known names from the manifest's required/optional lists. Adding a new name to the manifest alone would therefore advertise execution that does not exist. Disclosure does not make a false claim accurate, and Slice B's provisional-claim precedent is acknowledged and **not repeated**.
 
-**Status of C0.** Integration owner gave a *design-only conditional sign-off* (comment 6322246286): the proposal may be taken through focused review; it must preserve the protocol, manifest schema, existing capability claims and historical test applicability, and the normal gated runner must never report `unsupported` as passing conformance. **No C0 code, manifest edit or adapter change is authorized or made.** Codex is independently checking whether the staging introduces a false claim, hides a genuine failure, or changes existing applicability; if it finds a blocker the correction is incorporated after that review (no workaround is invented here).
+**Status of C0.** Integration owner: design-only conditional sign-off (comment 6322246286). Codex: **PASS for design** (comment 6324998154). Both are design statements. **No C0 code, manifest edit or adapter change is authorized or made.** C0 remains a separate prerequisite that needs its own authorization after the final-delta review.
 
-Proposed mechanism (a separately reviewable evidence-plumbing prerequisite, **C0**, that would be committed *before* RED once authorized):
-1. **C0 (before RED).** In the adapter add a narrowly named constant `_VOCABULARY_ONLY_CAPABILITIES` (initially empty). `_python_claimed_capabilities` reports names in it as `"unsupported"` (a valid protocol status, `protocol.CAPABILITY_STATUSES`). `test_python_claimed_capabilities_covers_the_full_vocabulary` still holds (`set(claimed) == known_capabilities()`) and gains an assertion that vocabulary-only names are `unsupported`. No protocol, runner, manifest-format or `contract_revision` change.
-2. **RED commit.** Add `default_open_functions` to `spec/manifest.json` **and** to `_VOCABULARY_ONLY_CAPABILITIES` (so Python reports it `unsupported`); add the C++ gap entry; add the gated cases. Under the normal runner the gated cases are not applicable to Python (reported as skipped/unsupported counts — honestly neither pass nor fail). Old ungated and old-capability guards run normally.
-3. **RED evidence.** A RED-only host-local pytest harness (`tests/spec/test_model_b_slice_c_red.py`) loads the gated `model-b-c-*` cases and executes them through `hosts/python/adapter.run_case` directly, bypassing capability gating, asserting the expectations; it **fails** at RED with the recorded messages. This is the committed failing-test evidence required by the process, and is the only place capability gating is bypassed.
-4. **GREEN commit.** Remove the name from `_VOCABULARY_ONLY_CAPABILITIES` in the same commit that makes the cases pass (Python then reports `supported` truthfully) and convert the RED harness into the ordinary runner path (delete it or leave it as a thin wrapper).
-Never classify a genuine failure as unsupported; zero failures and unsupported counts are both reported.
+**Capability-evidence terminology (corrected; use these terms exactly).**
+- **External-host execution** (`python -m tools.spec_runner --host '<command>'`, `tools/spec_runner/runner.py::_run_via_host` → `host_executor.execute_spec_via_host`). A case whose `requires` are not all `supported` in the host's claimed capabilities (`capabilities.case_is_applicable` requires exactly `supported`) is reported **`unsupported` before the adapter is invoked** for that case. It is neither an executed failure nor a pass. It is *not* reported as "skipped".
+- **A pytest skip is a distinct test-framework event** (for example a wrapper's `pytest.skip`). It must not be used as a synonym for `unsupported`, and the plan never converts a failing case into a skip, xfail or `unsupported`.
+- **Unsupported cases are not passing conformance evidence.** A green exit code from an external-host run in which the new cases are all `unsupported` proves **no** new Slice C conformance. Reports give failed, passed, invalid and unsupported counts separately.
+- **In-process path.** The default `python -m tools.spec_runner` (no `--host`; `runner.py::_run_in_process`) calls `executor.execute_spec` and `comparator.compare_spec` for every discovered case and **does not apply the external-host capability gate**. At RED it would therefore execute and *fail* the gated cases (U7). Evidence must name which path produced it.
+- **Direct host-local RED runner.** A committed pytest harness that loads the **same YAML** through the existing loader, executes through the existing `execute_spec` / `hosts/python/adapter.run_case`, compares with the existing `compare_spec`, and fails with ordinary assertions on semantic differences. It auto-collects, selects all intended cases (including the ungated P5 tripwire and the ungated C-MAIN guards), retains actual errors and outputs, and never converts failures into skip, xfail or `unsupported`. Existing Slice A and R20 shared wrappers already use this pattern. **No second evaluator, expected-output store, protocol or certification system.**
+- **Contract revision.** C0 changes no protocol, manifest-format or runner mechanism. This does **not** mean a `contract_revision` / contract SHA must stay frozen across commits: commit pins advance naturally, and "unchanged" refers to the mechanism only.
 
-Properties the review should check (stated so they are falsifiable): (i) `unsupported` is a valid declared status, so no new protocol value; (ii) the normal runner reports gated cases as not applicable, never as passed; (iii) the committed failing harness is what makes RED visible in CI, so the genuine failures are not hidden; (iv) names already in the vocabulary keep `supported` and old-case applicability is untouched; (v) the existing test asserting `set(claimed) == known_capabilities()` stays true; (vi) the flip to `supported` happens only in the commit whose gated cases pass; (vii) the C++ side is unaffected (the parity gate reads C++ evidence only).
+**Proposed mechanism (separately reviewable; not authorized).** A Python **claim-status override**, not another vocabulary registry (vocabulary remains the manifest):
+1. **C0 (before RED).** A narrowly named constant `_VOCABULARY_ONLY_CAPABILITIES` (initially empty) in the adapter; `_python_claimed_capabilities` reports listed names `"unsupported"` (a valid declared status, `protocol.CAPABILITY_STATUSES`). With the set empty, the **advertised map is exactly unchanged** and no old applicability moves. `test_python_claimed_capabilities_covers_the_full_vocabulary` (`set(claimed) == known_capabilities()`) still holds and gains an assertion that vocabulary-only names are `unsupported`.
+2. **RED commit.** Add `default_open_functions` to `spec/manifest.json` **and** to the override set together; add the C++ gap entry; add the gated cases. Under external-host execution the gated cases are reported `unsupported`, not run, and are not evidence. Old ungated and old-capability guards run normally and must pass.
+3. **RED evidence.** The direct harness above (`tests/spec/test_model_b_slice_c_red.py`) fails with recorded messages. It is the committed failing-test evidence and the only place the external-host gate is bypassed.
+4. **GREEN commit.** Remove the name from the override set in the commit whose gated cases pass (Python then reports `supported` truthfully). GREEN cites the failing-test (RED) SHA. If no staged names remain, delete the override; otherwise keep the small empty generic set with coverage. Convert the harness into an ordinary thin shared-case wrapper. No permanent C-specific machinery is required.
+
+*Smaller alternative (recorded, not chosen):* omit the new Python claim entirely — absence also gates cases as `unsupported` and is protocol-compatible — at the cost of intentionally breaking the full-vocabulary advertising convention that the existing test pins. The override preserves that convention.
+
+Properties the review checks (falsifiable): (i) `unsupported` is already a valid declared status; (ii) the external-host runner reports gated cases `unsupported`, never passed; (iii) the committed failing harness makes RED visible, so genuine failures are not hidden; (iv) names already in the vocabulary keep `supported` and old-case applicability is untouched, with an exact-unchanged map assertion for the empty prerequisite; (v) `set(claimed) == known_capabilities()` stays true; (vi) the flip to `supported` happens only in the commit whose gated cases pass; (vii) the C++ side is unaffected (the parity gate reads C++ evidence only). Guards for C0 when authorized: unchanged advertised map; staged known name `unsupported`; external-host `unsupported` without invocation; direct same-YAML comparator failure; unchanged old requirements; non-vacuous selected-case counts; GREEN `supported` with passing shared evidence.
 
 ### 9.2 Python
 Claims `default_open_functions` = supported only at the GREEN head with all gated cases passing.
@@ -403,25 +494,27 @@ Not implemented. Add (RED commit) a `spec/known_host_gaps.json` entry for `defau
 | **Numeric keys (D4)** | Distinct Boolean/integer/float tags; same-binary64 = duplicate; explicit-R20 acceptance change | **APPROVED** (comment 6321761534) | §2.2; C-KEY |
 | **D5** | Only the owning declaration binding appends; same-scope and imported aliases rejected; calls stay live; immutable alias does not freeze; one category `function-declaration-not-owner` with distinct local/foreign messages | **APPROVED** (comment 6322649763); literal messages are RED oracles locked after baseline characterization | §2.3; C-OWN |
 | **D3** | Preserve legacy duplicate/shape-miss/case-miss/ambiguity identities; normalized `open-function-duplicate-clause` for new pattern-header duplicates; ownership category | **APPROVED** (comment 6322649763); texts re-pinned byte-for-byte in RED baseline | §2.4; C-DISP, C-ERR |
-| **D3b** | Legacy-only consumers unchanged; `main`/`@route`/HTTP/`@test` reject pattern-bearing or fixed+rest-mixed groups via existing mismatch behavior; no representative clause; `help`/`doc`/`meta` keep working with deterministic new-group rendering | **APPROVED** (comment 6322649763) | §2.5; C-CONSUMER |
-| **D8** | Option A: one declaration-level key per legacy identifier-header declaration; grouped arms not independent declarations; arm keys derivable/retainable for D; no fall-through | **APPROVED as desired approach, PENDING CODEX VERIFICATION** against contract/design (tension with design §3.2 stated in §2.6). RED oracles `PENDING D8 VERIFICATION`. | §2.6; C-D8 |
+| **D3b** | Legacy-only consumers unchanged; `@route`/HTTP/`@test` reject pattern-bearing or fixed+rest-mixed groups via their existing predicates; `main` follows the temporary boundary (§2.5.1); lifecycle has no signature gate; no representative clause; `help`/`doc`/`meta` keep working with deterministic new-group rendering | **APPROVED** (comment 6322649763); `main` clarified by 6326404613 | §2.5, §2.5.1; C-CONSUMER, C-MAIN |
+| **D8** | Option A: one declaration-level key per legacy identifier-header declaration for local duplicate detection; original arm keys/ordinals/provenance MUST be retained or losslessly derivable; no fall-through; explicit R20 flattening unchanged | **APPROVED; VERIFIED as a contract interpretation** (Codex `6324998154`, integration `6325204788`); five mandatory invariants | §2.6; C-D8 |
 | **D2** | Preserve entry/prelude write-through; do not retire in C | Resolved (integration + Codex); no new decision | C-OWN |
 | **D6** | No Core IR version bump | Resolved by design §13.2 | — |
 | **D7** | Provenance in C; frozen projections in D | Accepted (integration + Codex) | §4.3 |
-| **C0** | Vocabulary-only capability staging | **Integration design-only conditional sign-off**; Codex check pending; no code authorized | §9.1 |
+| **C0** | Vocabulary-only capability staging | **Design-approved (integration conditional sign-off + Codex PASS for design); NOT implementation-authorized**; terminology corrected in §9.1 | §9.1 |
+| **U2 main** | Temporary compatibility boundary; legacy selector unchanged; mixed shapes are stop conditions | **DIRECTED** (comment 6326404613); #1271 owns the long-term lifecycle | §2.5.1; C-MAIN |
 
-**Remaining semantic uncertainty (explicit).**
-- **U1 — D8 / design §3.2** (above): whether arm keys must participate in Slice C duplicate checks.
-- **U2 — `main`:** the conservative rule makes a pattern-bearing `main` silently "not selected" because `main` has no mismatch diagnostic today. This follows the maintainer's "existing mismatch behavior" wording but may surprise users; Codex/maintainer may prefer an explicit error, which would be a new diagnostic requiring its own decision.
-- **U3 — lifecycle:** there is no signature gate to extend; the rule is therefore "no new rejection" (characterized in RED). Confirm this satisfies D3b.
-- **U4 — literal diagnostic texts** for D5 and the new-group shape listing are proposals until the RED baseline byte-characterizes the surrounding infrastructure.
+**Uncertainty register after revision 4.**
+- **U1 — D8 / design §3.2:** **resolved** (Codex PASS as a contract interpretation, no amendment; mandatory invariants in §2.6).
+- **U2 — `main`:** **dispositioned.** Temporary compatibility boundary (§2.5.1). Residual: SC-MAIN-1…5 (mixed shapes) are stop conditions with no manufactured expectation; the long-term behavior is #1271. Risk: a user can write a pattern-bearing `main` that silently never runs as the entry; documented, not diagnosed.
+- **U3 — lifecycle:** **resolved.** `lifecycle_binding.py:199` has no signature gate; ordinary callable groups remain callable; no new binding-time rejection (§2.5).
+- **U4 — literal diagnostic texts** for D5 and the new-group shape listing remain proposals until the RED baseline byte-characterizes the surrounding infrastructure.
 - **U5 — file-mode span labels:** `_format_open_span` keeps the entry source label as given; in file mode that label is whatever name the CLI was given (existing R20 behavior). The ownership diagnostic deliberately renders no spans. Whether new duplicate diagnostics in file mode need the same property is for the RED baseline to characterize.
-- **U6 — C0:** pending Codex.
+- **U6 — C0:** **resolved for design** (Codex PASS). Implementation remains unauthorized; the terminology corrections of §9.1 apply.
+- **U7 — in-process runner at RED (new, from the C0 terminology review):** the default `python -m tools.spec_runner` path does not apply the external-host capability gate (§9.1), so gated `model-b-c-*` cases would be *executed* and *fail* there at RED. Whether that run is part of required CI at the RED commit must be recorded in the RED baseline; it is not hidden or converted to a skip.
 
 **Stop condition (design §11):** if a RED case cannot be written without a new semantic choice, stop and return to #1249.
 
 ## 12. Gate
 
-- **Current gate: NO-GO for RED.** Remaining, in order: (1) Codex focused review of the exact revision-3 SHA — C1–C8 corrections, D8 contract/design consistency, truthful C0 staging (and U2/U3 wording); (2) maintainer disposition of anything Codex reports (notably D8); (3) integration owner records a fresh RED GO/NO-GO.
-- Implementer recommendation: all decisions required for the RED oracles now have maintainer approval except the D8 verification condition; after Codex's review the plan is ready for a bounded RED phase *if* D8 and C0 are confirmed. Recommendation, not approval; no gate is self-certified.
-- Not started and not authorized: C0 code, RED, GREEN, manifest/adapter/spec edits, merge, parent closure, genia-cpp issue creation. Authoritative documents (`GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, MCP profile) remain unchanged and continue to describe only currently implemented behavior. #1268 stays separate and non-blocking.
+- **Current gate: NO-GO for RED.** Remaining, in order: (1) Codex exact-head final-delta review of this revision (U2 boundary and stop conditions, D8 mandatory retention and oracles, C0 terminology, D3b consumer facts); (2) integration owner records separate GO/NO-GO decisions for **C0** and for **RED**.
+- Implementer recommendation: with D8 verified, C0 design-approved and the U2 boundary documented, every RED oracle that does not depend on SC-MAIN-1…5 or U4 literal-text characterization is determinable. Recommendation, not approval; no gate is self-certified.
+- Not started and not authorized: C0 code, RED, GREEN, manifest/adapter/spec edits, merge, parent closure, genia-cpp issue creation, and any work on #1271. Authoritative documents (`GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, MCP profile) remain unchanged and continue to describe only currently implemented behavior. When Slice C eventually passes GREEN, the companion plan §6 requires updates to `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, semantic facts, the MCP language profile and the affected host documentation. #1268 stays separate and non-blocking.
