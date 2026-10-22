@@ -1,12 +1,12 @@
-# #1269 / #1250 — Model B Slice C RED authorization package (R1–R5, G1 recorded)
+# #1269 / #1250 — Model B Slice C RED authorization package (R1–R5, G1 recorded; revision 6 reconciliation in §R6)
 
-**Status: DOCUMENTATION ONLY. No failing test, spec, manifest, adapter, known-gap, production or implemented-truth file is added or changed by this package. RED is NOT started and NOT authorized by this document. GREEN is NOT authorized. G1 is recorded, NOT approved.**
+**Revision 6 (documentation only) adds §R6 below and supersedes the sections it names; see §R6.0 for the decision register of what remains PROPOSED.** **Status: DOCUMENTATION ONLY. No failing test, spec, manifest, adapter, known-gap, production or implemented-truth file is added or changed by this package. RED is NOT started and NOT authorized by this document. GREEN is NOT authorized. G1 is recorded, NOT approved.**
 
 | Item | Value |
 | --- | --- |
 | Tracking issue | [#1269](https://github.com/m0smith/genia-2026/issues/1269) (child of [#1250](https://github.com/m0smith/genia-2026/issues/1250)) |
 | Package base | `main` at `79c073b4…` (`79c073b`, merge of #1272; includes merged C0 = PR #1273) |
-| Accepted pre-flight | PR #1270, revision 4 `585f6aa229a55bbd3e3110c975dcaaa94a61e93e`; this package is revision 5 of the same branch (companion edits in `issue-1269-slice-c-preflight.md` and `issue-1269-slice-c-red-test-plan.md`) |
+| Accepted pre-flight | PR #1270, revision 4 `585f6aa229a55bbd3e3110c975dcaaa94a61e93e`; this package is revision 5 of the same branch (revision 6 = §R6, starting from `a0dce7c9ec8ddebf8c695c5d46495ef20e167031`) (companion edits in `issue-1269-slice-c-preflight.md` and `issue-1269-slice-c-red-test-plan.md`) |
 | Authority | `GENIA_STATE.md` (final); contract #1255 / design #1259; integration authorization [6327837022](https://github.com/m0smith/genia-2026/pull/1270#issuecomment-6327837022); C0 acceptance [#1273 6333148622](https://github.com/m0smith/genia-2026/pull/1273#issuecomment-6333148622); independent reviews [6327597044](https://github.com/m0smith/genia-2026/pull/1270#issuecomment-6327597044) and [#1273 6333124626](https://github.com/m0smith/genia-2026/pull/1273#issuecomment-6333124626) |
 | Not this package | C++ work, #1271 / #1272 Application Lifecycle, RED/GREEN code, `GENIA_STATE.md` / `GENIA_RULES.md` / `GENIA_REPL_README.md` / `README.md` / semantic-facts / MCP-profile edits |
 
@@ -16,7 +16,263 @@ Implemented behavior = what `GENIA_STATE.md` records on `main`. Approved future 
 
 ---
 
-## 0. What was refreshed and verified
+## R6. Revision 6 — RED-readiness reconciliation (documentation only; supersedes the sections named in §R6.0)
+
+**Status of this section: DOCUMENTATION ONLY. RED is NOT authorized. GREEN is NOT authorized. Nothing here is a maintainer decision unless §R6.0 says "APPROVED"; every other item is a PROPOSAL awaiting the integration owner.** Revision 6 starts from the reviewed head `a0dce7c9ec8ddebf8c695c5d46495ef20e167031` (PR head and `origin/main` re-fetched before editing: head unchanged, `main` still `79c073b556ad16343051d545d7928248a6d0f6b0`). It reconciles three inputs: the independent revision-5 readiness review ([Codex, 6346831556](https://github.com/m0smith/genia-2026/pull/1270#issuecomment-6346831556)), the C++ compatibility investigation ([report 6346857756](https://github.com/m0smith/genia-2026/issues/1269#issuecomment-6346857756), [case appendix 6346894165](https://github.com/m0smith/genia-2026/issues/1269#issuecomment-6346894165)) and the [integration reconciliation (6346933756)](https://github.com/m0smith/genia-2026/pull/1270#issuecomment-6346933756).
+
+Evidence labels are those of the head of this file. Additional label: **twin** = the same clauses written with the explicit-`open` spelling (implemented R20 behavior), executed on the Python host to observe dispatch, ordering and renderer text where the default-open behavior is by contract the same; it is never used where `open` semantics differ (noncontiguous clauses, header capture, numeric/Boolean keys).
+
+### R6.0 What changed, what is superseded, and the decision register
+
+| Codex finding / task item | Disposition in revision 6 | Where |
+| --- | --- | --- |
+| 1 (High) O-1 applicability | Decision card with three options; **recommendation C (authority-anchored)** — PROPOSED, not approved | §R6.1 |
+| 2 (High) executable oracles and C++ ledger | Every shared case now carries source, category, requires, stdout/stderr/exit, baseline, RED outcome, oracle status and C++ row; **N = 116** (was 127); persistence-dependent and REPL-transcript cases moved to host-local with stated justification | §R6.2 and the test plan §R6 |
+| 3 (High) GA continuity | GA-13…GA-23 added; GA-1…GA-12 retained (GA-4 and GA-6 sharpened) | §R6.4 |
+| 4 (Medium) C0 phase tests | Whole-set `monkeypatch` defect fixed by unioning the production override; exact RED and GREEN edits listed | §R6.5 |
+| 5 (Medium) O-3 | Draft amendment text for design §3.4 and §13.5 — PROPOSED | §R6.6 |
+| 6 (Medium) R1 workflow triggers / totals | Recomputed totals; workflow descriptions corrected (docs/LLM/code-documentation on every PR; regression scheduled/manual; canary and smoke on infra branches/manual) | §R6.3 |
+| O-4 / O-5 / O-6 | O-4 stays excluded; O-5 program replaced (verified diagnostic); the 13 L rows split 11 error + 2 REPL observations | §R6.7 |
+| G1 | Six reserved IDs (SC-MAIN-3 has two declaration orders); future totals corrected | §R6.8 |
+
+**Sections of this document superseded in part (the older text is retained for history and rationale only):** §2.3/§2.4 and the path-matrix counts (replaced by §R6.3); §3.3 inventory and §3.5 (replaced by the test plan §R6 inventory — the older rows listed 127 ids, several without executable sources); §4 GA table (extended by §R6.4); §5.3/§5.5 (O-3 now has draft amendment text, §R6.6); §6.3 (replaced by §R6.5); §7 (reserved ids and totals replaced by §R6.8); §8.1 (replaced by the register below). Where an older sentence conflicts with §R6, §R6 governs this documentation set; neither governs `GENIA_STATE.md`.
+
+#### Decision register (what remains proposed)
+
+| ID | Decision needed | Status | Revision-6 recommendation | Needed before |
+| --- | --- | --- | --- | --- |
+| **R6-D1** | O-1 applicability policy (A uniform-ungated old syntax / B gate all changed outcomes / C authority-anchored) | **PROPOSED** | C | locking `requires` for 4 cases (+P5 rationale) |
+| **R6-D2** | Portable status of ordinary grouped-body header capture (`hdr-grouped-body-captures-header`) | **PROPOSED** (authority found: contract §2.2, design §13.4; absent from STATE) | required portable behavior; keep shared and ungated; record a separate C++ defect (CPP-D1) | merge of the final head (not RED) |
+| **R6-D3** | Placement of the five Python-specific-wording legacy cases (legacy duplicate ×3, non-function declaration ×2) | **PROPOSED** | host-local (existing unit tests already pin the wording); promote to shared only if the maintainer declares the wording portable | RED |
+| **R6-D4** | Shared pinning of the R20 `open` diagnostics `own-explicit-open-alias-unchanged` and `d8-r20-flattening-unchanged`, with the pre-existing C++ R20 differences (CPP-D2) tracked separately and not hidden | **PROPOSED** | keep shared with `open_functions` (R20 contract requires pinned CLI text); ledger records C++ latent differences | merge of the final head |
+| **R6-D5** | Tag the metadata-channel cases with the existing required capability `doc_help` (design §7 table; 11 existing specs do the same) | **PROPOSED** | yes | RED |
+| **R6-D6** | Persistence-dependent observations and REPL transcripts are host-local (one-shot evaluation stops at the first failure; REPL echoes host function representations) | **PROPOSED** | yes | RED |
+| **R6-D7** | O-3 design amendment (§R6.6) | **PROPOSED**; needs explicit approval, then align both design clauses | approve | locking file-mode duplicate oracles |
+| **R6-D8** | Literal ownership / foreign-alias texts (candidate texts from pre-flight D3) | **PROPOSED**; texts cannot be observed on the current runtime | approve text or the message shape | RED baseline lock |
+| **R6-D9** | Active-`unquote` half of the key counterexample has no pinned program | **OPEN**; excluded from the inventory; the quoted-names-are-data half is included | supply a program or accept the exclusion | RED (only for that half) |
+| **R6-D10** | `key-repeated-binders-distinct` (O-4) | **EXCLUDED** — no approved non-linear-pattern semantics | keep excluded | n/a |
+| **R6-D11** | C++ defects CPP-D1…CPP-D4 (§R6.2): who files them in `genia-cpp`, and the merge precondition (fix + pin bump, or an explicit maintainer ruling) | **OPEN** | file; precondition = zero C++ failure classes at the final head | merge |
+| **R6-D12** | G1 `main` selector invariant and the six reserved ids | **PENDING** (before GREEN) | as recorded in §7/§R6.8 | GREEN |
+| **R6-D13** | Separate TEST-ONLY RED authorization naming exact ids and expected outcomes | **NOT GIVEN** | issue after independent verification of revision 6 | RED |
+
+APPROVED items already on record are unchanged: D1, numeric keys, D3, D3b, D5, D8, C0, the U2 boundary direction. Revision 6 reopens none of them; R6-D1 concerns only the *applicability* of already-approved outcomes.
+
+### R6.1 O-1 decision card — applicability of changed outcomes of previously accepted syntax
+
+**Question.** P5 (`disp-p5-varargs-minima-ambiguity`) changes an ungated ordinary program and is ungated; the D5 alias/ownership rejections also change programs written in old syntax but were gated by `default_open_functions`. Are those two treatments consistent?
+
+**Exact programs, today, and approved future outcome** (all "today" outputs executed on `main@79c073b`; "future" is the approved decision, not observable):
+
+| # | Program (exact source in the test plan) | Today (observed) | Approved future | Class of change |
+| --- | --- | --- | --- | --- |
+| 1 | P5: `f(a, ..r)`, `f(a, b, ..s)`, `f(1, 2)` | `"min2"` | `Ambiguous function resolution: f/2. Matching varargs: f/1+, f/2+` (D1) | valid → error |
+| 2 | `f(x)=x; a=f; a(x, y)=x+y` | accepted; installs `a/2` into `f`'s group (`<function a/2>`; later `a(1,2)` = 3) | `function-declaration-not-owner` (D5) | valid → error |
+| 3 | same plus `@doc (print("annotation-ran"))` before the declaration | prints `annotation-ran`, accepted | rejected **before** the annotation runs (D5/C6) | valid → error, effect-order change |
+| 4 | `h = lib.g; h(x, y) = x + y` (module `lib` owns `g/1`) | accepted; appends to `lib.g` | `function-declaration-not-owner` naming module `lib` (D5) | valid → error |
+| 5 | `f(x)=x; a=f; a(x, ..r)=x` | error `Duplicate function definition: a/1` | `function-declaration-not-owner … a/1+` (D5; ownership check first) | **error → different error** (no accepted program changes) |
+
+**What the authorities say about the *old* outcome** (targeted searches; not exhaustive):
+
+| Old behavior | `GENIA_STATE.md` | `GENIA_RULES.md` / `README.md` | Shared spec | Model B contract/design |
+| --- | --- | --- | --- | --- |
+| Highest-minimum varargs silently wins (#1) | line 809: "if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`" — *specificity is never defined* | RULES 204–205: "fixed-arity match is preferred over varargs match; varargs ambiguity must raise `TypeError("Ambiguous function resolution")`"; README 796–797 | none for ordinary varargs resolution (`r20-varargs-over-fixed-precedence` covers fixed-over-varargs only) | design §2.1 baseline; D1 approved |
+| Declaration through a same-scope or imported alias appends (#2–#5) | no statement (only *import* aliases appear) | none | none | contract §2.2 documents **calls** through aliases (`a(1,2)` → `3`), not declarations; D5 approved rejection |
+
+So the **new** outcome of #1 (ambiguity raises) is already stated by RULES/STATE text and the shared R20 shape-stratum behavior; the **new** outcomes of #2–#5 are first established by the approved Model B contract (D5) and exist nowhere in the implemented documents. The **old** outcomes of #2–#5 are not documented portable behavior; the old outcome of #1 is documented only up to an undefined word ("more specific").
+
+**Authority for applicability** (both must be honored): contract §6.1(4) — "reuse the existing R16 runner, manifest protocol and capability selection; never label already-supported ordinary function behavior unsupported to mask regression"; design §13.3 — Model B capabilities start as `unsupported` in C++ with "exact #1250-owned entries in `spec/known_host_gaps.json`, including affected cases"; and "an unsupported C++ negative diagnostic is not PASS".
+
+| | **Option A** — preserve ungated old-program applicability | **Option B** — gate every changed outcome | **Option C** — authority-anchored (recommended) |
+| --- | --- | --- | --- |
+| Rule | Any case whose program uses old syntax keeps the old (empty) `requires`, plus concern-specific capabilities | Any changed outcome requires `default_open_functions` (P5 included) | A case is ungated iff its **expected outcome is already stated** by STATE/RULES/README, a shared spec, or implemented R20 text; if the outcome is first established by the Model B contract, it requires `default_open_functions`. Unchanged-outcome guards always keep their original applicability |
+| P5 | ungated | gated | ungated (RULES 205 + STATE 809 already state the ambiguity rule) |
+| #2 `own-local-alias-rejected` | ungated | gated | gated |
+| #3 `own-alias-annotation-not-evaluated` | ungated (no refs needed; stdout observation) | gated | gated |
+| #4 `own-imported-alias-rejected` | ungated, `multi_file_eval` only | gated | gated (`multi_file_eval` kept) |
+| #5 `own-local-alias-varargs` | ungated | gated | gated |
+| Pattern-header variant `own-local-alias-pattern-clause` | gated (new syntax) | gated | gated |
+| Shared N / G / ungated RED / gated | 116 / 43 / 5 / 68 | 116 / 43 / 0 / 73 | 116 / 43 / 1 / 72 |
+| In-process RED (total / pass / fail) | 1017 / 944 / 73 | 1017 / 944 / 73 | 1017 / 944 / 73 |
+| External Python RED (pass / fail / unsupported), exit | 926 / 5 / 86, exit 1 | 926 / 0 / 91, exit 0 for that step | 926 / 1 / 90, exit 1 |
+| GREEN in-process / external | 1017 / 1017; 999 pass + 18 unsupported | same | same |
+| C++ rows for the cases that move | 4 more applicable-by-form cases: 3 `UNSUPPORTED` (observed form: ends in a declaration, varargs, annotations) with one **latent FAIL** (C++ rebinds: `a(x,y)=x+y; a(1,2)` → `3`, observed); 1 capability-gated | no change | no change |
+| Host-local companion required? | yes — every changed outcome (#1–#5) gets a before/after test | yes | yes (HL-23) |
+| Weakness | forces the shared D5 outcomes onto hosts that, by design §13.3, begin `unsupported`; adds a documented C++ defect for behavior that was never portable | treats the RULES-stated P5 rule like a Model B invention, contradicting contract §6.1(4) for already-stated behavior; weakens the external-run RED signal (the unmodified `unsupported == 18` test, in-process runner and pytest harness still fail) | depends on reading "more specific" as *not* defining the old P5 outcome; a maintainer who disagrees gets Option A or B by changing one row |
+
+**Recommendation: Option C**, as a *policy stated before looking at any host's result* ("a changed outcome is ungated exactly when the outcome is already portable text"), applied identically to the five rows above. It is **not** adopted by this document. The CI consequence (C++ shows no new observed failure under any option) is recorded as a consequence, not a reason. If the maintainer prefers uniform treatment of old-syntax programs, choose A; if the maintainer rules that RULES 205 does not state the P5 outcome, choose B. Whichever is chosen, the host-local before/after companion (HL-23) is required for #1–#5, and the unchanged-outcome guards (`own-alias-call-live`, `open-alias-sees-later-arity`, …) stay ungated.
+
+**Revision-5 correction:** Codex listed seven cases for Option A. Three of them (`own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable`, `own-imported-alias-owner-unchanged`) need an observation *after* the rejection, which a one-shot evaluation cannot make; they are host-local in revision 6, so Option A affects four shared cases, not seven. `own-local-alias-varargs` is error → different error (row 5), not valid → error.
+
+### R6.2 O-2 — C++ placement and the revised compatibility ledger
+
+**Observed baseline** (`genia-cpp@44456baea06b4bb7bdf727e39939dd7150261ee6`, also current C++ `main` and the `host-parity.yml` pin; built with the documented CMake commands, `ctest` 3/3; existing shared specs 268 pass / 633 unsupported / 0 failing classes; parity gate `OK` with the Python evidence). The investigation's disposable 52-probe run (1 pass / 2 fail / 49 unsupported) used 36 package-pinned programs and 16 investigator-authored programs; revision 6 replaced every authored program by a specified one and **re-ran the final sources**. Nothing about C++ source or protocol was changed. `unsupported` is never counted as PASS; the gate fails only on failure classes, so a *wrong answer* on an applicable case is the only thing that can break `host-parity.yml`, and no known-gap mechanism can record it (gaps are capability-scoped; an entry for a capability C++ declares supported is a `STALE_GAP`).
+
+**Per-case determination of the eight cases flagged by the investigation** (plus the case revision-6 execution added):
+
+| Case | Intended assertion | Authority | Class | Placement (PROPOSED) | Shared twin | C++ evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+| `hdr-grouped-body-captures-header` | grouped-body arms see the header parameters | contract §2.2 ("header variable captures … must remain compatible"); design §13.4 ("header frame … acts as parent environment for … function bodies"); not stated in STATE | **required portable behavior** | keep shared, ungated (R6-D2); host-local Python regression stays in the C-HDR family | none needed | **FAIL** (observed): `Undefined name: x` → **CPP-D1**; merge precondition, not a RED precondition |
+| `main-repl-never-selects` | REPL activation never auto-runs `main` | structural fact about `_resolve_program_result` (HL-9); the transcript prints a host function representation | **incorrect/nonrepresentative probe** (`<function main/0>` appears in no authority; C++ prints nothing for a block-bodied declaration and `unsupported` for others) | host-local (HL-20) | none (every REPL definition echoes a host value) | FAIL on the probe source; not applicable once host-local |
+| `key-legacy-dup-id`, `key-rest-binders-legacy-duplicate`, `d8-legacy-identical-header-dup` | legacy duplicate rejection unchanged | design §13.4 "preserve legacy ordinary error identities"; wording appears only in Python unit tests (`test_f2_p2_*`) and design/analysis docs — not STATE/RULES/README/spec | **Python-host-specific wording**; the rejection itself is **unspecified as portable** (R6-D3) | host-local (HL-21, existing tests already pin the text; companions added after the refactor) | none expressible without pinning the wording | latent difference (observed with a trailing call): C++ replaces the earlier definition (`f(1)` → `2`) → **CPP-D4** if the rejection is declared portable |
+| `own-lambda-nonfunction-unchanged`, `own-builtin-nonfunction-unchanged` | declaring a function over a non-function binding keeps its existing diagnostic | R20 contract ("a declaration cannot replace an existing non-function binding"); wording unspecified in STATE | **unspecified** (R6-D3) | host-local (HL-22) | none | latent difference: C++ rebinds (`g(1,2)` → `1`) → CPP-D4 |
+| `own-explicit-open-alias-unchanged` (O-5 replacement) | declaring through an alias of an open interface keeps its diagnostic naming the open interface/view | implemented R20 contract ("says that the name holds an open interface view, not a non-function value"); the contract requires pinned CLI text | **required portable R20 behavior** | shared, `open_functions` (R6-D4) | none | UNSUPPORTED as specified (ends in a declaration); latent: with a trailing expression C++ accepts silently (observed) → **CPP-D2** |
+| `d8-r20-flattening-unchanged` | explicit-open grouped arms still flatten for duplicate detection | STATE (R20 grouped flattening); `error-r20-local-duplicate-clause` | **required portable R20 behavior** | shared, `open_functions` | none | UNSUPPORTED as specified; latent: C++ returns `1` (no duplicate error; the pre-existing R20 discrepancy design §13.3 says to track separately) → CPP-D2 |
+| `meta-inline-doc-shared-via-alias`, `meta-conflicting-inline-doc-before-install` (new in revision 6; the authored probes never exercised inline docs) | inline docstrings (`f(x) = "d" body`) merge/conflict | contract §5.1; design §7 table row for metadata channels lists `doc_help` | **required** metadata-channel behavior | shared; tagged `doc_help` (R6-D5), exactly as 11 existing specs are | none | UNSUPPORTED via the existing `doc_help` gate; the same programs without the gate give `Undefined name: x` → **CPP-D3** (parse defect) |
+
+**Candidate separate C++ defects (to be filed by the maintainer in `genia-cpp`; this repository cannot):** CPP-D1 header capture in ordinary grouped bodies; CPP-D2 R20 explicit-open differences (alias-of-open accepted; redeclaration after an intervening definition accepted; flattened-arm duplicate not detected; `open f(x)=1; f(y)=2; f(3)` returns `1` per the independent review); CPP-D3 inline-docstring definitions mis-parse as an application; CPP-D4 (conditional on R6-D3) legacy duplicate and non-function rebinding replace instead of rejecting. None is hidden behind a capability or counted as conformance.
+
+**Shared → host-local moves (14) and replacements** (every move has a justification above or below and a shared observable twin where one exists):
+
+| Moved case | Why one-shot shared evaluation cannot express it | Host-local item | Shared twin |
+| --- | --- | --- | --- |
+| `open-persistent-env` | needs successive submissions; REPL echoes host function values (observed `GeniaFunctionGroup(name='f', …)`) | HL-15 | `open-noncontiguous-arities`, `open-pattern-after-plain` |
+| `own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable` | observation after the rejection | HL-16 | `own-local-alias-rejected` |
+| `own-imported-alias-owner-unchanged` | observation after the rejection | HL-17 | `own-imported-alias-rejected` |
+| `ann-old-metadata-retained`, `ann-installed-clause-visible-via-alias` | observation after a failed annotation | HL-18 | `ann-later-annotation-suppressed`, `ann-prior-effects-persist` |
+| `ann-repl-recovery`, `mode-repl-failed-declaration-leaves-group` | REPL transcript; annotation and target must share one submission (observed: `@doc 7; f(x, y) = x + y` raises the `@doc` error and installs the clause; separate lines fail framing) | HL-19 | one-shot error cases above |
+| `main-repl-never-selects` | see table above | HL-20 | none |
+| `key-legacy-dup-id`, `key-rest-binders-legacy-duplicate`, `d8-legacy-identical-header-dup` | wording | HL-21 | none |
+| `own-lambda-nonfunction-unchanged`, `own-builtin-nonfunction-unchanged` | wording | HL-22 | none |
+
+Replacements: `key-named-matcher` → `key-named-matcher-distinct` + `key-named-matcher-same-dup`; `key-quote-unquote` → `key-quote-names-are-data` (active-unquote half open, R6-D9); `mode-file-command-import-equivalence` → `mode-file-pattern-program`, `mode-command-pattern-program`, `mode-import-pattern-program` (a single case cannot run three modes); `own-explicit-open-unchanged` → `own-explicit-open-alias-unchanged`. Excluded: `key-repeated-binders-distinct`. Reconciliation to the revision-5 count: 127 − 9 (moved, absent from the list) − 5 (moved after re-sourcing) + 1 + 2 (splits) = **116**; the 14 moved + 1 excluded + 4 renamed/split ids are listed one-by-one in the test plan §R6.
+
+**Revised C++ compatibility ledger — summary** ([inferred] where marked; the final sources were executed, the real RED YAML does not exist):
+
+| Group | Count | C++ outcome |
+| --- | --- | --- |
+| Shared cases | 116 | |
+| — applicable (no unmet capability) and sent to the adapter: 28 guards + P5 | 29 | **2 PASS** (`optim-collection-recursion`, `opt-plain-identity-none`), **1 FAIL** (`hdr-grouped-body-captures-header`), 26 UNSUPPORTED (observed) |
+| — gated before invocation by an *existing* capability: `immutable_bindings` 4, `multi_file_eval` 3, `doc_help` 8 | 15 | UNSUPPORTED (observed; existing gaps/required-capability claims) |
+| — gated by `default_open_functions` (Option C) | 72 | UNSUPPORTED (inferred: undeclared capability; mechanism observed for `immutable_bindings`) |
+| Projected C++ external RED totals (inferred) | 1017 | 270 pass / **1 fail** / 746 unsupported → `EVIDENCE FAILURE` until CPP-D1 is fixed, or until the maintainer re-places that case (then 270 / 0 / 746 on 1016) |
+
+Remaining uncertainty: the 26 applicable `UNSUPPORTED` rows are "unsupported as specified" (the program ends in a declaration or uses constructs C++ lacks); extending a source can turn some of them into FAILs, as the table above shows for six cases, and only the programs named in the table above were extended and re-run; the remaining applicable programs were not extended. The real RED sources must be re-run through the pinned adapter (GA-22). The adapter's reason text is generic, so causes are attributed by micro-probes.
+
+### R6.3 R1 — recomputed arithmetic (Option C; projections are inferred, not executed)
+
+| Quantity | Value |
+| --- | --- |
+| Shared cases N | **116** |
+| Ungated guards (G) | **43** (of which 28 are C++-applicable; 15 carry an existing capability that C++ lacks) |
+| Ungated RED tripwires | **1** (P5) |
+| New-capability-gated RED cases | **72** |
+| Host-local items | **24** (14 existing HL-1…HL-14 + 10 new HL-15…HL-24) covering the 14 moved case ids |
+| Blocked / excluded | 1 excluded (`key-repeated-binders-distinct`), 1 half-open (active `unquote`), 6 reserved G1 ids |
+| C++-applicable cases | 29 (2 pass, 1 fail, 26 unsupported — observed) |
+| In-process RED (total / pass / fail) | 1017 / 944 / 73, exit 1 |
+| External Python RED (total / pass / fail / unsupported) | 1017 / 926 / 1 / 90, exit 1 |
+| In-process GREEN | 1017 / 1017 / 0 |
+| External Python GREEN | 1017 / 999 / 0 / 18, exit 0 |
+| After G1 approval (+6 gated ids) | in-process GREEN 1023 pass; external GREEN 1005 pass + 18 unsupported |
+
+The 18 is the existing, unmodified parity guard (`unsupported == 18`). At RED the external run reports 90 unsupported (18 + 72) and the parity test would fail with 90 — but that test is `slow`/`full_conformance`, excluded from the ordinary PR selection and run by the scheduled/manual `regression.yml`.
+
+**Workflow behavior at the RED head** (corrected; "when run at that commit"):
+
+| Workflow | Triggers | Behavior at RED |
+| --- | --- | --- |
+| `ci.yml` Fast tests | every PR, push to `main`, manual | `pytest … -m "not slow and not loopback" --maxfail=1 -n auto` fails on the first failing RED test (xdist makes the stop approximate); the loopback step and the `tools.spec_runner` step are then not run (earlier step failed) |
+| `docs.yml`, `validate-llm-instructions.yml`, `code-documentation.yml` | every PR | run normally; expected green absent unrelated change (they are not path-filtered) |
+| `host-parity.yml` | PRs/pushes touching `spec/**`, `src/genia/**`, `hosts/**`, `tools/spec_runner/**` — **triggered by the RED commit** | the Python-evidence step exits 1 only if an ungated case fails (P5 under Options A/C; none under B); a failing step stops the job before C++ evidence and the gate |
+| `docker-dev-environment.yml` | PRs touching `docker/**`, `README.md`, … | not triggered by RED; **GREEN's `README.md` edit triggers it** |
+| `regression.yml` | scheduled and manual only | when run at the RED head: compatibility job fails like `ci.yml`; the full-conformance parity job fails at `unsupported == 90` (inferred) |
+| `github-hosted-runner-canary.yml`, `self-hosted-runner-smoke.yml` | their `infra/*` branches and manual dispatch | when run at the RED head, the `tools.spec_runner` step exits 1 |
+
+The in-process runner does not apply the capability gate and executes gated cases; the external runner reports them `unsupported` before invocation, and `unsupported` never changes its exit status.
+
+### R6.4 R3 — additional anti-false-GREEN requirements (GA-1…GA-12 are retained)
+
+| ID | Requirement |
+| --- | --- |
+| **GA-13** | Exact bidirectional case-id equality: the loader's `model-b-c-*` names equal the literal list; no duplicate names; spec file stems equal names; **zero invalid loader entries** across the whole `spec/` tree; `len` equals the recorded N. A missing or extra file fails. |
+| **GA-14** | **Exact `requires` per id**, pinned as a literal id → tuple table (not "subset of the old vocabulary"): replacing one old capability by another, or adding/removing `default_open_functions`, fails. Table equals the §R6 inventory at RED and at GREEN. |
+| **GA-15** | **Oracle continuity from the committed RED SHA.** At GREEN, `git diff <RED_SHA>..HEAD` over `spec/**/model-b-c-*`, sibling `.genia` inputs, `tools/spec_runner/**`, `tests/spec/test_python_protocol_adapter_parity_762.py` and the harness constants must be empty, or each hunk must be listed as an explicit reviewed amendment in the GREEN note. Ordinary diff/review; no second expected-output store. |
+| **GA-16** | **Per-id real-adapter pass** (sharpens GA-4): for every `model-b-c-*` id, `execute_spec_via_host(spec, <real adapter command>, host_capabilities=_python_claimed_capabilities()).kind == "pass"`. The evidence JSON has only aggregate counts and cannot satisfy this. Runs in the ordinary selection (≈1 process per case). |
+| **GA-17** | **Inclusion in ordinary selection:** an assertion plus a recorded command that `pytest --collect-only -q -m "not slow and not loopback" tests/spec/test_model_b_slice_c_red.py` collects exactly the expected parametrized ids; no inherited `slow`/`loopback`/`full_conformance` marker (module, class, conftest, `pytest.ini`). |
+| **GA-18** | At GREEN the in-process runner passes every applicable case: `python -m tools.spec_runner` → `total == 901 + N`, `failed == 0`, `invalid == 0`. |
+| **GA-19** | The override is phase-exact: `_VOCABULARY_ONLY_CAPABILITIES == frozenset({"default_open_functions"})` at RED and `== frozenset()` at GREEN (§R6.5); GREEN removes the name in the same commit that makes the gated cases pass. |
+| **GA-20** | The existing parity guard is unmodified and passes at GREEN: `unsupported == 18`, `passed == total − 18` (GA-5 retained verbatim). |
+| **GA-21** | No skip/xfail substitution: AST scan of the harness **and** conftest/`pytest.ini` markers for `skip`, `skipif`, `xfail`, `importorskip`, `pytest.skip(`; plus the recorded run shows `0 skipped, 0 xfailed` for the file. |
+| **GA-22** | **C++ case ledger on the exact RED YAML** through the workflow-pinned adapter, recorded per id as PASS / FAIL / UNSUPPORTED with reason class, and `fail = protocol_error = crash = timeout = invalid = 0` before the final head can merge; never infer pass from a `host_parity_gate` `OK`. |
+| **GA-23** | Literal-lock procedure: each `PROPOSED`/`L` oracle is locked in the RED commit from the byte-characterized baseline **only where the baseline can emit it**; for text the current runtime cannot emit (ownership diagnostics) the approved candidate text is entered and any later difference is an explicit amendment, not a rebaseline. |
+
+GREEN is the conjunction of GA-2, GA-3, GA-5/20, GA-6/18 and GA-16, **plus** the other items above; the shorter conjunction in §4 is not a permission to omit them.
+
+### R6.5 R5 — corrected C0 phase-guard transition (tests are NOT edited here)
+
+**Defect.** Several C0 tests call `monkeypatch.setattr(adapter, "_VOCABULARY_ONLY_CAPABILITIES", frozenset({"refs"}))`, replacing the **whole** set. At RED the production set contains `default_open_functions`; replacing it drops that name, so the adapter reports it **supported** and `dict(RED_MAP, refs="unsupported")` no longer matches (reproduced by the independent reviewer).
+
+**Fix.** Stage by *union with the production value read at test time*, and compare against a phase-exact expected map; keep `PRE_C0_CAPABILITY_MAP` as frozen history.
+
+| Test (current name) | RED edit | GREEN edit |
+| --- | --- | --- |
+| module constants | keep `PRE_C0_CAPABILITY_MAP` unchanged; add `RED_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "unsupported"}` and `PHASE_OVERRIDE = frozenset({"default_open_functions"})`, `PHASE_MAP = RED_CAPABILITY_MAP` | add `GREEN_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "supported"}`; `PHASE_OVERRIDE = frozenset()`, `PHASE_MAP = GREEN_CAPABILITY_MAP`; `RED_CAPABILITY_MAP` retained as history |
+| new helper | `_stage(monkeypatch, *names)` → `setattr(adapter, "_VOCABULARY_ONLY_CAPABILITIES", adapter._VOCABULARY_ONLY_CAPABILITIES \| frozenset(names))` | unchanged |
+| `test_override_is_empty_and_immutable_in_production` | rename `test_override_matches_the_phase_and_is_immutable`; assert `== PHASE_OVERRIDE` and `isinstance(..., frozenset)` | assert `== frozenset()` via `PHASE_OVERRIDE` |
+| `test_empty_override_capability_map_equals_pre_c0_baseline_exactly` | assert `_python_claimed_capabilities() == PHASE_MAP` **and** `{k: v for k, v in claimed.items() if k != "default_open_functions"} == PRE_C0_CAPABILITY_MAP` (35 historical names unchanged) | same two assertions with the supported map |
+| `test_default_open_functions_is_not_in_the_vocabulary_or_the_override` | invert: in `known_capabilities()` (manifest has it, optional, **not** required), in the override, claimed `unsupported` | in the vocabulary, **not** in the override, claimed `supported` |
+| `test_staged_known_capability_is_reported_unsupported_and_others_unchanged` | `_stage(…, "refs")`; expected `dict(PHASE_MAP, refs="unsupported")` | same expression |
+| `test_staging_overrides_the_partial_status_too` | `_stage(…, "shared_spec_runner")` | same |
+| `test_staging_an_unknown_name_is_rejected_not_added` | `_stage(…, "not-a-real-capability")` → `ValueError` | same |
+| `test_staged_capability_case_is_unsupported_without_invoking_the_host` | `_stage(…, "refs")`; **add** a twin witness for a spec requiring `default_open_functions` using the *production* map: `unsupported`, marker file absent | the same spec is **applicable** (`case_is_applicable` true) and the witness is replaced by GA-16 |
+| `test_ungated_case_is_not_affected_by_staging`, `test_empty_override_leaves_existing_r20_capability_gating_unchanged`, `test_claimed_names_equal_known_vocabulary_with_and_without_staging` | `_stage` for the staged variants; assertions unchanged | unchanged |
+
+Preserved without weakening: unknown-name fail-closed, complete vocabulary (`set(claimed) == known_capabilities()` — now 36 names), statuses ⊆ `CAPABILITY_STATUSES`, `partial` precedence, existing `open_functions`/`multi_file_eval` claims, the no-invocation witness, and the unmodified parity guard. The four tests the independent rehearsal showed failing at RED are exactly the rows above that change at RED; transitional pattern-rejection tests (`test_model_b_slice_a.py::test_transitional_rejection`, `test_model_b_slice_b.py::test_closed_and_pattern_declarations_remain_not_implemented`, the two MCP-profile probes) change **at GREEN only**, closed-group rejection stays.
+
+### R6.6 O-3 — PROPOSED amendment to the Model B design (not applied; explicit approval requested)
+
+Observed (independent review, repeated here): relative and absolute file invocations both render the **resolved absolute entry path** in the existing R20 duplicate renderer (`… first at /<abs>/dup.genia:1, duplicate at /<abs>/dup.genia:2`); command mode renders `<command>:1/2`. Design §3.4 ("Render canonical imported module names or the existing entry label, never filesystem paths, object addresses or captured values") and §13.5 ("without leaking host-only absolute paths, captured values or protected data") therefore overstate the property for duplicate-clause diagnostics. A claim that the existing renderer is path-free would be false.
+
+**Proposed replacement for the quoted sentence in design §3.4:**
+
+> Diagnostics keep source provenance as follows. **Duplicate-clause source-location diagnostics** reuse the existing R20 renderer: imported-module clauses render the canonical module identity; entry clauses render the existing entry label, which is `<command>` in command mode and the host-resolved entry path in file mode. **Ownership and foreign-alias diagnostics** (`function-declaration-not-owner`) are path- and span-free and name only the declared name, the owning binding and, for a foreign owner, the canonical module identity or `<entry>`. **No diagnostic** renders host object addresses, captured values or protected (R10) values, or host-specific output representations of function values. Span-free direct IR has deterministic unknown-location diagnostics and never fabricates locations.
+
+**Proposed replacement for the §13.5 sentence "Preserve file/entry diagnostic provenance without leaking host-only absolute paths, captured values or protected data":**
+
+> Preserve file/entry diagnostic provenance exactly as the existing R20 renderer produces it (the resolved entry path appears in file-mode duplicate-clause diagnostics and is the one sanctioned location-bearing surface); new ownership and foreign-alias diagnostics carry no path or span; no diagnostic leaks host addresses, captured values or protected data.
+
+Consequences if approved: shared exact duplicate oracles use command mode (`<command>:N`); the file-mode path format is pinned only host-locally (HL-12, `str(Path(file).resolve())`); ownership texts stay path-free (HL-11). Record the approval on #1269, then align both design clauses; until then no file-mode duplicate oracle is locked.
+
+### R6.7 O-4, O-5, O-6
+
+- **O-4.** `key-repeated-binders-distinct` stays excluded; nothing in STATE, the contract or the design defines non-linear (repeated-binder) pattern semantics, and none is inferred from Python's duplicate-parameter handling.
+- **O-5.** `own-explicit-open-unchanged` is replaced by **`own-explicit-open-alias-unchanged`**: `open f(x) = x` / `a = f` / `a(x, y) = x + y`, category `error`, `requires: [open_functions]`. Observed: stdout empty, exit 1, stderr exactly `Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace` + newline (the same observation the independent review reported). The previous program (`open f(0)=1; g(x)=x; f(n)=n`) triggers `open-function-redeclaration`, a different rule. Placement: the R20 contract requires such diagnostics to name the open interface/view and to be pinned as CLI text, so the case is **shared**; C++ accepts the program when it is extended with a trailing expression (CPP-D2), and is `UNSUPPORTED` as specified.
+- **O-6.** The 13 `L` rows are **11 error observations and 2 successful REPL observations**. The two REPL rows (`open-persistent-env`, `main-repl-never-selects`) are host-local (HL-15, HL-20) because REPL echoes host function representations. The 11 error rows, with source, category, expected text and status in the test plan §R6: `key-same-binary64-dup`, `key-spelling-dup`, `key-alpha-equivalent-dup`, `key-guard-alpha-dup`, `disp-duplicate-pattern-header` (renderer text observed on the explicit-open twin; byte-locked at RED), `disp-no-matching-function-new-group` (twin-observed), `main-explicit-call-miss` (twin-observed), and the ownership family `own-local-alias-rejected`, `own-local-alias-pattern-clause`, `own-local-alias-varargs`, `own-imported-alias-rejected` (**candidate text only**: the current runtime cannot emit the new category, so no "observation" is claimed; the texts are the pre-flight D3 proposals and need approval, R6-D8). Conventions: eval/error stdout/stderr are compared exactly and end in `\n`; CLI stdout/stderr are normalized by the runner (CRLF → LF, trailing newlines stripped); source locations are `<command>:N` in shared oracles (N = 1-based line in the submitted source); no file path appears in any shared oracle.
+
+### R6.8 G1 — corrected (recorded, **not approved, not implemented**)
+
+Recommended conservative invariant (unchanged): the existing CLI entry selector invokes `main` automatically only when the **whole** function group contains legacy identifier-header records with no two records sharing a required-arity key; otherwise it silently keeps the source-result fallback without executing any record, matcher, guard or body and without a new diagnostic. Eligible groups keep `main/1` → `main/0` → source-result behavior; explicit calls dispatch normally. Shape SC-MAIN-3 has **two declaration orders**, so there are **six** cases, not five (all `requires: [default_open_functions]`, file/command CLI shape, stdout `top` / `42` with no `main` output; programs proposed only — they cannot run before GREEN):
+
+`model-b-c-main-g1-mixed-main0-plus-pattern`, `model-b-c-main-g1-mixed-main1-plus-pattern`, `model-b-c-main-g1-main1-plus-pattern-arity1-legacy-first`, `model-b-c-main-g1-main1-plus-pattern-arity1-pattern-first`, `model-b-c-main-g1-fixed-plus-rest-same-minimum`, `model-b-c-main-g1-legacy-rest-plus-pattern-arity1`.
+
+If approved: N becomes 122; in-process GREEN 1023; external GREEN 1005 pass + 18 unsupported. They do not change the RED set. G1 stays a before-GREEN decision; #1271/#1272 are untouched.
+
+### R6.9 Outstanding blockers after revision 6
+
+1. R6-D1…R6-D9, R6-D11 (register above), then independent verification at the new exact head.
+2. A separate TEST-ONLY RED authorization naming exact ids and expected outcomes (R6-D13); intentional RED failures must be recorded per id without weakening any guard.
+3. Filing CPP-D1…CPP-D4 and fixing CPP-D1 (and the R20 differences, if their cases stay shared) before the final head can merge.
+4. G1 before GREEN.
+
+### R6.10 Validation (revision 6; exec unless noted)
+
+Run in a clean worktree of the revision-6 tree with `PYTHONPATH=<worktree>:<worktree>/src` and the repository `.venv`:
+
+| Check | Result |
+| --- | --- |
+| `pytest -p no:cacheprovider -q tests/doc -n 4` | 397 passed, 35 skipped |
+| `pytest -q tests/doc/test_semantic_doc_sync.py tests/doc/test_state_anchors_and_registry_sync.py tests/doc/test_portability_contract_sync.py` | 244 passed, 34 skipped |
+| `python tools/validate_llm_instructions.py` | LLM instruction validation passed |
+| `python -m mkdocs build --strict` | exit 0 |
+| `python tools/gen_mcp_language_profile.py --check` | exit 0 |
+| `pytest -q tests/unit/test_python_protocol_adapter_c0_capability_staging_1269.py tests/unit/test_host_parity_gate.py` (unchanged tests, baseline sanity) | 39 passed |
+| `git diff --check` | clean |
+
+Evidence behind the inventory (not committed; reproducible with the repository's own helpers): every shared source in the test plan §R6 was sent to the Python protocol adapter with the capability gate bypassed to record the baseline, every explicit-open twin was run the same way, and every applicable source was sent to the pinned C++ adapter through `execute_spec_via_host`-equivalent code. Consistency checks that passed: all 43 guards produce their expected value today; all 73 non-guard rows (1 tripwire + 72 gated) differ from it today; every twin-derived expected value equals the twin's output. **Limitations:** no RED YAML exists, so GA-13…GA-23 are plans, not results; the 72 gated rows' C++ status is inferred; the full test suite, the full external runs, the loopback partition and the workflows were not re-run for this documentation-only change (revision-5 baselines stand: in-process 901/901, external 883 pass + 18 unsupported); `genia-cpp` GitHub issues could not be searched from this session, so CPP-D1…CPP-D4 are candidate defects, not filed issues.
+
+---
+
+## 0. What was refreshed and verified (revision 5; history)
 
 - `origin/main` is `79c073b`. The commits since the pre-flight base (`6d50a36`) are: C0 (#1273: `0e63dc1`, plus the maintainer's two documentation-gate repair commits `e9246ed`/`ac7c270`/`2ccd8c8`) and #1271/#1272 (application-lifecycle contract/design **drafts** and a pre-flight under `docs/design/*-DRAFT.md` and `.genia/process/`). **exec:** `git diff --stat 6d50a36 origin/main` touches no `src/`, `spec/`, `tools/spec_runner`, root authority file or Slice C document. No intervening change to the Slice C plan or implementation. #1271/#1272 stay out of Slice C.
 - **C0 mechanism verified on merged `main` (read):** `hosts/python/protocol_adapter.py` defines `_VOCABULARY_ONLY_CAPABILITIES: frozenset[str] = frozenset()`; `_python_claimed_capabilities` raises `ValueError` for names outside `known_capabilities()` and reports staged names `unsupported` ahead of the `partial`/`supported` branches. The 11 C0 tests (`tests/unit/test_python_protocol_adapter_c0_capability_staging_1269.py`) pass (exec, §2.2). The independent C0 review (#1273 `6333124626`) is PASS; the integration owner accepted and merged.
@@ -38,7 +294,7 @@ Implemented behavior = what `GENIA_STATE.md` records on `main`. Approved future 
 
 ---
 
-## 2. R1 — RED/GREEN execution matrix
+## 2. R1 — RED/GREEN execution matrix **[counts and workflow rows superseded by §R6.3]**
 
 ### 2.1 Observed baselines (exec; `main@79c073b`, clean, `.venv` from `uv sync`)
 
@@ -110,7 +366,7 @@ This confirms, by execution, the +1 `unsupported` / +1 `failed` arithmetic that 
 
 ---
 
-## 3. R2 — exact RED harness and case set
+## 3. R2 — exact RED harness and case set **[inventory superseded by the test plan §R6; harness design retained]**
 
 ### 3.1 Harness specification (design only; not implemented here)
 
@@ -378,7 +634,7 @@ Stop rule (unchanged): if writing any A/L case needs a semantic choice, stop and
 
 ---
 
-## 4. R3 — GREEN anti-false-positive gate
+## 4. R3 — GREEN anti-false-positive gate **[extended by §R6.4]**
 
 Required for GREEN acceptance; every item is an automated assertion or a recorded command unless marked *checklist*.
 
@@ -411,7 +667,7 @@ The manifest edit and the override edit must be in the **same commit**: manifest
 
 ---
 
-## 5. R4 — diagnostic-path compatibility (directed disposition applied)
+## 5. R4 — diagnostic-path compatibility (directed disposition applied) **[§5.5 amendment text now drafted in §R6.6]**
 
 **Disposition (directed):** preserve the existing R20 duplicate-diagnostic renderer for pattern-clause duplicates, **including its established file-mode source-location format**. Apply stricter path redaction only to newly defined ownership / foreign-alias errors and specifically designated sanitized surfaces. No blanket ban on file paths across all new diagnostics.
 
@@ -454,7 +710,7 @@ The design (#1259) §3 says diagnostics "render canonical imported module names 
 
 ---
 
-## 6. R5 — manifest, documentation and phase-guard synchronization
+## 6. R5 — manifest, documentation and phase-guard synchronization **[§6.3 superseded by §R6.5]**
 
 ### 6.1 Manifest edit the RED phase must make (not made here)
 
@@ -494,7 +750,7 @@ The design (#1259) §3 says diagnostics "render canonical imported module names 
 
 ---
 
-## 7. G1 — recorded, **pending maintainer approval before GREEN** (not implemented, not approved)
+## 7. G1 — recorded, **pending maintainer approval before GREEN** (not implemented, not approved) **[reserved ids corrected in §R6.8]**
 
 **Proposed conservative invariant** (integration comment 6327837022 §4, Codex 6327597044 §3):
 
@@ -519,7 +775,7 @@ Two reading divergences G1 closes: (G) whole-group vs (S) legacy-only-index sele
 
 ---
 
-## 8. Unresolved items and corrections
+## 8. Unresolved items and corrections **[§8.1 superseded by the §R6.0 register]**
 
 ### 8.1 Open decisions for the integration owner (do not block this package; block RED authorization where marked)
 

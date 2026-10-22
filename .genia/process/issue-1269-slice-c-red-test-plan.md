@@ -1,6 +1,6 @@
-# #1269 / #1250 — Model B Slice C RED test plan, host plan and documentation plan (revision 5)
+# #1269 / #1250 — Model B Slice C RED test plan, host plan and documentation plan (revision 6)
 
-**Revision 5 (documentation only):** the exact case IDs, oracle statuses, harness specification, R1 command/CI matrix, R3 GREEN gate, R4 diagnostic disposition, R5 manifest/documentation sequence and the recorded-not-approved G1 are in `issue-1269-slice-c-red-authorization-package.md`, which supersedes the inventory below wherever they differ; corrections are listed in its §8.4. C0 is merged (PR #1273).
+**Revision 6 (documentation only):** the executable inventory is **§R6 at the end of this file** (116 shared cases with source, category, requirements, expected stdout/stderr/exit, baseline, oracle status and C++ row; host-local items HL-15…HL-24; reconciliation with the 127 ids below). Sections 2 and 3 below keep their rationale but are superseded wherever a row differs. **Revision 5 (documentation only):** the exact case IDs, oracle statuses, harness specification, R1 command/CI matrix, R3 GREEN gate, R4 diagnostic disposition, R5 manifest/documentation sequence and the recorded-not-approved G1 are in `issue-1269-slice-c-red-authorization-package.md`, which supersedes the inventory below wherever they differ; corrections are listed in its §8.4. C0 is merged (PR #1273).
 
 **Status: PLAN ONLY — no test, spec, manifest, adapter or production file is added by this document. RED is NO-GO** until the gate in `issue-1269-slice-c-preflight.md` §12 is cleared. Revision 4 (from head `abd10bdb`) applies Codex's verification (`6324998154`), the integration reconciliation (`6325204788`) and the coordination comment (`6326404613`): the temporary `main` compatibility boundary and stop conditions (new family **C-MAIN**), D8 mandatory arm-information retention with forward/reverse/terminal-miss/legacy-duplicate oracles, corrected C0 capability-evidence terminology, and the verified D3b consumer facts. D1, the numeric structural-key rule, D3, D5, D6, D7 and the D8 interpretation are not reopened; C1–C8 obligations and all R20 coverage are retained. D8 is **verified as a contract interpretation**, so the `PENDING D8 VERIFICATION` labels are retired. Literal strings for new diagnostics are RED oracles byte-characterized against the observed baseline before being locked (maintainer directive); none is locked by this plan. **A case that would need an unapproved choice is a stop condition (SC-*), never an invented expectation.**
 
@@ -278,3 +278,1661 @@ Banned certainty phrases are not used; examples carry classification; Python-onl
 ## 7. Process after GO
 
 C0 (reviewed) → RED commit + evidence note → GREEN → maintainability review (`docs/process/code-maintainability-review.md`, over the diff and call sites) → docs commit → independent skeptic audit → distillation → final-head CI (both loopback partitions) → maintainer merge. The temporary #1226 dogfooding observation applies to the eventual substantial task, not to this docs-only revision.
+
+---
+
+## R6. Revision-6 executable inventory (supersedes the id lists, sources and expectations in §2 and §3 above)
+
+**DOCUMENTATION ONLY. No YAML, harness, manifest, test or runtime file is created by this section. RED is NOT authorized.** The prose rationale in §1–§6 above (C1–C8, D1/D3/D3b/D5/D8 traceability, family descriptions, documentation plan) is retained; where a row in §2 or §3 differs from this section, this section governs. Decisions this section depends on are listed in the decision register of `issue-1269-slice-c-red-authorization-package.md` §R6.0 and are **PROPOSED**, not approved.
+
+### R6.A Legend and conventions
+
+- **Kind:** **G** guard — passes on `main@79c073b` today with its original applicability and must stay green; **R** ungated RED tripwire — fails today, no new capability; **RG** gated RED — fails today, `requires` includes `default_open_functions` (+ concern-specific capabilities). `RG*` rows are gated under the recommended O-1 Option C and ungated (keeping their other requirements) under Option A.
+- **Oracle:** *observed* — the expected value equals what the Python host printed for the program on `main@79c073b` (guards) or for the explicit-open **twin** of the same clauses (RED cases whose default-open behavior is by contract the same); *contract-derived* — no observable twin exists (noncontiguous clauses, typed numeric keys, header-frame rules) and the value follows the approved contract/design rule cited; *L* — renderer text observed on the twin, byte-locked at the RED baseline; *PROPOSED text* — the current runtime cannot emit it, so nothing is "observed"; the candidate text is the pre-flight D3 proposal and needs maintainer approval.
+- **Categories:** `eval` (final value printed with a trailing newline), `error` (stdout empty, exit 1, `Error: …` on stderr), `cli` (file / `-c` / `--test` through the CLI path; runner strips trailing newlines from both streams). Cases that print before failing are `eval`, not `error`. Source locations in shared oracles are `<command>:N` (N = 1-based line of the submitted source).
+- **One-shot constraint:** evaluation stops at the first failure, so no shared case observes state *after* a failure; effects before the failure are observed through stdout (`print`), not through `Ref` logs. Observations after a failure are host-local (HL-16…HL-19, HL-24).
+- **No new syntax or mechanism:** every source uses constructs implemented on `main@79c073b` (named patterns, `@doc`/`@category`/`@since` prefix annotations, inline docstrings `f(x) = "doc" body`, block bodies). Nothing is invented for exception capture.
+- **C++ column** is the pinned adapter `genia-cpp@44456baea06b4bb7bdf727e39939dd7150261ee6`: *PASS/FAIL/UNSUPPORTED (adapter)* were **executed** on the exact source shown; *UNSUPPORTED (existing capability gate)* is the runner's pre-invocation classification (observed for `immutable_bindings`, `multi_file_eval`, `doc_help`); *UNSUPPORTED (capability `default_open_functions` undeclared)* is **inferred** (the name is not in C++'s claims and does not exist in the manifest yet); `unsupported` is never PASS. "as specified" means the program ends in a declaration or uses a construct C++ lacks; some such programs execute and disagree when extended (see the ledger in the package §R6.2).
+- The `model-b-c-` prefix is part of every id; `.yaml` stem = id; sibling `.genia` files hold CLI file sources.
+
+### R6.B Inventory arithmetic (Option C recommended; inferred, not executed)
+
+| Family | N | G | R | RG |
+| --- | ---: | ---: | ---: | ---: |
+| open | 7 | 5 | 0 | 2 |
+| pat | 14 | 0 | 0 | 14 |
+| key | 16 | 0 | 0 | 16 |
+| disp | 12 | 5 | 1 | 6 |
+| hdr | 9 | 4 | 0 | 5 |
+| optim | 2 | 1 | 0 | 1 |
+| opt | 6 | 2 | 0 | 4 |
+| own | 13 | 7 | 0 | 6 |
+| d8 | 7 | 3 | 0 | 4 |
+| imm | 3 | 2 | 0 | 1 |
+| meta | 7 | 6 | 0 | 1 |
+| ann | 3 | 2 | 0 | 1 |
+| stage | 1 | 1 | 0 | 0 |
+| mode | 3 | 0 | 0 | 3 |
+| main | 13 | 5 | 0 | 8 |
+| **total** | **116** | **43** | **1** | **72** |
+
+(`RG` includes the four `RG*` ownership rows, which are `own-local-alias-rejected`, `own-local-alias-varargs`, `own-alias-annotation-not-evaluated`, `own-imported-alias-rejected`.) Totals, RED/GREEN projections and workflow behavior: package §R6.3.
+
+### R6.C Reconciliation with the revision-5 inventory (128 rows: 127 created + 1 blocked)
+
+| Disposition | Revision-5 ids | Revision 6 |
+| --- | --- | --- |
+| **Excluded (O-4)** | `key-repeated-binders-distinct` | not created |
+| **Moved to host-local (9, absent from the shared list)** | `open-persistent-env`, `own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable`, `own-imported-alias-owner-unchanged`, `ann-repl-recovery`, `mode-repl-failed-declaration-leaves-group`, `main-repl-never-selects`, `key-legacy-dup-id`, `key-rest-binders-legacy-duplicate` | HL-15…HL-22 |
+| **Moved to host-local after re-sourcing (5)** | `own-lambda-nonfunction-unchanged`, `own-builtin-nonfunction-unchanged`, `d8-legacy-identical-header-dup`, `ann-old-metadata-retained`, `ann-installed-clause-visible-via-alias` | HL-18, HL-21, HL-22 |
+| **Replaced** | `key-named-matcher` → `key-named-matcher-distinct`, `key-named-matcher-same-dup`; `key-quote-unquote` → `key-quote-names-are-data` (active-unquote half open); `mode-file-command-import-equivalence` → `mode-file-pattern-program`, `mode-command-pattern-program`, `mode-import-pattern-program`; `own-explicit-open-unchanged` → `own-explicit-open-alias-unchanged` | counted in the 116 |
+| **Unchanged ids** | all others | 116 − 7 replacement ids = 109 ids carried over unchanged |
+
+127 − 9 − 5 + 1 + 2 = **116**. Source corrections made while pinning programs: `optim-collection-recursion` uses `0` instead of `nil` (orthogonal to the optimizer; C++ does not recognise `nil`, and the replacement lets the optimizer property be observed on C++); `meta-inline-doc-*` use the real inline-docstring syntax (`f(x) = "doc" body`), because the revision-5 programs never produced a documentation string; `hdr-guard-evaluated-once`, `hdr-guard-order`, `key-no-effects`, `own-alias-annotation-not-evaluated` observe effects with `print` instead of a `Ref` log; `key-named-matcher*`, `pat-named-matcher` use `pattern Name(v) = some(v)` per STATE.
+
+### R6.D Shared inventory — 116 cases
+
+##### `model-b-c-open-noncontiguous-arities`
+- category `eval` · ungated guard · requires `(none)` · trace C-OPEN, contract 2.2
+- source:
+  ```
+  f(x) = x
+  g(y) = y
+  f(x, y) = x + y
+  [f(1), f(1, 2)]
+  ```
+- expected: stdout="[1, 3]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[1, 3]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-open-alias-sees-later-arity`
+- category `eval` · ungated guard · requires `(none)` · trace contract 2.2
+- source:
+  ```
+  f(x) = x
+  a = f
+  z = 0
+  f(x, y) = x + y
+  a(1, 2)
+  ```
+- expected: stdout="3\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="3\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-open-immutable-alias-stays-live`
+- category `eval` · ungated guard · requires `immutable_bindings` · trace Slice B interaction
+- source:
+  ```
+  f(x) = x
+  a =: f
+  f(x, y) = x + y
+  a(1, 2)
+  ```
+- expected: stdout="3\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="3\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: immutable_bindings)
+
+##### `model-b-c-open-call-before-later-clause`
+- category `error` · ungated guard · requires `(none)` · trace contract 2.2 (call before later arity)
+- source:
+  ```
+  f(x) = x
+  f(1, 2)
+  ```
+- expected: stdout="" stderr="Error: No matching function: f/2. Available: f/1\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: No matching function: f/2. Available: f/1\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-open-pattern-after-plain`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT first match; D3
+- source:
+  ```
+  f(x) = x
+  f(0) = 9
+  [f(0), f(1)]
+  ```
+- expected: stdout="[0, 1]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-open-noncontiguous-pattern`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace contract 2.2 noncontiguous accumulation
+- source:
+  ```
+  f(0) = "a"
+  g(y) = y
+  print(f(0))
+  f(1) = "b"
+  [f(0), f(1)]
+  ```
+- expected: stdout="a\n[\"a\", \"b\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: explicit-open twin is invalid by design (open requires contiguous clauses), so the oracle is contract-derived
+
+##### `model-b-c-open-lambda-factory-distinct`
+- category `eval` · ungated guard · requires `(none)` · trace contract 2.2 lexical factories
+- source:
+  ```
+  mk(k) {
+    g = (x) -> x + k
+    g
+  }
+  a = mk(1)
+  b = mk(2)
+  [a(1), b(1), a == a, a == b]
+  ```
+- expected: stdout="[2, 3, true, false]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[2, 3, true, false]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-pat-literal-base-case`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  fact(0) = 1
+  fact(n) = n * fact(n - 1)
+  fact(5)
+  ```
+- expected: stdout="120\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-guard-selects`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f(x) ? x > 0 = "pos"
+  f(x) = "other"
+  [f(1), f(-1)]
+  ```
+- expected: stdout="[\"pos\", \"other\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-guard-sees-header-binding`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f([a, b]) ? a < b = a + b
+  f([a, b]) = a * b
+  [f([1, 2]), f([3, 2])]
+  ```
+- expected: stdout="[3, 6]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-match-local-shadows-outer`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  v = 99
+  f([v]) = v
+  f([1])
+  ```
+- expected: stdout="1\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-list-rest`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f([x, ..xs]) = xs
+  f([1, 2, 3])
+  ```
+- expected: stdout="[2, 3]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-map`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f({key: x}) = x
+  f({key: 5})
+  ```
+- expected: stdout="5\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-some`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f(some(x)) = x
+  f(some(3))
+  ```
+- expected: stdout="3\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-err`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f(err(r, c)) = r
+  f(err("bad", "ctx"))
+  ```
+- expected: stdout="\"bad\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-wildcard`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f(_) = 1
+  f(7)
+  ```
+- expected: stdout="1\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: matches
+
+##### `model-b-c-pat-first-match-wins`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f(x) = 1
+  f(0) = 2
+  f(0)
+  ```
+- expected: stdout="1\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-fixed-miss-no-varargs-fallthrough`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D1/D3 strata
+- source:
+  ```
+  f(0) = 1
+  f(n, ..r) = 2
+  f(5)
+  ```
+- expected: stdout="" stderr="Error: No matching case for function f/1 with arguments [5]\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-fixed-miss-two-args-varargs`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f(0) = 1
+  f(n, ..r) = 2
+  f(9, 8)
+  ```
+- expected: stdout="2\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-pat-named-matcher`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT
+- source:
+  ```
+  pattern Id(v) = some(v)
+  f(Id(x)) = x
+  f(3)
+  ```
+- expected: stdout="3\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: named-pattern syntax per STATE named reusable patterns
+
+##### `model-b-c-pat-string-body-is-body`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- source:
+  ```
+  f("a") = "doc-like"
+  [f("a"), doc("f")]
+  ```
+- expected: stdout="[\"doc-like\", none(\"missing-doc\", {name: \"f\"})]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: doc() of an undocumented pattern group is not derivable from any authority; observed on open twin
+
+##### `model-b-c-key-true-vs-one`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 typed keys (pre-flight 2.2)
+- source:
+  ```
+  f(true) = 1
+  f(1) = 2
+  [f(true), f(1)]
+  ```
+- expected: stdout="[1, 2]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-one-vs-one-point-zero`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 typed keys; runtime numeric equality
+- source:
+  ```
+  f(1) = 10
+  f(1.0) = 20
+  [f(1), f(1.0)]
+  ```
+- expected: stdout="[10, 10]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-same-binary64-dup`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 duplicate; R20 renderer
+- source:
+  ```
+  f(1.0) = 1
+  f(1.00000000000000001) = 2
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-spelling-dup`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- source:
+  ```
+  f(0.1) = 1
+  f(0.10) = 2
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-alpha-equivalent-dup`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- source:
+  ```
+  f([a, b]) = 1
+  f([c, d]) = 2
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-guard-alpha-dup`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- source:
+  ```
+  f(x) ? x > 0 = 1
+  f(y) ? y > 0 = 2
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-guard-differs-ok`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- source:
+  ```
+  f(x) ? x > 0 = 1
+  f(x) ? x < 0 = 2
+  [f(1), f(-1)]
+  ```
+- expected: stdout="[1, 2]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-free-name-syntactic`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 free names are syntactic
+- source:
+  ```
+  limit = 1
+  cap = 1
+  f(x) ? x > limit = "limit"
+  f(x) ? x > cap = "cap"
+  f(5)
+  ```
+- expected: stdout="\"limit\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-lambda-shadow-dup`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 alpha normalization
+- source:
+  ```
+  f(x) ? ((a) -> a)(x) > 0 = 1
+  f(y) ? ((b) -> b)(y) > 0 = 2
+  ```
+- expected: stdout="<open function f>\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-lambda-shadow-outer-slot-distinct`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 nested-shadow row of pre-flight 2.2 table
+- source:
+  ```
+  f(x) ? ((x) -> x)(1) > 0 = 1
+  f(x) ? x > 0 = 2
+  f(5)
+  ```
+- expected: stdout="1\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: both clauses must install (no duplicate error); selected clause is the first
+
+##### `model-b-c-key-quote-names-are-data`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 quoted names are data
+- source:
+  ```
+  f(x) ? x == quote(p) = "p"
+  f(x) ? x == quote(q) = "q"
+  [f(quote(p)), f(quote(q))]
+  ```
+- expected: stdout="[\"p\", \"q\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: replaces key-quote-unquote (quoted half only); active-unquote half is PENDING: no pinned guard-position unquote program, see decision register
+
+##### `model-b-c-key-named-matcher-distinct`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 distinct matcher references
+- source:
+  ```
+  pattern P(v) = some(v)
+  pattern Q(v) = some(v)
+  f(P(x)) = "p"
+  f(Q(x)) = "q"
+  f(1)
+  ```
+- expected: stdout="\"p\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-key-named-matcher-same-dup`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 same matcher reference duplicates
+- source:
+  ```
+  pattern P(v) = some(v)
+  f(P(x)) = 1
+  f(P(y)) = 2
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:2, duplicate at <command>:3)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: NEW id: splits the former key-named-matcher aggregate
+
+##### `model-b-c-key-no-effects`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 no effects at key time
+- source:
+  ```
+  trace() = { print("effect"); true }
+  f(x) ? trace() = { print("body"); 1 }
+  f(y) ? trace() = { print("body2"); 2 }
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:2, duplicate at <command>:3)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: stdout must stay empty: replaces the Ref log (one-shot eval stops at the first failure)
+
+##### `model-b-c-key-r20-delta-true-one`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions, open_functions` · trace D3; approved R20 acceptance change
+- source:
+  ```
+  open f(true) = 1
+  f(1) = 2
+  [f(true), f(1)]
+  ```
+- expected: stdout="[1, 2]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: DIFFERS ("[1, 1]\n")
+
+##### `model-b-c-key-r20-delta-one-float`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions, open_functions` · trace D3; approved R20 acceptance change
+- source:
+  ```
+  open f(1) = 1
+  f(1.0) = 2
+  f(1.0)
+  ```
+- expected: stdout="1\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: matches
+
+##### `model-b-c-disp-p5-varargs-minima-ambiguity`
+- category `error` · ungated RED tripwire (P5) · requires `(none)` · trace D1; RULES.md:205
+- source:
+  ```
+  f(a, ..r) = "min1"
+  f(a, b, ..s) = "min2"
+  f(1, 2)
+  ```
+- expected: stdout="" stderr="Error: Ambiguous function resolution: f/2. Matching varargs: f/1+, f/2+\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="\"min2\"\n" stderr="" exit=0
+- RED: fails (expected RED) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+- note: ungated tripwire
+
+##### `model-b-c-disp-p5-migration-fixed-clause`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D1 migration fix
+- source:
+  ```
+  f(a, ..r) = "min1"
+  f(a, b, ..s) = "min2"
+  f(a, b) = "exact2"
+  f(1, 2)
+  ```
+- expected: stdout="\"exact2\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/2\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-disp-p5-migration-drop-lower`
+- category `eval` · ungated guard · requires `(none)` · trace D1 migration
+- source:
+  ```
+  f(a, b, ..s) = "min2"
+  f(1, 2)
+  ```
+- expected: stdout="\"min2\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="\"min2\"\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-disp-p7-same-arity-ambiguity`
+- category `error` · ungated guard · requires `(none)` · trace D1 unchanged P7
+- source:
+  ```
+  f(a, ..r) = "min1"
+  f(a, b, ..s) = "min2"
+  f(1, 2, 3)
+  ```
+- expected: stdout="" stderr="Error: Ambiguous function resolution: f/3. Matching varargs: f/1+, f/2+\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Ambiguous function resolution: f/3. Matching varargs: f/1+, f/2+\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-disp-fixed-over-varargs`
+- category `eval` · ungated guard · requires `(none)` · trace RULES.md:204
+- source:
+  ```
+  pick(a, b) = "exact"
+  pick(a, ..rest) = "varargs"
+  [pick(1, 2), pick(1, 2, 3)]
+  ```
+- expected: stdout="[\"exact\", \"varargs\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[\"exact\", \"varargs\"]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-disp-fixed-and-varargs-same-arity`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D1 P4
+- source:
+  ```
+  f(a) = 1
+  f(a, ..r) = 2
+  [f(1), f(1, 2)]
+  ```
+- expected: stdout="[1, 2]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-disp-no-matching-function`
+- category `error` · ungated guard · requires `(none)` · trace P8 unchanged
+- source:
+  ```
+  f(a) = 1
+  f(1, 2)
+  ```
+- expected: stdout="" stderr="Error: No matching function: f/2. Available: f/1\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: No matching function: f/2. Available: f/1\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-disp-no-matching-function-new-group`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D1/D3 renderer reuse
+- source:
+  ```
+  f(x) = 1
+  f(x, y) = 2
+  f(x, ..r) = 3
+  f()
+  ```
+- expected: stdout="" stderr="Error: No matching function: f/0. Available: f/1, f/2, f/1+\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-disp-duplicate-pattern-header`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- source:
+  ```
+  f([a, b]) = 1
+  f([c, d]) = 2
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-disp-case-miss-identity`
+- category `error` · ungated guard · requires `(none)` · trace P20 unchanged
+- source:
+  ```
+  f(x) = (0 -> x)
+  f(1)
+  ```
+- expected: stdout="" stderr="Error: No matching case for function f/1 with arguments [1]\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: No matching case for function f/1 with arguments [1]\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-disp-case-miss-pattern-group`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 case-miss class
+- source:
+  ```
+  f(0) = 1
+  f(5)
+  ```
+- expected: stdout="" stderr="Error: No matching case for function f/1 with arguments [5]\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-disp-no-clause-ambiguity-single-unit`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 single-unit first match
+- source:
+  ```
+  f([x, ..r]) = "list"
+  f(x) = "any"
+  [f([1]), f(2)]
+  ```
+- expected: stdout="[\"list\", \"any\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-hdr-block-prefix-once`
+- category `eval` · ungated guard · requires `(none)` · trace C1 P19
+- source:
+  ```
+  f(x) { print("prefix"); k = x + 1; n ? n < k -> x | _ -> 0 }
+  f(2)
+  ```
+- expected: stdout="prefix\n2\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="prefix\n2\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-hdr-block-prefix-miss`
+- category `eval` · ungated guard · requires `(none)` · trace C1
+- source:
+  ```
+  f(x) { print("prefix"); k = x + 1; n ? n < 0 -> x }
+  f(2)
+  ```
+- expected: stdout="prefix\n" stderr="Error: No matching case for function f/1 with arguments [2]\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="prefix\n" stderr="Error: No matching case for function f/1 with arguments [2]\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-hdr-block-prefix-multi-call`
+- category `eval` · ungated guard · requires `(none)` · trace C1
+- source:
+  ```
+  f(x) { print("prefix"); k = x + 1; n ? n < k -> x | _ -> 0 }
+  [f(1), f(2)]
+  ```
+- expected: stdout="prefix\nprefix\n[1, 2]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="prefix\nprefix\n[1, 2]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-hdr-grouped-body-captures-header`
+- category `eval` · ungated guard · requires `(none)` · trace C1; contract 2.2 header captures
+- source:
+  ```
+  f(x) = (0) -> x | (n) -> n + x
+  [f(0), f(5)]
+  ```
+- expected: stdout="[0, 10]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[0, 10]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **FAIL** ["", "Error: Undefined name: x\n", 1]
+
+##### `model-b-c-hdr-guard-evaluated-once`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1 once-only guard
+- source:
+  ```
+  check(x) = { print("guard"); true }
+  f(x) ? check(x) = x
+  f(7)
+  ```
+- expected: stdout="guard\n7\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: print log replaces the Ref counter; no refs capability needed
+
+##### `model-b-c-hdr-guard-order`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1 source-order guards
+- source:
+  ```
+  t(s, r) = { print(s); r }
+  f(x) ? t("a", false) = 1
+  f(x) ? t("b", true) = 2
+  f(x) ? t("c", true) = 3
+  f(0)
+  ```
+- expected: stdout="a\nb\n2\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-hdr-guard-error`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1/C6 guard error propagates
+- source:
+  ```
+  t(s, r) = { print(s); r }
+  f(x) ? t("a", false) = 1
+  f(x) ? undefined_guard(x) = 2
+  f(x) ? t("c", true) = 3
+  f(0)
+  ```
+- expected: stdout="a\n" stderr="Error: Undefined name: undefined_guard\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: stdout `a` then error; `c` never printed; one-shot so no partial-binding observation (host-local HL)
+
+##### `model-b-c-hdr-matcher-outcome`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1 matcher err is not a miss
+- source:
+  ```
+  pattern M(v) = err("bad", v)
+  f(M(x)) = 1
+  f(y) = 2
+  f(3)
+  ```
+- expected: stdout="err(\"bad\", 3)\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-hdr-recursion-tco`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1; twin of r20-open-ordinary-mutual-tail-call
+- source:
+  ```
+  count(0) = "done"
+  count(n) = step(n - 1)
+  step(n) = count(n)
+  count(20000)
+  ```
+- expected: stdout="\"done\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-optim-collection-recursion`
+- category `eval` · ungated guard · requires `(none)` · trace C2
+- source:
+  ```
+  pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)
+  pick(1, [5, 6])
+  ```
+- expected: stdout="6\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="6\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **PASS**
+- note: `nil` of the revision-5 plan source replaced by `0`: orthogonal to the optimizer, and C++ does not recognise `nil` (C++ ledger)
+
+##### `model-b-c-optim-late-declaration`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C2/D8 optimized declaration then later pattern clause of another arity
+- source:
+  ```
+  pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)
+  pick(0) = "zero"
+  [pick(1, [5, 6]), pick(0)]
+  ```
+- expected: stdout="[6, \"zero\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-opt-none-pattern-in-group-dispatches`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-OPT; r20-option twin
+- source:
+  ```
+  f(none) = "was-none"
+  f(v) = v
+  [f(none), f(3)]
+  ```
+- expected: stdout="[\"was-none\", 3]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-opt-other-arity-clause-not-aware`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-OPT; r20-option twin
+- source:
+  ```
+  f(0) = "zero"
+  f(a, b) = (some(y), z) -> y
+  f(x) = "ran"
+  [f(none) == none]
+  ```
+- expected: stdout="[true]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-opt-delegation-to-aware-callee`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-OPT; r20-option twin
+- source:
+  ```
+  f(1) = "one"
+  f(x) = unwrap_or(0, x)
+  [f(none)]
+  ```
+- expected: stdout="[0]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-opt-err-pipeline-value-short-circuits`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-OPT; r20-option twin
+- source:
+  ```
+  f(1) = "one"
+  f(x) = x + 1
+  [err("e") |> f]
+  ```
+- expected: stdout="[err(\"e\")]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-opt-plain-identity-none`
+- category `eval` · ungated guard · requires `(none)` · trace P9
+- source:
+  ```
+  f(x) = x
+  f(none("r"))
+  ```
+- expected: stdout="none(\"r\")\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="none(\"r\")\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **PASS**
+
+##### `model-b-c-opt-pipe-lift`
+- category `eval` · ungated guard · requires `(none)` · trace existing pipeline lift
+- source:
+  ```
+  inc(x) = x + 1
+  some(1) |> inc
+  ```
+- expected: stdout="some(2)\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="some(2)\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+- note: oracle observed: `some(2)`
+
+##### `model-b-c-own-alias-call-live`
+- category `eval` · ungated guard · requires `(none)` · trace P1
+- source:
+  ```
+  f(x) = x
+  a = f
+  f(x, y) = x + y
+  a(1, 2)
+  ```
+- expected: stdout="3\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="3\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-own-immutable-alias-live`
+- category `eval` · ungated guard · requires `immutable_bindings` · trace Slice B
+- source:
+  ```
+  f(x) = x
+  a =: f
+  f(x, y) = x + y
+  a(1, 2)
+  ```
+- expected: stdout="3\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="3\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: immutable_bindings)
+
+##### `model-b-c-own-local-alias-rejected`
+- category `error` · new-capability-gated under Option C (recommended); ungated (keeping other requirements) under Option A · requires `default_open_functions` · trace D5 (P10)
+- source:
+  ```
+  f(x) = x
+  a = f
+  a(x, y) = x + y
+  ```
+- expected: stdout="" stderr="Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="<function a/2>\n" stderr="" exit=0
+- RED: fails (expected RED) · oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: ungated under O-1 Option A; gated under Option C (recommended)
+
+##### `model-b-c-own-local-alias-pattern-clause`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D5; pattern header is new syntax
+- source:
+  ```
+  f(x) = x
+  a = f
+  a(0, y) = y
+  ```
+- expected: stdout="" stderr="Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-own-local-alias-varargs`
+- category `error` · new-capability-gated under Option C (recommended); ungated (keeping other requirements) under Option A · requires `default_open_functions` · trace D5; ownership check precedes the legacy duplicate check
+- source:
+  ```
+  f(x) = x
+  a = f
+  a(x, ..r) = x
+  ```
+- expected: stdout="" stderr="Error: function-declaration-not-owner: cannot declare a/1+: 'a' refers to function 'f' declared by another binding in this scope\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: a/1\n" exit=1
+- RED: fails (expected RED) · oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: ungated under O-1 Option A; gated under Option C
+
+##### `model-b-c-own-alias-annotation-not-evaluated`
+- category `error` · new-capability-gated under Option C (recommended); ungated (keeping other requirements) under Option A · requires `default_open_functions` · trace D5/C6 rejection precedes annotation evaluation
+- source:
+  ```
+  f(x) = x
+  a = f
+  @doc (print("annotation-ran"))
+  a(x, y) = x + y
+  ```
+- expected: stdout="" stderr="Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="annotation-ran\n<function a/2>\n" stderr="" exit=0
+- RED: fails (expected RED) · oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: stdout must be empty; replaces the Ref log. ungated under Option A
+
+##### `model-b-c-own-imported-alias-rejected`
+- category `error` · new-capability-gated under Option C (recommended); ungated (keeping other requirements) under Option A · requires `default_open_functions, multi_file_eval` · trace D5 (P11)
+- modules (entry `main.genia`):
+  ```
+  // lib.genia
+  g(x) = x
+  ```
+  ```
+  // main.genia
+  import lib
+  h = lib.g
+  h(x, y) = x + y
+  ```
+- expected: stdout="" stderr="Error: function-declaration-not-owner: cannot declare h/2: 'h' refers to function 'g' owned by module 'lib'\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="<function h/2>\n" stderr="" exit=0
+- RED: fails (expected RED) · oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: ungated (keeping multi_file_eval) under Option A
+
+##### `model-b-c-own-explicit-open-alias-unchanged`
+- category `error` · ungated guard · requires `open_functions` · trace D5; R20 contract (view/interface named, not 'non-function')
+- source:
+  ```
+  open f(x) = x
+  a = f
+  a(x, y) = x + y
+  ```
+- expected: stdout="" stderr="Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+- note: O-5 replacement of own-explicit-open-unchanged (same slot)
+
+##### `model-b-c-own-import-inert`
+- category `eval` · ungated guard · requires `multi_file_eval` · trace D5 import never alters dispatch
+- modules (entry `main.genia`):
+  ```
+  // lib.genia
+  g(x) = x
+  ```
+  ```
+  // main.genia
+  import lib
+  g(x, y) = x + y
+  [g(1, 2), lib.g(1)]
+  ```
+- expected: stdout="[3, 1]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[3, 1]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: multi_file_eval)
+
+##### `model-b-c-own-extend-ordinary-rejected`
+- category `error` · ungated guard · requires `multi_file_eval, open_functions` · trace D5
+- modules (entry `main.genia`):
+  ```
+  // base.genia
+  f(x) = x
+  ```
+  ```
+  // main.genia
+  import base
+  extend base.f(0) = 0
+  ```
+- expected: stdout="" stderr="Error: open-function-target-not-open: 'base.f' is not an open function interface\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-target-not-open: 'base.f' is not an open function interface\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: multi_file_eval)
+
+##### `model-b-c-own-use-ordinary-base-unchanged`
+- category `error` · ungated guard · requires `multi_file_eval, open_functions` · trace D5
+- modules (entry `main.genia`):
+  ```
+  // base.genia
+  f(x) = x
+  ```
+  ```
+  // ext.genia
+  import base
+  value = 1
+  ```
+  ```
+  // main.genia
+  import base
+  import ext
+  use f from base with ext
+  ```
+- expected: stdout="" stderr="Error: open-function-target-not-open: 'base.f' is not an open function interface\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-target-not-open: 'base.f' is not an open function interface\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: multi_file_eval)
+
+##### `model-b-c-own-two-modules-independent`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions, multi_file_eval` · trace D5 independent groups
+- modules (entry `main.genia`):
+  ```
+  // m1.genia
+  f(0) = "m1-zero"
+  f(n) = "m1-other"
+  ```
+  ```
+  // m2.genia
+  f(0) = "m2-zero"
+  f(n) = "m2-other"
+  ```
+  ```
+  // main.genia
+  import m1
+  import m2
+  [m1.f(0), m1.f(3), m2.f(0), m2.f(3)]
+  ```
+- expected: stdout="[\"m1-zero\", \"m1-other\", \"m2-zero\", \"m2-other\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-own-entry-prelude-name`
+- category `eval` · ungated guard · requires `(none)` · trace D2/P12 characterization
+- source:
+  ```
+  map(a, b, c) = "mine"
+  [map(1, 2, 3), map((x) -> x + 1, [1, 2])]
+  ```
+- expected: stdout="[\"mine\", [2, 3]]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[\"mine\", [2, 3]]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+- note: host-specific internals (write-through) are HL-5; this observable stays shared
+
+##### `model-b-c-d8-forward-collision`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D8
+- source:
+  ```
+  describe(x) = (0) -> "zero" | (n) -> "other"
+  describe(0) = "ZERO"
+  [describe(0), describe(7)]
+  ```
+- expected: stdout="[\"zero\", \"other\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-d8-reverse-collision`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D8
+- source:
+  ```
+  f(0) = "clause"
+  f(x) = (0) -> "arm" | (n) -> n
+  [f(0), f(5)]
+  ```
+- expected: stdout="[\"clause\", 5]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-d8-terminal-grouped-miss`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D8 terminal miss
+- source:
+  ```
+  f(x) = (0 -> x)
+  f(y) ? y > 5 = "later"
+  f(9)
+  ```
+- expected: stdout="" stderr="Error: No matching case for function f/1 with arguments [9]\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-d8-earlier-pattern-miss-continues`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D8 invariant 2
+- source:
+  ```
+  f(0) = "zero"
+  f(x) = (1) -> "one"
+  f(5)
+  ```
+- expected: stdout="" stderr="Error: No matching case for function f/1 with arguments [5]\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-d8-grouped-decl-one-key`
+- category `eval` · ungated guard · requires `(none)` · trace D8
+- source:
+  ```
+  f(a) = (0) -> "z" | (n) -> n + a
+  f(a, b) = a + b
+  [f(0), f(3), f(1, 2)]
+  ```
+- expected: stdout="[\"z\", 6, 3]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[\"z\", 6, 3]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-d8-prefix-and-capture`
+- category `eval` · ungated guard · requires `(none)` · trace D8/C1
+- source:
+  ```
+  f(x) { print("prefix"); k = x + 1; n ? n < k -> x | _ -> 0 }
+  g(a) = (0) -> a | (n) -> n + a
+  [f(1), g(0), g(2)]
+  ```
+- expected: stdout="prefix\n[1, 0, 4]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="prefix\n[1, 0, 4]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-d8-r20-flattening-unchanged`
+- category `error` · ungated guard · requires `open_functions` · trace D8 explicit-open unchanged
+- source:
+  ```
+  open f(x) = (0) -> 1 | (n) -> 2
+  f(0) = 3
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+- note: source chosen by the revision-6 author; the package gives only the outcome
+
+##### `model-b-c-imm-rebind-as-function`
+- category `error` · ungated guard · requires `immutable_bindings` · trace Slice B
+- source:
+  ```
+  x =: 1
+  x(a) = a
+  ```
+- expected: stdout="" stderr="Error: Cannot rebind immutable binding: x\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Cannot rebind immutable binding: x\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: immutable_bindings)
+
+##### `model-b-c-imm-rebind-as-pattern-function`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions, immutable_bindings` · trace Slice B x D3
+- source:
+  ```
+  x =: 1
+  x(0) = 1
+  ```
+- expected: stdout="" stderr="Error: Cannot rebind immutable binding: x\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-imm-declare-after-function`
+- category `error` · ungated guard · requires `immutable_bindings` · trace Slice B
+- source:
+  ```
+  f(a) = a
+  f =: 1
+  ```
+- expected: stdout="" stderr="Error: Cannot declare immutable binding f: name is already bound in this scope\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Cannot declare immutable binding f: name is already bound in this scope\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: immutable_bindings)
+
+##### `model-b-c-meta-binding-doc-merge`
+- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1
+- source:
+  ```
+  @doc "one"
+  @category "c1"
+  f(x) = x
+  @doc "two"
+  f(x, y) = x + y
+  [doc("f"), meta("f")]
+  ```
+- expected: stdout="[\"two\", {doc: \"two\", category: \"c1\"}]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[\"two\", {doc: \"two\", category: \"c1\"}]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-newer-key-overwrites`
+- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1
+- source:
+  ```
+  @doc "one"
+  f(x) = x
+  @doc "two"
+  f(x, y) = x + y
+  doc("f")
+  ```
+- expected: stdout="\"two\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="\"two\"\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-alias-no-copy`
+- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1
+- source:
+  ```
+  @doc "one"
+  f(x) = x
+  a = f
+  f(x, y) = x + y
+  [doc("a"), meta("a")]
+  ```
+- expected: stdout="[none(\"missing-doc\", {name: \"a\"}), {}]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[none(\"missing-doc\", {name: \"a\"}), {}]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-inline-doc-shared-via-alias`
+- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1 (inline doc syntax: `f(x) = "doc" body`)
+- source:
+  ```
+  f(x) = "d1" x
+  a = f
+  f(x, y) = "d1" x + y
+  [doc("f"), doc("a"), a(1, 2)]
+  ```
+- expected: stdout="[\"d1\", \"d1\", 3]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[\"d1\", \"d1\", 3]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-conflicting-inline-doc-before-install`
+- category `error` · ungated guard · requires `doc_help` · trace contract 5.1/5.2
+- source:
+  ```
+  f(x) = "d1" x
+  f(x, y) = "d2" x + y
+  ```
+- expected: stdout="" stderr="Error: Conflicting docstrings for function f: got 'd2', expected 'd1'\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Conflicting docstrings for function f: got 'd2', expected 'd1'\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-three-channel-trio`
+- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1 reviewer trio
+- source:
+  ```
+  @doc "canonical"
+  f(x) = "inline" x
+  @category "alias-category"
+  a = f
+  [doc("f"), doc("a"), meta("a")]
+  ```
+- expected: stdout="[\"canonical\", \"inline\", {category: \"alias-category\"}]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[\"canonical\", \"inline\", {category: \"alias-category\"}]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-pattern-clause-annotations`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions, doc_help` · trace contract 5.1; observed legacy twin `@doc "zero"\nf(x) = 1`
+- source:
+  ```
+  @doc "zero"
+  f(0) = 1
+  f(x) = x
+  doc("f")
+  ```
+- expected: stdout="\"zero\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: open twin may reject annotations (R20 restriction): then the oracle is CD from the legacy-clause behaviour
+
+##### `model-b-c-ann-later-annotation-suppressed`
+- category `error` · ungated guard · requires `doc_help` · trace contract 5.2 / C6
+- source:
+  ```
+  f(x) = x
+  @doc 7
+  @category (print("later"))
+  f(x, y) = x
+  ```
+- expected: stdout="" stderr="Error: @doc annotation expected a string, received int\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: @doc annotation expected a string, received int\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-ann-prior-effects-persist`
+- category `eval` · ungated guard · requires `doc_help` · trace contract 5.2 / C6
+- source:
+  ```
+  @since (print("first"))
+  @doc 7
+  f(x) = x
+  ```
+- expected: stdout="first\n" stderr="Error: @doc annotation expected a string, received int\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="first\n" stderr="Error: @doc annotation expected a string, received int\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-ann-pattern-clause-variants`
+- category `error` · gated by `default_open_functions` · requires `default_open_functions, doc_help` · trace contract 5.2 for pattern clauses
+- source:
+  ```
+  f(x) = x
+  @doc 7
+  f(0) = 1
+  ```
+- expected: stdout="" stderr="Error: @doc annotation expected a string, received int\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-stage-closed-rejected`
+- category `eval` · ungated guard · requires `(none)` · trace C8
+- source:
+  ```
+  print("before")
+  f(0) =: { print("child"); 0 }
+  ```
+- expected: stdout="before\n" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="before\n" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-mode-file-pattern-program`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MODE file mode
+- CLI file mode, argv `[]`; source:
+  ```
+  f(0) = "zero"
+  f(n) = "other"
+  print([f(0), f(1)])
+  ```
+- expected: stdout="[\"zero\", \"other\"]" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: stdout for cli is trailing-newline stripped by the runner
+
+##### `model-b-c-mode-command-pattern-program`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MODE -c mode
+- CLI `-c` command mode, argv `[]`; source:
+  ```
+  f(0) = "zero"
+  f(n) = "other"
+  print([f(0), f(1)])
+  ```
+- expected: stdout="[\"zero\", \"other\"]" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-mode-import-pattern-program`
+- category `eval` · gated by `default_open_functions` · requires `default_open_functions, multi_file_eval` · trace C-MODE import
+- modules (entry `main.genia`):
+  ```
+  // lib.genia
+  f(0) = "zero"
+  f(n) = "other"
+  ```
+  ```
+  // main.genia
+  import lib
+  [lib.f(0), lib.f(1)]
+  ```
+- expected: stdout="[\"zero\", \"other\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-main-legacy-main1-preferred`
+- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- CLI file mode, argv `[]`; source:
+  ```
+  main(args) = { print("main1"); 11 }
+  main() = { print("main0"); 10 }
+  print("top")
+  42
+  ```
+- expected: stdout="top\nmain1\n11" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="top\nmain1\n11" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-main-legacy-main0-fallback`
+- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- CLI file mode, argv `[]`; source:
+  ```
+  main() = { print("main0"); 10 }
+  print("top")
+  42
+  ```
+- expected: stdout="top\nmain0\n10" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="top\nmain0\n10" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-main-legacy-rest-main-selected`
+- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- CLI file mode, argv `[]`; source:
+  ```
+  main(a, ..r) = { print("mainrest"); 12 }
+  print("top")
+  42
+  ```
+- expected: stdout="top\nmainrest\n12" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="top\nmainrest\n12" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-main-no-qualifying`
+- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- CLI file mode, argv `[]`; source:
+  ```
+  main(a, b) = { print("main2"); 12 }
+  print("top")
+  42
+  ```
+- expected: stdout="top\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="top\n42" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-main-command-mode`
+- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- CLI `-c` command mode, argv `["x", "y"]`; source:
+  ```
+  main(a) = { print("cmdmain"); a }
+  print("top")
+  ```
+- expected: stdout="top\ncmdmain\n[\"x\", \"y\"]" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="top\ncmdmain\n[\"x\", \"y\"]" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+
+##### `model-b-c-main-pattern-not-selected`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- CLI file mode, argv `["--x"]`; source:
+  ```
+  print("top")
+  main(["--x"]) = { print("pattern-main"); 1 }
+  42
+  ```
+- expected: stdout="top\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="top" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-main-pattern-guard-not-evaluated`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- CLI file mode, argv `["a"]`; source:
+  ```
+  ping() = { print("guard-ran"); true }
+  main(args) ? ping() = { print("body"); 1 }
+  print("top")
+  42
+  ```
+- expected: stdout="top\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-main-wildcard-not-selected`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- CLI file mode, argv `[]`; source:
+  ```
+  main(_) = { print("wild"); 7 }
+  print("top")
+  42
+  ```
+- expected: stdout="top\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-main-multi-pattern-group-not-selected`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- CLI file mode, argv `["a"]`; source:
+  ```
+  main(["a"]) = { print("A"); 1 }
+  main(["b"]) = { print("B"); 2 }
+  print("top")
+  42
+  ```
+- expected: stdout="top\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-main-pattern-command-mode`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- CLI `-c` command mode, argv `["x", "y"]`; source:
+  ```
+  main(["x", "y"]) = { print("body"); 1 }
+  print("top")
+  42
+  ```
+- expected: stdout="top\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-main-explicit-call-dispatches`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- CLI file mode, argv `["--x"]`; source:
+  ```
+  main(["--x"]) = { print("pattern-main"); 1 }
+  print(main(["--x"]))
+  42
+  ```
+- expected: stdout="pattern-main\n1\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-main-explicit-call-miss`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- CLI file mode, argv `[]`; source:
+  ```
+  main(["--x"]) = 1
+  main(["--y"])
+  ```
+- expected: stdout="" stderr="Error: No matching case for function main/1 with arguments [[\"--y\"]]" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+
+##### `model-b-c-main-test-mode-unchanged`
+- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN rule 6
+- CLI `--test` file mode, argv `[]`; source:
+  ```
+  test("passes", () -> none)
+  main(["x"]) = { print("main-ran"); 0 }
+  ```
+- expected: stdout="total=1 passed=1 failed=0 errored=0\nPASS passes\ntotal=1 passed=1 failed=0 errored=0" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1
+- RED: fails (expected RED) · oracle: observed on legacy-`main` twin (same program with an identifier header)
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: oracle observed on the legacy-`main` twin (`main(args) = ...`) at RED baseline
+
+### R6.E Host-local inventory (HL-1…HL-14 unchanged from the package §3.4; HL-15…HL-24 new)
+
+Module docstrings must say they cover Python internals or Python-specific representation (AGENTS "Portable-behavior test placement"). Native Genia tests are an alternative where the behavior is Genia-facing but not yet portable.
+
+| ID | Subject | Moved case ids / purpose | Why not a shared case | Shared observable twin |
+| --- | --- | --- | --- | --- |
+| HL-15 | persistent REPL environment: group grows across submissions; `f(0, 5)` → `5` | `open-persistent-env` | needs successive submissions; the REPL echoes host function representations (observed `<function f/1>` and `GeniaFunctionGroup(name='f', …)`), which no authority specifies (`<function` appears in no root document) | `open-noncontiguous-arities`, `open-pattern-after-plain` |
+| HL-16 | Python `Env`: after the ownership rejection `f` and `a` are unchanged, `f(1, 2)` still has no arity-2 clause, and a later legitimate `f(x, y) = x + y` makes `a(1, 2)` = `3` | `own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable` | observation after a failure | `own-local-alias-rejected` |
+| HL-17 | Python module loader: after the foreign-alias rejection `lib.g(1, 2)` still reports no arity-2 clause and `lib.g(1)` → `1` | `own-imported-alias-owner-unchanged` | observation after a failure | `own-imported-alias-rejected` |
+| HL-18 | Python `Env`: after a failed `@doc 7` the earlier metadata is retained, the new clause is installed and visible through an earlier alias | `ann-old-metadata-retained`, `ann-installed-clause-visible-via-alias` | observation after a failure | `ann-later-annotation-suppressed`, `ann-prior-effects-persist` |
+| HL-19 | REPL recovery: a failed annotation or declaration leaves the session usable and the group unchanged except the installed clause. Framing: annotation and target in **one** submission (observed: `@doc 7; f(x, y) = x + y` raises `@doc annotation expected a string, received int` and installs `f/2`; a separate-line framing fails with a prefix-annotation error). `requires` n/a (host-local) | `ann-repl-recovery`, `mode-repl-failed-declaration-leaves-group` | REPL transcript echoes host values | one-shot error cases above |
+| HL-20 | REPL submission of `main() = …` shows no `main` output; plus HL-9 structural | `main-repl-never-selects` | transcript is a host representation | none |
+| HL-21 | legacy duplicate wording (`Duplicate function definition: f/1`, `describe/1`) after the refactor; existing `test_f2_p2_a_characterization.py` / `test_f2_p2_b_registration.py` stay unmodified | `key-legacy-dup-id`, `key-rest-binders-legacy-duplicate`, `d8-legacy-identical-header-dup` | wording appears in no root document or spec (R6-D3) | none |
+| HL-22 | declaration over a lambda / builtin binding keeps `Cannot define function g/2: name already bound to non-function value` | `own-lambda-nonfunction-unchanged`, `own-builtin-nonfunction-unchanged` | wording unspecified (R6-D3) | none |
+| HL-23 | migration companions (before/after) for every changed outcome of old syntax: P5, alias declaration, annotated alias declaration, imported-alias declaration, alias-varargs; the existing `test_function_resolution_precedence.py` expectations are updated at GREEN | O-1 rows 1–5 | records the documented break, independent of the applicability option | the shared RED cases |
+| HL-24 | guard error: no partial binding and no later guard evaluated after `hdr-guard-error`'s failure | post-state of `hdr-guard-error` | observation after a failure | `hdr-guard-error` (stdout/stderr part) |
+
+### R6.F Excluded, half-open and reserved items
+
+- `key-repeated-binders-distinct` — excluded (O-4); no approved non-linear-pattern semantics.
+- Active `unquote` half of the quote/unquote counterexample — no pinned guard-position program; only `key-quote-names-are-data` is included (R6-D9).
+- `model-b-c-main-g1-*` — six reserved ids (package §R6.8); none is created before G1 approval.
+- Stop conditions SC-MAIN-1…5 in C-MAIN remain stop conditions, not cases (six reserved ids are their GREEN-entry form).
+
+### R6.G Traceability retained
+
+C1 → `hdr-*`, `d8-prefix-and-capture`, `hdr-grouped-body-captures-header`; C2 → `optim-*`, HL-8; C3/C8 → package §R6.4–R6.5, `stage-closed-rejected`; C4 → `key-*`; C5 → `own-*`, HL-4, HL-10; C6 → `ann-*`, HL-3, HL-18, HL-24; C7 → `disp-p5-*`, HL-23. D1 → `disp-*`; D3 → `key-*`, `disp-duplicate-pattern-header`; D3b → HL-4 (route/HTTP/`@test`/lifecycle/introspection predicates asserted independently, never blanket rejection); D5 → `own-*`; D8 → `d8-*`, HL-8. Optimized output equality alone does not prove arm/provenance retention (HL-8 asserts retention).
