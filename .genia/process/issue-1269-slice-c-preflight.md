@@ -1,7 +1,7 @@
-# #1269 / #1250 — Model B Slice C pre-flight, revision 4 (default-open ordinary functions and pattern/guard-headed functions)
+# #1269 / #1250 — Model B Slice C pre-flight, revision 5 (default-open ordinary functions and pattern/guard-headed functions)
 
 **Status: PRE-FLIGHT ONLY. No RED, no GREEN, no production, test, spec, manifest or implemented-truth change accompanies this document.**
-**Gate: NO-GO for RED remains in effect.** Revision 4 is a documentation-only final-delta revision on top of revision 3 (`abd10bdb`). It applies Codex's independent verification (`6324998154`), the integration reconciliation (`6325204788`) and the Slice C coordination comment (`6326404613`). It is not a GO, does not self-certify any review, and does not authorize C0, RED, GREEN, manifest edits or merge.
+**Gate: NO-GO for RED remains in effect (revision 5 adds only the R1–R5 package; C0 has since merged via #1273).** Revision 4 is a documentation-only final-delta revision on top of revision 3 (`abd10bdb`). It applies Codex's independent verification (`6324998154`), the integration reconciliation (`6325204788`) and the Slice C coordination comment (`6326404613`). It is not a GO, does not self-certify any review, and does not authorize C0, RED, GREEN, manifest edits or merge.
 
 | Item | Value |
 | --- | --- |
@@ -9,13 +9,15 @@
 | Base | `main` at `6d50a36d23cc4b894f0456ee502deb5d7796e99b` (Slice B merge) |
 | Revision | 4 (starts from head `abd10bdb1aaf81147ae094063599020bb4dcd95a`, re-verified as the PR head before editing; `origin/main` still `6d50a36d23cc4b894f0456ee502deb5d7796e99b`, no intervening commits on the branch or on `main`). Revisions 1–3 are preserved in git history only. |
 | Authority | Contract #1255 (maintainer-approved 2026-10-16); design #1259 incl. §13 and the final #1259 review pins; implemented truth = `GENIA_STATE.md` |
-| Companion | `issue-1269-slice-c-red-test-plan.md` (revision 4) |
+| Companion | `issue-1269-slice-c-red-test-plan.md` (revision 5); `issue-1269-slice-c-red-authorization-package.md` (R1–R5, G1 recorded) |
 | Maintainer decisions recorded | **D1 approved** (PR #1270 comment 6321690337). **Numeric structural-key rule approved** (comment 6321761534). **D5, D3, D3b approved; D8 Option A approved as the desired approach, subject to Codex contract/design verification** (comment 6322649763). **C0: integration-owner design-only conditional sign-off** (comment 6322246286; code not authorized). **Codex independent verification: D8 Option A PASS as a contract interpretation, C0 PASS for design, pre-flight REVISE for bounded items** (comment 6324998154); **integration reconciliation: narrow REVISE** (6325204788); **`main` temporary compatibility boundary directed** (6326404613; architecture in [#1271](https://github.com/m0smith/genia-2026/issues/1271), not part of Slice C). Each approval is scoped to what it says (§2). |
 | Roles | Implementer/pre-flight owner: Claude. Independent reviewer: Codex (exact-head final-delta review of revision 4 requested). Integration owner: m0smith. |
 
 Evidence vocabulary: **observed** = I ran it on the Python host at the base SHA; **read** = from source/docs; **reviewer-observed** = reported by Codex in its review, not re-run by me; **to verify** = must be characterized in the RED baseline before being asserted.
 
 ## 0. Revision log
+
+**Revision 5 — RED-preparation package, documentation only.** Accepted pre-flight (revision 4, `585f6aa`) is not reopened. Changes: C0 is **implemented, independently reviewed and merged** (PR #1273; `_VOCABULARY_ONLY_CAPABILITIES` is empty in production) — §9.1, §11 and §12 updated; stale facts corrected (RED plan header, the Slice B "874" count now measured **901**, the lambda-factory program, migration/new-group baselines); U7 is resolved by the R1 matrix; the RED-entry conditions R1–R5 and the recorded-not-approved G1 live in `issue-1269-slice-c-red-authorization-package.md`. `origin/main` is `79c073b` (adds only C0 and the #1271/#1272 lifecycle drafts, none touching Slice C). **Nothing here authorizes RED or GREEN.**
 
 **Revision 4 (this file) — final pre-flight corrections, documentation only.** Authority re-check at the start of this revision: PR head is still `abd10bdb`; `origin/main` is still `6d50a36d`; `AGENTS.md` and the root authorities are unchanged on `main`. Changes:
 
@@ -449,11 +451,11 @@ Corpus (observed, scripted parse of repo `*.genia`): 183 files, 5 unparseable (n
 
 ## 9. Host capability plan and evidence staging
 
-### 9.1 Capability staging (C3) — C0 is design-approved, NOT implementation-authorized
+### 9.1 Capability staging (C3) — C0 is implemented and merged (PR #1273); RED and GREEN are not authorized
 
 Defect: `hosts/python/protocol_adapter.py::_python_claimed_capabilities` (line 38) claims `supported` for **every** manifest name except `shared_spec_runner`, and `tools/spec_runner/capabilities.py` derives the known names from the manifest's required/optional lists. Adding a new name to the manifest alone would therefore advertise execution that does not exist. Disclosure does not make a false claim accurate, and Slice B's provisional-claim precedent is acknowledged and **not repeated**.
 
-**Status of C0.** Integration owner: design-only conditional sign-off (comment 6322246286). Codex: **PASS for design** (comment 6324998154). Both are design statements. **No C0 code, manifest edit or adapter change is authorized or made.** C0 remains a separate prerequisite that needs its own authorization after the final-delta review.
+**Status of C0 (revision 5): implemented, independently reviewed (PASS, #1273 `6333124626`), accepted (`6333148622`) and merged; the production override is empty and the advertised map is byte-for-byte the pre-C0 map. The paragraph below is the historical design-time status.** Integration owner: design-only conditional sign-off (comment 6322246286). Codex: **PASS for design** (comment 6324998154). Both are design statements. **No C0 code, manifest edit or adapter change is authorized or made.** C0 remains a separate prerequisite that needs its own authorization after the final-delta review.
 
 **Capability-evidence terminology (corrected; use these terms exactly).**
 - **External-host execution** (`python -m tools.spec_runner --host '<command>'`, `tools/spec_runner/runner.py::_run_via_host` → `host_executor.execute_spec_via_host`). A case whose `requires` are not all `supported` in the host's claimed capabilities (`capabilities.case_is_applicable` requires exactly `supported`) is reported **`unsupported` before the adapter is invoked** for that case. It is neither an executed failure nor a pass. It is *not* reported as "skipped".
@@ -499,7 +501,7 @@ Not implemented. Add (RED commit) a `spec/known_host_gaps.json` entry for `defau
 | **D2** | Preserve entry/prelude write-through; do not retire in C | Resolved (integration + Codex); no new decision | C-OWN |
 | **D6** | No Core IR version bump | Resolved by design §13.2 | — |
 | **D7** | Provenance in C; frozen projections in D | Accepted (integration + Codex) | §4.3 |
-| **C0** | Vocabulary-only capability staging | **Design-approved (integration conditional sign-off + Codex PASS for design); NOT implementation-authorized**; terminology corrected in §9.1 | §9.1 |
+| **C0** | Vocabulary-only capability staging | **Implemented and merged (PR #1273); independent review PASS; accepted.** Previously design-approved; terminology corrected in §9.1 | §9.1 |
 | **U2 main** | Temporary compatibility boundary; legacy selector unchanged; mixed shapes are stop conditions | **DIRECTED** (comment 6326404613); #1271 owns the long-term lifecycle | §2.5.1; C-MAIN |
 
 **Uncertainty register after revision 4.**
@@ -508,13 +510,13 @@ Not implemented. Add (RED commit) a `spec/known_host_gaps.json` entry for `defau
 - **U3 — lifecycle:** **resolved.** `lifecycle_binding.py:199` has no signature gate; ordinary callable groups remain callable; no new binding-time rejection (§2.5).
 - **U4 — literal diagnostic texts** for D5 and the new-group shape listing remain proposals until the RED baseline byte-characterizes the surrounding infrastructure.
 - **U5 — file-mode span labels:** `_format_open_span` keeps the entry source label as given; in file mode that label is whatever name the CLI was given (existing R20 behavior). The ownership diagnostic deliberately renders no spans. Whether new duplicate diagnostics in file mode need the same property is for the RED baseline to characterize.
-- **U6 — C0:** **resolved for design** (Codex PASS). Implementation remains unauthorized; the terminology corrections of §9.1 apply.
-- **U7 — in-process runner at RED (new, from the C0 terminology review):** the default `python -m tools.spec_runner` path does not apply the external-host capability gate (§9.1), so gated `model-b-c-*` cases would be *executed* and *fail* there at RED. Whether that run is part of required CI at the RED commit must be recorded in the RED baseline; it is not hidden or converted to a skip.
+- **U6 — C0:** **resolved** (design PASS; implementation merged via #1273). The terminology corrections of §9.1 apply.
+- **U7 — in-process runner at RED (resolved in revision 5 by the R1 matrix in `issue-1269-slice-c-red-authorization-package.md` §2: the in-process run and four in-process workflows are expected to FAIL on the RED head, the external host run exits non-zero only because of the ungated P5 tripwire, and the unmodified parity test fails at RED and must pass unchanged at GREEN; originally:** the default `python -m tools.spec_runner` path does not apply the external-host capability gate (§9.1), so gated `model-b-c-*` cases would be *executed* and *fail* there at RED. Whether that run is part of required CI at the RED commit must be recorded in the RED baseline; it is not hidden or converted to a skip.)
 
 **Stop condition (design §11):** if a RED case cannot be written without a new semantic choice, stop and return to #1249.
 
 ## 12. Gate
 
-- **Current gate: NO-GO for RED.** Remaining, in order: (1) Codex exact-head final-delta review of this revision (U2 boundary and stop conditions, D8 mandatory retention and oracles, C0 terminology, D3b consumer facts); (2) integration owner records separate GO/NO-GO decisions for **C0** and for **RED**.
+- **Current gate (revision 5): NO-GO for RED until the integration owner issues a separate RED authorization with the R1–R5 package (`issue-1269-slice-c-red-authorization-package.md`) independently reviewed and decisions O-1–O-3 settled; G1 is a before-GREEN decision.** Historical revision-4 order of events: (1) Codex exact-head final-delta review of this revision (U2 boundary and stop conditions, D8 mandatory retention and oracles, C0 terminology, D3b consumer facts); (2) integration owner records separate GO/NO-GO decisions for **C0** and for **RED**.
 - Implementer recommendation: with D8 verified, C0 design-approved and the U2 boundary documented, every RED oracle that does not depend on SC-MAIN-1…5 or U4 literal-text characterization is determinable. Recommendation, not approval; no gate is self-certified.
-- Not started and not authorized: C0 code, RED, GREEN, manifest/adapter/spec edits, merge, parent closure, genia-cpp issue creation, and any work on #1271. Authoritative documents (`GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, MCP profile) remain unchanged and continue to describe only currently implemented behavior. When Slice C eventually passes GREEN, the companion plan §6 requires updates to `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, semantic facts, the MCP language profile and the affected host documentation. #1268 stays separate and non-blocking.
+- Not started and not authorized (C0 itself is merged via #1273): RED, GREEN, manifest/adapter/spec edits, merge, parent closure, genia-cpp issue creation, and any work on #1271. Authoritative documents (`GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, MCP profile) remain unchanged and continue to describe only currently implemented behavior. When Slice C eventually passes GREEN, the companion plan §6 requires updates to `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`, semantic facts, the MCP language profile and the affected host documentation. #1268 stays separate and non-blocking.
