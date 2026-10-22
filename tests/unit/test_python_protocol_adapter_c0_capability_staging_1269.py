@@ -63,6 +63,11 @@ PRE_C0_CAPABILITY_MAP = {
 
 
 def _gated_spec(*requires: str) -> LoadedSpec:
+    """Build an in-memory eval spec with the requested capability requirements.
+
+    The fixture supplies one deterministic expected result for exercising the
+    external-host applicability gate without adding a shared-spec YAML file.
+    """
     return LoadedSpec(
         name="c0-gated",
         category="eval",
