@@ -1,4 +1,4 @@
-# #1269 / #1250 — Model B Slice C RED test plan, host plan and documentation plan (revision 6)
+# #1269 / #1250 — Model B Slice C RED test plan, host plan and documentation plan (revision 7)
 
 **Revision 6 (documentation only):** the executable inventory is **§R6 at the end of this file** (116 shared cases with source, category, requirements, expected stdout/stderr/exit, baseline, oracle status and C++ row; host-local items HL-15…HL-24; reconciliation with the 127 ids below). Sections 2 and 3 below keep their rationale but are superseded wherever a row differs. **Revision 5 (documentation only):** the exact case IDs, oracle statuses, harness specification, R1 command/CI matrix, R3 GREEN gate, R4 diagnostic disposition, R5 manifest/documentation sequence and the recorded-not-approved G1 are in `issue-1269-slice-c-red-authorization-package.md`, which supersedes the inventory below wherever they differ; corrections are listed in its §8.4. C0 is merged (PR #1273).
 
@@ -281,59 +281,61 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 
 ---
 
-## R6. Revision-6 executable inventory (supersedes the id lists, sources and expectations in §2 and §3 above)
+## R6. Executable inventory — revision 6, corrected by revision 7 (supersedes the id lists, sources and expectations in §2 and §3 above)
 
-**DOCUMENTATION ONLY. No YAML, harness, manifest, test or runtime file is created by this section. RED is NOT authorized.** The prose rationale in §1–§6 above (C1–C8, D1/D3/D3b/D5/D8 traceability, family descriptions, documentation plan) is retained; where a row in §2 or §3 differs from this section, this section governs. Decisions this section depends on are listed in the decision register of `issue-1269-slice-c-red-authorization-package.md` §R6.0 and are **PROPOSED**, not approved.
+**DOCUMENTATION ONLY. No YAML, harness, manifest, test or runtime file is created by this section. RED is NOT authorized.** Revision 7 rebuilt this section from the actual case rows after the independent revision-6 review; the revision-6 text of this section is preserved in git history (`e830e56e`). The prose rationale in §1–§6 above (C1–C8, D1/D3/D3b/D5/D8 traceability, family descriptions, documentation plan) is retained; where a row in §2 or §3 differs from this section, this section governs. The decisions this section depends on are in the decision register of `issue-1269-slice-c-red-authorization-package.md` §R7.1 and are **PROPOSED**, not approved.
 
 ### R6.A Legend and conventions
 
-- **Kind:** **G** guard — passes on `main@79c073b` today with its original applicability and must stay green; **R** ungated RED tripwire — fails today, no new capability; **RG** gated RED — fails today, `requires` includes `default_open_functions` (+ concern-specific capabilities). `RG*` rows are gated under the recommended O-1 Option C and ungated (keeping their other requirements) under Option A.
-- **Oracle:** *observed* — the expected value equals what the Python host printed for the program on `main@79c073b` (guards) or for the explicit-open **twin** of the same clauses (RED cases whose default-open behavior is by contract the same); *contract-derived* — no observable twin exists (noncontiguous clauses, typed numeric keys, header-frame rules) and the value follows the approved contract/design rule cited; *L* — renderer text observed on the twin, byte-locked at the RED baseline; *PROPOSED text* — the current runtime cannot emit it, so nothing is "observed"; the candidate text is the pre-flight D3 proposal and needs maintainer approval.
-- **Categories:** `eval` (final value printed with a trailing newline), `error` (stdout empty, exit 1, `Error: …` on stderr), `cli` (file / `-c` / `--test` through the CLI path; runner strips trailing newlines from both streams). Cases that print before failing are `eval`, not `error`. Source locations in shared oracles are `<command>:N` (N = 1-based line of the submitted source).
-- **One-shot constraint:** evaluation stops at the first failure, so no shared case observes state *after* a failure; effects before the failure are observed through stdout (`print`), not through `Ref` logs. Observations after a failure are host-local (HL-16…HL-19, HL-24).
-- **No new syntax or mechanism:** every source uses constructs implemented on `main@79c073b` (named patterns, `@doc`/`@category`/`@since` prefix annotations, inline docstrings `f(x) = "doc" body`, block bodies). Nothing is invented for exception capture.
-- **C++ column** is the pinned adapter `genia-cpp@44456baea06b4bb7bdf727e39939dd7150261ee6`: *PASS/FAIL/UNSUPPORTED (adapter)* were **executed** on the exact source shown; *UNSUPPORTED (existing capability gate)* is the runner's pre-invocation classification (observed for `immutable_bindings`, `multi_file_eval`, `doc_help`); *UNSUPPORTED (capability `default_open_functions` undeclared)* is **inferred** (the name is not in C++'s claims and does not exist in the manifest yet); `unsupported` is never PASS. "as specified" means the program ends in a declaration or uses a construct C++ lacks; some such programs execute and disagree when extended (see the ledger in the package §R6.2).
+- **Kind:** **G** guard — passes on `main@79c073b` today and must stay green; it keeps its original requirements (a guard may carry an *existing* capability such as `repl`, `doc_help`, `immutable_bindings`, `multi_file_eval`, `open_functions`, `refs`; "ungated" means no *new* capability). **R** — the P5 RED tripwire: fails today; its requirement is `default_open_functions` under the recommended Option B and empty under Options A/C. **RG** — fails today; `requires` includes `default_open_functions`. **RG\*** — the six ownership/D5 rows (`own-local-alias-rejected`, `own-local-alias-varargs`, `own-alias-annotation-not-evaluated`, `own-imported-alias-rejected`, `own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable`): gated under Options B/C, ungated (keeping `repl`/`doc_help`/`multi_file_eval`) under Option A. Every row below shows the requirements under the **recommended Option B**.
+- **Oracle:** *observed* — the expected value equals what the Python host printed for the program on `main@79c073b` (guards) or for the explicit-open **twin** of the same clauses (RED cases whose default-open behavior is by contract the same); *contract-derived* — no observable twin exists and the value follows the cited contract/design rule; *L* — renderer text observed on a twin, byte-locked at the RED baseline; *PROPOSED text* — the current runtime cannot emit it, so nothing is "observed"; the candidate is the pre-flight D3 text and needs maintainer approval.
+- **Categories:** `eval` (final value printed with a trailing newline), `error` (stdout empty, exit 1, `Error: …` on stderr), `cli` (file / `-c` / `--test` / REPL through the CLI path; the runner strips trailing newlines from both streams, and a REPL session reports its failed submissions on stderr with exit 0). Cases that print before failing are `eval`, not `error`. Source locations in shared oracles are `<command>:N` (N = 1-based line of the submitted source).
+- **One-shot constraint:** evaluation stops at the first failure, so a one-shot case observes no state *after* a failure; effects before the failure are observed through stdout (`print`). Post-failure state is observed with **REPL sessions in which each declaration submission ends in a scalar (`; 0`)**, so no host function representation is rendered and an annotation shares one submission with its target. Python-specific function-value transcripts and module-loader internals are host-local.
+- **No new syntax or mechanism:** every source uses constructs implemented on `main@79c073b` (named patterns, `@doc`/`@category`/`@since` prefix annotations, inline docstrings `f(x) = "doc" body`, block bodies, top-level `;`, `quasiquote`/`unquote`). Nothing is invented for exception capture.
+- **C++ column** is the pinned adapter `genia-cpp@44456baea06b4bb7bdf727e39939dd7150261ee6`: *PASS/FAIL/UNSUPPORTED (adapter)* were **executed** on the exact source shown; *UNSUPPORTED (existing capability gate)* is the runner's pre-invocation classification; *UNSUPPORTED (capability `default_open_functions` undeclared)* is **inferred**; `unsupported` is never PASS. For rows that are gated, the line "informational, if executed" reports what the adapter did when the gate was bypassed.
 - The `model-b-c-` prefix is part of every id; `.yaml` stem = id; sibling `.genia` files hold CLI file sources.
 
-### R6.B Inventory arithmetic (Option C recommended; inferred, not executed)
+### R6.B Inventory arithmetic (inferred, not executed)
 
-| Family | N | G | R | RG |
+| Family | N | G | R | RG (incl. RG\*) |
 | --- | ---: | ---: | ---: | ---: |
-| open | 7 | 5 | 0 | 2 |
+| open | 10 | 7 | 0 | 3 |
 | pat | 14 | 0 | 0 | 14 |
-| key | 16 | 0 | 0 | 16 |
+| key | 21 | 2 | 0 | 19 |
 | disp | 12 | 5 | 1 | 6 |
 | hdr | 9 | 4 | 0 | 5 |
 | optim | 2 | 1 | 0 | 1 |
 | opt | 6 | 2 | 0 | 4 |
-| own | 13 | 7 | 0 | 6 |
-| d8 | 7 | 3 | 0 | 4 |
+| own | 15 | 7 | 0 | 8 |
+| d8 | 8 | 4 | 0 | 4 |
 | imm | 3 | 2 | 0 | 1 |
-| meta | 7 | 6 | 0 | 1 |
-| ann | 3 | 2 | 0 | 1 |
+| meta | 11 | 10 | 0 | 1 |
+| ann | 6 | 4 | 0 | 2 |
 | stage | 1 | 1 | 0 | 0 |
-| mode | 3 | 0 | 0 | 3 |
-| main | 13 | 5 | 0 | 8 |
-| **total** | **116** | **43** | **1** | **72** |
+| mode | 4 | 0 | 0 | 4 |
+| main | 15 | 6 | 0 | 9 |
+| **total** | **137** | **55** | **1** | **81** |
 
-(`RG` includes the four `RG*` ownership rows, which are `own-local-alias-rejected`, `own-local-alias-varargs`, `own-alias-annotation-not-evaluated`, `own-imported-alias-rejected`.) Totals, RED/GREEN projections and workflow behavior: package §R6.3.
+137 ids = 74 `eval` + 37 `error` + 26 `cli`. Projections for Options A/B/C are in the package §R7.2 and §R7.10.
 
-### R6.C Reconciliation with the revision-5 inventory (128 rows: 127 created + 1 blocked)
+### R6.C Reconciliation
 
-| Disposition | Revision-5 ids | Revision 6 |
-| --- | --- | --- |
-| **Excluded (O-4)** | `key-repeated-binders-distinct` | not created |
-| **Moved to host-local (9, absent from the shared list)** | `open-persistent-env`, `own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable`, `own-imported-alias-owner-unchanged`, `ann-repl-recovery`, `mode-repl-failed-declaration-leaves-group`, `main-repl-never-selects`, `key-legacy-dup-id`, `key-rest-binders-legacy-duplicate` | HL-15…HL-22 |
-| **Moved to host-local after re-sourcing (5)** | `own-lambda-nonfunction-unchanged`, `own-builtin-nonfunction-unchanged`, `d8-legacy-identical-header-dup`, `ann-old-metadata-retained`, `ann-installed-clause-visible-via-alias` | HL-18, HL-21, HL-22 |
-| **Replaced** | `key-named-matcher` → `key-named-matcher-distinct`, `key-named-matcher-same-dup`; `key-quote-unquote` → `key-quote-names-are-data` (active-unquote half open); `mode-file-command-import-equivalence` → `mode-file-pattern-program`, `mode-command-pattern-program`, `mode-import-pattern-program`; `own-explicit-open-unchanged` → `own-explicit-open-alias-unchanged` | counted in the 116 |
-| **Unchanged ids** | all others | 116 − 7 replacement ids = 109 ids carried over unchanged |
+Revision 5 → revision 6 (history): 127 − 9 − 5 + 1 + 2 = 116. **Revision 6 → revision 7: +21 ids, none removed → 137.**
 
-127 − 9 − 5 + 1 + 2 = **116**. Source corrections made while pinning programs: `optim-collection-recursion` uses `0` instead of `nil` (orthogonal to the optimizer; C++ does not recognise `nil`, and the replacement lets the optimizer property be observed on C++); `meta-inline-doc-*` use the real inline-docstring syntax (`f(x) = "doc" body`), because the revision-5 programs never produced a documentation string; `hdr-guard-evaluated-once`, `hdr-guard-order`, `key-no-effects`, `own-alias-annotation-not-evaluated` observe effects with `print` instead of a `Ref` log; `key-named-matcher*`, `pat-named-matcher` use `pattern Name(v) = some(v)` per STATE.
+| Revision-7 change | Ids |
+| --- | --- |
+| **Restored to shared** (portable REPL/recovery/duplicate obligations that revision 6 had moved to host-local) | `open-persistent-env`, `own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable`, `ann-repl-recovery`, `mode-repl-failed-declaration-leaves-group`, `main-repl-never-selects`, `ann-old-metadata-retained`, `ann-installed-clause-visible-via-alias`, `key-legacy-dup-id`, `key-rest-binders-legacy-duplicate`, `d8-legacy-identical-header-dup` (11) |
+| **New** | `open-persistent-arities`, `open-repl-alias-sees-later-arity`, `main-repl-pattern-never-selects`, `key-unquote-active-dup`, `key-unquote-nested-quoted-distinct`, `key-unquote-nested-active-dup`, `meta-channel-binding-doc`, `meta-channel-inline-doc`, `meta-channel-alias-only`, `meta-inline-doc-body-runs` (10) |
+| **Carried with a corrected source, oracle or requirement** | `key-lambda-shadow-dup` (oracle: construction-time duplicate error); `d8-earlier-pattern-miss-continues` (source `f(1)`, oracle `"one"`); `pat-string-body-is-body` (+`doc_help`); `own-alias-annotation-not-evaluated` (+`doc_help`); `own-explicit-open-alias-unchanged`, `d8-r20-flattening-unchanged` (trailing call so a host cannot answer `unsupported`) |
+| **Still host-local (3 of the 14 revision-6 moves)** | `own-imported-alias-owner-unchanged` (module-loader internals, HL-17), `own-lambda-nonfunction-unchanged`, `own-builtin-nonfunction-unchanged` (authority open, HL-22) |
+| **Excluded** | `key-repeated-binders-distinct` (O-4) |
 
-### R6.D Shared inventory — 116 cases
+Source corrections retained from revision 6: `optim-collection-recursion` uses `0` instead of `nil`; the `meta-inline-doc-*` cases use the real inline-docstring syntax; effects are observed with `print`; `key-named-matcher*` and `pat-named-matcher` use `pattern Name(v) = some(v)`.
+
+### R6.D Shared inventory — 137 cases
 
 ##### `model-b-c-open-noncontiguous-arities`
-- category `eval` · ungated guard · requires `(none)` · trace C-OPEN, contract 2.2
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace C-OPEN, contract 2.2
 - source:
   ```
   f(x) = x
@@ -347,7 +349,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-open-alias-sees-later-arity`
-- category `eval` · ungated guard · requires `(none)` · trace contract 2.2
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace contract 2.2
 - source:
   ```
   f(x) = x
@@ -362,7 +364,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-open-immutable-alias-stays-live`
-- category `eval` · ungated guard · requires `immutable_bindings` · trace Slice B interaction
+- category `eval` · ungated guard · requires (recommended Option B) `immutable_bindings` · trace Slice B interaction
 - source:
   ```
   f(x) = x
@@ -376,7 +378,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: immutable_bindings)
 
 ##### `model-b-c-open-call-before-later-clause`
-- category `error` · ungated guard · requires `(none)` · trace contract 2.2 (call before later arity)
+- category `error` · ungated guard · requires (recommended Option B) `(none)` · trace contract 2.2 (call before later arity)
 - source:
   ```
   f(x) = x
@@ -388,7 +390,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-open-pattern-after-plain`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT first match; D3
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT first match; D3
 - source:
   ```
   f(x) = x
@@ -401,7 +403,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-open-noncontiguous-pattern`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace contract 2.2 noncontiguous accumulation
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace contract 2.2 noncontiguous accumulation
 - source:
   ```
   f(0) = "a"
@@ -417,7 +419,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: explicit-open twin is invalid by design (open requires contiguous clauses), so the oracle is contract-derived
 
 ##### `model-b-c-open-lambda-factory-distinct`
-- category `eval` · ungated guard · requires `(none)` · trace contract 2.2 lexical factories
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace contract 2.2 lexical factories
 - source:
   ```
   mk(k) {
@@ -434,7 +436,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-pat-literal-base-case`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   fact(0) = 1
@@ -447,7 +449,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-guard-selects`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f(x) ? x > 0 = "pos"
@@ -460,7 +462,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-guard-sees-header-binding`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f([a, b]) ? a < b = a + b
@@ -473,7 +475,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-match-local-shadows-outer`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   v = 99
@@ -486,7 +488,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-list-rest`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f([x, ..xs]) = xs
@@ -498,7 +500,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-map`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f({key: x}) = x
@@ -510,7 +512,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-some`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f(some(x)) = x
@@ -522,7 +524,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-err`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f(err(r, c)) = r
@@ -534,7 +536,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-wildcard`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f(_) = 1
@@ -546,7 +548,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: matches
 
 ##### `model-b-c-pat-first-match-wins`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f(x) = 1
@@ -559,7 +561,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-fixed-miss-no-varargs-fallthrough`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D1/D3 strata
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D1/D3 strata
 - source:
   ```
   f(0) = 1
@@ -572,7 +574,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-fixed-miss-two-args-varargs`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT; design 13.1
 - source:
   ```
   f(0) = 1
@@ -585,7 +587,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-pat-named-matcher`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-PAT
 - source:
   ```
   pattern Id(v) = some(v)
@@ -599,7 +601,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: named-pattern syntax per STATE named reusable patterns
 
 ##### `model-b-c-pat-string-body-is-body`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-PAT; design 13.1
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, doc_help` · trace C-PAT; design 13.1
 - source:
   ```
   f("a") = "doc-like"
@@ -612,7 +614,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: doc() of an undocumented pattern group is not derivable from any authority; observed on open twin
 
 ##### `model-b-c-key-true-vs-one`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 typed keys (pre-flight 2.2)
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 typed keys (pre-flight 2.2)
 - source:
   ```
   f(true) = 1
@@ -625,7 +627,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-one-vs-one-point-zero`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 typed keys; runtime numeric equality
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 typed keys; runtime numeric equality
 - source:
   ```
   f(1) = 10
@@ -638,7 +640,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-same-binary64-dup`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 duplicate; R20 renderer
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 duplicate; R20 renderer
 - source:
   ```
   f(1.0) = 1
@@ -650,7 +652,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-spelling-dup`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3
 - source:
   ```
   f(0.1) = 1
@@ -662,7 +664,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-alpha-equivalent-dup`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3
 - source:
   ```
   f([a, b]) = 1
@@ -674,7 +676,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-guard-alpha-dup`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3
 - source:
   ```
   f(x) ? x > 0 = 1
@@ -686,7 +688,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-guard-differs-ok`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3
 - source:
   ```
   f(x) ? x > 0 = 1
@@ -699,7 +701,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-free-name-syntactic`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 free names are syntactic
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 free names are syntactic
 - source:
   ```
   limit = 1
@@ -714,19 +716,20 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-lambda-shadow-dup`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 alpha normalization
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3; contract 2.3 / design 5.4 scope-aware alpha normalization
 - source:
   ```
   f(x) ? ((a) -> a)(x) > 0 = 1
   f(y) ? ((b) -> b)(y) > 0 = 2
   ```
-- expected: stdout="<open function f>\n" stderr="" exit=0
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
 - baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
-- RED: fails (expected RED) · oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline
+- RED: fails (expected RED) · oracle: contract-derived future error; spelling is the R20 renderer text observed on the other duplicate cases; byte-lock at RED baseline
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: CONTRACT-DERIVED future error (construction-time duplicate; spelling is the R20 renderer text). The explicit-open twin prints `<open function f>` with exit 0 today: that is the legacy key walker's deficiency, not the oracle, and the twin is deliberately not used. Effect-freedom (no guard or body runs) is covered by key-no-effects
 
 ##### `model-b-c-key-lambda-shadow-outer-slot-distinct`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 nested-shadow row of pre-flight 2.2 table
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 nested-shadow row of pre-flight 2.2 table
 - source:
   ```
   f(x) ? ((x) -> x)(1) > 0 = 1
@@ -740,7 +743,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: both clauses must install (no duplicate error); selected clause is the first
 
 ##### `model-b-c-key-quote-names-are-data`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 quoted names are data
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 quoted names are data
 - source:
   ```
   f(x) ? x == quote(p) = "p"
@@ -754,7 +757,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: replaces key-quote-unquote (quoted half only); active-unquote half is PENDING: no pinned guard-position unquote program, see decision register
 
 ##### `model-b-c-key-named-matcher-distinct`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 distinct matcher references
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 distinct matcher references
 - source:
   ```
   pattern P(v) = some(v)
@@ -769,7 +772,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-key-named-matcher-same-dup`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 same matcher reference duplicates
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 same matcher reference duplicates
 - source:
   ```
   pattern P(v) = some(v)
@@ -783,7 +786,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: NEW id: splits the former key-named-matcher aggregate
 
 ##### `model-b-c-key-no-effects`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 no effects at key time
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 no effects at key time
 - source:
   ```
   trace() = { print("effect"); true }
@@ -797,7 +800,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: stdout must stay empty: replaces the Ref log (one-shot eval stops at the first failure)
 
 ##### `model-b-c-key-r20-delta-true-one`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions, open_functions` · trace D3; approved R20 acceptance change
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, open_functions` · trace D3; approved R20 acceptance change
 - source:
   ```
   open f(true) = 1
@@ -810,7 +813,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: DIFFERS ("[1, 1]\n")
 
 ##### `model-b-c-key-r20-delta-one-float`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions, open_functions` · trace D3; approved R20 acceptance change
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, open_functions` · trace D3; approved R20 acceptance change
 - source:
   ```
   open f(1) = 1
@@ -823,7 +826,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: matches
 
 ##### `model-b-c-disp-p5-varargs-minima-ambiguity`
-- category `error` · ungated RED tripwire (P5) · requires `(none)` · trace D1; RULES.md:205
+- category `error` · RED tripwire P5: gated under recommended Option B, ungated under Options A/C · requires (recommended Option B) `default_open_functions` (empty under A/C) · trace D1; RULES.md:205
 - source:
   ```
   f(a, ..r) = "min1"
@@ -837,7 +840,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: ungated tripwire
 
 ##### `model-b-c-disp-p5-migration-fixed-clause`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D1 migration fix
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D1 migration fix
 - source:
   ```
   f(a, ..r) = "min1"
@@ -851,7 +854,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-disp-p5-migration-drop-lower`
-- category `eval` · ungated guard · requires `(none)` · trace D1 migration
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace D1 migration
 - source:
   ```
   f(a, b, ..s) = "min2"
@@ -863,7 +866,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-disp-p7-same-arity-ambiguity`
-- category `error` · ungated guard · requires `(none)` · trace D1 unchanged P7
+- category `error` · ungated guard · requires (recommended Option B) `(none)` · trace D1 unchanged P7
 - source:
   ```
   f(a, ..r) = "min1"
@@ -876,7 +879,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-disp-fixed-over-varargs`
-- category `eval` · ungated guard · requires `(none)` · trace RULES.md:204
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace RULES.md:204
 - source:
   ```
   pick(a, b) = "exact"
@@ -889,7 +892,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-disp-fixed-and-varargs-same-arity`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D1 P4
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D1 P4
 - source:
   ```
   f(a) = 1
@@ -902,7 +905,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-disp-no-matching-function`
-- category `error` · ungated guard · requires `(none)` · trace P8 unchanged
+- category `error` · ungated guard · requires (recommended Option B) `(none)` · trace P8 unchanged
 - source:
   ```
   f(a) = 1
@@ -914,7 +917,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-disp-no-matching-function-new-group`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D1/D3 renderer reuse
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D1/D3 renderer reuse
 - source:
   ```
   f(x) = 1
@@ -928,7 +931,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-disp-duplicate-pattern-header`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3
 - source:
   ```
   f([a, b]) = 1
@@ -940,7 +943,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-disp-case-miss-identity`
-- category `error` · ungated guard · requires `(none)` · trace P20 unchanged
+- category `error` · ungated guard · requires (recommended Option B) `(none)` · trace P20 unchanged
 - source:
   ```
   f(x) = (0 -> x)
@@ -952,7 +955,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-disp-case-miss-pattern-group`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 case-miss class
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 case-miss class
 - source:
   ```
   f(0) = 1
@@ -964,7 +967,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-disp-no-clause-ambiguity-single-unit`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D3 single-unit first match
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3 single-unit first match
 - source:
   ```
   f([x, ..r]) = "list"
@@ -977,7 +980,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-hdr-block-prefix-once`
-- category `eval` · ungated guard · requires `(none)` · trace C1 P19
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace C1 P19
 - source:
   ```
   f(x) { print("prefix"); k = x + 1; n ? n < k -> x | _ -> 0 }
@@ -989,7 +992,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-hdr-block-prefix-miss`
-- category `eval` · ungated guard · requires `(none)` · trace C1
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace C1
 - source:
   ```
   f(x) { print("prefix"); k = x + 1; n ? n < 0 -> x }
@@ -1001,7 +1004,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-hdr-block-prefix-multi-call`
-- category `eval` · ungated guard · requires `(none)` · trace C1
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace C1
 - source:
   ```
   f(x) { print("prefix"); k = x + 1; n ? n < k -> x | _ -> 0 }
@@ -1013,7 +1016,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-hdr-grouped-body-captures-header`
-- category `eval` · ungated guard · requires `(none)` · trace C1; contract 2.2 header captures
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace C1; contract 2.2 header captures
 - source:
   ```
   f(x) = (0) -> x | (n) -> n + x
@@ -1025,7 +1028,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): **FAIL** ["", "Error: Undefined name: x\n", 1]
 
 ##### `model-b-c-hdr-guard-evaluated-once`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1 once-only guard
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C1 once-only guard
 - source:
   ```
   check(x) = { print("guard"); true }
@@ -1039,7 +1042,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: print log replaces the Ref counter; no refs capability needed
 
 ##### `model-b-c-hdr-guard-order`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1 source-order guards
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C1 source-order guards
 - source:
   ```
   t(s, r) = { print(s); r }
@@ -1054,7 +1057,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-hdr-guard-error`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1/C6 guard error propagates
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C1/C6 guard error propagates
 - source:
   ```
   t(s, r) = { print(s); r }
@@ -1070,7 +1073,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: stdout `a` then error; `c` never printed; one-shot so no partial-binding observation (host-local HL)
 
 ##### `model-b-c-hdr-matcher-outcome`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1 matcher err is not a miss
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C1 matcher err is not a miss
 - source:
   ```
   pattern M(v) = err("bad", v)
@@ -1084,7 +1087,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-hdr-recursion-tco`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C1; twin of r20-open-ordinary-mutual-tail-call
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C1; twin of r20-open-ordinary-mutual-tail-call
 - source:
   ```
   count(0) = "done"
@@ -1098,7 +1101,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-optim-collection-recursion`
-- category `eval` · ungated guard · requires `(none)` · trace C2
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace C2
 - source:
   ```
   pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)
@@ -1111,7 +1114,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: `nil` of the revision-5 plan source replaced by `0`: orthogonal to the optimizer, and C++ does not recognise `nil` (C++ ledger)
 
 ##### `model-b-c-optim-late-declaration`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C2/D8 optimized declaration then later pattern clause of another arity
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C2/D8 optimized declaration then later pattern clause of another arity
 - source:
   ```
   pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)
@@ -1124,7 +1127,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-opt-none-pattern-in-group-dispatches`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-OPT; r20-option twin
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-OPT; r20-option twin
 - source:
   ```
   f(none) = "was-none"
@@ -1137,7 +1140,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-opt-other-arity-clause-not-aware`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-OPT; r20-option twin
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-OPT; r20-option twin
 - source:
   ```
   f(0) = "zero"
@@ -1151,7 +1154,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-opt-delegation-to-aware-callee`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-OPT; r20-option twin
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-OPT; r20-option twin
 - source:
   ```
   f(1) = "one"
@@ -1164,7 +1167,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-opt-err-pipeline-value-short-circuits`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace C-OPT; r20-option twin
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-OPT; r20-option twin
 - source:
   ```
   f(1) = "one"
@@ -1177,7 +1180,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-opt-plain-identity-none`
-- category `eval` · ungated guard · requires `(none)` · trace P9
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace P9
 - source:
   ```
   f(x) = x
@@ -1189,7 +1192,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): **PASS**
 
 ##### `model-b-c-opt-pipe-lift`
-- category `eval` · ungated guard · requires `(none)` · trace existing pipeline lift
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace existing pipeline lift
 - source:
   ```
   inc(x) = x + 1
@@ -1202,7 +1205,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: oracle observed: `some(2)`
 
 ##### `model-b-c-own-alias-call-live`
-- category `eval` · ungated guard · requires `(none)` · trace P1
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace P1
 - source:
   ```
   f(x) = x
@@ -1216,7 +1219,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-own-immutable-alias-live`
-- category `eval` · ungated guard · requires `immutable_bindings` · trace Slice B
+- category `eval` · ungated guard · requires (recommended Option B) `immutable_bindings` · trace Slice B
 - source:
   ```
   f(x) = x
@@ -1230,7 +1233,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: immutable_bindings)
 
 ##### `model-b-c-own-local-alias-rejected`
-- category `error` · new-capability-gated under Option C (recommended); ungated (keeping other requirements) under Option A · requires `default_open_functions` · trace D5 (P10)
+- category `error` · gated under Options B (recommended) and C; ungated, keeping its other requirements, under Option A · requires (recommended Option B) `default_open_functions` · trace D5 (P10)
 - source:
   ```
   f(x) = x
@@ -1244,7 +1247,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: ungated under O-1 Option A; gated under Option C (recommended)
 
 ##### `model-b-c-own-local-alias-pattern-clause`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D5; pattern header is new syntax
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D5; pattern header is new syntax
 - source:
   ```
   f(x) = x
@@ -1257,7 +1260,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-own-local-alias-varargs`
-- category `error` · new-capability-gated under Option C (recommended); ungated (keeping other requirements) under Option A · requires `default_open_functions` · trace D5; ownership check precedes the legacy duplicate check
+- category `error` · gated under Options B (recommended) and C; ungated, keeping its other requirements, under Option A · requires (recommended Option B) `default_open_functions` · trace D5; ownership check precedes the legacy duplicate check
 - source:
   ```
   f(x) = x
@@ -1271,7 +1274,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: ungated under O-1 Option A; gated under Option C
 
 ##### `model-b-c-own-alias-annotation-not-evaluated`
-- category `error` · new-capability-gated under Option C (recommended); ungated (keeping other requirements) under Option A · requires `default_open_functions` · trace D5/C6 rejection precedes annotation evaluation
+- category `error` · gated under Options B (recommended) and C; ungated, keeping its other requirements, under Option A · requires (recommended Option B) `default_open_functions, doc_help` · trace D5/C6 rejection precedes annotation evaluation
 - source:
   ```
   f(x) = x
@@ -1286,7 +1289,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: stdout must be empty; replaces the Ref log. ungated under Option A
 
 ##### `model-b-c-own-imported-alias-rejected`
-- category `error` · new-capability-gated under Option C (recommended); ungated (keeping other requirements) under Option A · requires `default_open_functions, multi_file_eval` · trace D5 (P11)
+- category `error` · gated under Options B (recommended) and C; ungated, keeping its other requirements, under Option A · requires (recommended Option B) `default_open_functions, multi_file_eval` · trace D5 (P11)
 - modules (entry `main.genia`):
   ```
   // lib.genia
@@ -1305,21 +1308,22 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: ungated (keeping multi_file_eval) under Option A
 
 ##### `model-b-c-own-explicit-open-alias-unchanged`
-- category `error` · ungated guard · requires `open_functions` · trace D5; R20 contract (view/interface named, not 'non-function')
+- category `error` · ungated guard · requires (recommended Option B) `open_functions` · trace D5; R20 contract (view/interface named, not 'non-function')
 - source:
   ```
   open f(x) = x
   a = f
   a(x, y) = x + y
+  a(1, 2)
   ```
 - expected: stdout="" stderr="Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace\n" exit=1
 - baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace\n" exit=1
 - RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
-- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+- C++ (pinned `44456ba`): **FAIL** ["3\n", "", 0]
 - note: O-5 replacement of own-explicit-open-unchanged (same slot)
 
 ##### `model-b-c-own-import-inert`
-- category `eval` · ungated guard · requires `multi_file_eval` · trace D5 import never alters dispatch
+- category `eval` · ungated guard · requires (recommended Option B) `multi_file_eval` · trace D5 import never alters dispatch
 - modules (entry `main.genia`):
   ```
   // lib.genia
@@ -1337,7 +1341,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: multi_file_eval)
 
 ##### `model-b-c-own-extend-ordinary-rejected`
-- category `error` · ungated guard · requires `multi_file_eval, open_functions` · trace D5
+- category `error` · ungated guard · requires (recommended Option B) `multi_file_eval, open_functions` · trace D5
 - modules (entry `main.genia`):
   ```
   // base.genia
@@ -1354,7 +1358,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: multi_file_eval)
 
 ##### `model-b-c-own-use-ordinary-base-unchanged`
-- category `error` · ungated guard · requires `multi_file_eval, open_functions` · trace D5
+- category `error` · ungated guard · requires (recommended Option B) `multi_file_eval, open_functions` · trace D5
 - modules (entry `main.genia`):
   ```
   // base.genia
@@ -1377,7 +1381,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: multi_file_eval)
 
 ##### `model-b-c-own-two-modules-independent`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions, multi_file_eval` · trace D5 independent groups
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, multi_file_eval` · trace D5 independent groups
 - modules (entry `main.genia`):
   ```
   // m1.genia
@@ -1401,7 +1405,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-own-entry-prelude-name`
-- category `eval` · ungated guard · requires `(none)` · trace D2/P12 characterization
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace D2/P12 characterization
 - source:
   ```
   map(a, b, c) = "mine"
@@ -1414,7 +1418,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: host-specific internals (write-through) are HL-5; this observable stays shared
 
 ##### `model-b-c-d8-forward-collision`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D8
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D8
 - source:
   ```
   describe(x) = (0) -> "zero" | (n) -> "other"
@@ -1427,7 +1431,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-d8-reverse-collision`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions` · trace D8
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D8
 - source:
   ```
   f(0) = "clause"
@@ -1440,7 +1444,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-d8-terminal-grouped-miss`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D8 terminal miss
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D8 terminal miss
 - source:
   ```
   f(x) = (0 -> x)
@@ -1453,20 +1457,35 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-d8-earlier-pattern-miss-continues`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions` · trace D8 invariant 2
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D8 invariant 2
 - source:
   ```
   f(0) = "zero"
   f(x) = (1) -> "one"
-  f(5)
+  f(1)
   ```
-- expected: stdout="" stderr="Error: No matching case for function f/1 with arguments [5]\n" exit=1
+- expected: stdout="\"one\"\n" stderr="" exit=0
 - baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
-- RED: fails (expected RED) · oracle: contract-derived (RED author confirms at baseline)
+- RED: fails (expected RED) · oracle: observed on explicit-open twin + contract
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: the earlier pattern header misses (1 is not 0), the later declaration is tried and succeeds; terminal behavior is the separate d8-terminal-grouped-miss
+
+##### `model-b-c-d8-legacy-identical-header-dup`
+- category `error` · ungated guard · requires (recommended Option B) `(none)` · trace D8 legacy identity; design 13.4
+- source:
+  ```
+  describe(x) = (0) -> "zero" | (n) -> "other"
+  describe(y) = "later"
+  describe(0)
+  ```
+- expected: stdout="" stderr="Error: Duplicate function definition: describe/1\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: describe/1\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **FAIL** ["\"later\"\n", "", 0]
+- note: trailing call chosen so a host cannot satisfy the case by reporting unsupported on a declaration-ending program
 
 ##### `model-b-c-d8-grouped-decl-one-key`
-- category `eval` · ungated guard · requires `(none)` · trace D8
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace D8
 - source:
   ```
   f(a) = (0) -> "z" | (n) -> n + a
@@ -1479,7 +1498,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-d8-prefix-and-capture`
-- category `eval` · ungated guard · requires `(none)` · trace D8/C1
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace D8/C1
 - source:
   ```
   f(x) { print("prefix"); k = x + 1; n ? n < k -> x | _ -> 0 }
@@ -1492,20 +1511,21 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-d8-r20-flattening-unchanged`
-- category `error` · ungated guard · requires `open_functions` · trace D8 explicit-open unchanged
+- category `error` · ungated guard · requires (recommended Option B) `open_functions` · trace D8 explicit-open unchanged
 - source:
   ```
   open f(x) = (0) -> 1 | (n) -> 2
   f(0) = 3
+  f(0)
   ```
 - expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
 - baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
 - RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
-- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+- C++ (pinned `44456ba`): **FAIL** ["1\n", "", 0]
 - note: source chosen by the revision-6 author; the package gives only the outcome
 
 ##### `model-b-c-imm-rebind-as-function`
-- category `error` · ungated guard · requires `immutable_bindings` · trace Slice B
+- category `error` · ungated guard · requires (recommended Option B) `immutable_bindings` · trace Slice B
 - source:
   ```
   x =: 1
@@ -1517,7 +1537,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: immutable_bindings)
 
 ##### `model-b-c-imm-rebind-as-pattern-function`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions, immutable_bindings` · trace Slice B x D3
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, immutable_bindings` · trace Slice B x D3
 - source:
   ```
   x =: 1
@@ -1529,7 +1549,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-imm-declare-after-function`
-- category `error` · ungated guard · requires `immutable_bindings` · trace Slice B
+- category `error` · ungated guard · requires (recommended Option B) `immutable_bindings` · trace Slice B
 - source:
   ```
   f(a) = a
@@ -1541,7 +1561,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: immutable_bindings)
 
 ##### `model-b-c-meta-binding-doc-merge`
-- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1
 - source:
   ```
   @doc "one"
@@ -1557,7 +1577,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
 
 ##### `model-b-c-meta-newer-key-overwrites`
-- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1
 - source:
   ```
   @doc "one"
@@ -1572,7 +1592,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
 
 ##### `model-b-c-meta-alias-no-copy`
-- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1
 - source:
   ```
   @doc "one"
@@ -1587,7 +1607,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
 
 ##### `model-b-c-meta-inline-doc-shared-via-alias`
-- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1 (inline doc syntax: `f(x) = "doc" body`)
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1 (inline doc syntax: `f(x) = "doc" body`)
 - source:
   ```
   f(x) = "d1" x
@@ -1601,7 +1621,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
 
 ##### `model-b-c-meta-conflicting-inline-doc-before-install`
-- category `error` · ungated guard · requires `doc_help` · trace contract 5.1/5.2
+- category `error` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1/5.2
 - source:
   ```
   f(x) = "d1" x
@@ -1613,7 +1633,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
 
 ##### `model-b-c-meta-three-channel-trio`
-- category `eval` · ungated guard · requires `doc_help` · trace contract 5.1 reviewer trio
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1 reviewer trio
 - source:
   ```
   @doc "canonical"
@@ -1628,7 +1648,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
 
 ##### `model-b-c-meta-pattern-clause-annotations`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions, doc_help` · trace contract 5.1; observed legacy twin `@doc "zero"\nf(x) = 1`
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, doc_help` · trace contract 5.1; observed legacy twin `@doc "zero"\nf(x) = 1`
 - source:
   ```
   @doc "zero"
@@ -1643,7 +1663,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: open twin may reject annotations (R20 restriction): then the oracle is CD from the legacy-clause behaviour
 
 ##### `model-b-c-ann-later-annotation-suppressed`
-- category `error` · ungated guard · requires `doc_help` · trace contract 5.2 / C6
+- category `error` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.2 / C6
 - source:
   ```
   f(x) = x
@@ -1657,7 +1677,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
 
 ##### `model-b-c-ann-prior-effects-persist`
-- category `eval` · ungated guard · requires `doc_help` · trace contract 5.2 / C6
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.2 / C6
 - source:
   ```
   @since (print("first"))
@@ -1670,7 +1690,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
 
 ##### `model-b-c-ann-pattern-clause-variants`
-- category `error` · gated by `default_open_functions` · requires `default_open_functions, doc_help` · trace contract 5.2 for pattern clauses
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, doc_help` · trace contract 5.2 for pattern clauses
 - source:
   ```
   f(x) = x
@@ -1683,7 +1703,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-stage-closed-rejected`
-- category `eval` · ungated guard · requires `(none)` · trace C8
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace C8
 - source:
   ```
   print("before")
@@ -1695,7 +1715,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-mode-file-pattern-program`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MODE file mode
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MODE file mode
 - CLI file mode, argv `[]`; source:
   ```
   f(0) = "zero"
@@ -1709,7 +1729,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - note: stdout for cli is trailing-newline stripped by the runner
 
 ##### `model-b-c-mode-command-pattern-program`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MODE -c mode
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MODE -c mode
 - CLI `-c` command mode, argv `[]`; source:
   ```
   f(0) = "zero"
@@ -1722,7 +1742,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-mode-import-pattern-program`
-- category `eval` · gated by `default_open_functions` · requires `default_open_functions, multi_file_eval` · trace C-MODE import
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, multi_file_eval` · trace C-MODE import
 - modules (entry `main.genia`):
   ```
   // lib.genia
@@ -1740,7 +1760,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-main-legacy-main1-preferred`
-- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- category `cli` · ungated guard · requires (recommended Option B) `(none)` · trace C-MAIN
 - CLI file mode, argv `[]`; source:
   ```
   main(args) = { print("main1"); 11 }
@@ -1754,7 +1774,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-main-legacy-main0-fallback`
-- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- category `cli` · ungated guard · requires (recommended Option B) `(none)` · trace C-MAIN
 - CLI file mode, argv `[]`; source:
   ```
   main() = { print("main0"); 10 }
@@ -1767,7 +1787,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-main-legacy-rest-main-selected`
-- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- category `cli` · ungated guard · requires (recommended Option B) `(none)` · trace C-MAIN
 - CLI file mode, argv `[]`; source:
   ```
   main(a, ..r) = { print("mainrest"); 12 }
@@ -1780,7 +1800,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-main-no-qualifying`
-- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- category `cli` · ungated guard · requires (recommended Option B) `(none)` · trace C-MAIN
 - CLI file mode, argv `[]`; source:
   ```
   main(a, b) = { print("main2"); 12 }
@@ -1793,7 +1813,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-main-command-mode`
-- category `cli` · ungated guard · requires `(none)` · trace C-MAIN
+- category `cli` · ungated guard · requires (recommended Option B) `(none)` · trace C-MAIN
 - CLI `-c` command mode, argv `["x", "y"]`; source:
   ```
   main(a) = { print("cmdmain"); a }
@@ -1805,7 +1825,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
 
 ##### `model-b-c-main-pattern-not-selected`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MAIN
 - CLI file mode, argv `["--x"]`; source:
   ```
   print("top")
@@ -1818,7 +1838,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-main-pattern-guard-not-evaluated`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MAIN
 - CLI file mode, argv `["a"]`; source:
   ```
   ping() = { print("guard-ran"); true }
@@ -1832,7 +1852,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-main-wildcard-not-selected`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MAIN
 - CLI file mode, argv `[]`; source:
   ```
   main(_) = { print("wild"); 7 }
@@ -1845,7 +1865,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-main-multi-pattern-group-not-selected`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MAIN
 - CLI file mode, argv `["a"]`; source:
   ```
   main(["a"]) = { print("A"); 1 }
@@ -1859,7 +1879,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-main-pattern-command-mode`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MAIN
 - CLI `-c` command mode, argv `["x", "y"]`; source:
   ```
   main(["x", "y"]) = { print("body"); 1 }
@@ -1872,7 +1892,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-main-explicit-call-dispatches`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MAIN
 - CLI file mode, argv `["--x"]`; source:
   ```
   main(["--x"]) = { print("pattern-main"); 1 }
@@ -1885,7 +1905,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-main-explicit-call-miss`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MAIN
 - CLI file mode, argv `[]`; source:
   ```
   main(["--x"]) = 1
@@ -1897,7 +1917,7 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 
 ##### `model-b-c-main-test-mode-unchanged`
-- category `cli` · gated by `default_open_functions` · requires `default_open_functions` · trace C-MAIN rule 6
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace C-MAIN rule 6
 - CLI `--test` file mode, argv `[]`; source:
   ```
   test("passes", () -> none)
@@ -1909,30 +1929,311 @@ C0 (reviewed) → RED commit + evidence note → GREEN → maintainability revie
 - C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
 - note: oracle observed on the legacy-`main` twin (`main(args) = ...`) at RED baseline
 
-### R6.E Host-local inventory (HL-1…HL-14 unchanged from the package §3.4; HL-15…HL-24 new)
+##### `model-b-c-open-persistent-arities`
+- category `cli` · ungated guard · requires (recommended Option B) `repl` · trace contract 2.2; R26 REPL contract 2
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  f(x) = x; 0
+  f(x, y) = x + y; 0
+  f(1, 2)
+  ```
+- expected: stdout="0\n0\n3" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n0\n3" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **FAIL** ["", "", 0]
+- note: scalar-ending submissions avoid host function rendering; the group accumulates across submissions
+
+##### `model-b-c-open-repl-alias-sees-later-arity`
+- category `cli` · ungated guard · requires (recommended Option B) `repl` · trace contract 2.2
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  f(x) = x; 0
+  a = f; 0
+  f(x, y) = x + y; 0
+  a(1, 2)
+  ```
+- expected: stdout="0\n0\n0\n3" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n0\n0\n3" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **FAIL** ["", "", 0]
+
+##### `model-b-c-open-persistent-env`
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, repl` · trace C-OPEN persistent environment
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  f(x) = x; 0
+  f(0, y) = y; 0
+  f(0, 5)
+  ```
+- expected: stdout="0\n0\n5" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0" stderr="Error: model-b-not-implemented: declaration evaluation is not available\nError: No matching function: f/2. Available: f/1" exit=0
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: DIFFERS ("")
+- note: baseline: the pattern-header submission fails with model-b-not-implemented; the contract-derived result is 0,0,5
+
+##### `model-b-c-ann-installed-clause-visible-via-alias`
+- category `cli` · ungated guard · requires (recommended Option B) `doc_help, repl` · trace contract 5.2; C6
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  f(x) = x; 0
+  a = f; 0
+  @doc 7; f(x, y) = x + y
+  a(1, 2)
+  ```
+- expected: stdout="0\n0\n3" stderr="Error: @doc annotation expected a string, received int" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n0\n3" stderr="Error: @doc annotation expected a string, received int" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+- note: annotation and target share one submission; the failure leaves the installed clause visible through the earlier alias
+
+##### `model-b-c-ann-old-metadata-retained`
+- category `cli` · ungated guard · requires (recommended Option B) `doc_help, repl` · trace contract 5.2; C6
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  @doc "ok"; f(x) = x; 0
+  @doc 7; f(x, y) = x; 0
+  doc("f")
+  ```
+- expected: stdout="0\n\"ok\"" stderr="Error: @doc annotation expected a string, received int" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n\"ok\"" stderr="Error: @doc annotation expected a string, received int" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+- note: earlier metadata is retained after the failed annotation
+
+##### `model-b-c-ann-repl-recovery`
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, doc_help, repl` · trace contract 5.2; C6 (pattern clause)
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  f(x) = x; 0
+  a = f; 0
+  @doc 7; f(0, y) = y
+  a(0, 5)
+  ```
+- expected: stdout="0\n0\n5" stderr="Error: @doc annotation expected a string, received int" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n0" stderr="Error: model-b-not-implemented: declaration evaluation is not available\nError: No matching function: a/2. Available: a/1" exit=0
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: DIFFERS ("")
+- note: contract-derived: the clause is installed before the failing annotation is published, as for legacy clauses
+
+##### `model-b-c-main-repl-never-selects`
+- category `cli` · ungated guard · requires (recommended Option B) `repl` · trace R26 REPL contract 2.7; C-MAIN
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  main() = { print("ran"); 1 }; 0
+  42
+  ```
+- expected: stdout="0\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n42" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **FAIL** ["", "", 0]
+- note: no implicit main dispatch in the REPL: `ran` is never printed
+
+##### `model-b-c-main-repl-pattern-never-selects`
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, repl` · trace R26 REPL contract 2.7; C-MAIN
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  main(["x"]) = { print("p"); 1 }; 0
+  42
+  ```
+- expected: stdout="0\n42" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="42" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=0
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: DIFFERS ("")
+- note: NEW id (pattern-bearing main in the REPL)
+
+##### `model-b-c-own-local-alias-state-after-rejection`
+- category `cli` · gated under Options B (recommended) and C; ungated, keeping its other requirements, under Option A · requires (recommended Option B) `default_open_functions, repl` · trace D5; C6
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  f(x) = x; 0
+  a = f; 0
+  a(x, y) = x + y; 0
+  f(1)
+  a(1)
+  f(1, 2)
+  ```
+- expected: stdout="0\n0\n1\n1" stderr="Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope\nError: No matching function: f/2. Available: f/1" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n0\n0\n1\n1\n3" stderr="" exit=0
+- RED: fails (expected RED) · oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: DIFFERS ("")
+- note: restored as a REPL twin; ownership text is a PROPOSED candidate; baseline succeeds (prints 0 and 3)
+
+##### `model-b-c-own-local-alias-owner-still-extendable`
+- category `cli` · gated under Options B (recommended) and C; ungated, keeping its other requirements, under Option A · requires (recommended Option B) `default_open_functions, repl` · trace D5
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  f(x) = x; 0
+  a = f; 0
+  a(x, y) = x + y; 0
+  f(x, y) = x + y; 0
+  a(1, 2)
+  ```
+- expected: stdout="0\n0\n0\n3" stderr="Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n0\n0\n3" stderr="Error: Duplicate function definition: f/2" exit=0
+- RED: fails (expected RED) · oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: DIFFERS ("")
+- note: restored as a REPL twin; ownership text PROPOSED
+
+##### `model-b-c-mode-repl-failed-declaration-leaves-group`
+- category `cli` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions, immutable_bindings, repl` · trace Slice B x D3; C-MODE
+- CLI REPL session (no mode arguments; each stdin line is one submission) mode, argv `[]`; source:
+  ```
+  x =: 1; 0
+  x(0) = 1; 0
+  x
+  ```
+- expected: stdout="0\n1" stderr="Error: Cannot rebind immutable binding: x" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="0\n1" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=0
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred); informational, if executed: DIFFERS ("")
+- note: duplicate/ownership REPL variants omitted: the span label of a REPL submission (`<memory>`) is an unspecified host detail; the immutable rejection has no span
+
+##### `model-b-c-key-unquote-active-dup`
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3; design 5.4 active unquote
+- source:
+  ```
+  f(x) ? quasiquote(unquote(x)) == 1 = "a"
+  f(y) ? quasiquote(unquote(y)) == 1 = "b"
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived future error; spelling is the R20 renderer text observed on the other duplicate cases; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: active `unquote` is an expression reference, so the binders alpha-normalize to the same slot (observed: `quasiquote(unquote(x))` evaluates `x`); contract-derived duplicate; the legacy explicit-open walker does not detect it
+
+##### `model-b-c-key-unquote-nested-quoted-distinct`
+- category `eval` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3; design 5.4 quasiquote depth
+- source:
+  ```
+  f(x) ? quasiquote(quasiquote(unquote(x))) == quasiquote(quasiquote(unquote(x))) = "x-form"
+  f(y) ? quasiquote(quasiquote(unquote(y))) == quasiquote(quasiquote(unquote(y))) = "y-form"
+  f(1)
+  ```
+- expected: stdout="\"x-form\"\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: at depth 2 the inner `unquote(x)` is data (observed: `quasiquote(quasiquote(unquote(x)))` prints `(quasiquote (unquote x))`), so the clauses differ by data and both install; f(1) selects the first
+
+##### `model-b-c-key-unquote-nested-active-dup`
+- category `error` · gated by `default_open_functions` · requires (recommended Option B) `default_open_functions` · trace D3; design 5.4 quasiquote depth
+- source:
+  ```
+  f(x) ? quasiquote(quasiquote(unquote(unquote(x)))) == 1 = "a"
+  f(y) ? quasiquote(quasiquote(unquote(unquote(y)))) == 1 = "b"
+  ```
+- expected: stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1
+- RED: fails (expected RED) · oracle: contract-derived future error; spelling is the R20 renderer text observed on the other duplicate cases; byte-lock at RED baseline
+- C++ (pinned `44456ba`): UNSUPPORTED (capability `default_open_functions` undeclared by C++; inferred)
+- note: the doubly-unquoted `x` is active (observed: `quasiquote(quasiquote(unquote(unquote(x))))` evaluates `x`), so the clauses are alpha-equivalent duplicates
+
+##### `model-b-c-key-legacy-dup-id`
+- category `error` · ungated guard · requires (recommended Option B) `(none)` · trace design 13.4 legacy identities; contract 2.3 alpha-equivalent duplicate
+- source:
+  ```
+  f(x) = 1
+  f(y) = 2
+  f(1)
+  ```
+- expected: stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **FAIL** ["2\n", "", 0]
+- note: portable rejection of an alpha-equivalent duplicate; the exact English text is pinned here only because the exact-output runner compares stderr (R20 precedent) and is a decision item; trailing call chosen so a host cannot satisfy the case by reporting unsupported on a declaration-ending program
+
+##### `model-b-c-key-rest-binders-legacy-duplicate`
+- category `error` · ungated guard · requires (recommended Option B) `(none)` · trace design 13.4; contract 2.3 (rest binders participate)
+- source:
+  ```
+  f(x, ..r) = 1
+  f(y, ..s) = 2
+  f(1)
+  ```
+- expected: stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (adapter, as specified)
+- note: as above
+
+##### `model-b-c-meta-channel-binding-doc`
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1 channel 1 (binding @doc)
+- source:
+  ```
+  @doc "canonical"
+  f(x) = "inline" x
+  [doc("f"), meta("f")]
+  ```
+- expected: stdout="[\"canonical\", {doc: \"canonical\"}]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[\"canonical\", {doc: \"canonical\"}]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-channel-inline-doc`
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1 channel 2 (inline docstring, shared through the alias)
+- source:
+  ```
+  f(x) = "inline" x
+  a = f
+  [doc("f"), doc("a")]
+  ```
+- expected: stdout="[\"inline\", \"inline\"]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[\"inline\", \"inline\"]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-channel-alias-only`
+- category `eval` · ungated guard · requires (recommended Option B) `doc_help` · trace contract 5.1 channel 3 (alias-only annotation)
+- source:
+  ```
+  f(x) = x
+  @category "alias-category"
+  a = f
+  [meta("f"), meta("a")]
+  ```
+- expected: stdout="[{}, {category: \"alias-category\"}]\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="[{}, {category: \"alias-category\"}]\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): UNSUPPORTED (existing capability gate: doc_help)
+
+##### `model-b-c-meta-inline-doc-body-runs`
+- category `eval` · ungated guard · requires (recommended Option B) `(none)` · trace contract 5.1 (inline documentation does not change evaluation)
+- source:
+  ```
+  f(x) = "d" x + 1
+  f(1)
+  ```
+- expected: stdout="2\n" stderr="" exit=0
+- baseline (observed, Python main@79c073b, gate bypassed): stdout="2\n" stderr="" exit=0
+- RED: passes (guard; must stay green) · oracle: observed (Python baseline main@79c073b)
+- C++ (pinned `44456ba`): **FAIL** ["", "Error: Undefined name: x\n", 1]
+- note: no doc_help: the program never consumes documentation; it isolates the inline-docstring parse, which C++ currently mis-evaluates (CPP-D3)
+
+### R6.E Host-local inventory (HL-1…HL-14 unchanged from the package §3.4; HL-4 extended; HL-15…HL-24 redefined by revision 7)
 
 Module docstrings must say they cover Python internals or Python-specific representation (AGENTS "Portable-behavior test placement"). Native Genia tests are an alternative where the behavior is Genia-facing but not yet portable.
 
-| ID | Subject | Moved case ids / purpose | Why not a shared case | Shared observable twin |
-| --- | --- | --- | --- | --- |
-| HL-15 | persistent REPL environment: group grows across submissions; `f(0, 5)` → `5` | `open-persistent-env` | needs successive submissions; the REPL echoes host function representations (observed `<function f/1>` and `GeniaFunctionGroup(name='f', …)`), which no authority specifies (`<function` appears in no root document) | `open-noncontiguous-arities`, `open-pattern-after-plain` |
-| HL-16 | Python `Env`: after the ownership rejection `f` and `a` are unchanged, `f(1, 2)` still has no arity-2 clause, and a later legitimate `f(x, y) = x + y` makes `a(1, 2)` = `3` | `own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable` | observation after a failure | `own-local-alias-rejected` |
-| HL-17 | Python module loader: after the foreign-alias rejection `lib.g(1, 2)` still reports no arity-2 clause and `lib.g(1)` → `1` | `own-imported-alias-owner-unchanged` | observation after a failure | `own-imported-alias-rejected` |
-| HL-18 | Python `Env`: after a failed `@doc 7` the earlier metadata is retained, the new clause is installed and visible through an earlier alias | `ann-old-metadata-retained`, `ann-installed-clause-visible-via-alias` | observation after a failure | `ann-later-annotation-suppressed`, `ann-prior-effects-persist` |
-| HL-19 | REPL recovery: a failed annotation or declaration leaves the session usable and the group unchanged except the installed clause. Framing: annotation and target in **one** submission (observed: `@doc 7; f(x, y) = x + y` raises `@doc annotation expected a string, received int` and installs `f/2`; a separate-line framing fails with a prefix-annotation error). `requires` n/a (host-local) | `ann-repl-recovery`, `mode-repl-failed-declaration-leaves-group` | REPL transcript echoes host values | one-shot error cases above |
-| HL-20 | REPL submission of `main() = …` shows no `main` output; plus HL-9 structural | `main-repl-never-selects` | transcript is a host representation | none |
-| HL-21 | legacy duplicate wording (`Duplicate function definition: f/1`, `describe/1`) after the refactor; existing `test_f2_p2_a_characterization.py` / `test_f2_p2_b_registration.py` stay unmodified | `key-legacy-dup-id`, `key-rest-binders-legacy-duplicate`, `d8-legacy-identical-header-dup` | wording appears in no root document or spec (R6-D3) | none |
-| HL-22 | declaration over a lambda / builtin binding keeps `Cannot define function g/2: name already bound to non-function value` | `own-lambda-nonfunction-unchanged`, `own-builtin-nonfunction-unchanged` | wording unspecified (R6-D3) | none |
-| HL-23 | migration companions (before/after) for every changed outcome of old syntax: P5, alias declaration, annotated alias declaration, imported-alias declaration, alias-varargs; the existing `test_function_resolution_precedence.py` expectations are updated at GREEN | O-1 rows 1–5 | records the documented break, independent of the applicability option | the shared RED cases |
-| HL-24 | guard error: no partial binding and no later guard evaluated after `hdr-guard-error`'s failure | post-state of `hdr-guard-error` | observation after a failure | `hdr-guard-error` (stdout/stderr part) |
+| ID | Subject | Why host-local | Shared counterpart |
+| --- | --- | --- | --- |
+| HL-4 (extended) | consumer predicates, plus **effective `help`**: for `@doc "canonical"` / `f(x) = "inline" x` / `@category "alias-category"` / `a = f`, `help("f")` and `help("a")` each print `f/1`, `Defined at <command>:1`, a blank line, `inline`, a blank line, `Category: alias-category` (and return `none("nil")`); the output must not contain `canonical` | Python help text and its `Defined at` line are not specified across hosts | `meta-channel-binding-doc`, `meta-channel-inline-doc`, `meta-channel-alias-only`, `meta-three-channel-trio` assert the three channels individually |
+| HL-15 | REPL **function-value transcript** (`<function f/1>`, `GeniaFunctionGroup(name='f', …)` echoed for declarations) | host representation; `<function` appears in no root document | `open-persistent-arities`, `open-persistent-env`, `open-repl-alias-sees-later-arity` |
+| HL-16 | Python `Env` identity-level state after an ownership rejection (group object, alias binding, metadata unchanged) | host object identity | `own-local-alias-state-after-rejection`, `own-local-alias-owner-still-extendable` |
+| HL-17 | after a foreign-alias rejection `lib.g(1, 2)` still reports no arity-2 clause and `lib.g(1)` → `1` | needs the module loader; the CLI fixture boundary cannot express a post-failure observation | `own-imported-alias-rejected` |
+| HL-18 | Python `Env` annotation post-failure internals (no partial metadata map; installed clause identity) | host object identity | `ann-installed-clause-visible-via-alias`, `ann-old-metadata-retained`, `ann-later-annotation-suppressed`, `ann-prior-effects-persist` |
+| HL-19 | REPL transcripts that echo function values after a failed annotation or declaration | host representation | `ann-repl-recovery`, `mode-repl-failed-declaration-leaves-group` |
+| HL-20 | structural: `_resolve_program_result` is reached only from the `command`/`file` branches (with HL-9); REPL function-echo variant of the no-`main` check | host internals | `main-repl-never-selects`, `main-repl-pattern-never-selects` |
+| HL-21 | Python **exception class and exact text** of legacy duplicate rejection (`TypeError`, `Duplicate function definition: f/1`, `describe/1`); existing `test_f2_p2_a_characterization.py` / `test_f2_p2_b_registration.py` stay unmodified | exception class is Python detail; the rejection itself is shared | `key-legacy-dup-id`, `key-rest-binders-legacy-duplicate`, `d8-legacy-identical-header-dup` |
+| HL-22 | declaration over a lambda / builtin binding keeps `Cannot define function g/2: name already bound to non-function value` | **authority open** (package §R7.5, R7-D3); no portable and no defect claim | none |
+| HL-23 | migration companions (before/after) for every changed outcome of old syntax: P5, alias declaration, annotated alias declaration, imported-alias declaration, alias-varargs; `test_function_resolution_precedence.py` expectations updated at GREEN | records the documented break independent of the applicability option | the shared RED cases |
+| HL-24 | after `hdr-guard-error`'s failure: no partial binding and no later guard evaluated | observation after a failure | `hdr-guard-error` (stdout/stderr part) |
 
-### R6.F Excluded, half-open and reserved items
+### R6.F Excluded, reserved and open items
 
-- `key-repeated-binders-distinct` — excluded (O-4); no approved non-linear-pattern semantics.
-- Active `unquote` half of the quote/unquote counterexample — no pinned guard-position program; only `key-quote-names-are-data` is included (R6-D9).
-- `model-b-c-main-g1-*` — six reserved ids (package §R6.8); none is created before G1 approval.
-- Stop conditions SC-MAIN-1…5 in C-MAIN remain stop conditions, not cases (six reserved ids are their GREEN-entry form).
+- `key-repeated-binders-distinct` — excluded: the **ordinary-header** equivalence of repeated parameter names is not approved. Existing pattern matching does specify duplicate-binding equality (STATE pattern list; RULES line 78) and design §5.4 reuses a key slot for repeated bindings; neither approves the header interpretation, so nothing is inferred from Python.
+- Active `unquote` — **included** (three RG cases, package §R7.8); the pure key walker stays under HL-2.
+- `model-b-c-main-g1-*` — six reserved ids (package §R6.8, totals corrected in §R7.10); none is created before G1 approval.
+- Stop conditions SC-MAIN-1…5 remain stop conditions, not cases.
 
 ### R6.G Traceability retained
 
-C1 → `hdr-*`, `d8-prefix-and-capture`, `hdr-grouped-body-captures-header`; C2 → `optim-*`, HL-8; C3/C8 → package §R6.4–R6.5, `stage-closed-rejected`; C4 → `key-*`; C5 → `own-*`, HL-4, HL-10; C6 → `ann-*`, HL-3, HL-18, HL-24; C7 → `disp-p5-*`, HL-23. D1 → `disp-*`; D3 → `key-*`, `disp-duplicate-pattern-header`; D3b → HL-4 (route/HTTP/`@test`/lifecycle/introspection predicates asserted independently, never blanket rejection); D5 → `own-*`; D8 → `d8-*`, HL-8. Optimized output equality alone does not prove arm/provenance retention (HL-8 asserts retention).
+C1 → `hdr-*`, `d8-prefix-and-capture`, `hdr-grouped-body-captures-header`; C2 → `optim-*`, HL-8; C3/C8 → package §R6.4–R6.5 and §R7.9, `stage-closed-rejected`; C4 → `key-*`; C5 → `own-*`, HL-4, HL-10; C6 → `ann-*`, HL-3, HL-18, HL-24; C7 → `disp-p5-*`, HL-23. D1 → `disp-*`; D3 → `key-*`, `disp-duplicate-pattern-header`; D3b → HL-4 (route/HTTP/`@test`/lifecycle/introspection predicates asserted independently, never blanket rejection); D5 → `own-*`; D8 → `d8-*`, HL-8. Optimized output equality alone does not prove arm/provenance retention (HL-8 asserts retention).
