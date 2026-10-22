@@ -506,7 +506,6 @@
     "hosts/python/parse_adapter.py::binding::normalize_ast": "a4b50655c3892c77d89e7f6a86fab77de97429ee9f1243078b116304d761371e",
     "hosts/python/parse_adapter.py::binding::parse_and_normalize": "49e79ae62cdc04fb1492b02b7d091cf01fac15b7a64d5f04ab430d31dde0deea",
     "hosts/python/parse_adapter.py::module::<module>": "396aa4871d4d2d8527912d844922497b420f22748a8055df5bfa670596a13ab7",
-    "hosts/python/protocol_adapter.py::binding::_python_claimed_capabilities": "b613cf70ca5aa671cff7fce253b631517ee801c2f38c98ab45f03af376e5a8b5",
     "hosts/python/protocol_adapter.py::binding::_result_for_operation": "c1f850254e155251a8e40ccc9933363ae7541d51ffc571190dd35df13325113d",
     "hosts/python/protocol_adapter.py::binding::handle": "460f0db5715d522208183280677d653522b1a834573c2367a4cd9172c25d6582",
     "hosts/python/protocol_adapter.py::binding::main": "62895540ef38850773c62720cb18334393a2d4632f3a34a46cc6471aead87f5a",
