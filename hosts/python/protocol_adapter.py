@@ -44,6 +44,12 @@ _VOCABULARY_ONLY_CAPABILITIES: frozenset[str] = frozenset()
 
 
 def _python_claimed_capabilities() -> dict[str, str]:
+    """Advertise each known capability with its Python-host protocol status.
+
+    Vocabulary-only names are reported as ``unsupported`` without changing
+    the known-name set; unknown override names raise ``ValueError``.
+    When the override is empty, the pre-C0 capability map is unchanged.
+    """
     known = known_capabilities()
     unknown = sorted(_VOCABULARY_ONLY_CAPABILITIES - known)
     if unknown:
