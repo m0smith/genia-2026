@@ -195,10 +195,22 @@ Keep source spans on every declaration, annotation, pattern/guard and case arm.
 Derive unit provenance from the declaring module tree and canonical module
 identity; derive declaration/arm ordinals from ordered lists and accumulated
 execution order. Runtime records carry those values plus lexical closure.
-Keys omit spans; diagnostics preserve both conflicting provenances. Render
-canonical imported module names or the existing entry label, never filesystem
-paths, object addresses or captured values. Span-free direct IR has deterministic
-unknown-location diagnostics; it cannot fabricate source locations.
+Keys omit spans; diagnostics preserve both conflicting provenances. Duplicate-clause diagnostics reuse the existing R20 source-location
+renderer: imported-module clauses render the canonical module identity; entry
+clauses render the existing entry label — `<command>` in command mode and, in
+file mode, the host-resolved entry path as separately classified host-local
+detail (R20 §7.1). Ownership and foreign-alias diagnostics
+(`function-declaration-not-owner`) are path- and span-free and name only the
+declared name, the owning binding and, for a foreign owner, the canonical module
+identity or `<entry>`. Newly defined duplicate and ownership diagnostics do not
+expose captured or protected values, host object addresses or host
+representations of function values. The existing global requirements — safe
+debug rendering of argument values, no raw host object identities, exception
+text or protected payloads (R20 §8) — remain authoritative for every
+diagnostic. Span-free direct IR has deterministic unknown-location diagnostics
+and never fabricates locations. Sanitizing legacy diagnostics that already
+render function values (for example case-miss formatting) is outside Slice C
+and requires a separately approved follow-up.
 
 ## 4. Binding environment design
 
@@ -665,7 +677,7 @@ The **self frame of a provisional closed callable must itself contain an immutab
 
 Expand Slice A/implementation inventories to include `ir.py:iter_ir_nodes` (currently misses children of some existing R20 nodes), `server_route_binding.py`, native-test discovery, `tools/code_documentation.py`, optimizers, projections and `_MINIMAL_PORTABLE_NODE_FAMILIES`. Preserve permitted ordinary annotations, including `@route`, `@test`, `@doc` and `@category`, for closed declaration groups where their ordinary counterpart is already legal; whole-group discovery must not silently omit these. Test a host-local IR node nested in a closed child, and require traversal to reject it. Do not treat metacircular child frames as direct user-Env writers without evidence; inspect `Env.set` and `Env.assign` and all publications.
 
-Existing exports are current module top-level bindings; failed module loads may be retried. Preserve file/entry diagnostic provenance without leaking host-only absolute paths, captured values or protected data. Lexer's `TOKEN_SPEC` and `PUNCTUATION_TOKENS` both require `=:` handling.
+Existing exports are current module top-level bindings; failed module loads may be retried. Preserve file/entry diagnostic provenance exactly as the existing R20 renderer produces it (the resolved entry path in file-mode duplicate-clause diagnostics is the one sanctioned host-local location detail); new ownership and foreign-alias diagnostics carry no path or span; no diagnostic leaks captured values, host object addresses or protected data. Lexer's `TOKEN_SPEC` and `PUNCTUATION_TOKENS` both require `=:` handling.
 
 ### 13.6 Precise pre-red-test gate and checks (F12)
 
