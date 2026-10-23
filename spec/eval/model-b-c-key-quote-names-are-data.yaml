@@ -1,0 +1,20 @@
+name: model-b-c-key-quote-names-are-data
+id: model-b-c-key-quote-names-are-data
+category: eval
+description: "Slice C RED (#1269): D3 quoted names are data"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) ? x == quote(p) = "p"
+    f(x) ? x == quote(q) = "q"
+    [f(quote(p)), f(quote(q))]
+expected:
+  stdout: |
+    ["p", "q"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  replaces key-quote-unquote (quoted half only); active-unquote half is PENDING: no pinned guard-position unquote program, see decision register

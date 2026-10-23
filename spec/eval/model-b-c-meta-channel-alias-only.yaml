@@ -1,0 +1,20 @@
+name: model-b-c-meta-channel-alias-only
+id: model-b-c-meta-channel-alias-only
+category: eval
+description: "Slice C RED (#1269): contract 5.1 channel 3 (alias-only annotation)"
+requires: [doc_help]
+input:
+  source: |-
+    f(x) = x
+    @category "alias-category"
+    a = f
+    [meta("f"), meta("a")]
+expected:
+  stdout: |
+    [{}, {category: "alias-category"}]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="[{}, {category: \"alias-category\"}]\n" stderr="" exit=0.

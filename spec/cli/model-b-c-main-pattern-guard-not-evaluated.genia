@@ -1,0 +1,4 @@
+ping() = { print("guard-ran"); true }
+main(args) ? ping() = { print("body"); 1 }
+print("top")
+42

@@ -1,0 +1,3252 @@
+[
+ {
+  "id": "model-b-c-open-noncontiguous-arities",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "[1, 3]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[1, 3]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-open-alias-sees-later-arity",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-open-immutable-alias-stays-live",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "immutable_bindings"
+  ],
+  "expected": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-open-call-before-later-clause",
+  "category": "error",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: No matching function: f/2. Available: f/1\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: No matching function: f/2. Available: f/1\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-open-pattern-after-plain",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[0, 1]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-open-noncontiguous-pattern",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "a\n[\"a\", \"b\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-open-lambda-factory-distinct",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "[2, 3, true, false]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[2, 3, true, false]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-literal-base-case",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "120\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-guard-selects",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[\"pos\", \"other\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-guard-sees-header-binding",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[3, 6]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-match-local-shadows-outer",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "1\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-list-rest",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[2, 3]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-map",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "5\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-some",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-err",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "\"bad\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-wildcard",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "1\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-first-match-wins",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "1\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-fixed-miss-no-varargs-fallthrough",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: No matching case for function f/1 with arguments [5]\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-fixed-miss-two-args-varargs",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "2\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-named-matcher",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-pat-string-body-is-body",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "[\"doc-like\", none(\"missing-doc\", {name: \"f\"})]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-true-vs-one",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[1, 2]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-one-vs-one-point-zero",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[10, 10]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-same-binary64-dup",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-spelling-dup",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-alpha-equivalent-dup",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-guard-alpha-dup",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-guard-differs-ok",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[1, 2]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-free-name-syntactic",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "\"limit\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-lambda-shadow-dup",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-lambda-shadow-outer-slot-distinct",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "1\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-quote-names-are-data",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[\"p\", \"q\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-named-matcher-distinct",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "\"p\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-named-matcher-same-dup",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:2, duplicate at <command>:3)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-no-effects",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:2, duplicate at <command>:3)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-r20-delta-true-one",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "open_functions"
+  ],
+  "expected": {
+   "stdout": "[1, 2]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-r20-delta-one-float",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "open_functions"
+  ],
+  "expected": {
+   "stdout": "1\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-p5-varargs-minima-ambiguity",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Ambiguous function resolution: f/2. Matching varargs: f/1+, f/2+\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "\"min2\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-p5-migration-fixed-clause",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "\"exact2\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: f/2\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-p5-migration-drop-lower",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "\"min2\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "\"min2\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-p7-same-arity-ambiguity",
+  "category": "error",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Ambiguous function resolution: f/3. Matching varargs: f/1+, f/2+\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Ambiguous function resolution: f/3. Matching varargs: f/1+, f/2+\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-fixed-over-varargs",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "[\"exact\", \"varargs\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[\"exact\", \"varargs\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-fixed-and-varargs-same-arity",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[1, 2]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: f/1\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-no-matching-function",
+  "category": "error",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: No matching function: f/2. Available: f/1\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: No matching function: f/2. Available: f/1\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-no-matching-function-new-group",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: No matching function: f/0. Available: f/1, f/2, f/1+\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: f/1\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-duplicate-pattern-header",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-case-miss-identity",
+  "category": "error",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: No matching case for function f/1 with arguments [1]\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: No matching case for function f/1 with arguments [1]\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-case-miss-pattern-group",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: No matching case for function f/1 with arguments [5]\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-disp-no-clause-ambiguity-single-unit",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[\"list\", \"any\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-block-prefix-once",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "prefix\n2\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "prefix\n2\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-block-prefix-miss",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "prefix\n",
+   "stderr": "Error: No matching case for function f/1 with arguments [2]\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "prefix\n",
+   "stderr": "Error: No matching case for function f/1 with arguments [2]\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-block-prefix-multi-call",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "prefix\nprefix\n[1, 2]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "prefix\nprefix\n[1, 2]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-grouped-body-captures-header",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "[0, 10]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[0, 10]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-guard-evaluated-once",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "guard\n7\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-guard-order",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "a\nb\n2\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-guard-error",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "a\n",
+   "stderr": "Error: Undefined name: undefined_guard\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-matcher-outcome",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "err(\"bad\", 3)\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-hdr-recursion-tco",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "\"done\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-optim-collection-recursion",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "6\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "6\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "PASS",
+   "gate_bypassed_informational": "PASS"
+  }
+ },
+ {
+  "id": "model-b-c-optim-late-declaration",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[6, \"zero\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-opt-none-pattern-in-group-dispatches",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[\"was-none\", 3]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-opt-other-arity-clause-not-aware",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[true]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-opt-delegation-to-aware-callee",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[0]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-opt-err-pipeline-value-short-circuits",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[err(\"e\")]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-opt-plain-identity-none",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "none(\"r\")\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "none(\"r\")\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "PASS",
+   "gate_bypassed_informational": "PASS"
+  }
+ },
+ {
+  "id": "model-b-c-opt-pipe-lift",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "some(2)\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "some(2)\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-alias-call-live",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-immutable-alias-live",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "immutable_bindings"
+  ],
+  "expected": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "3\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-local-alias-rejected",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "<function a/2>\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-local-alias-pattern-clause",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-local-alias-varargs",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: function-declaration-not-owner: cannot declare a/1+: 'a' refers to function 'f' declared by another binding in this scope\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: a/1\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-alias-annotation-not-evaluated",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "annotation-ran\n<function a/2>\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-imported-alias-rejected",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "multi_file_eval"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: function-declaration-not-owner: cannot declare h/2: 'h' refers to function 'g' owned by module 'lib'\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "<function h/2>\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-explicit-open-alias-unchanged",
+  "category": "error",
+  "class": "guard",
+  "requires": [
+   "open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-own-import-inert",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "multi_file_eval"
+  ],
+  "expected": {
+   "stdout": "[3, 1]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[3, 1]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-extend-ordinary-rejected",
+  "category": "error",
+  "class": "guard",
+  "requires": [
+   "multi_file_eval",
+   "open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-target-not-open: 'base.f' is not an open function interface\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: open-function-target-not-open: 'base.f' is not an open function interface\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-use-ordinary-base-unchanged",
+  "category": "error",
+  "class": "guard",
+  "requires": [
+   "multi_file_eval",
+   "open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-target-not-open: 'base.f' is not an open function interface\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: open-function-target-not-open: 'base.f' is not an open function interface\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-two-modules-independent",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "multi_file_eval"
+  ],
+  "expected": {
+   "stdout": "[\"m1-zero\", \"m1-other\", \"m2-zero\", \"m2-other\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-entry-prelude-name",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "[\"mine\", [2, 3]]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[\"mine\", [2, 3]]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-d8-forward-collision",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[\"zero\", \"other\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-d8-reverse-collision",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[\"clause\", 5]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-d8-terminal-grouped-miss",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: No matching case for function f/1 with arguments [9]\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-d8-earlier-pattern-miss-continues",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "\"one\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-d8-legacy-identical-header-dup",
+  "category": "error",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: describe/1\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: describe/1\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-d8-grouped-decl-one-key",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "[\"z\", 6, 3]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[\"z\", 6, 3]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-d8-prefix-and-capture",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "prefix\n[1, 0, 4]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "prefix\n[1, 0, 4]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-d8-r20-flattening-unchanged",
+  "category": "error",
+  "class": "guard",
+  "requires": [
+   "open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-imm-rebind-as-function",
+  "category": "error",
+  "class": "guard",
+  "requires": [
+   "immutable_bindings"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Cannot rebind immutable binding: x\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Cannot rebind immutable binding: x\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-imm-rebind-as-pattern-function",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "immutable_bindings"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Cannot rebind immutable binding: x\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-imm-declare-after-function",
+  "category": "error",
+  "class": "guard",
+  "requires": [
+   "immutable_bindings"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Cannot declare immutable binding f: name is already bound in this scope\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Cannot declare immutable binding f: name is already bound in this scope\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-meta-binding-doc-merge",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "[\"two\", {doc: \"two\", category: \"c1\"}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[\"two\", {doc: \"two\", category: \"c1\"}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-meta-newer-key-overwrites",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "\"two\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "\"two\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-meta-alias-no-copy",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "[none(\"missing-doc\", {name: \"a\"}), {}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[none(\"missing-doc\", {name: \"a\"}), {}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-meta-inline-doc-shared-via-alias",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "[\"d1\", \"d1\", 3]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[\"d1\", \"d1\", 3]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-meta-conflicting-inline-doc-before-install",
+  "category": "error",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Conflicting docstrings for function f: got 'd2', expected 'd1'\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Conflicting docstrings for function f: got 'd2', expected 'd1'\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-meta-three-channel-trio",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "[\"canonical\", \"inline\", {category: \"alias-category\"}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[\"canonical\", \"inline\", {category: \"alias-category\"}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-meta-pattern-clause-annotations",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "\"zero\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-ann-later-annotation-suppressed",
+  "category": "error",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: @doc annotation expected a string, received int\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: @doc annotation expected a string, received int\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-ann-prior-effects-persist",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "first\n",
+   "stderr": "Error: @doc annotation expected a string, received int\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "first\n",
+   "stderr": "Error: @doc annotation expected a string, received int\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-ann-pattern-clause-variants",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: @doc annotation expected a string, received int\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-stage-closed-rejected",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "before\n",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "before\n",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-mode-file-pattern-program",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[\"zero\", \"other\"]",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-mode-command-pattern-program",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "[\"zero\", \"other\"]",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-mode-import-pattern-program",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "multi_file_eval"
+  ],
+  "expected": {
+   "stdout": "[\"zero\", \"other\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-legacy-main1-preferred",
+  "category": "cli",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "top\nmain1\n11",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "top\nmain1\n11",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-legacy-main0-fallback",
+  "category": "cli",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "top\nmain0\n10",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "top\nmain0\n10",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-legacy-rest-main-selected",
+  "category": "cli",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "top\nmainrest\n12",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "top\nmainrest\n12",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-no-qualifying",
+  "category": "cli",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "top\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "top\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-command-mode",
+  "category": "cli",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "top\ncmdmain\n[\"x\", \"y\"]",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "top\ncmdmain\n[\"x\", \"y\"]",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-pattern-not-selected",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "top\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "top",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-pattern-guard-not-evaluated",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "top\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-wildcard-not-selected",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "top\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-multi-pattern-group-not-selected",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "top\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-pattern-command-mode",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "top\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-explicit-call-dispatches",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "pattern-main\n1\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-explicit-call-miss",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: No matching case for function main/1 with arguments [[\"--y\"]]",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-test-mode-unchanged",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "total=1 passed=1 failed=0 errored=0\nPASS passes\ntotal=1 passed=1 failed=0 errored=0",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-open-persistent-arities",
+  "category": "cli",
+  "class": "guard",
+  "requires": [
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n0\n3",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n0\n3",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-open-repl-alias-sees-later-arity",
+  "category": "cli",
+  "class": "guard",
+  "requires": [
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n0\n0\n3",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n0\n0\n3",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-open-persistent-env",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n0\n5",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\nError: No matching function: f/2. Available: f/1",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-ann-installed-clause-visible-via-alias",
+  "category": "cli",
+  "class": "guard",
+  "requires": [
+   "doc_help",
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n0\n3",
+   "stderr": "Error: @doc annotation expected a string, received int",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n0\n3",
+   "stderr": "Error: @doc annotation expected a string, received int",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-ann-old-metadata-retained",
+  "category": "cli",
+  "class": "guard",
+  "requires": [
+   "doc_help",
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n\"ok\"",
+   "stderr": "Error: @doc annotation expected a string, received int",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n\"ok\"",
+   "stderr": "Error: @doc annotation expected a string, received int",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-ann-repl-recovery",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "doc_help",
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n0\n5",
+   "stderr": "Error: @doc annotation expected a string, received int",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n0",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\nError: No matching function: a/2. Available: a/1",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-main-repl-never-selects",
+  "category": "cli",
+  "class": "guard",
+  "requires": [
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-main-repl-pattern-never-selects",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n42",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "42",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-local-alias-state-after-rejection",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n0\n1\n1",
+   "stderr": "Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope\nError: No matching function: f/2. Available: f/1",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n0\n0\n1\n1\n3",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-own-local-alias-owner-still-extendable",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n0\n0\n3",
+   "stderr": "Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n0\n0\n3",
+   "stderr": "Error: Duplicate function definition: f/2",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-mode-repl-failed-declaration-leaves-group",
+  "category": "cli",
+  "class": "future",
+  "requires": [
+   "default_open_functions",
+   "immutable_bindings",
+   "repl"
+  ],
+  "expected": {
+   "stdout": "0\n1",
+   "stderr": "Error: Cannot rebind immutable binding: x",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "0\n1",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available",
+   "exit_code": 0
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-unquote-active-dup",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-unquote-nested-quoted-distinct",
+  "category": "eval",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "\"x-form\"\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-unquote-nested-active-dup",
+  "category": "error",
+  "class": "future",
+  "requires": [
+   "default_open_functions"
+  ],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: model-b-not-implemented: declaration evaluation is not available\n",
+   "exit_code": 1
+  },
+  "in_process": "FAIL",
+  "external_python": "UNSUPPORTED",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-key-legacy-dup-id",
+  "category": "error",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: f/1\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: f/1\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-key-rest-binders-legacy-duplicate",
+  "category": "error",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: f/1\n",
+   "exit_code": 1
+  },
+  "in_process_actual": {
+   "stdout": "",
+   "stderr": "Error: Duplicate function definition: f/1\n",
+   "exit_code": 1
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-meta-channel-binding-doc",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "[\"canonical\", {doc: \"canonical\"}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[\"canonical\", {doc: \"canonical\"}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-meta-channel-inline-doc",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "[\"inline\", \"inline\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[\"inline\", \"inline\"]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "FAIL"
+  }
+ },
+ {
+  "id": "model-b-c-meta-channel-alias-only",
+  "category": "eval",
+  "class": "guard",
+  "requires": [
+   "doc_help"
+  ],
+  "expected": {
+   "stdout": "[{}, {category: \"alias-category\"}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "[{}, {category: \"alias-category\"}]\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "UNSUPPORTED",
+   "gate_bypassed_informational": "UNSUPPORTED"
+  }
+ },
+ {
+  "id": "model-b-c-meta-inline-doc-body-runs",
+  "category": "eval",
+  "class": "guard",
+  "requires": [],
+  "expected": {
+   "stdout": "2\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process_actual": {
+   "stdout": "2\n",
+   "stderr": "",
+   "exit_code": 0
+  },
+  "in_process": "PASS",
+  "external_python": "PASS",
+  "cpp_pinned_44456ba": {
+   "normal_gate": "FAIL",
+   "gate_bypassed_informational": "FAIL"
+  }
+ }
+]

@@ -1,0 +1,19 @@
+name: model-b-c-open-noncontiguous-arities
+id: model-b-c-open-noncontiguous-arities
+category: eval
+description: "Slice C RED (#1269): C-OPEN, contract 2.2"
+input:
+  source: |-
+    f(x) = x
+    g(y) = y
+    f(x, y) = x + y
+    [f(1), f(1, 2)]
+expected:
+  stdout: |
+    [1, 3]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="[1, 3]\n" stderr="" exit=0.

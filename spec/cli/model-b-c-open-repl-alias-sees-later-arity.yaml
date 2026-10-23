@@ -1,0 +1,32 @@
+name: model-b-c-open-repl-alias-sees-later-arity
+id: model-b-c-open-repl-alias-sees-later-arity
+category: cli
+description: "Slice C RED (#1269): contract 2.2"
+requires: [repl]
+input:
+  source: |-
+    f(x) = x; 0
+    a = f; 0
+    f(x, y) = x + y; 0
+    a(1, 2)
+  file: null
+  command: null
+  stdin: |-
+    f(x) = x; 0
+    a = f; 0
+    f(x, y) = x + y; 0
+    a(1, 2)
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    0
+    0
+    0
+    3
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="0\n0\n0\n3" stderr="" exit=0.

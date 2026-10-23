@@ -1,0 +1,20 @@
+name: model-b-c-own-local-alias-varargs
+id: model-b-c-own-local-alias-varargs
+category: error
+description: "Slice C RED (#1269): D5; ownership check precedes the legacy duplicate check"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) = x
+    a = f
+    a(x, ..r) = x
+expected:
+  stdout: ''
+  stderr: |
+    Error: function-declaration-not-owner: cannot declare a/1+: 'a' refers to function 'f' declared by another binding in this scope
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: a/1\n" exit=1.
+  ungated under O-1 Option A; gated under Option C

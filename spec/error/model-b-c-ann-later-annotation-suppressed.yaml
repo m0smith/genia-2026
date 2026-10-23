@@ -1,0 +1,20 @@
+name: model-b-c-ann-later-annotation-suppressed
+id: model-b-c-ann-later-annotation-suppressed
+category: error
+description: "Slice C RED (#1269): contract 5.2 / C6"
+requires: [doc_help]
+input:
+  source: |-
+    f(x) = x
+    @doc 7
+    @category (print("later"))
+    f(x, y) = x
+expected:
+  stdout: ''
+  stderr: |
+    Error: @doc annotation expected a string, received int
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: @doc annotation expected a string, received int\n" exit=1.

@@ -1,0 +1,4 @@
+main(args) = { print("main1"); 11 }
+main() = { print("main0"); 10 }
+print("top")
+42

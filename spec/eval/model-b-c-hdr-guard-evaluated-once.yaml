@@ -1,0 +1,21 @@
+name: model-b-c-hdr-guard-evaluated-once
+id: model-b-c-hdr-guard-evaluated-once
+category: eval
+description: "Slice C RED (#1269): C1 once-only guard"
+requires: [default_open_functions]
+input:
+  source: |-
+    check(x) = { print("guard"); true }
+    f(x) ? check(x) = x
+    f(7)
+expected:
+  stdout: |
+    guard
+    7
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  print log replaces the Ref counter; no refs capability needed

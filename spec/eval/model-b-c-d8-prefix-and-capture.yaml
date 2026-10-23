@@ -1,0 +1,19 @@
+name: model-b-c-d8-prefix-and-capture
+id: model-b-c-d8-prefix-and-capture
+category: eval
+description: "Slice C RED (#1269): D8/C1"
+input:
+  source: |-
+    f(x) { print("prefix"); k = x + 1; n ? n < k -> x | _ -> 0 }
+    g(a) = (0) -> a | (n) -> n + a
+    [f(1), g(0), g(2)]
+expected:
+  stdout: |
+    prefix
+    [1, 0, 4]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="prefix\n[1, 0, 4]\n" stderr="" exit=0.

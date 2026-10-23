@@ -1,0 +1,32 @@
+name: model-b-c-ann-installed-clause-visible-via-alias
+id: model-b-c-ann-installed-clause-visible-via-alias
+category: cli
+description: "Slice C RED (#1269): contract 5.2; C6"
+requires: [doc_help, repl]
+input:
+  source: |-
+    f(x) = x; 0
+    a = f; 0
+    @doc 7; f(x, y) = x + y
+    a(1, 2)
+  file: null
+  command: null
+  stdin: |-
+    f(x) = x; 0
+    a = f; 0
+    @doc 7; f(x, y) = x + y
+    a(1, 2)
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    0
+    0
+    3
+  stderr: "Error: @doc annotation expected a string, received int"
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="0\n0\n3" stderr="Error: @doc annotation expected a string, received int" exit=0.
+  annotation and target share one submission; the failure leaves the installed clause visible through the earlier alias

@@ -1,0 +1,19 @@
+name: model-b-c-key-one-vs-one-point-zero
+id: model-b-c-key-one-vs-one-point-zero
+category: eval
+description: "Slice C RED (#1269): D3 typed keys; runtime numeric equality"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(1) = 10
+    f(1.0) = 20
+    [f(1), f(1.0)]
+expected:
+  stdout: |
+    [10, 10]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

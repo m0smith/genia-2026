@@ -1,0 +1,22 @@
+name: model-b-c-open-lambda-factory-distinct
+id: model-b-c-open-lambda-factory-distinct
+category: eval
+description: "Slice C RED (#1269): contract 2.2 lexical factories"
+input:
+  source: |-
+    mk(k) {
+      g = (x) -> x + k
+      g
+    }
+    a = mk(1)
+    b = mk(2)
+    [a(1), b(1), a == a, a == b]
+expected:
+  stdout: |
+    [2, 3, true, false]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="[2, 3, true, false]\n" stderr="" exit=0.

@@ -1,0 +1,20 @@
+name: model-b-c-own-local-alias-rejected
+id: model-b-c-own-local-alias-rejected
+category: error
+description: "Slice C RED (#1269): D5 (P10)"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) = x
+    a = f
+    a(x, y) = x + y
+expected:
+  stdout: ''
+  stderr: |
+    Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required.
+  Baseline (Python main@79c073b, gate bypassed): stdout="<function a/2>\n" stderr="" exit=0.
+  ungated under O-1 Option A; gated under Option C (recommended)

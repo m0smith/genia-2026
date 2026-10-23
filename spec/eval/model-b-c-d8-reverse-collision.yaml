@@ -1,0 +1,19 @@
+name: model-b-c-d8-reverse-collision
+id: model-b-c-d8-reverse-collision
+category: eval
+description: "Slice C RED (#1269): D8"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(0) = "clause"
+    f(x) = (0) -> "arm" | (n) -> n
+    [f(0), f(5)]
+expected:
+  stdout: |
+    ["clause", 5]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

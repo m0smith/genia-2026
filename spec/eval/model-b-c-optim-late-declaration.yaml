@@ -1,0 +1,19 @@
+name: model-b-c-optim-late-declaration
+id: model-b-c-optim-late-declaration
+category: eval
+description: "Slice C RED (#1269): C2/D8 optimized declaration then later pattern clause of another arity"
+requires: [default_open_functions]
+input:
+  source: |-
+    pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)
+    pick(0) = "zero"
+    [pick(1, [5, 6]), pick(0)]
+expected:
+  stdout: |
+    [6, "zero"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

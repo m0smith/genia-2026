@@ -1,0 +1,23 @@
+name: model-b-c-mode-command-pattern-program
+id: model-b-c-mode-command-pattern-program
+category: cli
+description: "Slice C RED (#1269): C-MODE -c mode"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(0) = "zero"
+    f(n) = "other"
+    print([f(0), f(1)])
+  file: null
+  command: |-
+    f(0) = "zero"
+    f(n) = "other"
+    print([f(0), f(1)])
+  stdin: ''
+  argv: []
+  debug_stdio: false
+expected: {stdout: '["zero", "other"]', stderr: '', exit_code: 0}
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1.

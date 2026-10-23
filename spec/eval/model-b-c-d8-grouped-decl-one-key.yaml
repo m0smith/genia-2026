@@ -1,0 +1,18 @@
+name: model-b-c-d8-grouped-decl-one-key
+id: model-b-c-d8-grouped-decl-one-key
+category: eval
+description: "Slice C RED (#1269): D8"
+input:
+  source: |-
+    f(a) = (0) -> "z" | (n) -> n + a
+    f(a, b) = a + b
+    [f(0), f(3), f(1, 2)]
+expected:
+  stdout: |
+    ["z", 6, 3]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="[\"z\", 6, 3]\n" stderr="" exit=0.

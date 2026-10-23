@@ -1,0 +1,18 @@
+name: model-b-c-stage-closed-rejected
+id: model-b-c-stage-closed-rejected
+category: eval
+description: "Slice C RED (#1269): C8"
+input:
+  source: |-
+    print("before")
+    f(0) =: { print("child"); 0 }
+expected:
+  stdout: |
+    before
+  stderr: |
+    Error: model-b-not-implemented: declaration evaluation is not available
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="before\n" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

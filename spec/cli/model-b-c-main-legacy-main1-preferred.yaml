@@ -1,0 +1,22 @@
+name: model-b-c-main-legacy-main1-preferred
+id: model-b-c-main-legacy-main1-preferred
+category: cli
+description: "Slice C RED (#1269): C-MAIN"
+input:
+  source: spec/cli/model-b-c-main-legacy-main1-preferred.genia
+  file: spec/cli/model-b-c-main-legacy-main1-preferred.genia
+  command: null
+  stdin: ''
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    top
+    main1
+    11
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="top\nmain1\n11" stderr="" exit=0.

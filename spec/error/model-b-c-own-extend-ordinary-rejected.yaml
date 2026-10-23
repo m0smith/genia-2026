@@ -1,0 +1,23 @@
+name: model-b-c-own-extend-ordinary-rejected
+id: model-b-c-own-extend-ordinary-rejected
+category: error
+description: "Slice C RED (#1269): D5"
+requires: [multi_file_eval, open_functions]
+input:
+  modules:
+    entry: main.genia
+    files:
+    - {path: base.genia, source: f(x) = x}
+    - path: main.genia
+      source: |-
+        import base
+        extend base.f(0) = 0
+expected:
+  stdout: ''
+  stderr: |
+    Error: open-function-target-not-open: 'base.f' is not an open function interface
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-target-not-open: 'base.f' is not an open function interface\n" exit=1.
