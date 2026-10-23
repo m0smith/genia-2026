@@ -71,3 +71,18 @@ Totals (measured): 278 host-local items in 9 modules + helper: **148 fail, 130 p
 | R7-D8 CPP-D1–D5 owner | issues genia-cpp#53–#57 name "C++ host implementer with m0smith integration"; no assignee set. **m0smith must confirm the named accountable owner** (not set by this work) |
 | A1–A4 above | proposed |
 | Zero C++ failure classes | final-merge requirement (currently fail=9) |
+
+### Revision 2 validation (Python 3.12.3; uv; this container; single runs, no recoveries)
+| Check | Command | Result |
+|---|---|---|
+| Shared inventory | harness + loader; YAML/fixtures/harness/manifest/gaps/adapter/C0 vs `f5aa07d5` | `git diff f5aa07d5 -- spec src tools hosts docs root-docs tests/spec C0-test` empty; 137 ids, 55/82, zero invalid |
+| In-process | `uv run python -m tools.spec_runner` | `total=1038 passed=956 failed=82 invalid=0`, exit 1 |
+| External Python | `--host "<venv python> -m hosts.python.protocol_adapter" --host-jobs 2 --host-timeout 120` | `passed=938 failed=0 unsupported=100 timeout=0`, exit **0 — not GREEN** (clean single run; the earlier 4-job/short-timeout timeouts did not recur) |
+| Exact-18 parity | `uv run pytest tests/spec/test_python_protocol_adapter_parity_762.py` | unchanged file FAILED `assert 100 == 18` (431 s) |
+| Pinned C++ `44456ba` | `--host /home/user/genia-cpp/build/genia-adapter` | `270 / 9 fail / 759 unsupported` (unchanged; same 9 ids) |
+| Fast CI selection | `uv run pytest -q -m "not slow and not loopback" -n 4 -rfEs` | 7204 passed, 60 skipped (pre-existing, none in Slice C), 231 failed: 82 harness + 148 host-local + 1 hygiene failure (below) |
+| Hygiene gate | `tests/unit/test_host_binding_classification_p1_e.py` | the new `keys` test used `Env.set` as a harness injection → gate failed; fixed to `set_host(..., visibility="entry-only")`; gate passes (not weakened) |
+| Focused regressions | C0, capability, parity-gate, R20 shared, function-resolution, optimizer, Slice A/B | 243 passed |
+| Docs / MCP / LLM / lint | `tests/doc -n 2`; `gen_mcp_language_profile --check`; `validate_llm_instructions`; `ruff check .`; `git diff --check` | 397 passed/35 skipped; pass; pass; pass; clean |
+| MkDocs | `mkdocs build --strict --site-dir <scratchpad>/site_out` | built, no warnings; no in-tree `site/` created |
+Final host-local totals: 278 items, 148 fail, 130 pass. Not run: loopback partition, py3.14 matrix, Node/VS Code jobs, Genia MCP client acceptance (the Genia MCP server was unavailable in this session; repo scripts were used instead).

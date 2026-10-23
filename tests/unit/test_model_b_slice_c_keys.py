@@ -230,7 +230,7 @@ def test_key_construction_is_deterministic_and_side_effect_free_today():
 def test_building_a_clause_record_evaluates_neither_guard_nor_pattern_today():
     calls: list[str] = []
     env = Env()
-    env.set("trace", lambda *a: calls.append("guard ran") or True)
+    env.set_host("trace", lambda *a: calls.append("guard ran") or True, visibility="entry-only")
     clause = _clause("f(x) ? trace() = 1")
     OpenClauseRecord(clause.pattern, clause.guard, clause.result, env, clause.span)
     assert calls == []
