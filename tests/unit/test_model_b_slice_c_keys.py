@@ -107,7 +107,7 @@ def test_numeric_payload_key_does_not_depend_on_mapping_insertion_order():
 def test_numeric_payload_kinds_stay_distinct_today():
     pattern = IrPatTuple([IrPatBind("x")])
     integer = ir.IrLiteral({"kind": "integer", "digits": "1"})
-    decimal = ir.IrLiteral({"kind": "decimal", "digits": "1"})
+    decimal = ir.IrLiteral({"kind": "decimal", "coefficient": "1", "exponent": "0"})
     assert _open_dispatch_key(pattern, integer) != _open_dispatch_key(pattern, decimal)
 
 
