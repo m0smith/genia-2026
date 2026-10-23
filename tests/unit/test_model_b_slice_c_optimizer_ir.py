@@ -1,7 +1,7 @@
 """Slice C RED host-local tests: source/direct-IR twins, optimizer equivalence, group index, races.
 
 PYTHON REFERENCE HOST ONLY (issue #1269; test plan R6.E HL-1 (legacy part),
-HL-3, HL-7, HL-8). Lowered Core IR, optimizer node selection, the arity-keyed
+HL-3, HL-7). Lowered Core IR, optimizer node selection, the arity-keyed
 group index and the binding lock are Python implementation details; the
 portable observations are the shared ``model-b-c-*`` cases that these tests
 re-run through a second path.
@@ -9,14 +9,14 @@ re-run through a second path.
 HL-7 evaluates every source-expressible shared case through a lowered-IR twin
 (unoptimized Core IR) and through ``run_source`` (optimized) and requires both
 to agree with each other *and* with the YAML oracle, so two equal failures
-cannot pass vacuously. HL-8 asserts the same equivalence with the optimizer on
-and off for the optimizer-sensitive programs.
+cannot pass vacuously.
 
-Not implemented here (no approved internal API names exist yet, so any
-assertion would invent an interface): the ordered record API and owner token
-of HL-1, the pure key walker of HL-2 and arm-key retention of HL-8
-(`optim-keys-retained`, `d8-arms-retained-not-checked`). They are recorded in
-the RED evidence note as blocked on the GREEN design naming those internals.
+Optimizer on/off equivalence and arm retention (HL-8) live in
+``test_model_b_slice_c_optimizer_retention.py``; the pure dispatch-key boundary
+(HL-2) in ``test_model_b_slice_c_keys.py``; ordered records (HL-1) in
+``test_model_b_slice_c_records.py``. The shared ``0`` empty-arm witnesses do not
+reach the nth-style rewrite (it needs ``nil``); that is why HL-8 has its own
+``nil`` companions.
 """
 
 from __future__ import annotations
@@ -83,44 +83,6 @@ def test_source_and_direct_ir_twins_agree_with_each_other_and_the_oracle(name):
     via_source = _run_source(spec.source)
     assert twin == optimized_twin == via_source, name
     assert twin == expected, name
-
-
-# --- HL-8: optimizer on/off equivalence for optimizer-sensitive programs ---------------------
-
-OPTIMIZER_PROGRAMS = {
-    "pick-recursion": (
-        "pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)\n"
-        "pick(1, [5, 6])"
-    ),
-    "late-declaration-of-another-shape": (
-        "pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)\n"
-        "pick(xs) = pick(0, xs)\n"
-        "[pick(1, [5, 6]), pick([7])]"
-    ),
-    "late-duplicate-after-optimized-declaration": (
-        "pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)\n"
-        "pick(a, b) = 1\n"
-        "pick(1, [5, 6])"
-    ),
-}
-
-
-@pytest.mark.parametrize("label", sorted(OPTIMIZER_PROGRAMS))
-def test_optimizer_on_and_off_agree_for_collection_recursion_programs(label):
-    source = OPTIMIZER_PROGRAMS[label]
-    assert _run_ir(source, optimize=False) == _run_ir(source, optimize=True) == _run_source(source), label
-
-
-def test_optimized_declaration_followed_by_a_pattern_clause_matches_the_unoptimized_result():
-    source = (
-        "pick(n, xs) = (_, []) -> 0 | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)\n"
-        'pick(0, 7) = "special"\n'
-        "[pick(0, 7), pick(1, [5, 6])]"
-    )
-    off = _run_ir(source, optimize=False)
-    on = _run_ir(source, optimize=True)
-    assert off == on
-    assert off[2] == 0 and off[0] == '["special", 6]\n'
 
 
 # --- HL-1 (legacy part): the arity index stays consistent for legacy-only groups ---------------

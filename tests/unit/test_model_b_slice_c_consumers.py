@@ -193,17 +193,47 @@ def test_introspection_stays_usable_for_every_group_shape(shape):
     assert meta is not None
 
 
-def test_help_lists_pattern_records_in_declaration_order_without_host_objects():
-    env, printed = fresh_env()
-    genia.run_source('h(0) = "zero"\nh(1) = "one"\nh(n) = "other"\nhelp("h")', env, filename="<command>")
-    text = "".join(printed)
-    lines = [ln for ln in text.splitlines() if ln.strip()]
-    assert lines[0].startswith("h/1")
+HELP_SHAPES_PROGRAM = (
+    'h(0) = "zero"\n'
+    'h(a, b) ? a < b = "ordered"\n'
+    'h(a, b, c, ..r) = "many"\n'
+    'help("h")'
+)
+
+
+def test_help_for_a_pattern_group_lists_every_declared_shape_deterministically_without_host_objects():
+    """Narrowed claim: help's existing shape summary names each declared shape exactly as for
+    legacy groups (`h/1, 2, 3+`). Help text does not guarantee per-record declaration order, so
+    order is asserted at the record boundary instead (test_model_b_slice_c_records.py)."""
+    texts = []
+    for _ in range(2):
+        env, printed = fresh_env()
+        genia.run_source(HELP_SHAPES_PROGRAM, env, filename="<command>")
+        texts.append("".join(printed))
+    text = texts[0]
+    assert texts[0] == texts[1]
+    assert text.splitlines()[0] == "h/1, 2, 3+"  # a missing shape would change this line
     assert "0x" not in text and "GeniaFunction" not in text and "<function" not in text
-    # Declaration order is deterministic: rerunning in a fresh environment is identical.
-    env2, printed2 = fresh_env()
-    genia.run_source('h(0) = "zero"\nh(1) = "one"\nh(n) = "other"\nhelp("h")', env2, filename="<command>")
-    assert "".join(printed2) == text
+
+
+def test_help_shape_summary_matches_the_legacy_rendering_for_the_same_arities_today():
+    env, printed = fresh_env()
+    genia.run_source('h(a) = a\nh(a, b) = a\nh(a, b, c, ..r) = a\nhelp("h")', env, filename="<command>")
+    assert "".join(printed).splitlines()[0] == "h/1, 2, 3+"
+
+
+def test_help_summary_would_expose_a_missing_or_extra_shape_today():
+    """Discrimination self-check on the summary line using legacy groups with one shape removed."""
+    summaries = []
+    for body in (
+        'h(a) = a\nh(a, b) = a\nh(a, b, c, ..r) = a',
+        'h(a) = a\nh(a, b, c, ..r) = a',
+        'h(a) = a\nh(a, b) = a\nh(a, b, c, ..r) = a\nh(a, b, c, d) = a',
+    ):
+        env, printed = fresh_env()
+        genia.run_source(body + '\nhelp("h")', env, filename="<command>")
+        summaries.append("".join(printed).splitlines()[0])
+    assert len(set(summaries)) == 3
 
 
 def test_effective_help_shows_inline_text_and_alias_category_today():
