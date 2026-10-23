@@ -1,0 +1,20 @@
+name: model-b-c-ann-prior-effects-persist
+id: model-b-c-ann-prior-effects-persist
+category: eval
+description: "Slice C RED (#1269): contract 5.2 / C6"
+requires: [doc_help]
+input:
+  source: |-
+    @since (print("first"))
+    @doc 7
+    f(x) = x
+expected:
+  stdout: |
+    first
+  stderr: |
+    Error: @doc annotation expected a string, received int
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="first\n" stderr="Error: @doc annotation expected a string, received int\n" exit=1.

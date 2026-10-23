@@ -1,0 +1,19 @@
+name: model-b-c-ann-pattern-clause-variants
+id: model-b-c-ann-pattern-clause-variants
+category: error
+description: "Slice C RED (#1269): contract 5.2 for pattern clauses"
+requires: [default_open_functions, doc_help]
+input:
+  source: |-
+    f(x) = x
+    @doc 7
+    f(0) = 1
+expected:
+  stdout: ''
+  stderr: |
+    Error: @doc annotation expected a string, received int
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

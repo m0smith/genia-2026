@@ -1,0 +1,19 @@
+name: model-b-c-pat-fixed-miss-no-varargs-fallthrough
+id: model-b-c-pat-fixed-miss-no-varargs-fallthrough
+category: error
+description: "Slice C RED (#1269): D1/D3 strata"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(0) = 1
+    f(n, ..r) = 2
+    f(5)
+expected:
+  stdout: ''
+  stderr: |
+    Error: No matching case for function f/1 with arguments [5]
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

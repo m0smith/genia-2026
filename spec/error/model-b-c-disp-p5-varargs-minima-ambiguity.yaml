@@ -1,0 +1,20 @@
+name: model-b-c-disp-p5-varargs-minima-ambiguity
+id: model-b-c-disp-p5-varargs-minima-ambiguity
+category: error
+description: "Slice C RED (#1269): D1; RULES.md:205"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(a, ..r) = "min1"
+    f(a, b, ..s) = "min2"
+    f(1, 2)
+expected:
+  stdout: ''
+  stderr: |
+    Error: Ambiguous function resolution: f/2. Matching varargs: f/1+, f/2+
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="\"min2\"\n" stderr="" exit=0.
+  ungated tripwire

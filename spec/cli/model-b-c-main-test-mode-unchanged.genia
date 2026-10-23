@@ -1,0 +1,2 @@
+test("passes", () -> none)
+main(["x"]) = { print("main-ran"); 0 }

@@ -1,0 +1,20 @@
+name: model-b-c-key-lambda-shadow-outer-slot-distinct
+id: model-b-c-key-lambda-shadow-outer-slot-distinct
+category: eval
+description: "Slice C RED (#1269): D3 nested-shadow row of pre-flight 2.2 table"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) ? ((x) -> x)(1) > 0 = 1
+    f(x) ? x > 0 = 2
+    f(5)
+expected:
+  stdout: |
+    1
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  both clauses must install (no duplicate error); selected clause is the first

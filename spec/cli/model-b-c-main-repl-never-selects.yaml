@@ -1,0 +1,27 @@
+name: model-b-c-main-repl-never-selects
+id: model-b-c-main-repl-never-selects
+category: cli
+description: "Slice C RED (#1269): R26 REPL contract 2.7; C-MAIN"
+requires: [repl]
+input:
+  source: |-
+    main() = { print("ran"); 1 }; 0
+    42
+  file: null
+  command: null
+  stdin: |-
+    main() = { print("ran"); 1 }; 0
+    42
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    0
+    42
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="0\n42" stderr="" exit=0.
+  no implicit main dispatch in the REPL: `ran` is never printed

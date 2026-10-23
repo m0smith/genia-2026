@@ -1,0 +1,18 @@
+name: model-b-c-meta-inline-doc-body-runs
+id: model-b-c-meta-inline-doc-body-runs
+category: eval
+description: "Slice C RED (#1269): contract 5.1 (inline documentation does not change evaluation)"
+input:
+  source: |-
+    f(x) = "d" x + 1
+    f(1)
+expected:
+  stdout: |
+    2
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="2\n" stderr="" exit=0.
+  no doc_help: the program never consumes documentation; it isolates the inline-docstring parse, which C++ currently mis-evaluates (CPP-D3)

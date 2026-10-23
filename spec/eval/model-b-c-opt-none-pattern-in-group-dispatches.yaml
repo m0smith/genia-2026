@@ -1,0 +1,19 @@
+name: model-b-c-opt-none-pattern-in-group-dispatches
+id: model-b-c-opt-none-pattern-in-group-dispatches
+category: eval
+description: "Slice C RED (#1269): C-OPT; r20-option twin"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(none) = "was-none"
+    f(v) = v
+    [f(none), f(3)]
+expected:
+  stdout: |
+    ["was-none", 3]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

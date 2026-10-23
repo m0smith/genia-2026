@@ -1,0 +1,23 @@
+name: model-b-c-hdr-guard-error
+id: model-b-c-hdr-guard-error
+category: eval
+description: "Slice C RED (#1269): C1/C6 guard error propagates"
+requires: [default_open_functions]
+input:
+  source: |-
+    t(s, r) = { print(s); r }
+    f(x) ? t("a", false) = 1
+    f(x) ? undefined_guard(x) = 2
+    f(x) ? t("c", true) = 3
+    f(0)
+expected:
+  stdout: |
+    a
+  stderr: |
+    Error: Undefined name: undefined_guard
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  stdout `a` then error; `c` never printed; one-shot so no partial-binding observation (host-local HL)

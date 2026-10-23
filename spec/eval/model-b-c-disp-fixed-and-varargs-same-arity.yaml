@@ -1,0 +1,19 @@
+name: model-b-c-disp-fixed-and-varargs-same-arity
+id: model-b-c-disp-fixed-and-varargs-same-arity
+category: eval
+description: "Slice C RED (#1269): D1 P4"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(a) = 1
+    f(a, ..r) = 2
+    [f(1), f(1, 2)]
+expected:
+  stdout: |
+    [1, 2]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1.

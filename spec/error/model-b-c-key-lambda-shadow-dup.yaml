@@ -1,0 +1,19 @@
+name: model-b-c-key-lambda-shadow-dup
+id: model-b-c-key-lambda-shadow-dup
+category: error
+description: "Slice C RED (#1269): D3; contract 2.3 / design 5.4 scope-aware alpha normalization"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) ? ((a) -> a)(x) > 0 = 1
+    f(y) ? ((b) -> b)(y) > 0 = 2
+expected:
+  stdout: ''
+  stderr: |
+    Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived future error; spelling is the R20 renderer text observed on the other duplicate cases; byte-lock at RED baseline.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  CONTRACT-DERIVED future error (construction-time duplicate; spelling is the R20 renderer text). The explicit-open twin prints `<open function f>` with exit 0 today: that is the legacy key walker's deficiency, not the oracle, and the twin is deliberately not used. Effect-freedom (no guard or body runs) is covered by key-no-effects

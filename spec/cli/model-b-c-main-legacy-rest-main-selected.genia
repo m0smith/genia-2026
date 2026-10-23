@@ -1,0 +1,3 @@
+main(a, ..r) = { print("mainrest"); 12 }
+print("top")
+42

@@ -1,0 +1,19 @@
+name: model-b-c-key-r20-delta-true-one
+id: model-b-c-key-r20-delta-true-one
+category: eval
+description: "Slice C RED (#1269): D3; approved R20 acceptance change"
+requires: [default_open_functions, open_functions]
+input:
+  source: |-
+    open f(true) = 1
+    f(1) = 2
+    [f(true), f(1)]
+expected:
+  stdout: |
+    [1, 2]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1.

@@ -1,0 +1,17 @@
+name: model-b-c-disp-no-matching-function
+id: model-b-c-disp-no-matching-function
+category: error
+description: "Slice C RED (#1269): P8 unchanged"
+input:
+  source: |-
+    f(a) = 1
+    f(1, 2)
+expected:
+  stdout: ''
+  stderr: |
+    Error: No matching function: f/2. Available: f/1
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: No matching function: f/2. Available: f/1\n" exit=1.

@@ -1,0 +1,19 @@
+name: model-b-c-pat-string-body-is-body
+id: model-b-c-pat-string-body-is-body
+category: eval
+description: "Slice C RED (#1269): C-PAT; design 13.1"
+requires: [default_open_functions, doc_help]
+input:
+  source: |-
+    f("a") = "doc-like"
+    [f("a"), doc("f")]
+expected:
+  stdout: |
+    ["doc-like", none("missing-doc", {name: "f"})]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  doc() of an undocumented pattern group is not derivable from any authority; observed on open twin

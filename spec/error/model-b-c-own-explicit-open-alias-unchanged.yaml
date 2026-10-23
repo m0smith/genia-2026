@@ -1,0 +1,21 @@
+name: model-b-c-own-explicit-open-alias-unchanged
+id: model-b-c-own-explicit-open-alias-unchanged
+category: error
+description: "Slice C RED (#1269): D5; R20 contract (view/interface named, not 'non-function')"
+requires: [open_functions]
+input:
+  source: |-
+    open f(x) = x
+    a = f
+    a(x, y) = x + y
+    a(1, 2)
+expected:
+  stdout: ''
+  stderr: |
+    Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Cannot define function a/2: name is bound to an open function interface or linked view, which an ordinary definition cannot replace\n" exit=1.
+  O-5 replacement of own-explicit-open-unchanged (same slot)

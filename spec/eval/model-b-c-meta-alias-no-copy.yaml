@@ -1,0 +1,21 @@
+name: model-b-c-meta-alias-no-copy
+id: model-b-c-meta-alias-no-copy
+category: eval
+description: "Slice C RED (#1269): contract 5.1"
+requires: [doc_help]
+input:
+  source: |-
+    @doc "one"
+    f(x) = x
+    a = f
+    f(x, y) = x + y
+    [doc("a"), meta("a")]
+expected:
+  stdout: |
+    [none("missing-doc", {name: "a"}), {}]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="[none(\"missing-doc\", {name: \"a\"}), {}]\n" stderr="" exit=0.

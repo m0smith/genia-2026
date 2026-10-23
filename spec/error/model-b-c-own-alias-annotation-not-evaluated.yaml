@@ -1,0 +1,21 @@
+name: model-b-c-own-alias-annotation-not-evaluated
+id: model-b-c-own-alias-annotation-not-evaluated
+category: error
+description: "Slice C RED (#1269): D5/C6 rejection precedes annotation evaluation"
+requires: [default_open_functions, doc_help]
+input:
+  source: |-
+    f(x) = x
+    a = f
+    @doc (print("annotation-ran"))
+    a(x, y) = x + y
+expected:
+  stdout: ''
+  stderr: |
+    Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required.
+  Baseline (Python main@79c073b, gate bypassed): stdout="annotation-ran\n<function a/2>\n" stderr="" exit=0.
+  stdout must be empty; replaces the Ref log. ungated under Option A

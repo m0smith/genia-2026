@@ -1,0 +1,20 @@
+name: model-b-c-d8-earlier-pattern-miss-continues
+id: model-b-c-d8-earlier-pattern-miss-continues
+category: eval
+description: "Slice C RED (#1269): D8 invariant 2"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(0) = "zero"
+    f(x) = (1) -> "one"
+    f(1)
+expected:
+  stdout: |
+    "one"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  the earlier pattern header misses (1 is not 0), the later declaration is tried and succeeds; terminal behavior is the separate d8-terminal-grouped-miss

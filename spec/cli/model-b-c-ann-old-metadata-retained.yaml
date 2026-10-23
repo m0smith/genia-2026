@@ -1,0 +1,29 @@
+name: model-b-c-ann-old-metadata-retained
+id: model-b-c-ann-old-metadata-retained
+category: cli
+description: "Slice C RED (#1269): contract 5.2; C6"
+requires: [doc_help, repl]
+input:
+  source: |-
+    @doc "ok"; f(x) = x; 0
+    @doc 7; f(x, y) = x; 0
+    doc("f")
+  file: null
+  command: null
+  stdin: |-
+    @doc "ok"; f(x) = x; 0
+    @doc 7; f(x, y) = x; 0
+    doc("f")
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    0
+    "ok"
+  stderr: "Error: @doc annotation expected a string, received int"
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="0\n\"ok\"" stderr="Error: @doc annotation expected a string, received int" exit=0.
+  earlier metadata is retained after the failed annotation

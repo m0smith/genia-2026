@@ -1,0 +1,25 @@
+name: model-b-c-main-test-mode-unchanged
+id: model-b-c-main-test-mode-unchanged
+category: cli
+description: "Slice C RED (#1269): C-MAIN rule 6"
+requires: [default_open_functions]
+input:
+  source: spec/cli/model-b-c-main-test-mode-unchanged.genia
+  file: null
+  command: null
+  test: spec/cli/model-b-c-main-test-mode-unchanged.genia
+  stdin: ''
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    total=1 passed=1 failed=0 errored=0
+    PASS passes
+    total=1 passed=1 failed=0 errored=0
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on legacy-`main` twin (same program with an identifier header).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1.
+  oracle observed on the legacy-`main` twin (`main(args) = ...`) at RED baseline
