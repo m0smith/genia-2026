@@ -122,7 +122,7 @@ def test_state_is_unchanged_after_a_rejected_declaration_in_a_session_and_the_na
 
 
 def test_two_clauses_of_one_shape_cannot_be_held_by_the_legacy_arity_table_today():
-    """Baseline evidence that the legacy store is arity-keyed. GREEN deliberately flips this."""
+    """Equivalent all-bind headers remain duplicates at GREEN; preserve rejection."""
     group = GeniaFunctionGroup("f")
     env, _ = fresh_env()
     pattern_free = [
