@@ -9,8 +9,8 @@ claims Model B behavior is implemented.
 
 The immutable external parity assertion
 (`tests/spec/test_python_protocol_adapter_parity_762.py`, `unsupported == 18`)
-is intentionally not touched; at RED it fails because the gated cases add 82
-unsupported results.
+is intentionally not touched; at RED it fails because the gated cases add 88
+unsupported results (82 approved at RED plus six G1 cases added at B0).
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from hosts.python.protocol_adapter import _python_claimed_capabilities
 from tools.spec_runner.capabilities import case_is_applicable
 from tools.spec_runner.host_executor import execute_spec_via_host
 from tools.spec_runner.loader import discover_specs
-from tests.spec.test_model_b_slice_c_red import SLICE_C_GATED_IDS, SLICE_C_GUARD_IDS
+from tests.spec.test_model_b_slice_c_red import SLICE_C_ALL_GATED_IDS, SLICE_C_GUARD_IDS
 
 # New RED-phase constant: the historical 35-name pre-C0 map is kept in the C0 test file.
 RED_CAPABILITY_MAP_NAMES = 36
@@ -53,20 +53,20 @@ def test_every_gated_case_is_unsupported_without_invoking_the_host(tmp_path: Pat
     claimed = _python_claimed_capabilities()
     specs = _specs()
     kinds = []
-    for name in SLICE_C_GATED_IDS:
+    for name in SLICE_C_ALL_GATED_IDS:
         result = execute_spec_via_host(
             specs[name], [sys.executable, str(host)], timeout=5.0, host_capabilities=claimed
         )
         kinds.append(result.kind)
         assert "default_open_functions" in result.reason, name
-    assert len(kinds) == 82 and set(kinds) == {"unsupported"}
+    assert len(kinds) == 88 and set(kinds) == {"unsupported"}
     assert list(marker_dir.iterdir()) == []
 
 
 def test_gated_and_guard_applicability_matches_the_frozen_split():
     claimed = _python_claimed_capabilities()
     specs = _specs()
-    gated_unapplicable = [n for n in SLICE_C_GATED_IDS if case_is_applicable(tuple(specs[n].requires), claimed)[0]]
+    gated_unapplicable = [n for n in SLICE_C_ALL_GATED_IDS if case_is_applicable(tuple(specs[n].requires), claimed)[0]]
     guards_applicable = [n for n in SLICE_C_GUARD_IDS if case_is_applicable(tuple(specs[n].requires), claimed)[0]]
     assert gated_unapplicable == []
     assert len(guards_applicable) == 55

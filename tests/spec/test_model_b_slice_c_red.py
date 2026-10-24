@@ -8,7 +8,10 @@ it adds no runner, comparator, evaluator or expected-output store.
 
 RED phase: the 55 existing-behavior guards pass on the Python reference host and
 the 82 Model B future-behavior cases (all ``default_open_functions``) fail with
-the real mismatch until Slice C GREEN. This harness deliberately bypasses the
+the real mismatch until Slice C GREEN. B0 (maintainer decision G1/R7-D9,
+PR #1270 comment 6378516076) adds six reserved ``main`` whole-group-selection
+cases (``SLICE_C_G1_IDS``), also gated by ``default_open_functions``; the 137
+previously approved ids above are unchanged. This harness deliberately bypasses the
 external-host applicability gate so the unimplemented behavior is visible; it
 never consults capability claims, and it uses no skip, xfail or slow marker.
 """
@@ -174,7 +177,22 @@ SLICE_C_GATED_IDS = (
     "model-b-c-key-unquote-nested-active-dup",
 )
 
-SLICE_C_CASE_IDS = SLICE_C_GUARD_IDS + SLICE_C_GATED_IDS
+# B0 amendment (G1, Option A, whole-group eligibility): six reserved CLI cases.
+# Added after RED PASS; the 137 ids above stay frozen. Each requires
+# ``default_open_functions`` and expects the source result with no ``main`` output.
+SLICE_C_G1_IDS = (
+    "model-b-c-main-g1-mixed-main0-plus-pattern",
+    "model-b-c-main-g1-mixed-main1-plus-pattern",
+    "model-b-c-main-g1-main1-plus-pattern-arity1-legacy-first",
+    "model-b-c-main-g1-main1-plus-pattern-arity1-pattern-first",
+    "model-b-c-main-g1-fixed-plus-rest-same-minimum",
+    "model-b-c-main-g1-legacy-rest-plus-pattern-arity1",
+)
+
+# Frozen approved RED inventory (137) and the B0-amended inventory (143).
+SLICE_C_RED_CASE_IDS = SLICE_C_GUARD_IDS + SLICE_C_GATED_IDS
+SLICE_C_ALL_GATED_IDS = SLICE_C_GATED_IDS + SLICE_C_G1_IDS
+SLICE_C_CASE_IDS = SLICE_C_GUARD_IDS + SLICE_C_ALL_GATED_IDS
 
 # Literal id -> exact ``requires`` table (GA-14). Replacing one capability by
 # another, or adding/removing ``default_open_functions``, fails.
@@ -316,6 +334,7 @@ SLICE_C_REQUIRES = {
     "model-b-c-meta-channel-inline-doc": ("doc_help",),
     "model-b-c-meta-channel-alias-only": ("doc_help",),
     "model-b-c-meta-inline-doc-body-runs": (),
+    **{name: ("default_open_functions",) for name in SLICE_C_G1_IDS},
 }
 
 CAPABILITY = "default_open_functions"
@@ -333,8 +352,13 @@ _SLICE_C = {s.name: s for s in _SPECS if s.name.startswith(PREFIX)}
 def test_case_inventory_counts_are_frozen() -> None:
     assert len(SLICE_C_GUARD_IDS) == 55
     assert len(SLICE_C_GATED_IDS) == 82
-    assert len(SLICE_C_CASE_IDS) == 137
-    assert len(set(SLICE_C_CASE_IDS)) == 137
+    assert len(SLICE_C_RED_CASE_IDS) == 137
+    assert len(set(SLICE_C_RED_CASE_IDS)) == 137
+    assert len(SLICE_C_G1_IDS) == 6
+    assert len(SLICE_C_ALL_GATED_IDS) == 88
+    assert len(SLICE_C_CASE_IDS) == 143
+    assert len(set(SLICE_C_CASE_IDS)) == 143
+    assert not set(SLICE_C_G1_IDS) & set(SLICE_C_RED_CASE_IDS)
     assert set(SLICE_C_REQUIRES) == set(SLICE_C_CASE_IDS)
 
 
@@ -343,7 +367,7 @@ def test_loader_has_no_invalid_specs_and_exact_case_id_equality() -> None:
     loaded_names = [s.name for s in _SPECS if s.name.startswith(PREFIX)]
     assert len(loaded_names) == len(set(loaded_names)), "duplicate model-b-c-* names"
     assert set(loaded_names) == set(SLICE_C_CASE_IDS)
-    assert len(loaded_names) == 137
+    assert len(loaded_names) == 143
     for spec in _SLICE_C.values():
         assert spec.path.stem == spec.name
 
@@ -359,8 +383,8 @@ def test_exact_requires_per_case() -> None:
 
 def test_only_future_cases_require_the_new_capability() -> None:
     gated = {n for n, s in _SLICE_C.items() if CAPABILITY in s.requires}
-    assert gated == set(SLICE_C_GATED_IDS)
-    assert len(gated) == 82
+    assert gated == set(SLICE_C_ALL_GATED_IDS)
+    assert len(gated) == 88
     for name in SLICE_C_GUARD_IDS:
         assert CAPABILITY not in _SLICE_C[name].requires, name
     # Option B: the P5 varargs-minima ambiguity is gated like every future case.
@@ -373,7 +397,7 @@ def test_known_host_gap_lists_exactly_the_gated_ids() -> None:
     assert len(entry) == 1
     assert entry[0]["affected_host"] == "cpp"
     assert entry[0]["tracking_issue"] == "m0smith/genia-2026#1269"
-    assert sorted(entry[0]["affected_tests"]) == sorted(SLICE_C_GATED_IDS)
+    assert sorted(entry[0]["affected_tests"]) == sorted(SLICE_C_ALL_GATED_IDS)
 
 
 def test_harness_contains_no_skip_xfail_slow_or_loopback_classification() -> None:
@@ -401,6 +425,6 @@ def test_slice_c_shared_case(name: str) -> None:
     actual = execute_spec(spec)
     failures = compare_spec(spec, actual)
     assert not failures, (
-        f"{name} ({'future' if name in SLICE_C_GATED_IDS else 'guard'}) mismatch: "
+        f"{name} ({'future' if name in SLICE_C_ALL_GATED_IDS else 'guard'}) mismatch: "
         + "; ".join(f"{f.field}: expected {f.expected!r} actual {f.actual!r}" for f in failures)
     )

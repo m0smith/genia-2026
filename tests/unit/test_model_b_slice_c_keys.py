@@ -4,11 +4,11 @@ PYTHON REFERENCE HOST ONLY (issue #1269; test plan R6.E HL-2; Model B design
 5.4 and 13.4). The approved design says one pure structural walker *replaces*
 ``genia.callable._open_dispatch_key`` (which wraps ``_structural_key``); those
 existing functions are therefore the test entry points, and no public language
-API or new function name is introduced or assumed. If GREEN changes the
-internal signature, the assertions below are semantic (what must be equal,
-distinct, or rejected) and migrate with it; that migration is recorded as a
-test-boundary requirement in the RED evidence note, not as a reason to omit
-coverage.
+API or new function name is introduced or assumed. B0 (A2) routes every entry
+point through ``tests.unit.model_b_slice_c_support`` (``dispatch_key``,
+``structural_key``, ``build_clause_record``): if GREEN changes the internal
+signature, only those helpers change. The assertions below are semantic (what
+must be equal, distinct, or rejected) and are not edited by that migration.
 
 Keys are obtained from the real lowering of ``open f(...) = ...`` clauses (the
 only construct whose clause keys exist today) or from directly built Core IR
@@ -28,10 +28,10 @@ from typing import Any
 import pytest
 
 from genia import ir
-from genia.callable import OpenClauseRecord, _open_dispatch_key, _structural_key
 from genia.environment import Env
 from genia.interpreter import Parser, lex, lower_program
 from genia.pattern_match import IrPatBind, IrPatLiteral, IrPatTuple
+from tests.unit.model_b_slice_c_support import build_clause_record, dispatch_key, structural_key
 
 
 def _clause(text: str):
@@ -42,7 +42,7 @@ def _clause(text: str):
 
 def key(text: str) -> tuple:
     clause = _clause(text)
-    return _open_dispatch_key(clause.pattern, clause.guard)
+    return dispatch_key(clause.pattern, clause.guard)
 
 
 def same(a: str, b: str) -> bool:
@@ -101,14 +101,14 @@ def test_numeric_payload_key_does_not_depend_on_mapping_insertion_order():
     a = ir.IrLiteral({"kind": "integer", "digits": "1"})
     b = ir.IrLiteral({"digits": "1", "kind": "integer"})
     pattern = IrPatTuple([IrPatBind("x")])
-    assert _open_dispatch_key(pattern, a) == _open_dispatch_key(pattern, b)
+    assert dispatch_key(pattern, a) == dispatch_key(pattern, b)
 
 
 def test_numeric_payload_kinds_stay_distinct_today():
     pattern = IrPatTuple([IrPatBind("x")])
     integer = ir.IrLiteral({"kind": "integer", "digits": "1"})
     decimal = ir.IrLiteral({"kind": "decimal", "coefficient": "1", "exponent": "0"})
-    assert _open_dispatch_key(pattern, integer) != _open_dispatch_key(pattern, decimal)
+    assert dispatch_key(pattern, integer) != dispatch_key(pattern, decimal)
 
 
 # --- binders: alpha-equivalence, repeats, rest, scope-aware shadowing ----------------------------
@@ -179,7 +179,7 @@ def test_doubly_nested_unquote_at_depth_two_is_an_active_reference():
 
 def test_unsupported_object_in_a_key_is_rejected_without_calling_its_repr():
     with pytest.raises(Exception):
-        _structural_key(_Unrenderable(), {})
+        structural_key(_Unrenderable(), {})
     assert _Unrenderable.renders == 0
 
 
@@ -191,7 +191,7 @@ def test_unsupported_object_in_a_key_is_rejected_without_calling_its_repr():
 def test_unsupported_literal_payload_in_a_pattern_is_rejected_and_never_rendered(bad):
     pattern = IrPatTuple([IrPatLiteral(bad)])
     with pytest.raises(Exception):
-        _open_dispatch_key(pattern, None)
+        dispatch_key(pattern, None)
     assert _Unrenderable.renders == 0
 
 
@@ -199,7 +199,7 @@ def test_unsupported_object_in_a_guard_is_rejected_and_never_rendered():
     pattern = IrPatTuple([IrPatBind("x")])
     guard = ir.IrBinary(ir.IrVar("x"), "GT", ir.IrLiteral(_Unrenderable()))
     with pytest.raises(Exception):
-        _open_dispatch_key(pattern, guard)
+        dispatch_key(pattern, guard)
     assert _Unrenderable.renders == 0
 
 
@@ -219,7 +219,7 @@ def test_unsupported_object_in_a_guard_is_rejected_and_never_rendered():
 def test_malformed_pattern_structure_is_rejected_deterministically(pattern):
     """A malformed pattern must not silently become fixed arity zero or a repr-based key."""
     with pytest.raises(Exception):
-        _open_dispatch_key(pattern, None)
+        dispatch_key(pattern, None)
 
 
 def test_key_construction_is_deterministic_and_side_effect_free_today():
@@ -232,7 +232,7 @@ def test_building_a_clause_record_evaluates_neither_guard_nor_pattern_today():
     env = Env()
     env.set_host("trace", lambda *a: calls.append("guard ran") or True, visibility="entry-only")
     clause = _clause("f(x) ? trace() = 1")
-    OpenClauseRecord(clause.pattern, clause.guard, clause.result, env, clause.span)
+    build_clause_record(clause, env)
     assert calls == []
 
 
@@ -243,4 +243,4 @@ def test_unrelated_value_types_are_not_a_fallback_for_unknown_ir_classes():
     pattern = IrPatTuple([IrPatBind("x")])
     guard: Any = Fake()
     with pytest.raises(Exception):
-        _open_dispatch_key(pattern, guard)
+        dispatch_key(pattern, guard)

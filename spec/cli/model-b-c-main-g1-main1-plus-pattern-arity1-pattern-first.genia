@@ -1,0 +1,4 @@
+main(["--x"]) = { print("pattern"); 2 }
+main(args) = { print("legacy"); 1 }
+print("top")
+42

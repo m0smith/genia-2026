@@ -25,18 +25,16 @@ the program, as long as the original structure stays reachable and equal.
 
 from __future__ import annotations
 
-import dataclasses
 from typing import Any
 
 import pytest
 
 from genia import ir
-from genia.callable import _open_dispatch_key
 from genia.evaluator import Evaluator
 from genia.interpreter import Parser, lex, lower_program
 from genia.optimizer import optimize_program
 from genia.utf8 import format_debug
-from tests.unit.model_b_slice_c_support import fresh_env
+from tests.unit.model_b_slice_c_support import dispatch_key, fresh_env, reachable_case_clauses
 
 NIL_PICK = (
     "pick(n, xs) = (_, []) -> nil | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1, rest)\n"
@@ -49,30 +47,13 @@ def _lowered(source: str):
 
 
 def _clauses(root: Any) -> list[ir.IrCaseClause]:
-    """Every IrCaseClause reachable from the program, in depth-first field order."""
-    found: list[ir.IrCaseClause] = []
-    seen: set[int] = set()
-
-    def visit(node: Any) -> None:
-        if isinstance(node, (list, tuple)):
-            for item in node:
-                visit(item)
-            return
-        if not dataclasses.is_dataclass(node) or isinstance(node, type) or id(node) in seen:
-            return
-        seen.add(id(node))
-        if isinstance(node, ir.IrCaseClause):
-            found.append(node)
-        for field in dataclasses.fields(node):
-            visit(getattr(node, field.name))
-
-    visit(root)
-    return found
+    """Every IrCaseClause reachable from the program (A3 retention boundary lives in the support module)."""
+    return reachable_case_clauses(root)
 
 
 def _arm_record(ordinal: int, clause: ir.IrCaseClause) -> tuple:
     """Ordinal, span-free arm key, guard presence and provenance of one grouped arm."""
-    return (ordinal, _open_dispatch_key(clause.pattern, clause.guard), clause.guard is not None, clause.span)
+    return (ordinal, dispatch_key(clause.pattern, clause.guard), clause.guard is not None, clause.span)
 
 
 def _arms(program: Any) -> list[tuple]:
@@ -191,6 +172,79 @@ def test_on_off_agree_for_arguments_outside_the_rewrite_domain(tail):
     """Pre-existing divergence: the loop returns none("nil") where the case raises its miss error."""
     source = NIL_PICK + tail
     assert _run(source, optimize=False) == _run(source, optimize=True)
+
+
+# --- A4: retention-aware, domain-exact fast path (B0 amendment, issue #1269) -------------------
+#
+# The retained original ``IrCase`` semantics are the oracle. These expectations are the
+# *unoptimized* results, pinned literally so the oracle is not circular (a rewrite that changed both
+# sides would still fail). In-domain inputs (numeric counter, list ``xs``) may use the fast path;
+# every out-of-domain input must fall back to the retained case evaluation and reproduce the
+# unoptimized value, error text, effects and terminal grouped miss exactly.
+
+_MISS = "Error: No matching case for function pick/2 with arguments {args}\n"
+
+A4_EXACT = [
+    # (id, call, stdout, stderr, exit)
+    ("in-domain-found", "pick(2, [1, 2, 3])", "3\n", "", 0),
+    ("in-domain-offset", "pick(3, [1, 2, 3, 4, 5])", "4\n", "", 0),
+    ("in-domain-zero-float", "pick(0.0, [4])", "4\n", "", 0),
+    ("in-domain-empty", "pick(1, [])", 'none("nil")\n', "", 0),
+    ("in-domain-short", "pick(5, [1])", 'none("nil")\n', "", 0),
+    ("in-domain-negative", "pick(-1, [1, 2])", 'none("nil")\n', "", 0),
+    ("in-domain-fractional", "pick(1.5, [1, 2, 3])", 'none("nil")\n', "", 0),
+    ("ood-int-xs", "pick(0, 7)", "", _MISS.format(args="[0, 7]"), 1),
+    ("ood-string-xs", 'pick(0, "ab")', "", _MISS.format(args='[0, "ab"]'), 1),
+    ("ood-int-xs-positive-counter", "pick(1, 5)", "", _MISS.format(args="[1, 5]"), 1),
+    ("ood-map-xs", "pick(2, {a: 1})", "", _MISS.format(args="[2, {a: 1}]"), 1),
+    ("ood-string-counter", 'pick("a", [1])', 'none("type-error", {source: "-", left: "string", right: "int"})\n', "", 0),
+    ("ood-list-counter", "pick([1], [2])", 'none("type-error", {source: "-", left: "list", right: "int"})\n', "", 0),
+    ("ood-bool-counter", "pick(true, [1])", 'none("nil")\n', "", 0),
+    ("ood-none-xs", "pick(0, none)", 'none("nil")\n', "", 0),
+]
+
+
+@pytest.mark.parametrize("case", A4_EXACT, ids=[c[0] for c in A4_EXACT])
+def test_a4_unoptimized_semantics_are_the_oracle_and_the_optimizer_reproduces_them_exactly(case):
+    _, call, stdout, stderr, status = case
+    source = NIL_PICK + call
+    expected = (stdout, stderr, status)
+    assert _run(source, optimize=False) == expected  # the oracle itself is pinned literally
+    assert _run(source, optimize=True) == expected  # fast path or fallback: identical observation
+
+
+def test_a4_out_of_domain_fallback_preserves_effect_order_and_terminal_grouped_miss():
+    source = (
+        NIL_PICK
+        + 'trace(label, value) = { print(label); value }\n'
+        + 'pick(trace("counter", 0), trace("xs", 7))'
+    )
+    off, on = _run(source, optimize=False), _run(source, optimize=True)
+    assert off == ("counter\nxs\n", _MISS.format(args="[0, 7]"), 1)
+    assert on == off
+
+
+def test_a4_in_domain_calls_in_the_same_program_as_out_of_domain_calls_do_not_interfere():
+    source = NIL_PICK + '[pick(1, [5, 6]), pick(2, [1, 2, 3]), pick(0, []), pick(9, [1])]'
+    assert _run(source, optimize=False) == _run(source, optimize=True) == (
+        '[6, 3, none("nil"), none("nil")]\n',
+        "",
+        0,
+    )
+    mixed = NIL_PICK + 'pick(1, [5, 6])\npick(0, 7)'
+    assert _run(mixed, optimize=False) == _run(mixed, optimize=True)
+
+
+def test_a4_rewrite_participation_is_unchanged_so_a_decline_cannot_pass_silently():
+    """Rewrite-participation control: a safe decline of the rewrite is a separate reviewed amendment.
+
+    The retention-aware fast path keeps the rewrite for the in-domain shape. If the fast path cannot
+    preserve semantics and GREEN declines the rewrite instead, this test (and
+    ``test_nil_empty_arm_reaches_the_nth_style_rewrite_today``) must be amended explicitly in a
+    reviewed commit; they never relax implicitly.
+    """
+    optimized = optimize_program(_lowered(NIL_PICK))
+    assert isinstance(optimized[0].body, ir.IrListTraversalLoop)
 
 
 def test_legacy_duplicate_after_an_optimized_declaration_is_identical_on_and_off_today():
