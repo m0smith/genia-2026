@@ -6,7 +6,6 @@ invoke_callable — the module-level dispatch entry point used by the evaluator.
 """
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
@@ -40,6 +39,7 @@ if __package__ in (None, ""):
         truthy,
     )
     from genia.lexer import SourceSpan
+    from genia.structural_key import clause_shape, collect_pattern_binders, open_dispatch_key, structural_key
 else:
     from .ir import (
         IrBlock,
@@ -65,6 +65,7 @@ else:
         truthy,
     )
     from .lexer import SourceSpan
+    from .structural_key import clause_shape, collect_pattern_binders, open_dispatch_key, structural_key
 
 
 # ---------------------------------------------------------------------------
@@ -616,84 +617,10 @@ class OpenFunctionNoMatchingCaseError(OpenFunctionError):
         self.call_arity = call_arity
 
 
-def _collect_pattern_binders(node: Any, order: list[str]) -> None:
-    """Depth-first collection of every IrPatBind/named IrPatRest binder in
-    first-occurrence order, walking dataclass fields generically so R20 adds
-    no second pattern-traversal mechanism."""
-    if node is None:
-        return
-    if isinstance(node, (list, tuple)):
-        for item in node:
-            _collect_pattern_binders(item, order)
-        return
-    if not dataclasses.is_dataclass(node):
-        return
-    cls_name = type(node).__name__
-    if cls_name == "IrPatBind":
-        if node.name not in order:
-            order.append(node.name)
-        return
-    if cls_name == "IrPatRest":
-        if node.name is not None and node.name not in order:
-            order.append(node.name)
-        return
-    for f in dataclasses.fields(node):
-        if f.name == "span":
-            continue
-        _collect_pattern_binders(getattr(node, f.name), order)
-
-
-def _structural_key(node: Any, binder_index: dict[str, int]) -> Any:
-    """Structural, span-free, alpha-normalized key for a pattern or guard
-    node (contract §6). Bound-variable references are renamed to their
-    first-occurrence ordinal so binder spelling never affects duplicate
-    detection; free references keep their name."""
-    if node is None:
-        return None
-    if isinstance(node, (str, int, float, bool)):
-        return node
-    if isinstance(node, (list, tuple)):
-        return tuple(_structural_key(item, binder_index) for item in node)
-    if not dataclasses.is_dataclass(node):
-        return repr(node)
-    cls_name = type(node).__name__
-    if cls_name == "IrVar" and node.name in binder_index:
-        return ("BINDREF", binder_index[node.name])
-    if cls_name == "IrPatBind" and node.name in binder_index:
-        return ("BIND", binder_index[node.name])
-    if cls_name == "IrPatRest" and node.name is not None and node.name in binder_index:
-        return ("RESTBIND", binder_index[node.name])
-    parts: list[Any] = [cls_name]
-    for f in dataclasses.fields(node):
-        if f.name == "span":
-            continue
-        parts.append(_structural_key(getattr(node, f.name), binder_index))
-    return tuple(parts)
-
-
-def _clause_shape(pattern: IrPattern) -> tuple[str, int]:
-    """Return fixed arity or the final-rest minimum for a lowered tuple pattern.
-
-    Callers supply well-formed IR; an absent items field yields fixed arity zero."""
-    items = getattr(pattern, "items", None)
-    if items and type(items[-1]).__name__ == "IrPatRest":
-        return ("varargs", len(items) - 1)
-    return ("fixed", len(items) if items is not None else 0)
-
-
-def _open_dispatch_key(pattern: IrPattern, guard: Optional[IrNode]) -> tuple:
-    """Build the shape/pattern/guard key, ignoring spans and alpha-renaming binders.
-
-    Only pattern-bound names are normalized; free names remain significant.
-    Body and closure are excluded; no guard or pattern is evaluated."""
-    order: list[str] = []
-    _collect_pattern_binders(pattern, order)
-    binder_index = {name: i for i, name in enumerate(order)}
-    return (
-        _clause_shape(pattern),
-        _structural_key(pattern, binder_index),
-        _structural_key(guard, binder_index) if guard is not None else None,
-    )
+_collect_pattern_binders = collect_pattern_binders
+_structural_key = structural_key
+_clause_shape = clause_shape
+_open_dispatch_key = open_dispatch_key
 
 
 @dataclass
