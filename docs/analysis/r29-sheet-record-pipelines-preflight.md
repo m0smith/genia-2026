@@ -1,4 +1,4 @@
-# R29 — Sheet Record Pipelines: pre-flight (revision 3)
+# R29 — Sheet Record Pipelines: pre-flight (revision 4)
 
 Status: **Pre-flight record (PROPOSED, NON-AUTHORITATIVE).** Documentation only. It defines no
 language behavior; every function name, shape, and decision below is a *candidate* for the contract
@@ -6,9 +6,10 @@ phase. `GENIA_STATE.md` remains final authority for implemented behavior. This r
 runtime, test, spec, manifest, or implemented-truth document (`GENIA_STATE.md`, `GENIA_RULES.md`,
 `GENIA_REPL_README.md`, `README.md` are untouched).
 
-Revisions 2 and 3 resolve the independent review verdict **REVISE** on draft PR #1284. Revision 3
-independently re-executed every probe and count behind revision 2 (nothing was carried over unrun) and
-tightened four statements that the re-execution showed to be imprecise or self-contradictory; see §0.
+Revisions 2 and 3 resolve the first independent review verdict **REVISE** on draft PR #1284. Revision 4
+resolves Codex's second independent review of baseline `79c073b` / PR head `002d6ec`; see §0. Revisions 2
+and 3 independently re-executed every probe and count; revision 4 re-ran them again, added the probes the
+review asked for, and corrected the sections listed in §0.
 The evidence behind each correction is in §4 and §9 and was produced by commands run against `main` at
 `79c073b` (scripts in Appendix B, commands and outputs in Appendix A).
 
@@ -29,12 +30,30 @@ closed 2026-05 killer-workflow issues); see §15.
 
 ---
 
-## 0. Review resolution (revisions 2 and 3)
+## 0. Review resolution (revisions 2, 3 and 4)
+
+**Baseline delta (checked 2026-10-25).** `origin/main` is still `79c073b` (PR #1272 merge); no source,
+spec, manifest or authoritative-document change since the reviewed baseline. The PR head moved from the
+reviewed `002d6ec` through `d00f41b` (revision 2) and `21ba866` (revision 3) to this revision; the only
+file in the PR is this document. `m0smith/genia-cpp` `origin/main` is still `44456ba`.
+
+**Revision 4 corrections (Codex review, items 1–8).**
+
+| # | Review item | Revision 4 change | Where |
+|---|---|---|---|
+| R4-1 | Replace every `lines(records(s))` | Grep of this file: the string appears only in the §0 table row quoting the rejected idea. The reviewer's composition `map((i) -> unwrap_or(nil, nth(i, xs)), take(length(xs), evolve(0, inc)))` re-run on empty and nonempty Lists. No API added. | §4.1, App. B1/B2 |
+| R4-2 | Lifecycle sketch: envelopes, not bare results | Added a three-way table (data success / data-level `err` / lifecycle failure) from a new probe, and a proving-case sketch with explicit extraction. | §4.3, App. B7 |
+| R4-3 | Qualify round-trip claims | Re-run; added the explicit statement that `records(s) == []` cannot carry a zero-row schema through `collect_sheet`, and a contract requirement for the two edge cases. Section references corrected (round trip is §4.4). | §4.4 |
+| R4-4 | Eager/bounded claims | New probe: all record Maps are built before `take(2)` (counter 5 → 5). Downstream bounding limits *processing* only. | §4.2, App. B7 |
+| R4-5 | Shared-spec applicability | 20 cases re-run (Python 20 pass; C++ 20 unsupported on a C++ adapter freshly built for this revision). Claims table, affected cases and D10 text tightened; hiding of unrelated equality evidence ruled out explicitly. | §9 |
+| R4-6 | Phase decomposition | #1192 slice is no longer a dependency or implementation condition; PR fragmentation reduced; #1251 gates implementation only. | §11, §12, §13 |
+| R4-7 | Builtin-only exception | Rewritten as a checklist with required integration checks and a recorded post-#1251 regression run; only the maintainer may grant it, on #1251. | §13 |
+| R4-8 | Protected-value criteria | A leak in an affected path keeps that path blocked until repaired; an opened issue never permits acceptance. | §4.5, D5, §10 |
 
 | # | Blocking finding | Resolution | Where |
 |---|---|---|---|
-| 1 | `lines(records(sheet))` is invalid: `lines` accepts only a List of strings. | Every occurrence removed. Verified that `lines([{n: 1}])` fails (`lines expected a list of strings`). Replaced by an application-owned indexed composition built from `evolve`, `take`, `map`, `nth`, `unwrap_or`; verified on empty and nonempty lists, under `take`, and for single-use. No builtin added. Eager allocation, lazy downstream, bounded demand, single-use, finalization and the `lifecycle_repeat` envelope are now separated. | §4, §5 C4/C5 |
-| 2 | Round-trip claim overstated. | Universal claim removed. Replaced by conditional guarantees G1–G7, with measured results for zero-row, zero-column, name identity, ordering, and protected cells. Zero-row schema loss is accepted as a limitation of the record boundary; no schema wrapper is proposed. | §4.3 |
+| 1 | `lines(records(sheet))` is invalid: `lines` accepts only a List of strings. | Every occurrence removed. Verified that `lines([{n: 1}])` fails (`lines expected a list of strings`). Replaced by an application-owned indexed composition built from `evolve`, `take`, `map`, `nth`, `unwrap_or`; verified on empty and nonempty lists, under `take`, and for single-use. No builtin added. Eager allocation, lazy downstream, bounded demand, single-use, finalization and the `lifecycle_repeat` envelope are now separated. | §4.1, §5 C4/C5 |
+| 2 | Round-trip claim overstated. | Universal claim removed. Replaced by conditional guarantees G1–G7, with measured results for zero-row, zero-column, name identity, ordering, and protected cells. Zero-row schema loss is accepted as a limitation of the record boundary; no schema wrapper is proposed. | §4.4 |
 | 3 | Capability/conformance accounting incomplete. | Reproduced the reviewer's counts (Python 20 pass, C++ 20 unsupported, all `requires` empty). Defined baseline-applicable vs capability-excluded vs adapter-reported unsupported, using the runner's actual code. Gave a concrete migration plan (which cases are retro-gated, which new cases are gated, claims, the issue-backed gap, and a decision for the mixed-family case). Manifest and specs are **not** changed here. | §9 |
 | 4 | Phase sequence deviates from `run-change.md`. | Decomposition rebuilt against the 20 numbered steps, including the Code Quality & Maintainability Review after implementation and before docs. Proving-case tests are specified in the TEST phase; new-failing and already-passing tests are separated. The #1251 exception is stated to gate implementation only. | §12 |
 
@@ -177,20 +196,26 @@ of `nth` was **not measured** and no performance claim is made [U].
 
 ### 4.2 What each term means (and does not mean)
 
-- **Eager allocation:** `records(sheet)` would materialize the complete List before any pipeline stage
-  runs. Memory is proportional to row count. A Sheet is already fully materialized and immutable [I], so
-  eagerness adds no new laziness loss but doubles row storage for the call's lifetime.
-- **Lazy downstream processing:** begins only after `to_flow`; stages after it pull one element at a time.
-  It does not make the allocation lazy.
-- **Bounded demand / no over-pull:** observed above (2 pulls for `take(2)`), and for `lifecycle_repeat`
-  below. Existing guarantee [I][T]; R29 adds a proof, not a mechanism.
+- **Eager allocation:** `records(sheet)` would materialize the complete List of record Maps before any
+  pipeline stage runs. Memory is proportional to row count × column count. A Sheet is already fully
+  materialized and immutable [I], so eagerness adds no new laziness loss but allocates a second, Map-shaped
+  copy of the row structure for as long as the List is reachable. **Downstream Flow bounding does not
+  reduce this allocation.** [V] (App. B7): with a counting hand conversion over a 5-row Sheet, the counter
+  was **5** before any stage ran, `to_flow(recs) |> take(2) |> collect` returned two records, and the
+  counter was still **5** afterwards — all five Maps were built although only two were consumed.
+- **Lazy downstream processing / bounded demand:** begins only after `to_flow`; stages after it pull one
+  element at a time, so `take(n)` bounds the *processing* (per-element stage calls, lifecycle scopes
+  entered), not the allocation above. Observed: 2 stage calls for `take(2)` (§4.1) and 2 element scopes
+  for `lifecycle_repeat` (§4.3). Existing guarantee [I][T]; R29 adds a proof, not a mechanism. A caller
+  who needs bounded *allocation* must bound the Sheet before the boundary (`where`/`select`), which is
+  outside this proposal.
 - **Single-use:** the Flow from `to_flow` is single-use; the underlying List is reusable. Build a new Flow
   per consumer.
 - **Finalization:** the Flow is List-backed, so there is no closeable resource; Lists are never finalized
   (STATE 1792–1801). The observable early-termination guarantee comes from `lifecycle_repeat` element
   scopes, shown next. Resource-backed finalization is out of scope for R29.
 
-### 4.3 Lifecycle: envelope versus callback value [V]
+### 4.3 Lifecycle: envelope versus callback value, lifecycle failure versus data-level Outcome [V]
 
 `lifecycle_repeat([audit_peer], to_flow(recs), work) |> take(2) |> collect` over 4 records returned two
 **envelopes**, not the callback's values:
@@ -201,9 +226,35 @@ of `nth` was **not measured** and no performance claim is made [U].
 - peer log, in order: `enter 1, exit 1, enter 2, exit 2` — only two element scopes were ever entered, and
   each was fully unwound before the next pull.
 
-Consequences for the proving case: the pipeline must filter on `status == quote(ok)` and unwrap `result`
-before `validate_each`/`collect_validated`/`collect_sheet`; a raising callback yields a non-`ok` status with
-`result = none("lifecycle-no-result")` (STATE 3240–3241), which is data, not an exception.
+An earlier sketch that treated the `lifecycle_repeat` output as the callback results was wrong; the
+envelope is always an intermediate layer. Two *different* failure channels then coexist (App. B7, callback
+returns `some({id})` for id 1 and 4, `err("bad row", {id: 2})` for id 2, and divides by zero for id 3):
+
+| Row | Callback behavior | Envelope `[status, result]` | Channel |
+|---|---|---|---|
+| 1, 4 | returns `some({id: n})` | `[ok, some(some({id: n}))]` | success; the Outcome is *callback data* inside `some(...)` |
+| 2 | returns `err("bad row", {id: 2})` | `[ok, some(err("bad row", {id: 2}))]` | **data-level Outcome**: lifecycle succeeded, the row is bad |
+| 3 | raises (`1 / 0`) | `[error, none("lifecycle-no-result")]`, `primary_failure` = `{peer: none("lifecycle-no-peer"), phase: work, reason: exact division by zero, context: {}}` | **lifecycle failure**: scope unwound, no result (STATE 3240–3241), still data, not an exception |
+
+Explicit handling the proving case must perform (a sketch of *application* code over the existing API; it
+names no new function and `records` stands for the candidate boundary):
+
+```genia
+# per-row work returns ordinary data (possibly an Outcome); lifecycle supplies scope/context only
+envs     = lifecycle_repeat(peers, to_flow(records(s)), work) |> collect
+ran_ok   = envs |> filter((e) -> e.status == quote(ok))        # lifecycle succeeded
+failed   = envs |> filter((e) -> e.status != quote(ok))        # report e.primary_failure; never merge with data errs
+outcomes = ran_ok |> map((e) -> unwrap_or(nil, e.result))      # callback values: some(...) / err(...)
+# data-level handling stays with the existing validation surface: collect_validated / validate_each
+```
+
+Rules this sketch implies for the contract: (1) lifecycle `status` is checked **before** `result` is read;
+(2) a lifecycle failure is reported from `primary_failure`/`cleanup_failures` and is never converted into a
+data-level `err`; (3) a data-level `err` is never treated as a lifecycle failure; (4) the two counts are
+reported separately; (5) no new Outcome or envelope semantics are introduced. `lifecycle_repeat` is
+Python-host-only, so this proof is host-specific evidence (§9.6). The existing
+`examples/r14_repeated_record_lifecycle_proving_case.genia` already demonstrates both channels over
+*string* rows; the R29 proving case adds only the Sheet boundary in front of it.
 
 ### 4.4 Round-trip: precise, conditional guarantees
 
@@ -219,6 +270,19 @@ Statement revised from "`collect_sheet(records(s))` reconstructs `s`". Measured 
 | G5 | Cells and protected values (a protected leaf from `config_provider`→`secret_get`) | `rows(back) == rows(s)` is `true`; `display` shows `<protected>`; `json_encode` → `err("protected-value", …)`; `render_csv` → `Error: protected-value: render-csv cell at row 0, column 0`; no sentinel in output | Exact transport per STATE 393; cell values are not copied or coerced. Only `==`/render/sink behavior was verified; carrier identity at the Python-object level is a TEST-phase obligation [U] |
 | G6 | Key-type asymmetry | A Sheet with **symbol** columns round-trips to symbol keys. `collect_sheet([{name: "Ann"}])` produces **string** column `"name"`, so `== sheet([[quote(name), ["Ann"]]])` is `false` | A round trip preserves whatever key type the Sheet had; it does not normalize string and symbol names |
 | G7 | Duplicate or illegal names | Unreachable: `sheet` rejects duplicates and non-map-key names | No new error path |
+
+**Schema limits the contract must state, not hide.** The record boundary carries rows, not schema:
+
+- *zero rows, nonzero columns* (G2): `records(s)` is `[]`, and `collect_sheet([])` yields zero columns, so
+  the column names are **not** recoverable from the List. The caller must take them from `columns(s)`.
+  The contract must say `collect_sheet(records(s)) == s` is **not** guaranteed here, and no schema wrapper,
+  header record or sentinel is proposed.
+- *nonzero rows, zero columns* (G3): `records(s)` is a List of empty Maps whose length equals the row
+  count, and the round trip is exact (measured). It relies on `collect_sheet` accepting empty Maps.
+- *column names and cells*: the proposal maps each column name to a Map key **unchanged** (raw identity,
+  no string/symbol normalization, G4/G6), preserves column order as Map entry order (§5 C2), and copies
+  cell values **exactly** — no coercion, no trimming, no Outcome wrapping, protected leaves transported
+  as-is (G5).
 
 These are guarantees *of the candidate contract to be decided in R29-C*; none is implemented behavior for
 a Sheet→record function today.
@@ -242,8 +306,10 @@ context (STATE 2387, 2395). It then pushes the result through `collect_validated
 No leakage was found in these paths. This is not a committed test; the TEST phase must commit it (§10). A
 `validate_each` run whose records hold protected values is therefore *not* printable with `print`; the
 proving case must render diagnostics through `display`/`debug_repr` or avoid printing the raw result.
-If a leak is found in an R29-supported path it must be **fixed before that path is accepted**; recording an
-issue is insufficient.
+If a leak is found in an R29-supported path, **that path stays blocked until the leak is repaired and the
+repair is covered by a test**. Opening a separate defect issue does not permit acceptance, does not
+downgrade the criterion to a documented limitation, and does not let the contract, audit or release close
+with the path still leaking. A path the repair cannot make safe is removed from the supported set instead.
 
 ---
 
@@ -284,7 +350,7 @@ None is approved.
 | D2 | Eager List vs lazy Flow | **Eager List only.** A Flow is obtained by the application-owned composition in §4.1. |
 | D3 | Row-index base | Document existing bases (1-based `lifecycle_repeat`, 0-based `collect_validated`); add no index API. |
 | D4 | Outcome items in the record stream | Leave as is; use `validate_each` + `collect_validated`; record `keep_some_else` limitation (owned elsewhere). |
-| D5 | Protected diagnostics | Test; if an R29-supported path leaks, fix before acceptance. |
+| D5 | Protected diagnostics | Test; if an R29-supported path leaks, the path stays blocked until repaired and re-tested (an opened issue is not acceptance). |
 | D6 | Duplicate/illegal names | Contract states the invariant (G7); no new error path. |
 | D7 | Sheet capability accounting | Introduce a Sheet capability with an issue-backed C++ gap, via the migration in §9. Needs maintainer approval. |
 | D8 | When the #1251 exception is requested | At the implementation gate, with contract and RED SHA; scope in §13. |
@@ -341,7 +407,7 @@ worker cannot create protected values: `config_provider`/`secret_get` are denied
 
 | ID | Risk | Mitigation |
 |---|---|---|
-| R-1 | Implementation starts before the Model B gate | §13 condition 1; exception is explicit, bounded, maintainer-recorded. |
+| R-1 | Implementation starts before the Model B gate | §13 condition 1; exception is explicit, bounded, and recorded by the maintainer on #1251 only. |
 | R-2 | Slice C/D/E change function definition/export semantics under R29 code | Host builtin; proving code uses no `=:`, no overlapping varargs, no alias declarations; **post-#1251 Model B/R29 interaction regression** (§10 T3). |
 | R-3 | Scope creep into R30/R31, readers, or new bridge builtins | Non-goals are contract acceptance criteria; each PR is checked. |
 | R-4 | Implicit Seq compatibility creep | Negative tests (§10 T2) made explicit regression guards. |
@@ -350,7 +416,7 @@ worker cannot create protected values: `config_provider`/`secret_get` are denied
 | R-7 | Protected-value leakage | §4.5 probes become TEST cases; leakage in a supported path blocks acceptance. |
 | R-8 | #1257 runtime-owned-name write-through lets an entry program shadow a builtin seen by modules/prelude | Documented residual; D9 name choice reduces exposure; no R29 reliance. |
 | R-9 | Documentation and generated-artifact drift | §10 documentation/generated checks. |
-| R-10 | Large high-conflict PRs (`builtins.py`, `GENIA_STATE.md`) | Small PRs; accounting, boundary, and docs separated (§12). |
+| R-10 | High-conflict files (`builtins.py`, `GENIA_STATE.md`) | One branch/PR carrying the `run-change.md` commits in order; split off only the docs-sync surfaces that conflict, and the `genia-cpp` re-pin (a different repository). No fragmentation beyond that (§12). |
 | R-11 | Eager allocation doubles row storage; `nth`-based bridge cost unmeasured | State in contract; no performance claim; measure only if a TEST-phase benchmark is approved. |
 | R-12 | Retro-gating 19 existing specs changes evidence counts and could hide a regression | §9.4 migration with before/after counts and an unchanged Python pass set. |
 | R-13 | MCP default-deny profile silently drops the new name | D11; classification test must fail first. |
@@ -375,7 +441,11 @@ error-sheet-select-missing-column, error-sheet-unequal-column-lengths}`. Every o
 | Python (`python -m hosts.python.protocol_adapter`) | **20 pass** | — |
 | C++ (`genia-cpp` `44456ba`, built with `cmake`, Release, out-of-tree) | **20 unsupported** | The same generic adapter message for all 20: "genia-cpp implements only the E24-2..E24-7 vertical slice …"; it names no Sheet capability |
 
-This reproduces the independent review.
+This reproduces the independent review. Revision 4 repeated it: the 20 files were re-discovered by token
+search over all 901 loaded specs (no other case uses `sheet`, `collect_sheet`, `render_csv` or `row_get`; no
+invalid specs), and the C++ adapter was **freshly built for this revision** (`cmake -S . -B <scratch>`,
+Release, `cmake --build -j8`, exit 0). Scope of that claim: only these 20 shared cases were run through the
+adapter; the `genia-cpp` test suite and a full parity-gate certification were **not** run.
 
 ### 9.2 Three different "unsupported" meanings
 
@@ -417,6 +487,20 @@ previously-ungated JSON/Bytes case with the matching `requires:` tag
 | M8 | C++: no implementation; declares nothing (undeclared = unsupported); re-pin `evidence.json` and contract revision in `genia-cpp` as a separate repository change. Retro-gated cases move from adapter-reported to capability-excluded with a truthful reason; the `unsupported` total is expected to stay 20 + the new gated cases, but the exact counts must be recomputed, not predicted | after R29-T0 merges | `m0smith/genia-cpp` (separate PR) |
 | M9 | Remove the gap only when C++ declares the capability `supported` and the gate reports `PARITY_OK` | future (out of R29) | — |
 
+**Proposed claims and affected cases (all [P]; `sheet_values` is a working name decided in M1):**
+
+| Claim | Python reference host | C++ (`genia-cpp`) |
+|---|---|---|
+| Capability `sheet_values` in `optional_capabilities` | declared `supported` automatically (adapter claims every manifest capability) | undeclared ⇒ `unsupported` |
+| Existing Sheet cases (19, M4) | `requires: [sheet_values]`; pass set unchanged | move from adapter-reported to **capability-excluded** with a Sheet-specific reason |
+| `r18-conformance-cross-family-summary` (D10) | passes under every option | per D10 option; never hidden under a Sheet-only requirement |
+| New R29 boundary cases (M6) | `requires: [sheet_values]`; pass | capability-excluded; listed in the gap's `affected_tests` |
+| Gap entry (M5) | n/a | `tracking_issue` must be a **real, existing issue** before the entry is committed; no placeholder or "TBD" |
+
+Lifecycle, protected-value and MCP-policy evidence is **not** put into the shared protocol; it lives in
+Python unit/native/CLI tests the existing runner and `pytest` already run (§9.6). No parallel capability,
+conformance or evidence system is introduced.
+
 Before/after check for M4–M8: Python total and pass counts must not decrease; the full set of formerly
 passing Sheet cases must still pass; `tests/unit/test_host_parity_gate.py` and
 `tests/spec/test_python_protocol_adapter_parity_762.py` must pass.
@@ -430,6 +514,12 @@ representations or protected carriers). It is documented as the implementer's fi
 (`docs/host-interop/HOST_PORTING_GUIDE.md:168`, `docs/releases/R18.md:139`) and listed in
 `tests/spec/test_r18_conformance_protocol_evidence_795.py:63`.
 
+- Verified (this revision): list positions 16–17 are the Sheet pair; positions 0–15 and 18–21 belong to ten
+  other families (numeric/boolean, string/symbol, List, Pair, Outcome, map, represented, bytes, Ref,
+  protected carrier). The dedicated `r18-conformance-sheet-structural-equality` case already asserts the
+  cell numeric bridge (`2` vs `2.0`, true), column-order sensitivity, differing cell/column sets and
+  Sheet-vs-List inequality, and `r18-surface-sheet-column-identity` asserts `true`/`1`/`"x"` column
+  identity, so the aggregate's Sheet pair is duplicated evidence.
 - Gating it **only** on the Sheet capability would be wrong in both directions: it would attribute an
   unsupported result to Sheet that is equally caused by other families, and a host missing only Sheet
   would lose the other ten families' evidence.
@@ -437,8 +527,11 @@ representations or protected carriers). It is documented as the implementer's fi
 
 Options for R29-C: (1) **recommended** — move the Sheet pair out of the aggregate (the dedicated
 `r18-conformance-sheet-structural-equality` and `r18-surface-sheet-column-identity` cases already cover
-Sheet equality and identity), regenerate the expected vector, and update the three references above; this
-touches a protected R18 summary and needs R18-owner review; (2) gate it on every involved capability —
+Sheet equality and identity), regenerate the expected vector (22 → 20 entries, indices shift), update the
+three references above and the case's "every family" note and `families:` list, and add a Sheet-pair
+sentence to the dedicated case if the maintainer wants the near-miss `"c"`/`"d"` kept; the other ten
+families stay in one aggregate, so no unrelated equality evidence is dropped. This touches a protected R18
+summary and needs R18-owner review; (2) gate it on every involved capability —
 not completable because representations and protected carriers have no capability; (3) leave it ungated
 as a recorded exception. Whatever is chosen, **no case may hide unrelated families under a Sheet-only
 requirement.** The decision, its text, and the spec edit belong to R29-C/R29-T0, not this pre-flight.
@@ -458,10 +551,10 @@ protected values, so no shared case may require them.
 
 | Category | Must fail before `records/1` exists? | Content |
 |---|---|---|
-| **T0 conformance accounting** | n/a (infrastructure) | M3–M5, M7; counts unchanged for Python |
+| **T0 conformance accounting** | n/a (infrastructure; Python counts must be unchanged) | M3–M5, M7; counts unchanged for Python |
 | **T1 new boundary tests** | **Yes** | Shared eval: row order, column order, immutability, empty Sheet, zero-row and zero-column behavior (G2/G3), round trip G1/G4/G6, protected-cell passthrough; shared error: non-Sheet input; shared flow: bounded/no-over-pull consumption of a Flow built by `to_flow` from `records`; Python: protected sinks/diagnostics after the boundary, `records` callable via alias/higher-order/pipeline/module visibility, metadata/`help`, runtime-reserved-name behavior; MCP allowlist classification; **end-to-end proving-case spec** (CLI/native) written in this phase |
 | **T2 existing composition regression** | **No — written in the TEST phase but expected to pass against the current tree (they need no `records/1`); the TEST commit records them passing. A T2 test that fails at that commit is a defect in the test or a finding about current behavior, never an "expected failure".** | Sheet rejected by `map`/`each`/`scan`/`reduce`/`lifecycle_repeat` (no dedicated test exists today; this closes discrepancy F); `to_flow` empty/nonempty/bounded/single-use; lifecycle envelope extraction including a raising callback; hand-conversion round trips (G1–G6); protected diagnostics/sink behavior via hand conversion |
-| **T3 post-#1251 interaction** | Runs after the Model B gate closes | Re-run T1+T2 plus a Model B/R29 regression: name resolution of `records/1` when entry code defines or aliases it, `=:` collision behavior, module visibility, and open-by-default effects |
+| **T3 post-#1251 interaction** | Runs after the Model B gate closes; its run is **recorded** (SHA, commands, results) | Re-run T1+T2 plus a Model B/R29 regression: name resolution of `records/1` when entry code defines or aliases it, `=:` collision behavior, module visibility, and open-by-default effects |
 
 ### 10.2 Items the future work must verify (each maps to a test or audit step)
 
@@ -502,7 +595,11 @@ baseline identities in `.github/code-documentation-baseline.json` (the module an
 `sheet_derive_appends_outcome_cells_and_preserves_original`,
 `sheet_select_reorders_columns_and_preserves_original`, `sheet_shape_columns_and_rows_are_deterministic`,
 `sheet_where_filters_rows_and_preserves_original`). Baseline total at this snapshot: 2,798 gaps (freshly
-counted). Land before R29-T so test additions do not conflict. Carry-forward, owned by #1192: remaining
+counted). **Optional and not a dependency:** R29 does not wait for it, its landing is not an implementation
+condition, and unrelated #1192 debt is never made a blocker. If R29 adds or touches maintained code or
+native tests, the existing code-documentation ratchet applies to *those* additions as it always does; the
+slice is only a convenient place to start paying the debt down and may land before, during or after R29
+(rebase on whichever lands second). Carry-forward, owned by #1192: remaining
 Flow/Seq/prelude identities (e.g. `flow.genia` 19, `list.genia` 8, `awk.genia` 4,
 `tests/native/r3_validation_helpers.genia` 26); the R29 audit names the next slice.
 
@@ -510,16 +607,16 @@ Flow/Seq/prelude identities (e.g. `flow.genia` 19, `list.genia` 8, `awk.genia` 4
 
 ## 12. Release decomposition (aligned to `docs/process/run-change.md`)
 
-Each `run-change.md` step is its own stopping point; phases are never combined.
+Each `run-change.md` step is its own stopping point: contract, design, failing tests and implementation each get their own commit and are never combined with one another.
 
 | Step (run-change) | R29 item | Notes |
 |---|---|---|
 | 1–3 Branch, pre-flight, commit | This document (PR #1284) | Docs-only; draft |
-| — (parallel, independent) | **R29-D0** #1192 slice (§11) | XS, docs metadata only |
-| 4–5 Contract, commit | **R29-C** | Decide D1–D11 and the §9.5 option; produce `docs/design/r29-…-contract.md` marked PROPOSED→approved. **No tests.** |
-| 6–7 Design, commit | **R29-G** | Map clauses to files; registration; capability accounting plan (M1–M9); MCP classification plan |
-| 8–9 Failing tests, commit | **R29-T0** then **R29-T1** (+ **T2** recorded passing) | T0: manifest, retro-gating, gap entry (needs approved tracking issue). T1: new failing boundary tests **and the proving-case end-to-end spec**, SHA recorded. T2: existing-composition guards, recorded as already passing |
-| 10–11 Implementation, commit | **R29-I** | **Gate: §13 condition 1.** Only `records/1` + registration/doc/metadata/allowlist; references the failing-test SHA |
+| — (optional, independent) | **R29-D0** #1192 slice (§11) | Not part of the critical path; not a gate |
+| 4–5 Contract, commit | **R29-C** | Decide D1–D11 and the §9.5 option; produce `docs/design/r29-…-contract.md` marked PROPOSED→approved. **No tests, no implementation; no #1251 exception needed.** |
+| 6–7 Design, commit | **R29-G** | Map clauses to files; registration; capability accounting plan (M1–M9); MCP classification plan. **No exception needed.** |
+| 8–9 Failing tests, commit | **R29-T** (T0 accounting, T1 new failing boundary tests **including the proving-case end-to-end spec**, T2 existing-composition guards recorded passing) | One commit may carry T0/T1/T2 or they may be consecutive commits; the commit that records RED states which tests fail and which pass and why (§10.1). T0 needs an existing tracking issue for the gap entry. **No exception needed.** |
+| 10–11 Implementation, commit | **R29-I** | **Gated by #1251** (§13 condition 1: Model B gate complete or maintainer-recorded scoped exception). Only `records/1` + registration/doc/metadata/allowlist; references the RED SHA |
 | 12 **Code Quality & Maintainability Review** (`code-maintainability-review.md`; inspects the implementation diff and affected call sites, records reviewer, evidence, findings, verdict, follow-ups) | **R29-M** | Required, after implementation (step 11) and before docs (step 15); reviewer other than the implementer preferred |
 | 13 Resolve blocking findings, fresh verdict | **R29-M** | Focused fix commits only; **a FAIL verdict blocks docs** |
 | 14 Commit review handoff/evidence | **R29-M** | Per existing handoff conventions |
@@ -533,8 +630,13 @@ tests are specified in R29-T1, exercised by R29-I, and its example/docs ship in 
 issues are created now (the branch rule `issue-<number>-<short-name>` is a further reason to create one
 umbrella issue only after this pre-flight is approved).
 
-**Parallelism after contract and tests are approved:** R29-D0 any time; R29-G with the genia-cpp evidence
-re-pin preparation; T0 and T1 in two PRs if they touch disjoint files; docs-sync surfaces after R29-M.
+**Sequencing summary:** contract → design → failing TEST (proving-case tests before the implementation they
+need) → implementation → maintainability review (steps 12–14) → docs → independent audit → distillation;
+then the post-#1251 regression run. Only R29-I (and R29-R's completion claim) depend on #1251.
+
+**PR shape:** one branch/PR following `run-change.md` commit-by-commit is the default; PRs are not split
+per phase. Acceptable splits: docs-sync surfaces that would conflict (STATE vs cheatsheets vs generated
+reference) and the `genia-cpp` evidence re-pin, which lives in another repository. R29-D0 is independent.
 Avoid concurrent edits to `GENIA_STATE.md` and `builtins.py`.
 
 ---
@@ -546,25 +648,60 @@ Avoid concurrent edits to `GENIA_STATE.md` and `builtins.py`.
 1. Model B gate: either #1250 Slices C–E and #1251 sign-off are complete, **or** the maintainer records an
    explicit scoped exception on #1251 (none exists; this document does not approve one).
 2. R29-C contract approved (D1–D11 resolved).
-3. R29-T0/T1 committed with the failing-test SHA, including the approved capability and issue-backed gap.
-4. R29-D0 merged or deferred with an owner.
-5. No R30/R31/R32 behavior in contract, design, or tests.
+3. R29-T committed with the RED SHA, including the approved capability and the issue-backed gap.
+4. No R30/R31/R32 behavior in contract, design, or tests.
 
-Conditions 2–5 do not block contract/design/TEST. **The exception gates implementation, not contract,
-design, or TEST.**
+(#1192 / R29-D0 is deliberately **not** a condition.) Conditions 2–4 do not block contract/design/TEST.
+**The #1251 exception, if ever granted, gates implementation only; contract, design and TEST need none.**
 
-**Scope the exception could cover (recommendation only):** one pure, eager Sheet-to-record builtin;
-registration, documentation and metadata (including the MCP allowlist entry); tests and conformance
-accounting; the executable record-pipeline proving case; the required maintainability review and audit;
-and the post-#1251 regression (R29-R).
+**Who may grant it.** Only the maintainer, by recording it on [#1251](https://github.com/m0smith/genia-2026/issues/1251)
+itself. This document, its author, any agent or reviewer, and a PR approval cannot grant, imply or
+pre-record it, and no comment is posted on #1251 on the maintainer's behalf. Until it is recorded there is
+no exception.
 
-**It must exclude:** parser, AST, or Core IR changes; the evaluator; the Flow kernel; the lifecycle
-runtime; Model B default-open or module-linking behavior; implicit Sheet-to-Seq conversion; Outcome
-semantics; R30/R31 operations; a C++ Sheet implementation; and any new List→Flow bridge builtin.
+**Scope the exception could cover (recommendation only) — exactly:**
+
+1. one pure, eager Sheet-to-record builtin (`List<Map>` result; name from D9);
+2. its registration, tests, examples, conformance accounting (§9) and documentation;
+3. the executable record-pipeline proving case;
+4. the required maintainability review, independent audit and distillation;
+5. a **recorded R29 regression run after #1251 completes** (R29-R): commit SHA, commands, and results for
+   T1+T2+T3 and the full Python regression, attached to the R29 audit; the R29 release cannot be marked
+   complete without it.
+
+**It must exclude (each is a stop condition if the diff touches it):** parser, AST, Core IR; the
+evaluator; the Flow kernel; lifecycle runtime semantics; Model B default-open, immutable-binding or
+module-linking semantics; implicit Sheet-to-Seq conversion; new Outcome semantics; R30/R31/R32 scope; a C++
+Sheet implementation; any new List→Flow bridge builtin; and unrelated #1192 debt.
+
+**Integration checks the implementation must pass (each backed by a test or audit step, §10.2):**
+registration through the normal builtin path and no change to export/linking code; runtime-reserved-name
+behavior (`records =: …` and `rows =: …` outcomes recorded, D9); module visibility; alias (`r = <name>`),
+higher-order (`map(<name>, [s])`) and pipeline (`s |> <name>`) invocation; metadata (`help`/`doc`/`meta`,
+`@doc`/`@category`, generated reference); and MCP integration (worker-profile classification, language
+profile registry, regenerated `apps/mcp/mcp.genia`). These checks are re-run after #1251 completes.
 
 ---
 
 ## 14. Verification performed for this revision
+
+**Revision 4 (this revision; run on `main@79c073b`, `genia-cpp@44456ba`, documentation-only change):**
+
+| Command / probe | Result |
+|---|---|
+| `git fetch origin main`; `git rev-parse origin/main` (both repositories) | `79c073b556ad…` and `44456baea06b…`: no change since the reviewed baseline |
+| Appendix B1–B6 extracted from this file and run with `uv run genia` | All outputs identical to §4 |
+| Appendix B7 (new) | Counter 5 → 5 under `take(2)`; three-way envelope table in §4.3 |
+| Scratch `cases.py` via `tools.spec_runner.host_executor.execute_spec_via_host` over 20 token-matched specs (901 loaded, 0 invalid) | Python `{'pass': 20}`; C++ `{'unsupported': 20}` (generic E24 message); no `requires` |
+| `cmake -S . -B <scratch> -DCMAKE_BUILD_TYPE=Release` + `cmake --build -j8` in `genia-cpp` | exit 0 (fresh adapter build) |
+| Read of `spec/eval/r18-conformance-*`, `spec/manifest.json`, `spec/known_host_gaps.json`, `tools/spec_runner/capabilities.py`, `host_parity_gate.py`, `hosts/python/mcp_worker_profile.py`, `docs/process/run-change.md` | Statements in §3, §9, §12 consistent with them |
+
+Limitations: no fresh full-regression run for revision 4 (no source file changed; the revision-3 numbers
+below describe the identical source tree); no `genia-cpp` test-suite run; no `host_parity_gate` run against
+fresh evidence documents; **no full C++ parity certification is claimed**; GitHub statuses in §3 are from
+2026-10-25 and were not re-queried.
+
+**Revision 3 (retained; source tree identical):**
 
 Run from `/home/user/genia-2026` on the revision-3 tree (documentation-only change; `origin/main` is
 still `79c073b`, so the source tree is byte-identical to the one revision 2 tested).
@@ -591,7 +728,7 @@ environments.
 ## 15. Recommended next action and issue handling
 
 **Next action:** maintainer review of this revision, then authorization of **R29-C (contract)** only. The
-#1251 exception question moves to the implementation gate (§1, D8). The risk-free parallel item is R29-D0.
+#1251 exception question moves to the implementation gate (§1, D8). R29-D0 is an optional, independent item and not a gate.
 
 No R29 umbrella issue exists; none is created here. After approval, create **one** umbrella issue linking
 this document and #1249/#1250/#1251/#1192/#1236, and create child issues per phase on demand (including the
@@ -758,3 +895,34 @@ with either `python -m hosts.python.protocol_adapter` (claims from `_python_clai
 `genia-adapter` binary built by `cmake -S . -B <scratch>/cppbuild -DCMAKE_BUILD_TYPE=Release` at
 `genia-cpp@44456baea06b4bb7bdf727e39939dd7150261ee6`. Result: Python `Counter({'pass': 20})`, C++
 `Counter({'unsupported': 20})`, every `requires` empty.
+
+**B7 — Revision 4: eager allocation under `take`, and lifecycle failure versus data-level Outcome (§4.2,
+§4.3)** (expected: `5`, `[{id: 1, v: 10}, {id: 2, v: 20}]`, `5`, then
+`[[ok, some(some({id: 1}))], [ok, some(err("bad row", {id: 2}))], [error, none("lifecycle-no-result")], [ok, some(some({id: 4}))]]`,
+`[some({id: 1}), err("bad row", {id: 2}), some({id: 4})]`, and a failed-envelope list whose single entry
+has `primary_failure` `{peer: none("lifecycle-no-peer"), phase: work, reason: exact division by zero,
+context: {}}`; the last line prints twice because the CLI echoes the final value):
+
+```genia
+to_flow(xs) = evolve(0, inc) |> take(length(xs)) |> map((i) -> unwrap_or(nil, nth(i, xs)))
+pairs_to_map(row) = reduce((m, kv) -> map_put(m, unwrap_or(nil, nth(0, kv)), unwrap_or(nil, nth(1, kv))), map_new(), row)
+c = ref(0)
+conv(row) = { ref_update(c, inc); pairs_to_map(row) }
+s = sheet([[quote(id), [1, 2, 3, 4, 5]], [quote(v), [10, 20, 30, 40, 50]]])
+recs = rows(s) |> map(conv)
+print(ref_get(c))
+print(to_flow(recs) |> take(2) |> collect)
+print(ref_get(c))
+peer = { name: quote(audit), enter: (sc) -> some(nil), exit: (sc, sm) -> some(nil) }
+classify(id) = 2 -> err("bad row", {id: 2}) | 3 -> 1 / 0 | other -> some({id: other})
+work(scope) = {
+  rec = lifecycle_context(scope, quote(element)) |> unwrap_or(none)
+  classify(rec.id)
+}
+out = lifecycle_repeat([peer], to_flow([{id: 1}, {id: 2}, {id: 3}, {id: 4}]), work) |> collect
+print(map((r) -> [r.status, r.result], out))
+oks = out |> filter((r) -> r.status == quote(ok))
+print(map((r) -> unwrap_or(nil, r.result), oks))
+failed = out |> filter((r) -> r.status != quote(ok))
+print(map((r) -> [r.status, r.primary_failure], failed))
+```
