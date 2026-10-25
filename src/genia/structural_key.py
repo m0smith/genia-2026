@@ -99,6 +99,7 @@ def clause_shape(pattern: Any) -> tuple[str, int]:
 
 
 def _next_ordinal(scope: dict[str, int]) -> int:
+    """Return the next unused binder ordinal for `scope` (zero when the scope is empty)."""
     return max(scope.values(), default=-1) + 1
 
 
@@ -150,6 +151,7 @@ def _scalar_key(value: Any) -> Any:
 
 
 def _is_node_like(value: Any) -> bool:
+    """True for dataclass instances (IR, pattern and syntax nodes), never for classes."""
     return dataclasses.is_dataclass(value) and not isinstance(value, type)
 
 
@@ -164,6 +166,10 @@ def structural_key(node: Any, scope: dict[str, int]) -> Any:
 
 
 def _walk(node: Any, scope: dict[str, int], depth: int) -> Any:
+    """Key one value: lists recurse, scalars are tagged, nodes dispatch on their exact class.
+
+    Unknown classes raise `TypeError`; nothing is evaluated or rendered.
+    """
     if node is None:
         return ("nil",)
     if isinstance(node, (list, tuple)):
@@ -234,6 +240,7 @@ def _walk(node: Any, scope: dict[str, int], depth: int) -> Any:
 
 
 def _fields_key(node: Any, scope: dict[str, int], depth: int) -> tuple:
+    """Class-tagged tuple of a node's non-span fields, each keyed by `_walk`."""
     parts: list[Any] = [type(node).__name__]
     for field in dataclasses.fields(node):
         if field.name in _SPAN_FIELDS:
@@ -243,6 +250,7 @@ def _fields_key(node: Any, scope: dict[str, int], depth: int) -> tuple:
 
 
 def _lambda_key(node: ir.IrLambda, scope: dict[str, int], depth: int) -> tuple:
+    """Key a lambda with its parameters and pattern binders alpha-normalized in a child scope."""
     names = list(node.params)
     if node.rest_param is not None:
         names.append(node.rest_param)
@@ -259,10 +267,12 @@ def _lambda_key(node: ir.IrLambda, scope: dict[str, int], depth: int) -> tuple:
 
 
 def _block_key(node: ir.IrBlock, scope: dict[str, int], depth: int) -> tuple:
+    """Key a block as its ordered expression keys (assignments inside keep outer-binder references)."""
     return ("IrBlock", tuple(_walk(expr, scope, depth) for expr in node.exprs))
 
 
 def _pattern_key(node: Any, scope: dict[str, int]) -> Any:
+    """Key a pattern node: binders become ordinals, literals are type-tagged, unknown classes raise."""
     if node is None:
         return ("nil",)
     cls = type(node)
@@ -286,6 +296,7 @@ def _pattern_key(node: Any, scope: dict[str, int]) -> Any:
 
 
 def _pattern_field_key(value: Any, scope: dict[str, int]) -> Any:
+    """Key one pattern field: nested patterns, glob helpers, sequences and tagged scalars only."""
     if value is None:
         return ("nil",)
     if isinstance(value, (list, tuple)):

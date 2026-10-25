@@ -846,6 +846,12 @@ class Evaluator:
         body: IrNode,
         fn_name: str | None = None,
     ) -> Any:
+        """Evaluate a selected function body in tail position inside the bound header frame.
+
+        A list-traversal loop takes its fast path or falls back to its retained case; a grouped
+        case (also a block's final case) matches the original arguments, with a miss raising the
+        terminal `No matching case`; any other body evaluates as an ordinary tail expression.
+        """
         if isinstance(body, IrListTraversalLoop):
             return self.eval_list_traversal_loop(params, args, body, fn_name)
         if isinstance(body, IrCase):

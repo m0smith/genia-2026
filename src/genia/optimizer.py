@@ -73,6 +73,10 @@ def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list
 
 
 def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
+    """Rewrite a recognized nth-style list recursion to `IrListTraversalLoop`, else return `fn`.
+
+    The rewrite keeps the original grouped case on the node so evaluation can fall back to it.
+    """
     if fn.rest_param is not None or len(fn.params) != 2 or not isinstance(fn.body, IrCase):
         return fn
     case = fn.body

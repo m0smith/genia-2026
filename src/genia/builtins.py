@@ -3218,11 +3218,13 @@ def make_global_env(
         return f"{span.filename}:{span.line}"
 
     def _format_function_shapes(group: GeniaFunctionGroup) -> str:
+        """Render the distinct clause shapes ascending by arity (`1, 2, 3+`) or `unknown` when none."""
         shapes = [f"{count}{'+' if kind == 'varargs' else ''}" for kind, count in group.shapes()]
         shapes.sort(key=lambda text: (int(text.rstrip("+")), text.endswith("+")))
         return ", ".join(shapes) if shapes else "unknown"
 
     def _group_span(group: GeniaFunctionGroup) -> SourceSpan | None:
+        """Earliest recorded declaration span among the group's records, else None."""
         spans = [fn.span for fn in group.records if isinstance(fn, GeniaFunction) and fn.span is not None]
         if not spans:
             return None
