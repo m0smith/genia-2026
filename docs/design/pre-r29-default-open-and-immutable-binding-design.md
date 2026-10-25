@@ -1,6 +1,6 @@
 # Pre-R29 default-open functions and immutable bindings: portable design
 
-Status: **DESIGN REVISED AFTER INDEPENDENT REVISE — NOT IMPLEMENTED; CONDITIONAL GO ONLY.** Issue [#1250](https://github.com/m0smith/genia-2026/issues/1250).
+Status: **DESIGN REVISED AFTER INDEPENDENT REVISE — CONDITIONAL GO ONLY; implementation status:** the Python reference host implements Slices A–C (carriers, `=:`, ordinary default-open execution; see `GENIA_STATE.md`); closed functions and cross-module linking are not implemented. Issue [#1250](https://github.com/m0smith/genia-2026/issues/1250).
 Scope: portable design gate only. This document is enduring architecture, not
 execution evidence or a replacement language contract. No runtime, shared test,
 capability claim, or implemented-truth change accompanies it.

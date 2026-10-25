@@ -121,11 +121,11 @@ language model and selected maturity/host gaps for assistants. It is MCP adapter
   `tail_call_optimization: true`;
 - `supported_forms`, `absent_forms` (`if_expression`, `while_loop`, `for_loop`), `patterns` (function-argument, literal,
   wildcard, tuple, list, map, and guard patterns; `ordered_resolution: "first_match"`), `idioms` (branching, repetition, the
-  `open` rule for multi-clause functions, and, from A8, `pipelines`: `|>` pipelines with `lines`, `map`, `keep_some`, and
+  clause rule for multi-clause functions, and, from A8, `pipelines`: `|>` pipelines with `lines`, `map`, `keep_some`, and
   `some`/`none`/`err` Outcomes, where callers define the parse and validate functions, and, from A9, `outcomes`: `some`/`none`/`err` are values; in `|>` pipelines ordinary stages lift over `some` and `none`/`err` skip later stages unchanged; `err` is not absence; a direct call receives the Outcome itself, except that a `none` argument short-circuits the call unless the callee explicitly handles absence (such as `unwrap_or`); recovery wraps the whole expression, as in `unwrap_or(0, parse_int(s))`, and, from A10, `flow`: Flow is lazy, pull-based, and single-use; `collect` returns a list and `run` consumes the Flow and returns `nil`; `lines` takes a list of strings (or `stdin`); unbounded sources such as `evolve` are bounded with `take`; `stdin` is a host input adapted with `stdin |> lines`);
 - `examples`: `gcd` and `factorial`, each a runnable program (`gcd(48, 18)` is `6`, `fact(5)` is `120`). Several clauses of
-  one function with a literal first parameter must declare the first clause with `open`; the same text without `open` is
-  rejected by the language, so the profile does not use it.
+  one function with a literal first parameter run in declaration order as ordinary clauses (Model B default-open; `open` is
+  optional), and the profile examples keep the explicit `open` spelling.
 
 Amendment A7 (#1086) also returns `discovery`, exactly `{coverage, facts}`:
 `coverage: "curated_non_exhaustive"` and an ordered array of 15 static facts (A8, #1119, appends `validated_data_pipelines`, Experimental, STATE section 6; A9, #1084, appends `outcome_pipeline_propagation`, Experimental, STATE sections 2 and 3; A10, #1084, appends `flow_semantics`, Experimental, STATE sections 6 and 0, whose summary alone states that the C++ host supports only a bounded Flow subset; contract sections 21, 22, and 23).

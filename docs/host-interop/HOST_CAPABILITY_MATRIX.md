@@ -84,16 +84,21 @@ exact-contract conformance or satisfaction of required Model B syntax gaps.
 Historical release counts above and below retain their original scope; selecting
 this source revision alone is not evidence of a passing workflow.
 
-### Model B declarations: parser/lowering and immutable-binding boundary
+### Model B declarations: parser/lowering, immutable-binding and default-open boundary
 
 Python parses and lowers `=:` declarations, atomic closed groups and ordinary
 pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
 `IrPatternFuncDef`. Python evaluation executes `IrImmutableBind` (optional
-capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`); closed
-groups and pattern headers are rejected with `model-b-not-implemented`. This is
-not a default-open or closed-function execution capability claim. C++ does not
-claim `immutable_bindings`: it is a listed gap in `spec/known_host_gaps.json`
-(tracking `genia-2026#1261`; parser/lowering owned by genia-cpp #50).
+capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`) and
+`IrPatternFuncDef` as default-open ordinary function clauses (optional capability
+`default_open_functions`, shared evidence `spec/*/model-b-c-*`, which the in-process
+runner executes against the Python reference host); closed groups are rejected with
+`model-b-not-implemented`. Closed-function execution is not claimed. The Python
+protocol adapter still advertises `default_open_functions` as `unsupported`, so the
+external-host run reports its gated cases `unsupported` rather than passing them.
+C++ does not claim `immutable_bindings` or `default_open_functions`: both are listed
+gaps in `spec/known_host_gaps.json` (tracking `genia-2026#1261` and `genia-2026#1269`;
+parser/lowering owned by genia-cpp #50).
 
 Python details (`GENIA_STATE.md` section 3 is authoritative): diagnostics are
 `Cannot assign to immutable binding: x`, `Cannot rebind immutable binding: x` and

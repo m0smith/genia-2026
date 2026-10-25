@@ -8,8 +8,11 @@ path. Explicit R20 `open` functions retain their implemented dispatch behavior.
 Model B declarations lower to three nodes: immutable bindings use
 `IrImmutableBind`, guarded/pattern-headed declarations use `IrPatternFuncDef`,
 and consecutive same-name closed clauses use one `IrClosedFuncDef`.
-`IrPatternFuncDef` and `IrClosedFuncDef` reject execution with
-`model-b-not-implemented` before child effects. `IrImmutableBind`
+`IrClosedFuncDef` rejects execution with
+`model-b-not-implemented` before child effects. `IrPatternFuncDef` executes on the
+Python host as a default-open ordinary function clause: clauses of one name in one scope
+accumulate in declaration order and the first matching clause runs; see
+`GENIA_RULES.md` section 8.5.1. `IrImmutableBind`
 (`name =: expr`) executes on the Python host as a fresh, shallow-immutable
 binding; see `GENIA_STATE.md` section 3.
 Pattern headers use R20 grammar, have no inline docstring position, and reject

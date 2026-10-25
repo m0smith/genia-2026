@@ -19,11 +19,18 @@ a fresh binding in the current scope, rejected before its initializer on any
 same-scope binding and, **at entry scope only**, on any runtime-owned name
 (module and nested scopes may still declare such a name locally). Later
 `=`/function/import writes to it are rejected, `=` before its right-hand side
-runs. Binding immutability is shallow. Atomic closed-function
-clause groups and ordinary pattern/guard headers are accepted and lowered, but
-their evaluation fails with `model-b-not-implemented`; default-open execution,
-cross-module linking changes and closed publication remain unimplemented.
-Ordinary `=` and explicit R20 `open` retain their existing execution behavior. C++ support for the new syntax is not claimed.
+runs. Binding immutability is shallow. Ordinary pattern/guard-headed
+`name(header) = body` declarations execute as default-open clauses (Python
+reference host; shared cases require `default_open_functions`): same-scope,
+same-name declarations accumulate in declaration order into one group that
+aliases share, a call selects the fixed or sole varargs shape and then the first
+matching clause, equal pattern/guard keys are duplicates, and declaring through
+an alias or imported binding is rejected with `function-declaration-not-owner`.
+Atomic closed-function clause groups (`f(...) =: body`) are accepted and
+lowered, but their evaluation fails with `model-b-not-implemented`; cross-module
+linking changes and closed publication remain unimplemented. Explicit R20 `open`
+retains its existing execution behavior. C++ does not support default-open
+functions or `=:`.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
@@ -925,6 +932,28 @@ import math as m
 - Python host: module code does not see the entry program's own bindings, and a module read of an entry binding is the ordinary `Undefined name` error, apart from runtime-owned names the entry declares (written through to the runtime scope; see `GENIA_STATE.md` section 9)
 - module exports are accessed with narrow dot access (`mod.name`)
 - modules are immutable runtime namespace values (distinct from maps)
+
+### Default-open ordinary functions (Python reference host, Model B Slice C)
+
+```genia
+fact(0) = 1
+fact(n) = n * fact(n - 1)
+
+fact(5)
+```
+
+- Ordinary `name(header) = body` declarations are open by default: identifier,
+  pattern and `? guard` headers in one scope accumulate, in declaration order and
+  also when noncontiguous, into one function group; no `open` keyword is needed
+- a call runs the first clause whose pattern and guard match among the clauses of
+  its arity (or the one eligible varargs shape); if none match it fails with
+  `No matching case for function fact/1 with arguments [...]`
+- clauses whose pattern and guard are equal up to variable names are duplicates and
+  rejected when declared; declaring a name that is an alias of, or imported from,
+  another binding's function is rejected with `function-declaration-not-owner`
+- C++ does not support these forms (known gap `default_open_functions`); closed
+  `f(...) =: body` functions and cross-module linking of ordinary functions are not
+  implemented
 
 ### Open functions (Experimental, R20)
 

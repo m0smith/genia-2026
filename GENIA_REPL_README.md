@@ -9,11 +9,18 @@ a fresh binding in the current scope, rejected before its initializer on any
 same-scope binding and, **at entry scope only**, on any runtime-owned name
 (module and nested scopes may still declare such a name locally). Later
 `=`/function/import writes to it are rejected, `=` before its right-hand side
-runs. Binding immutability is shallow. Atomic closed-function
-clause groups and ordinary pattern/guard headers are accepted and lowered, but
-their evaluation fails with `model-b-not-implemented`; default-open execution,
-cross-module linking changes and closed publication remain unimplemented.
-Ordinary `=` and explicit R20 `open` retain their existing execution behavior. C++ support for the new syntax is not claimed.
+runs. Binding immutability is shallow. Ordinary pattern/guard-headed
+`name(header) = body` declarations execute as default-open clauses (Python
+reference host; shared cases require `default_open_functions`): same-scope,
+same-name declarations accumulate in declaration order into one group that
+aliases share, a call selects the fixed or sole varargs shape and then the first
+matching clause, equal pattern/guard keys are duplicates, and declaring through
+an alias or imported binding is rejected with `function-declaration-not-owner`.
+Atomic closed-function clause groups (`f(...) =: body`) are accepted and
+lowered, but their evaluation fails with `model-b-not-implemented`; cross-module
+linking changes and closed publication remain unimplemented. Explicit R20 `open`
+retains its existing execution behavior. C++ does not support default-open
+functions or `=:`.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
