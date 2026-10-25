@@ -16,7 +16,7 @@ input:
   stdin: ''
   argv: []
   debug_stdio: false
-expected: {stdout: '["zero", "other"]', stderr: '', exit_code: 0}
+expected: {stdout: "[zero, other]\n[\"zero\", \"other\"]", stderr: '', exit_code: 0}
 notes: |
   Kind: Model B future-behavior case (fails until Slice C GREEN).
   Oracle: contract-derived (RED author confirms at baseline).

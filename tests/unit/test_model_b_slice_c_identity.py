@@ -134,7 +134,9 @@ def test_six_failure_classes_stay_distinct():
     identities = []
     for label, source, _klass, _message in GUARD_FAILURES + FUTURE_FAILURES:
         result = outcome(source)
-        identities.append((label, result.error_class, (result.message or "").split(":")[0]))
+        # Strip the per-invocation " with arguments [...]" suffix so identity is the stable message stem.
+        stem = (result.message or "").split(":")[0].split(" with arguments ")[0]
+        identities.append((label, result.error_class, stem))
     # Case-miss RuntimeError may repeat between the legacy and pattern-group forms
     # (the pattern-group miss must reuse the legacy identity); every other pair differs.
     distinct = {(klass, prefix) for label, klass, prefix in identities if label != "pattern-group-case-miss"}
