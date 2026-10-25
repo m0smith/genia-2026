@@ -293,11 +293,20 @@ class IrShellStage(IrNode):
 
 @dataclass
 class IrListTraversalLoop(IrNode):
-    """Optimized loop-like form for nth-style list traversal recursion."""
+    """Optimized loop-like form for nth-style list traversal recursion.
+
+    The fast path is taken only for a numeric counter and a list argument; every other
+    call evaluates the retained original `case` (retention-aware, domain-exact).
+    """
 
     counter_var: str
     list_var: str
     step_size: int
+    # The unoptimized grouped body, retained so the original arms (keys, ordinals,
+    # guards, provenance) stay reachable and so evaluation can fall back to exact
+    # case semantics outside the fast path's domain. Declared here (before the
+    # recognized arms) only so a depth-first field walk meets the arms in source order.
+    case: IrCase | None = field(default=None, kw_only=True)
     empty_clause: IrCaseClause
     zero_clause: IrCaseClause
     span: SourceSpan | None = None

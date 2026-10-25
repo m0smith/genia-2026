@@ -847,7 +847,7 @@ class Evaluator:
         fn_name: str | None = None,
     ) -> Any:
         if isinstance(body, IrListTraversalLoop):
-            return self.eval_list_traversal_loop(params, args, body)
+            return self.eval_list_traversal_loop(params, args, body, fn_name)
         if isinstance(body, IrCase):
             return self.eval_case_expr(args, body, fn_name)
         if isinstance(body, IrBlock):
@@ -862,10 +862,28 @@ class Evaluator:
             return self.eval_tail(last)
         return self.eval_tail(body)
 
-    def eval_list_traversal_loop(self, params: list[str], args: tuple[Any, ...], body: IrListTraversalLoop) -> Any:
+    def eval_list_traversal_loop(
+        self,
+        params: list[str],
+        args: tuple[Any, ...],
+        body: IrListTraversalLoop,
+        fn_name: str | None = None,
+    ) -> Any:
+        """Run the nth-style fast path for a numeric counter and list, else the retained case.
+
+        The loop is exact only when the counter is an int/float (not Boolean) and the second
+        argument is a list; any other call evaluates the original grouped case, so values,
+        errors, effects and the terminal grouped miss agree with the unoptimized program.
+        """
         values = dict(zip(params, args))
         n_value = values.get(body.counter_var)
         xs_value = values.get(body.list_var)
+        if body.case is not None and not (
+            isinstance(xs_value, list)
+            and isinstance(n_value, (int, float))
+            and not isinstance(n_value, bool)
+        ):
+            return self.eval_case_expr(args, body.case, fn_name)
 
         while True:
             current_args = (n_value, xs_value)

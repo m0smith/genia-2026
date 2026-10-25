@@ -19,6 +19,7 @@ if __package__ in (None, ""):
         IrBlock,
         IrCall,
         IrCase,
+        IrListTraversalLoop,
         IrNode,
         IrVar,
     )
@@ -48,6 +49,7 @@ else:
         IrBlock,
         IrCall,
         IrCase,
+        IrListTraversalLoop,
         IrNode,
         IrVar,
     )
@@ -1306,6 +1308,8 @@ def _callable_case_explicitly_handles_none(body: IrNode) -> bool:
             _pattern_explicitly_handles_none(clause.pattern) or _pattern_explicitly_handles_some(clause.pattern)
             for clause in body.clauses
         )
+    if isinstance(body, IrListTraversalLoop) and body.case is not None:
+        return _callable_case_explicitly_handles_none(body.case)
     if isinstance(body, IrBlock) and body.exprs:
         return _callable_case_explicitly_handles_none(body.exprs[-1])
     return False
@@ -1318,6 +1322,8 @@ def _callable_case_explicitly_handles_some(body: IrNode) -> bool:
     """
     if isinstance(body, IrCase):
         return any(_pattern_explicitly_handles_some(clause.pattern) for clause in body.clauses)
+    if isinstance(body, IrListTraversalLoop) and body.case is not None:
+        return _callable_case_explicitly_handles_some(body.case)
     if isinstance(body, IrBlock) and body.exprs:
         return _callable_case_explicitly_handles_some(body.exprs[-1])
     return False

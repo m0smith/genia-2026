@@ -170,6 +170,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
             step_size=1,
             empty_clause=empty_clause,
             zero_clause=zero_clause,
+            case=case,
             span=fn.span,
         ),
         annotations=fn.annotations,
