@@ -1,4 +1,4 @@
-# R29 — Sheet Record Pipelines: pre-flight (revision 2)
+# R29 — Sheet Record Pipelines: pre-flight (revision 3)
 
 Status: **Pre-flight record (PROPOSED, NON-AUTHORITATIVE).** Documentation only. It defines no
 language behavior; every function name, shape, and decision below is a *candidate* for the contract
@@ -6,9 +6,11 @@ phase. `GENIA_STATE.md` remains final authority for implemented behavior. This r
 runtime, test, spec, manifest, or implemented-truth document (`GENIA_STATE.md`, `GENIA_RULES.md`,
 `GENIA_REPL_README.md`, `README.md` are untouched).
 
-Revision 2 resolves the independent review verdict **REVISE** on draft PR #1284. The revision is
-recorded in §0; the evidence behind each correction is in §4 and §9 and was produced by commands run
-against `main` at `79c073b` (commands and outputs in the appendix).
+Revisions 2 and 3 resolve the independent review verdict **REVISE** on draft PR #1284. Revision 3
+independently re-executed every probe and count behind revision 2 (nothing was carried over unrun) and
+tightened four statements that the re-execution showed to be imprecise or self-contradictory; see §0.
+The evidence behind each correction is in §4 and §9 and was produced by commands run against `main` at
+`79c073b` (scripts in Appendix B, commands and outputs in Appendix A).
 
 Process: `AGENTS.md` (R26+ Change Pre-Flight Gate), `docs/process/run-change.md`,
 `.github/ISSUE_TEMPLATE/genia-change-preflight.md`, `docs/process/extensions/portability-analysis.md`.
@@ -27,7 +29,7 @@ closed 2026-05 killer-workflow issues); see §15.
 
 ---
 
-## 0. Review resolution (revision 2)
+## 0. Review resolution (revisions 2 and 3)
 
 | # | Blocking finding | Resolution | Where |
 |---|---|---|---|
@@ -35,6 +37,25 @@ closed 2026-05 killer-workflow issues); see §15.
 | 2 | Round-trip claim overstated. | Universal claim removed. Replaced by conditional guarantees G1–G7, with measured results for zero-row, zero-column, name identity, ordering, and protected cells. Zero-row schema loss is accepted as a limitation of the record boundary; no schema wrapper is proposed. | §4.3 |
 | 3 | Capability/conformance accounting incomplete. | Reproduced the reviewer's counts (Python 20 pass, C++ 20 unsupported, all `requires` empty). Defined baseline-applicable vs capability-excluded vs adapter-reported unsupported, using the runner's actual code. Gave a concrete migration plan (which cases are retro-gated, which new cases are gated, claims, the issue-backed gap, and a decision for the mixed-family case). Manifest and specs are **not** changed here. | §9 |
 | 4 | Phase sequence deviates from `run-change.md`. | Decomposition rebuilt against the 20 numbered steps, including the Code Quality & Maintainability Review after implementation and before docs. Proving-case tests are specified in the TEST phase; new-failing and already-passing tests are separated. The #1251 exception is stated to gate implementation only. | §12 |
+
+**Revision 3 re-verification and corrections.** Every program in §4 and Appendix B was re-run with the
+current interpreter, and the 20 Sheet cases were re-run on a freshly built `genia-cpp@44456ba` and on the
+Python protocol adapter (results unchanged: Python 20 pass, C++ 20 unsupported; no other shared case uses a
+Sheet helper). The re-execution changed the document in these places only:
+
+1. **Self-contradiction removed (T2, §10.1).** Revision 2 said the Sheet-is-not-a-Seq guards "must already
+   pass" while §2 correctly says no dedicated test exists today. They are *new tests written in the TEST
+   phase that pass against current code*; only tests that need `records/1` are expected to fail first.
+2. **Protected-value result completed (§4.5).** The invalid-field branch (the branch that actually copies the
+   raw `actual`) was probed; `print` of the result is *rejected* (`protected-value: print`), `display` and
+   `debug_repr` render `<protected>`, `json_encode` is rejected, and the sentinel occurred 0 times.
+3. **Phase wording (§12)** now carries run-change step 13's "fresh verdict, do not proceed on FAIL" and step
+   14's handoff commit verbatim in intent.
+4. **D9** gains the observation that `records` is also used as a *parameter* name in three shipped examples
+   (harmless, shown for completeness) and that rebinding `rows` with `=` works while `rows =: 5` is rejected.
+
+The scripts are now reproduced in full in Appendix B so a reviewer can run them without reconstructing them
+from prose.
 
 ---
 
@@ -204,12 +225,25 @@ a Sheet→record function today.
 
 ### 4.5 Protected-value diagnostics [V]
 
-For a record containing a protected leaf, `validate_field` and `validate_record` failures copy the raw
-`actual` into their context (STATE 2387), but `display` renders `<protected>`, `json_encode` of the
-`err`/`collect_validated` result is `err("protected-value", …)`, and a captured stdout/stderr search for the
-sentinel found **0** occurrences. No leakage was found in these paths. This is not a test; the TEST phase
-must commit it (§10). If a leak is found in an R29-supported path it must be **fixed before that path is
-accepted**; recording an issue is insufficient.
+The probe (Appendix B, `protected.genia`) puts a protected leaf (built with `config_provider` →
+`secret_get`; sentinel `SENTINEL_R29_XYZ`) in a record and runs the **invalid-field** branch of
+`validate_field` inside `validate_each`, because that branch copies the raw `actual` into the diagnostic
+context (STATE 2387, 2395). It then pushes the result through `collect_validated`:
+
+| Surface | Result [V] | Sentinel occurrences |
+|---|---|---|
+| `display(result)` / `display(collect_validated(result))` | renders `actual: <protected>` | 0 |
+| `debug_repr(result)` | renders `actual: <protected>` | 0 |
+| `json_encode(result)` / `json_encode(collect_validated(result))` | `err("protected-value", {operation: "json-encode"})` | 0 |
+| `print(result)` / `print(collect_validated(result))` / `print(token)` | `Error: protected-value: print` (rejected, nothing written) | 0 |
+| `render_csv(sheet_with_protected_cell)` | `Error: protected-value: render-csv cell at row 0, column 1` | 0 |
+| `rows(collect_sheet(records)) == rows(s)` for the protected-cell Sheet | `true` (exact transport) | n/a |
+
+No leakage was found in these paths. This is not a committed test; the TEST phase must commit it (§10). A
+`validate_each` run whose records hold protected values is therefore *not* printable with `print`; the
+proving case must render diagnostics through `display`/`debug_repr` or avoid printing the raw result.
+If a leak is found in an R29-supported path it must be **fixed before that path is accepted**; recording an
+issue is insufficient.
 
 ---
 
@@ -254,7 +288,7 @@ None is approved.
 | D6 | Duplicate/illegal names | Contract states the invariant (G7); no new error path. |
 | D7 | Sheet capability accounting | Introduce a Sheet capability with an issue-backed C++ gap, via the migration in §9. Needs maintainer approval. |
 | D8 | When the #1251 exception is requested | At the implementation gate, with contract and RED SHA; scope in §13. |
-| D9 | Name of the boundary function | **Not decided.** `records` is the working placeholder. Evidence against a bare generic name: two repository programs bind `records` (`examples/mcp/validated_records.genia:28`, `examples/mcp/validated_records_broken.genia:23`); today rebinding a builtin name with `=` works, but `rows =: 5` is already rejected (`Cannot declare immutable binding rows: name is reserved by the runtime`, **[V]**), so a builtin named `records` would make `records =: …` an error in Model B code. A namespaced name consistent with `collect_sheet`/`render_csv` (e.g. `sheet_records`) avoids this; the contract must weigh it. |
+| D9 | Name of the boundary function | **Not decided.** `records` is the working placeholder. Evidence against a bare generic name: two repository programs bind `records` (`examples/mcp/validated_records.genia:28`, `examples/mcp/validated_records_broken.genia:23`); today rebinding a builtin name with `=` works, but `rows =: 5` is already rejected (`Cannot declare immutable binding rows: name is reserved by the runtime`, **[V]**), so a builtin named `records` would make `records =: …` an error in Model B code. A namespaced name consistent with `collect_sheet`/`render_csv` (e.g. `sheet_records`) avoids this; the contract must weigh it. Verified [V]: `rows = 5` works (plain rebinding of a builtin name), `f(rows) = rows` works (parameter shadowing), `rows =: 5` is rejected; `records` is additionally a parameter name in `examples/r10_*`, `r12_*`, `r13_*` (harmless: parameters shadow). |
 | D10 | Mixed-family conformance case | See §9.5. |
 | D11 | MCP worker allowlist classification of the new name | See §10 (needed so the default-deny profile does not silently remove it). |
 
@@ -426,7 +460,7 @@ protected values, so no shared case may require them.
 |---|---|---|
 | **T0 conformance accounting** | n/a (infrastructure) | M3–M5, M7; counts unchanged for Python |
 | **T1 new boundary tests** | **Yes** | Shared eval: row order, column order, immutability, empty Sheet, zero-row and zero-column behavior (G2/G3), round trip G1/G4/G6, protected-cell passthrough; shared error: non-Sheet input; shared flow: bounded/no-over-pull consumption of a Flow built by `to_flow` from `records`; Python: protected sinks/diagnostics after the boundary, `records` callable via alias/higher-order/pipeline/module visibility, metadata/`help`, runtime-reserved-name behavior; MCP allowlist classification; **end-to-end proving-case spec** (CLI/native) written in this phase |
-| **T2 existing composition regression** | **No — must already pass; recorded as passing at commit** | Sheet rejected by `map`/`each`/`scan`/`reduce`/`lifecycle_repeat` (closes discrepancy F); `to_flow` empty/nonempty/bounded/single-use; lifecycle envelope extraction; hand-conversion round trips; protected diagnostics/sink behavior via hand conversion |
+| **T2 existing composition regression** | **No — written in the TEST phase but expected to pass against the current tree (they need no `records/1`); the TEST commit records them passing. A T2 test that fails at that commit is a defect in the test or a finding about current behavior, never an "expected failure".** | Sheet rejected by `map`/`each`/`scan`/`reduce`/`lifecycle_repeat` (no dedicated test exists today; this closes discrepancy F); `to_flow` empty/nonempty/bounded/single-use; lifecycle envelope extraction including a raising callback; hand-conversion round trips (G1–G6); protected diagnostics/sink behavior via hand conversion |
 | **T3 post-#1251 interaction** | Runs after the Model B gate closes | Re-run T1+T2 plus a Model B/R29 regression: name resolution of `records/1` when entry code defines or aliases it, `=:` collision behavior, module visibility, and open-by-default effects |
 
 ### 10.2 Items the future work must verify (each maps to a test or audit step)
@@ -486,7 +520,9 @@ Each `run-change.md` step is its own stopping point; phases are never combined.
 | 6–7 Design, commit | **R29-G** | Map clauses to files; registration; capability accounting plan (M1–M9); MCP classification plan |
 | 8–9 Failing tests, commit | **R29-T0** then **R29-T1** (+ **T2** recorded passing) | T0: manifest, retro-gating, gap entry (needs approved tracking issue). T1: new failing boundary tests **and the proving-case end-to-end spec**, SHA recorded. T2: existing-composition guards, recorded as already passing |
 | 10–11 Implementation, commit | **R29-I** | **Gate: §13 condition 1.** Only `records/1` + registration/doc/metadata/allowlist; references the failing-test SHA |
-| 12–14 **Code Quality & Maintainability Review**, resolve, commit handoff | **R29-M** | Required, after implementation and before docs; reviewer other than the implementer preferred; FAIL blocks docs |
+| 12 **Code Quality & Maintainability Review** (`code-maintainability-review.md`; inspects the implementation diff and affected call sites, records reviewer, evidence, findings, verdict, follow-ups) | **R29-M** | Required, after implementation (step 11) and before docs (step 15); reviewer other than the implementer preferred |
+| 13 Resolve blocking findings, fresh verdict | **R29-M** | Focused fix commits only; **a FAIL verdict blocks docs** |
+| 14 Commit review handoff/evidence | **R29-M** | Per existing handoff conventions |
 | 15–16 Docs prompt, commit | **R29-X** | Per-surface PRs (STATE; cheatsheets; semantic facts + MCP registry; generated reference) may run in parallel once R29-M passes |
 | 17–18 Audit, commit | **R29-A** | Independent truth audit; records #1192 slice evidence, next owned slice |
 | 19–20 Distillation, commit | **R29-Z** | |
@@ -530,17 +566,18 @@ semantics; R30/R31 operations; a C++ Sheet implementation; and any new List→Fl
 
 ## 14. Verification performed for this revision
 
-Run from `/home/user/genia-2026` on the revision-2 tree (documentation-only change).
+Run from `/home/user/genia-2026` on the revision-3 tree (documentation-only change; `origin/main` is
+still `79c073b`, so the source tree is byte-identical to the one revision 2 tested).
 
-| Command | Result |
+| Command | Result (re-executed for revision 3) |
 |---|---|
-| Composition probes (appendix A) via `uv run genia <file>` | Outputs as recorded in §4 |
-| Sheet-case protocol runs, Python and C++ (appendix A6) | Python 20 pass; C++ 20 unsupported |
-| `uv run pytest tests/doc -q -n auto` | 397 passed, 35 skipped |
+| Appendix B scripts B1–B5, extracted from this file and run with `uv run genia` | Outputs as recorded in §4 |
+| Sheet-case protocol runs, Python adapter and a freshly built `genia-cpp@44456ba` adapter (Appendix B6) | Python 20 pass; C++ 20 unsupported; all 20 `requires` empty; no other shared case uses a Sheet helper |
+| `uv run pytest tests/doc -q -n 4` | 397 passed, 35 skipped |
 | Sheet suite (§2, first command) | 65 passed |
 | Lifecycle/Flow/validation/protected-sinks suite (§2, second command) | 165 passed |
 | `uv run pytest -q tests/unit/test_host_parity_gate.py tests/spec/test_r18_conformance_protocol_evidence_795.py` | 31 passed |
-| `uv run pytest -n auto -q -m "not loopback"` | 7104 passed, 60 skipped (11 min 29 s) |
+| `uv run pytest -n auto -q -m "not loopback"` | 7104 passed, 60 skipped (9 min 9 s) |
 | `uv run pytest -n auto -q -m loopback` | 31 passed |
 | `git diff --stat origin/main` | Only `docs/analysis/r29-sheet-record-pipelines-preflight.md` |
 
@@ -597,3 +634,127 @@ Other evidence: PR [#1254](https://github.com/m0smith/genia-2026/pull/1254),
 `src/genia/host_builtin_docs.py`, `hosts/python/mcp_worker_profile.py`,
 `hosts/python/protocol_adapter.py`, `tools/spec_runner/{capabilities,runner,host_parity_gate}.py`;
 specs `spec/manifest.json`, `spec/known_host_gaps.json`.
+
+---
+
+## Appendix B — Scripts re-executed for revision 3 (scratch; not committed)
+
+Run each with `uv run genia <file>` from the repository root on `main@79c073b`. Outputs are in the
+sections cited. In file mode the CLI echoes the program's final value, so when the last statement is a
+`print(...)` its output appears once as display text and once as the echoed value (for example the final
+`[[error, none("lifecycle-no-result")]]` line of B3 prints twice). `as_records` is a stand-in for the candidate `records/1` (hand conversion), so these programs
+prove only the composition around it.
+
+**B1 — List of records to Flow (§4.1), including empty, single-use, bounded demand** (expected output:
+`[{n: 1}, {n: 2}, {n: 3}]`, `[]`, the same two again, then `Error: Flow has already been consumed`):
+
+```genia
+to_flow(xs) = evolve(0, inc) |> take(length(xs)) |> map((i) -> unwrap_or(nil, nth(i, xs)))
+rev(xs) = collect(map((i) -> unwrap_or(nil, nth(i, xs)), take(length(xs), evolve(0, inc))))
+three = [{n: 1}, {n: 2}, {n: 3}]
+print(collect(to_flow(three)))
+print(collect(to_flow([])))
+print(rev(three))
+print(rev([]))
+f = to_flow(three)
+print(collect(f))
+print(collect(f))
+```
+
+**B2 — Bounded demand and the invalid bridge (§4.1)** (expected: `[{id: 1}, {id: 2}]`, `2`, then
+`Error: lines expected a list of strings`):
+
+```genia
+to_flow(xs) = evolve(0, inc) |> take(length(xs)) |> map((i) -> unwrap_or(nil, nth(i, xs)))
+recs = [{id: 1}, {id: 2}, {id: 3}, {id: 4}]
+c = ref(0)
+tick(r) = { ref_update(c, inc); r }
+print(to_flow(recs) |> map(tick) |> take(2) |> collect)
+print(ref_get(c))
+print(collect(lines([{n: 1}])))
+```
+
+**B3 — Lifecycle envelope versus callback value (§4.3)** (expected: `[ok, ok]`, `[{id: 1}, {id: 2}]`, an
+envelope `some({status: ok, state: completed, scope: element, phase: exit, peer: none("lifecycle-no-peer"),
+result: some({id: 1}), primary_failure: none("lifecycle-no-failure"), cleanup_failures: []})`, log
+`[[enter, 1], [exit, 1], [enter, 2], [exit, 2]]`, and `[[error, none("lifecycle-no-result")]]` for the raising
+callback):
+
+```genia
+to_flow(xs) = evolve(0, inc) |> take(length(xs)) |> map((i) -> unwrap_or(nil, nth(i, xs)))
+recs = [{id: 1}, {id: 2}, {id: 3}, {id: 4}]
+log = ref([])
+add(e) = ref_update(log, (l) -> [..l, e])
+peer = {
+  name: quote(audit),
+  enter: (scope) -> { add(["enter", lifecycle_context(scope, quote(index)) |> unwrap_or(none)]); some(nil) },
+  exit: (scope, summary) -> { add(["exit", lifecycle_context(scope, quote(index)) |> unwrap_or(none)]); some(nil) }
+}
+work(scope) = lifecycle_context(scope, quote(element)) |> unwrap_or(none)
+out = lifecycle_repeat([peer], to_flow(recs), work) |> take(2) |> collect
+print(map((r) -> r.status, out))
+print(map((r) -> unwrap_or(nil, r.result), out))
+print(out |> first)
+print(ref_get(log))
+bad(scope) = 1 / 0
+out2 = lifecycle_repeat([peer], to_flow(recs), bad) |> take(1) |> collect
+print(map((r) -> [r.status, r.result], out2))
+```
+
+**B4 — Round-trip cases G1–G6 (§4.4)** (expected: `[true, true, [[rows, 2], [columns, 2]]]`; zero-row
+`[[[rows, 0], [columns, 2]], [], [[rows, 0], [columns, 0]], false]`; zero-column
+`[[[rows, 2], [columns, 0]], [{}, {}], [[rows, 2], [columns, 0]], true]`; mixed key kinds
+`[true, true, ...]`; string-versus-symbol `false`, `["name"]`):
+
+```genia
+pairs_to_map(row) = reduce((m, kv) -> map_put(m, unwrap_or(nil, nth(0, kv)), unwrap_or(nil, nth(1, kv))), map_new(), row)
+as_records(s) = rows(s) |> map(pairs_to_map)
+s1 = sheet([[quote(name), ["Ann", "Bo"]], [quote(age), [3, 4]]])
+r1 = as_records(s1)
+print(r1)
+b1 = collect_sheet(r1)
+print([b1 == s1, columns(b1) == columns(s1), shape(b1)])
+z = sheet([[quote(a), []], [quote(b), []]])
+print([shape(z), as_records(z), shape(collect_sheet(as_records(z))), collect_sheet(as_records(z)) == z])
+zc = select([], s1)
+print([shape(zc), as_records(zc), shape(collect_sheet(as_records(zc))), collect_sheet(as_records(zc)) == zc])
+k = sheet([[1, ["a"]], [true, ["b"]], ["1", ["c"]], [[1, 2], ["d"]], [quote(sym), ["e"]], [1.5, ["f"]]])
+kb = collect_sheet(as_records(k))
+print([kb == k, columns(kb) == columns(k), columns(k)])
+print(collect_sheet([{name: "Ann"}]) == sheet([[quote(name), ["Ann"]]]))
+print(columns(collect_sheet([{name: "Ann"}])))
+```
+
+**B5 — Protected values (§4.4 G5, §4.5)** — `protected.genia` (the last line is replaced in turn by each
+surface listed in the §4.5 table; the sentinel count in the combined output was 0 every time):
+
+```genia
+provider = config_provider([{kind: quote(values), values: {K: "SENTINEL_R29_XYZ"}}]) |> unwrap_or(none)
+tok = secret_get(provider, "K", quote(demo)) |> unwrap_or(none)
+r = validate_each([{n: tok}], (rec) -> validate_field("n", (v) -> false, "number", rec))
+cv = collect_validated(r)
+display(r)
+```
+
+Cell-level transport and `render_csv`:
+
+```genia
+pairs_to_map(row) = reduce((m, kv) -> map_put(m, unwrap_or(nil, nth(0, kv)), unwrap_or(nil, nth(1, kv))), map_new(), row)
+as_records(s) = rows(s) |> map(pairs_to_map)
+provider = config_provider([{kind: quote(values), values: {K: "SENTINEL_R29_XYZ"}}]) |> unwrap_or(none)
+tok = secret_get(provider, "K", quote(demo)) |> unwrap_or(none)
+s = sheet([[quote(who), ["a"]], [quote(secret), [tok]]])
+b = collect_sheet(as_records(s))
+print([rows(b) == rows(s), b == s])
+print(display(tok))
+print(json_encode(rows(b)))
+print(render_csv(b))
+```
+
+**B6 — Conformance runner** — scratch script `cases.py`: loads the 20 specs named in §9.1 with
+`tools.spec_runner.loader.discover_specs`, scans all other specs for `sheet(`, `collect_sheet`, `render_csv`
+and `row_get` (none found), and runs each through `tools.spec_runner.host_executor.execute_spec_via_host`
+with either `python -m hosts.python.protocol_adapter` (claims from `_python_claimed_capabilities()`) or the
+`genia-adapter` binary built by `cmake -S . -B <scratch>/cppbuild -DCMAKE_BUILD_TYPE=Release` at
+`genia-cpp@44456baea06b4bb7bdf727e39939dd7150261ee6`. Result: Python `Counter({'pass': 20})`, C++
+`Counter({'unsupported': 20})`, every `requires` empty.
