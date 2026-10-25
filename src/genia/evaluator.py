@@ -1362,6 +1362,8 @@ class Evaluator:
         if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
             from .ir import assert_portable_core_ir
             assert_portable_core_ir([node])
+            if isinstance(node, IrPatternFuncDef):
+                return self._eval_function_declaration(node)
             if not isinstance(node, IrImmutableBind):
                 raise RuntimeError("model-b-not-implemented: declaration evaluation is not available")
             return self._eval_immutable_bind(node)
@@ -1484,33 +1486,7 @@ class Evaluator:
             return value
 
         if isinstance(node, IrFuncDef):
-            self._reject_route_metadata_rebinding(node.name, node.annotations)
-            self._reject_http_annotation_metadata_rebinding(node.name, node.annotations)
-            if sum(annotation.name == "route" for annotation in node.annotations) > 1:
-                raise TypeError(f"duplicate @route annotation on {node.name}")
-            fn = GeniaFunction(
-                node.name,
-                node.params,
-                node.rest_param,
-                node.docstring,
-                node.body,
-                self.env,
-                span=node.span,
-                debug_hooks=self.debug_hooks,
-                debug_mode=self.debug_mode,
-                internal_access=self.env.internal_access,
-            )
-            self.env.define_function(fn)
-            if node.annotations:
-                metadata = self.eval_annotations(
-                    node.annotations,
-                    target_name=node.name,
-                    target_kind="function",
-                )
-                self._reject_route_metadata_replacement(node.name, metadata)
-                self._reject_http_annotation_metadata_replacement(node.name, metadata)
-                self.env.merge_binding_metadata(node.name, metadata)
-            return fn
+            return self._eval_function_declaration(node)
         if isinstance(node, IrNamedPatternDef):
             matcher = GeniaFunction(
                 node.name,
@@ -1621,6 +1597,61 @@ class Evaluator:
         if isinstance(node, IrListTraversalLoop):
             raise RuntimeError("Optimized list traversal nodes are only valid as function bodies")
         raise RuntimeError(f"Unknown node: {node!r}")
+
+    def _eval_function_declaration(self, node: "IrFuncDef | IrPatternFuncDef") -> GeniaFunction:
+        """Declare one ordinary function clause (identifier or pattern/guard header) in this scope.
+
+        The clause is installed through `Env.define_function` (ordered record in the
+        shared group, ownership and duplicate checks included) before its annotations
+        run; annotation failures leave the installed clause and the prior metadata.
+        """
+        self._reject_route_metadata_rebinding(node.name, node.annotations)
+        self._reject_http_annotation_metadata_rebinding(node.name, node.annotations)
+        if sum(annotation.name == "route" for annotation in node.annotations) > 1:
+            raise TypeError(f"duplicate @route annotation on {node.name}")
+        if isinstance(node, IrPatternFuncDef):
+            items = node.pattern.items
+            rest = None
+            if items and isinstance(items[-1], IrPatRest):
+                rest = items[-1].name or ""
+            fn = GeniaFunction(
+                node.name,
+                [],
+                rest,
+                None,
+                node.body,
+                self.env,
+                span=node.span,
+                debug_hooks=self.debug_hooks,
+                debug_mode=self.debug_mode,
+                internal_access=self.env.internal_access,
+                pattern=node.pattern,
+                guard=node.guard,
+            )
+        else:
+            fn = GeniaFunction(
+                node.name,
+                node.params,
+                node.rest_param,
+                node.docstring,
+                node.body,
+                self.env,
+                span=node.span,
+                debug_hooks=self.debug_hooks,
+                debug_mode=self.debug_mode,
+                internal_access=self.env.internal_access,
+            )
+        self.env.define_function(fn)
+        if node.annotations:
+            metadata = self.eval_annotations(
+                node.annotations,
+                target_name=node.name,
+                target_kind="function",
+            )
+            self._reject_route_metadata_replacement(node.name, metadata)
+            self._reject_http_annotation_metadata_replacement(node.name, metadata)
+            self.env.merge_binding_metadata(node.name, metadata)
+        return fn
 
     def _eval_immutable_bind(self, node: IrImmutableBind) -> Any:
         """Declare a fresh immutable binding in the current lexical scope (Model B Slice B).

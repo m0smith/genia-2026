@@ -150,9 +150,10 @@ IMPORTED_LIB = "g(x) = x\n"
 IMPORTED_MAIN = "import lib\nh = lib.g\nh(x, y) = x + y\nh(1, 2)\n"
 
 
-def test_p5_varargs_minima_legacy_outcome_today():
-    """Before: the highest-minimum clause is silently chosen. GREEN inverts this companion."""
-    assert outcome('f(a, ..r) = "min1"\nf(a, b, ..s) = "min2"\nf(1, 2)').value == "min2"
+def test_p5_varargs_minima_legacy_outcome_is_gone():
+    """Before: the highest-minimum clause was silently chosen. GREEN inverted this companion (B3)."""
+    result = outcome('f(a, ..r) = "min1"\nf(a, b, ..s) = "min2"\nf(1, 2)')
+    assert result.value != "min2" and result.error is not None
 
 
 def test_p5_varargs_minima_new_outcome():
@@ -161,9 +162,10 @@ def test_p5_varargs_minima_new_outcome():
     assert result.message == "Ambiguous function resolution: f/2. Matching varargs: f/1+, f/2+"
 
 
-def test_alias_declaration_legacy_outcome_today():
-    """Before: declaring through a local alias appends to the aliased group."""
-    assert outcome("f(x) = x\na = f\na(x, y) = x + y\na(1, 2)").value == 3
+def test_alias_declaration_legacy_outcome_is_gone():
+    """Before: declaring through a local alias appended to the aliased group. GREEN inverted this (B4)."""
+    result = outcome("f(x) = x\na = f\na(x, y) = x + y\na(1, 2)")
+    assert result.value != 3 and result.error is not None
 
 
 def test_alias_declaration_new_outcome():
@@ -171,8 +173,9 @@ def test_alias_declaration_new_outcome():
     assert result.message == OWNERSHIP_LOCAL
 
 
-def test_annotated_alias_declaration_legacy_outcome_today():
-    assert outcome('f(x) = x\na = f\n@doc "d"\na(x, y) = x + y\na(1, 2)').value == 3
+def test_annotated_alias_declaration_legacy_outcome_is_gone():
+    result = outcome('f(x) = x\na = f\n@doc "d"\na(x, y) = x + y\na(1, 2)')
+    assert result.value != 3 and result.error is not None
 
 
 def test_annotated_alias_declaration_new_outcome():
@@ -180,10 +183,10 @@ def test_annotated_alias_declaration_new_outcome():
     assert result.message == OWNERSHIP_LOCAL
 
 
-def test_alias_varargs_declaration_legacy_outcome_today():
-    """Before: the alias declaration collides with the fixed clause at the same required arity."""
+def test_alias_varargs_declaration_legacy_outcome_is_gone():
+    """Before: the alias declaration collided with the fixed clause at the same required arity."""
     result = outcome("f(x) = x\na = f\na(x, ..r) = x\na(1, 2)")
-    assert result.message == "Duplicate function definition: a/1"
+    assert result.message != "Duplicate function definition: a/1"
 
 
 def test_alias_varargs_declaration_new_outcome():
@@ -194,11 +197,11 @@ def test_alias_varargs_declaration_new_outcome():
     )
 
 
-def test_imported_alias_declaration_legacy_outcome_today(tmp_path):
+def test_imported_alias_declaration_legacy_outcome_is_gone(tmp_path):
     (tmp_path / "lib.genia").write_text(IMPORTED_LIB, encoding="utf-8")
     (tmp_path / "main.genia").write_text(IMPORTED_MAIN, encoding="utf-8")
     completed = cli("main.genia", cwd=tmp_path)
-    assert (completed.returncode, completed.stdout, completed.stderr) == (0, "3\n", "")
+    assert (completed.returncode, completed.stdout, completed.stderr) != (0, "3\n", "")
 
 
 def test_imported_alias_declaration_new_outcome(tmp_path):

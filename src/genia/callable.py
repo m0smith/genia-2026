@@ -23,6 +23,9 @@ if __package__ in (None, ""):
         IrVar,
     )
     from genia.pattern_match import (
+        IrPatBind,
+        IrPatRest,
+        IrPatTuple,
         IrPattern,
         PatternOutcomeError,
         pattern_explicitly_handles_none,
@@ -49,6 +52,9 @@ else:
         IrVar,
     )
     from .pattern_match import (
+        IrPatBind,
+        IrPatRest,
+        IrPatTuple,
         IrPattern,
         PatternOutcomeError,
         pattern_explicitly_handles_none,
@@ -235,29 +241,122 @@ def _append_fused_stage(source: GeniaFlow, stage: _FusedStage) -> _FusedFlow:
 # Callable value types
 # ---------------------------------------------------------------------------
 
+def _record_shape(fn: Any) -> tuple[str, int]:
+    """Shape of one group record: ``("fixed", n)`` or ``("varargs", minimum)``.
+
+    Works for `GeniaFunction` records (identifier or pattern headers) and for
+    host function records, which expose only `arity` and `rest_param`.
+    """
+    shape = getattr(fn, "shape", None)
+    if shape is not None:
+        return shape
+    return ("varargs" if getattr(fn, "rest_param", None) is not None else "fixed", fn.arity)
+
+
+def _is_pattern_record(fn: Any) -> bool:
+    """True when `fn` is a pattern/guard-headed record that must be matched, not just bound."""
+    return isinstance(fn, GeniaFunction) and (fn.pattern is not None or fn.guard is not None)
+
+
+_CLAUSE_MISS = object()
+
+
+def _run_pattern_record(
+    record: "GeniaFunction",
+    args: tuple[Any, ...],
+    debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS,
+    debug_mode: bool = False,
+) -> Any:
+    """Match one pattern-headed record against `args` and run its body on a hit.
+
+    The tuple pattern is matched once in the record's closure, the guard is evaluated
+    once in a child frame holding the bindings, and the selected body runs in tail
+    position (value or TailCall). A miss (pattern or false guard) returns `_CLAUSE_MISS`
+    without running the body; a matcher Outcome is returned as the value. Matcher,
+    guard and body failures propagate. Reuses the R20 unit matcher and clause invoker.
+    """
+    try:
+        match = _first_unit_match([record], args, debug_hooks, debug_mode)
+    except PatternOutcomeError as exc:
+        return exc.outcome
+    if match is None:
+        return _CLAUSE_MISS
+    return _invoke_open_clause(record, match[1], debug_hooks, debug_mode, args)
+
+
 @dataclass
 class GeniaFunctionGroup:
-    """Mutable ordinary function container keyed by required arity.
+    """Mutable ordinary function container: ordered declaration records plus an arity index.
 
-    Adding rejects duplicate arities/conflicting docs; metadata merges separately.
-    Direct calls resolve entries without dispatcher absence guards or autoloads.
+    `records` is the semantic store in declaration order (first match wins within a shape
+    stratum). `functions` is a derived index keyed by required arity that holds the first
+    record at that arity; it exists for legacy consumers and is never the record store.
+    `owner` is the ``(module identity, defining name)`` provenance of the declaring
+    binding, or None for host-created groups. Adding rejects duplicate clause keys and
+    conflicting docs; metadata merges separately.
     """
     name: str
     functions: dict[int, "GeniaFunction"] = field(default_factory=dict)
     docstring: str | None = None
     metadata: GeniaMap = field(default_factory=lambda: GeniaMap())
+    records: list["GeniaFunction"] = field(default_factory=list, repr=False)
+    owner: tuple[str, str] | None = field(default=None, repr=False)
+    _complex: bool = field(default=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        """Derive the record list from a supplied arity index when no records were given."""
+        if self.functions and not self.records:
+            self.records = list(self.functions.values())
+        self._complex = any(_is_pattern_record(r) for r in self.records)
 
     def add_clause(self, fn: "GeniaFunction") -> None:
-        """Reject duplicate arity, merge compatible documentation, then store the function.
+        """Reject a duplicate clause key, merge compatible documentation, then store the record.
 
-        TypeError on duplicate/conflicting docs leaves the new entry unstored.
-        Metadata is not merged here.
+        Two identifier-header clauses with the same key keep the legacy
+        `Duplicate function definition` TypeError; a duplicate involving a pattern or
+        guard header raises the R20 duplicate-clause diagnostic with both provenances.
+        TypeError on conflicting docs leaves the new record unstored. Metadata is not
+        merged here.
         """
-        existing = self.functions.get(fn.arity)
-        if existing is not None:
+        shape = _record_shape(fn)
+        for existing in self.records:
+            if _record_shape(existing) != shape:
+                continue
+            if _clause_key(existing) != _clause_key(fn):
+                continue
+            if _is_pattern_record(existing) or _is_pattern_record(fn):
+                module_of = lambda record: record.closure.module_identity() if isinstance(record, GeniaFunction) else "<entry>"  # noqa: E731
+                raise OpenFunctionDuplicateClauseError(
+                    (module_of(fn), fn.name), "base", shape, getattr(existing, "span", None),
+                    getattr(fn, "span", None), module_of(existing), module_of(fn),
+                )
             raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
         self._merge_docstring(fn.docstring)
-        self.functions[fn.arity] = fn
+        self.records.append(fn)
+        if fn.arity in self.functions:
+            self._complex = True
+        else:
+            self.functions[fn.arity] = fn
+        if _is_pattern_record(fn):
+            self._complex = True
+
+    @property
+    def is_simple(self) -> bool:
+        """True while every record is an identifier header with a distinct required arity.
+
+        Simple groups keep the exact legacy arity-table resolution and diagnostics.
+        """
+        return not self._complex
+
+    def single_plain_record(self) -> "GeniaFunction | None":
+        """The only record when the group is one identifier-header clause, else None.
+
+        Consumers that need one exact signature (route, outbound HTTP, `@test`) use
+        this instead of picking a representative from the arity index.
+        """
+        if len(self.records) == 1 and not _is_pattern_record(self.records[0]):
+            return self.records[0]
+        return None
 
     def _merge_docstring(self, candidate: str | None) -> None:
         """Ignore None, adopt first text, or require exact equality with existing text.
@@ -279,34 +378,110 @@ class GeniaFunctionGroup:
         self.metadata = _merge_metadata_maps(self.metadata, metadata)
 
     def __iter__(self):
-        """Iterate stored arities in dictionary insertion order, not sorted order."""
+        """Iterate indexed arities in insertion order, not sorted order."""
         return iter(self.functions)
 
     def __getitem__(self, key: int) -> "GeniaFunction":
-        """Return an arity entry or raise KeyError when absent."""
+        """Return an arity-index entry or raise KeyError when absent."""
         return self.functions[key]
 
     def get(self, key: int) -> "GeniaFunction | None":
-        """Return an arity entry or Python None when absent."""
+        """Return an arity-index entry or Python None when absent."""
         return self.functions.get(key)
 
     def values(self):
-        """Return the live dictionary view of stored function entries."""
+        """Return the live dictionary view of indexed function entries."""
         return self.functions.values()
 
     def sorted_arities(self) -> list[int]:
-        """Return a fresh ascending list of stored arities."""
+        """Return a fresh ascending list of indexed required arities."""
         return sorted(self.functions)
 
-    def __call__(self, *args: Any) -> Any:
-        """Invoke exact arity first, otherwise the sole eligible ordinary varargs entry.
+    def shapes(self) -> list[tuple[str, int]]:
+        """Distinct clause shapes, fixed shapes first then varargs, each by ascending arity."""
+        return sorted({_record_shape(r) for r in self.records})
 
-        Multiple varargs or no entry raise TypeError. This direct host path does not
-        apply invoke_callable None guards, autoloading or result normalization.
+    def stratum(self, arity: int, label: str | None = None, *, raise_missing: bool = True) -> list["GeniaFunction"] | None:
+        """Records in the shape stratum selected by a call with `arity` arguments.
+
+        Fixed `arity` records win outright (varargs never back them up); otherwise the
+        varargs records whose minimum is at most `arity`, which must share one minimum.
+        More than one eligible minimum raises the ordinary ambiguity TypeError; no
+        eligible shape raises `No matching function` (or returns None when
+        `raise_missing` is false). `label` names the callee in diagnostics.
+        """
+        fixed = [r for r in self.records if _record_shape(r) == ("fixed", arity)]
+        if fixed:
+            return fixed
+        eligible = [
+            r for r in self.records
+            if _record_shape(r)[0] == "varargs" and _record_shape(r)[1] <= arity
+        ]
+        name = label if label is not None else self.name
+        minima = sorted({_record_shape(r)[1] for r in eligible})
+        if len(minima) > 1:
+            candidates = ", ".join(f"{name}/{m}+" for m in minima)
+            raise TypeError(f"Ambiguous function resolution: {name}/{arity}. Matching varargs: {candidates}")
+        if eligible:
+            return eligible
+        if not raise_missing:
+            return None
+        raise TypeError(f"No matching function: {name}/{arity}. Available: {self._available_text(name)}")
+
+    def _available_text(self, name: str) -> str:
+        """The `Available:` list: arity-sorted for legacy-shaped groups, shape-sorted otherwise."""
+        if self.is_simple:
+            return ", ".join(f"{name}/{n}" for n in self.sorted_arities())
+        return ", ".join(f"{name}/{n}{'+' if kind == 'varargs' else ''}" for kind, n in self.shapes())
+
+    def _dispatch_once(
+        self,
+        args: tuple[Any, ...],
+        debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS,
+        debug_mode: bool = False,
+        label: str | None = None,
+    ) -> Any:
+        """Select one record for `args` and run it to a value or a deferred TailCall.
+
+        Identifier-header records always match and are returned as a TailCall so the
+        trampoline binds their header frame. Pattern records are matched (and guarded)
+        once, in declaration order, within the shape stratum; a matcher Outcome is
+        returned as the call's value, and exhausting the stratum is the terminal
+        `No matching case` error. Header bodies are never run twice.
         """
         arity = len(args)
+        stratum = self.stratum(arity, label)
+        if __package__ in (None, ""):
+            from genia.evaluator import _format_args_for_diagnostic
+        else:
+            from .evaluator import _format_args_for_diagnostic
+        for record in stratum:
+            if not _is_pattern_record(record):
+                return TailCall(record, args)
+            result = _run_pattern_record(record, args, debug_hooks, debug_mode)
+            if result is not _CLAUSE_MISS:
+                return result
+        name = label if label is not None else self.name
+        raise RuntimeError(
+            f"No matching case for function {name}/{arity} with arguments {_format_args_for_diagnostic(args)}"
+        )
+
+    def __call__(self, *args: Any) -> Any:
+        """Resolve and run the record for `args`.
+
+        Simple groups invoke the exact-arity entry, else the sole eligible varargs entry;
+        other groups dispatch through the shape stratum and first-match record selection.
+        This direct host path does not apply invoke_callable None guards, autoloading
+        or result normalization.
+        """
+        arity = len(args)
+        if not self.is_simple:
+            first = self.records[0]
+            return eval_with_tco(
+                self, args, getattr(first, "debug_hooks", NOOP_DEBUG_HOOKS), getattr(first, "debug_mode", False)
+            )
         exact = self.get(arity)
-        if exact is not None:
+        if exact is not None and exact.rest_param is None:
             return exact(*args)
         vararg_matches = [
             candidate
@@ -327,13 +502,24 @@ class GeniaFunctionGroup:
         raise TypeError(f"No matching function: {self.name}/{arity}. Available: {available}")
 
 
+def _clause_key(fn: Any) -> Any:
+    """Dispatch key of a group record (identifier headers derive theirs from params/rest)."""
+    key = getattr(fn, "dispatch_key", None)
+    if key is not None:
+        return key
+    return ("host", id(fn))
+
+
 @dataclass
 class GeniaFunction:
-    """Ordinary function retaining required/rest names, Core IR body and lexical closure.
+    """Ordinary function record: header, Core IR body and lexical closure.
 
-    Construction does not evaluate or validate the body. Calling uses the
-    trampoline with stored debug/internal-access settings and binds excess
-    arguments to a fresh rest list.
+    An identifier header (`pattern` None) binds `params`/`rest_param` and runs `body`
+    in a fresh frame. A pattern header carries the full tuple `pattern` and optional
+    `guard`; its `params` is empty, its `rest_param` is the final rest binder's name
+    (empty string when the rest is unnamed) and its arity is the pattern's required
+    count. Construction does not evaluate or validate the body. Calling uses the
+    trampoline with stored debug/internal-access settings.
     """
     name: str
     params: list[str]
@@ -345,11 +531,44 @@ class GeniaFunction:
     debug_hooks: DebugHooks = field(default_factory=lambda: NOOP_DEBUG_HOOKS)
     debug_mode: bool = False
     internal_access: bool = False
+    pattern: IrPattern | None = None
+    guard: IrNode | None = None
+
+    def __post_init__(self) -> None:
+        """Compute the pattern-header shape once; the structural key is computed on demand."""
+        self._shape = clause_shape(self.pattern) if self.pattern is not None else None
+        self._dispatch_key: tuple | None = None
+
+    @property
+    def shape(self) -> tuple[str, int]:
+        """``("fixed", n)`` or ``("varargs", minimum)`` for this record's header."""
+        if self._shape is not None:
+            return self._shape
+        return ("varargs" if self.rest_param is not None else "fixed", len(self.params))
 
     @property
     def arity(self) -> int:
         """Return the required parameter count, excluding the rest parameter."""
+        if self._shape is not None:
+            return self._shape[1]
         return len(self.params)
+
+    @property
+    def dispatch_key(self) -> tuple:
+        """The pure structural key of this header (shape, pattern, guard); computed once.
+
+        An identifier header derives its key from the equivalent all-binder tuple
+        pattern, so `f(x)` and `f(y)` collide while `f(x)` and `f(0)` do not.
+        """
+        if self._dispatch_key is None:
+            pattern = self.pattern
+            if pattern is None:
+                items: list[Any] = [IrPatBind(name) for name in self.params]
+                if self.rest_param is not None:
+                    items.append(IrPatRest(self.rest_param))
+                pattern = IrPatTuple(items)
+            self._dispatch_key = open_dispatch_key(pattern, self.guard)
+        return self._dispatch_key
 
     def __call__(self, *args: Any) -> Any:
         """Run the trampoline with stored debug settings; arity/body/hook failures propagate.
@@ -400,7 +619,25 @@ def eval_with_tco(
     current_args = args
 
     while True:
-        if isinstance(current_fn, GeniaFunction):
+        if isinstance(current_fn, GeniaFunctionGroup):
+            result = current_fn._dispatch_once(current_args, debug_hooks, debug_mode)
+        elif isinstance(current_fn, GeniaFunction) and (current_fn.pattern is not None or current_fn.guard is not None):
+            if current_fn.rest_param is None:
+                if len(current_args) != current_fn.arity:
+                    raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
+            elif len(current_args) < current_fn.arity:
+                raise TypeError(f"{current_fn.name} expected at least {current_fn.arity} args, got {len(current_args)}")
+            result = _run_pattern_record(current_fn, current_args, debug_hooks, debug_mode)
+            if result is _CLAUSE_MISS:
+                if __package__ in (None, ""):
+                    from genia.evaluator import _format_args_for_diagnostic
+                else:
+                    from .evaluator import _format_args_for_diagnostic
+                raise RuntimeError(
+                    f"No matching case for function {current_fn.name}/{len(current_args)} "
+                    f"with arguments {_format_args_for_diagnostic(current_args)}"
+                )
+        elif isinstance(current_fn, GeniaFunction):
             if current_fn.rest_param is None:
                 if len(current_args) != current_fn.arity:
                     raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
@@ -470,6 +707,26 @@ class OpenFunctionRedeclarationError(OpenFunctionError):
         super().__init__(f"open-function-redeclaration: {name!r} is {phrase} in module {module_id!r}")
         self.interface_key = interface_key
         self.existing = existing
+
+
+class FunctionDeclarationNotOwnerError(OpenFunctionError):
+    """An ordinary declaration named a binding that refers to a group another binding owns."""
+    def __init__(self, declared: str, shape: tuple[str, int], owner_module: str, owner_name: str, foreign: bool):
+        """Build the path- and span-free diagnostic from names and the owner's canonical module identity.
+
+        `shape` is the declared clause shape (rendered `n` or `n+`); `foreign` selects the
+        owning-module wording over the same-scope wording. No value is rendered."""
+        kind, count = shape
+        label = f"{declared}/{count}{'+' if kind == 'varargs' else ''}"
+        where = f"owned by module {owner_module!r}" if foreign else "declared by another binding in this scope"
+        super().__init__(
+            f"function-declaration-not-owner: cannot declare {label}: "
+            f"{declared!r} refers to function {owner_name!r} {where}"
+        )
+        self.declared = declared
+        self.owner_module = owner_module
+        self.owner_name = owner_name
+        self.foreign = foreign
 
 
 class OpenFunctionTargetNotOpenError(OpenFunctionError):
@@ -664,7 +921,12 @@ def _check_no_duplicate_clauses(interface_key: tuple[str, str], unit_key: Any, r
         seen[record.dispatch_key] = record
 
 
-def _first_unit_match(records: list[OpenClauseRecord], args: tuple[Any, ...]) -> Optional[tuple[OpenClauseRecord, dict]]:
+def _first_unit_match(
+    records: list[Any],
+    args: tuple[Any, ...],
+    debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS,
+    debug_mode: bool = False,
+) -> Optional[tuple[Any, dict]]:
     """Return the first matching record and bindings in supplied lexical order.
 
     Match in each record closure; evaluate a matched guard in a fresh child Env.
@@ -675,7 +937,7 @@ def _first_unit_match(records: list[OpenClauseRecord], args: tuple[Any, ...]) ->
     else:
         from .evaluator import Evaluator
     for record in records:
-        evaluator = Evaluator(record.closure)
+        evaluator = Evaluator(record.closure, debug_hooks, debug_mode)
         match_env = evaluator.match_lambda_pattern(record.pattern, args)
         if match_env is None:
             continue
@@ -683,13 +945,19 @@ def _first_unit_match(records: list[OpenClauseRecord], args: tuple[Any, ...]) ->
             local = Env(record.closure)
             for k, v in match_env.items():
                 local.set(k, v)
-            if not truthy(Evaluator(local).eval(record.guard)):
+            if not truthy(Evaluator(local, debug_hooks, debug_mode).eval(record.guard)):
                 continue
         return record, match_env
     return None
 
 
-def _invoke_open_clause(record: OpenClauseRecord, bindings: dict) -> Any:
+def _invoke_open_clause(
+    record: Any,
+    bindings: dict,
+    debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS,
+    debug_mode: bool = False,
+    args: Optional[tuple[Any, ...]] = None,
+) -> Any:
     """Evaluate one selected body in tail position in a fresh child of its closure.
 
     Bind supplied matcher results locally; return value or TailCall unchanged.
@@ -701,7 +969,12 @@ def _invoke_open_clause(record: OpenClauseRecord, bindings: dict) -> Any:
     local = Env(record.closure)
     for k, v in bindings.items():
         local.set(k, v)
-    return Evaluator(local).eval_tail(record.body)
+    if debug_mode and args is not None:
+        debug_hooks.on_function_enter(record.name, args, local, record.span)
+    result = Evaluator(local, debug_hooks, debug_mode).eval_tail(record.body)
+    if debug_mode and args is not None:
+        debug_hooks.on_function_exit(record.name, result, local, record.span)
+    return result
 
 
 def _dispatch_open(interface_key: tuple[str, str], participating_units: list[tuple[str, Any, list[OpenClauseRecord]]], args: tuple[Any, ...]) -> Any:
@@ -1102,6 +1375,47 @@ def _function_explicitly_handles_some(fn: GeniaFunction) -> bool:
     return _callable_case_explicitly_handles_some(fn.body) or _body_delegates_to_option_aware(fn.body, fn.closure)
 
 
+def _stratum_resolvable(group: GeniaFunctionGroup, arity: int) -> bool:
+    """Whether the shape stratum for `arity` is unambiguous; awareness checks never raise."""
+    minima = {
+        _record_shape(r)[1]
+        for r in group.records
+        if _record_shape(r)[0] == "varargs" and _record_shape(r)[1] <= arity
+    }
+    return len(minima) <= 1 or any(_record_shape(r) == ("fixed", arity) for r in group.records)
+
+
+def _record_handles_none(record: Any) -> bool:
+    """Whether one group record lets a `none` argument reach it (pattern, case body or delegation)."""
+    if getattr(record, "__genia_handles_none__", False):
+        return True
+    if not isinstance(record, GeniaFunction):
+        return False
+    if _is_pattern_record(record):
+        return (
+            pattern_explicitly_handles_none(record.pattern)
+            or pattern_explicitly_handles_some(record.pattern)
+            or _callable_case_explicitly_handles_none(record.body)
+            or _body_delegates_to_option_aware(record.body, record.closure)
+        )
+    return _function_explicitly_handles_none(record)
+
+
+def _record_handles_some(record: Any) -> bool:
+    """Whether one group record lets a `some(...)` argument reach it."""
+    if getattr(record, "__genia_handles_some__", False):
+        return True
+    if not isinstance(record, GeniaFunction):
+        return False
+    if _is_pattern_record(record):
+        return (
+            pattern_explicitly_handles_some(record.pattern)
+            or _callable_case_explicitly_handles_some(record.body)
+            or _body_delegates_to_option_aware(record.body, record.closure)
+        )
+    return _function_explicitly_handles_some(record)
+
+
 def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: Optional[IrNode] = None) -> bool:
     """Whether calling `fn` with `arity` arguments lets a `none` argument reach it.
 
@@ -1121,8 +1435,13 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: Optional
     if isinstance(fn, GeniaFunctionGroup):
         if fn.name in _NONE_AWARE_PUBLIC_FUNCTIONS:
             return True
+        if not fn.is_simple:
+            stratum = fn.stratum(arity, raise_missing=False) if _stratum_resolvable(fn, arity) else None
+            if stratum:
+                return any(_record_handles_none(record) for record in stratum)
+            return isinstance(callee_node, IrVar) and callee_node.name in {"map", "filter", "take", "scan"}
         candidate = fn.get(arity)
-        if candidate is not None:
+        if candidate is not None and candidate.rest_param is None:
             if getattr(candidate, "__genia_handles_none__", False):
                 return True
             if not isinstance(candidate, GeniaFunction):
@@ -1175,8 +1494,11 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: Optional
     if isinstance(fn, GeniaFunctionGroup):
         if fn.name in _SOME_AWARE_PUBLIC_FUNCTIONS:
             return True
+        if not fn.is_simple:
+            stratum = fn.stratum(arity, raise_missing=False) if _stratum_resolvable(fn, arity) else None
+            return bool(stratum) and any(_record_handles_some(record) for record in stratum)
         candidate = fn.get(arity)
-        if candidate is not None:
+        if candidate is not None and candidate.rest_param is None:
             if getattr(candidate, "__genia_handles_some__", False):
                 return True
             if not isinstance(candidate, GeniaFunction):
@@ -1351,6 +1673,18 @@ def invoke_callable(
 
         arity = len(args)
 
+        if not fn.is_simple:
+            label = callee_node.name if isinstance(callee_node, IrVar) else fn.name
+            if fn.stratum(arity, label, raise_missing=False) is None and autoload_resolver is not None and isinstance(callee_node, IrVar):
+                resolved = autoload_resolver(callee_node.name, arity)
+                if isinstance(resolved, GeniaFunctionGroup):
+                    fn = resolved
+            if not fn.is_simple:
+                fn.stratum(arity, label)
+                if tail_position:
+                    return TailCall(fn, tuple(args))
+                return _normalize_absence(fn(*args))
+
         def _resolve_target(functions: GeniaFunctionGroup, call_arity: int) -> Any:
             """Return exact arity or a sole eligible varargs entry; return None if absent.
 
@@ -1358,7 +1692,7 @@ def invoke_callable(
             invocation or mutation occurs.
             """
             exact = functions.get(call_arity)
-            if exact is not None:
+            if exact is not None and exact.rest_param is None:
                 return exact
             vararg_matches = [
                 candidate
@@ -1370,7 +1704,7 @@ def invoke_callable(
             if len(vararg_matches) == 1:
                 return vararg_matches[0]
             if len(vararg_matches) > 1:
-                callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
+                callee = callee_node.name if isinstance(callee_node, IrVar) else functions.name
                 candidates = ", ".join(
                     f"{callee}/{candidate.arity}+"
                     for candidate in sorted(vararg_matches, key=lambda f: f.arity)
@@ -1390,7 +1724,7 @@ def invoke_callable(
                     target = _resolve_target(fn, arity)
 
         if target is None:
-            callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
+            callee = callee_node.name if isinstance(callee_node, IrVar) else fn.name
             available = ", ".join(f"{callee}/{n}" for n in fn.sorted_arities())
             raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
 

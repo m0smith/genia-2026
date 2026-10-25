@@ -308,10 +308,11 @@ def test_earlier_statement_effects_precede_unimplemented_declaration(capsys):
     assert "before" in capsys.readouterr().out
 
 
-def test_closed_and_pattern_declarations_remain_not_implemented():
-    for source in ("f(x) =: x", "f([x]) = x"):
-        with pytest.raises(RuntimeError, match="model-b-not-implemented"):
-            genia.run_source(source, genia.make_global_env([]))
+def test_closed_declarations_remain_not_implemented_and_pattern_declarations_execute():
+    """Slice C GREEN (issue #1269, phase-guard flip): only closed `=:` functions still reject."""
+    with pytest.raises(RuntimeError, match="model-b-not-implemented"):
+        genia.run_source("f(x) =: x", genia.make_global_env([]))
+    assert genia.run_source("f([x]) = x\nf([5])", genia.make_global_env([])) == 5
 
 
 def test_shallow_cell_mutation_is_observable_after_immutable_bind():
