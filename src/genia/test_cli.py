@@ -193,7 +193,7 @@ def discover_annotated_test_units(env: Any) -> list[TestUnit]:
         if not isinstance(description, str) or description == "":
             test_units.append(_discovery_error_test_unit(name, "@test description must be a non-empty string"))
             continue
-        body = value.get(0)
+        body = value.single_plain_record()
         if body is None or value.sorted_arities() != [0]:
             test_units.append(_discovery_error_test_unit(name, "@test functions must take zero arguments"))
             continue
