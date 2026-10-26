@@ -416,3 +416,91 @@ the requested review before corpus generation.
 Single next action: **owner appoints the independent second custodian and oracle
 auditor and assigns an administrator to provision the access-separated stewardship
 boundary for verification**, without transmitting the annex into this workspace.
+
+## 8. Stewardship unblock investigation — newly verified evidence, 2026-10-26
+
+This entry updates the existing record under the owner's follow-up request;
+it creates no additional plan and changes no language behavior. Main was fetched
+again at `79c073b556ad16343051d545d7928248a6d0f6b0`; latest remote AGENTS remains
+blob `b072beb55d22d5856d3d356d73c60704e04d197f`. The authority/strategy/process
+files listed above have no differences from that main. Local starting HEAD for
+this investigation was the preflight commit `d5e8d691`, not main.
+
+### Actual infrastructure and access observations
+
+| Check | Observed result | What it establishes |
+|---|---|---|
+| Managed runtime status | Current revision 3; HTTP network policy **enforced**; capabilities, secret bindings and outbound identities empty | Improves the earlier unknown-policy observation; no cloud provisioning identity is supplied |
+| Current process identity | UID/EUID/GID 1000; effective/bounding capabilities zero; NoNewPrivs=1; seccomp=2; UID/GID maps each one ID | Current execution boundary only, not separate implementation identities |
+| Local administration clients | Docker 28.4.0 installed; sudo, Podman, AWS/GCP/Azure clients and Claude absent; OIC manifest not configured | No configured external provisioning route demonstrated; does not prove provisioning impossible |
+| Ordinary sandbox Docker access | Explicit local Unix-socket `docker info` fails `connect: operation not permitted` | Actual denial for this sandbox command; NOT a test from a future implementation identity |
+| Supported approved Docker health check | Explicit local daemon responds: server 28.4.0, cgroup v2/cgroupfs, 3 CPUs, 10,452,471,808 bytes reported memory | Existing administrator execution path is available; no new platform needed merely to launch containers |
+| Docker resource-controller support | MemoryLimit, SwapLimit, CpuCfsPeriod, CpuCfsQuota and PidsLimit all true | Daemon advertises support; enforcement was not tested in workers |
+| Docker image inventory | Zero images; digest inventory empty | No existing immutable execution image available to attest |
+| Current outer cgroup | cpu.max `200000 100000`; memory.max `8589934592`; cgroup controls not writable; CPU affinity has three CPUs | Two-CPU aggregate quota, 8 GiB outer limit; does NOT establish 2 CPU/4 GiB for each trial worker |
+| Existing dependencies | CPython 3.12.14, genia 0.1.14, PyYAML 6.0.3, pytest 9.1.1, pytest-xdist 3.8.0; uv.lock hash unchanged | Inventory rechecked, not immutable image or clean-install verification |
+
+The uv.lock SHA-256 remains
+`c9543edd814d8ab75fc668908ca48cdfafe94d536a74e56266258a7f219e1ba7`.
+No registry pull, image build, container, user, restricted store or custodian
+account was created. No immutable image/dependency replay or worker-limit probe
+was run. The first controller display command used an unsupported template field;
+the corrected read-only JSON inventory produced the controller results above.
+No failed/empty Docker response was treated as successful daemon evidence.
+
+### Minimum implementation and exact owner dependency
+
+Simplest candidate: an administrator uses existing Docker/VM infrastructure,
+with a steward account/store outside this shared workspace and separately
+controlled second-custodian storage. Launch actual Genia/stdlib/Pydantic worker
+principals with public-only exports, no steward mounts, no daemon endpoints or
+administrator credentials, and **no ability to invoke the supported escalation
+or control-plane path**. Container user IDs or omission of a socket mount alone
+are insufficient when the agent can still request administrator execution.
+Prefer existing separate managed VMs/accounts if that control-plane restriction
+cannot be enforced for Docker workers. This is a proposed use of available
+infrastructure, not a provisioned or verified configuration.
+
+The owner must appoint an independently accountable second custodian and oracle
+auditor, and assign an administrator to supply access to a steward-only account
+and restricted persistent store plus the actual implementation-agent principals.
+Use narrowly scoped service bindings through the managed environment setup if
+external storage is selected; never paste provisioning credentials or the annex
+into chat. No cloud/storage identity is currently bound, and no tool exposed here
+creates separately controlled accounts, appoints an independent person, or
+certifies future implementation agents' control-plane permissions.
+
+After that owner action, use non-sensitive sentinels to verify positive steward
+access, independent second-custodian recovery, and denied read/list/write and
+daemon/escalation access from **each actual implementation principal**. Record
+the authenticated identity, policy and results privately; publish sanitized
+attestations. These tests have **not** run: actual principals and independently
+controlled custody are not supplied. No substitute test user or directory-mode
+demonstration is counted as isolation evidence.
+
+### Independent review and stop decision
+
+Independent reviewer `/root/skeptical_readiness` rechecked runtime status,
+identity maps/capabilities, outer cgroups, ordinary Docker denial and source refs.
+The approved Docker health/controller output is author-supplied evidence, not
+claimed independently re-executed. Reviewer confirmed **NO-GO** and emphasized
+that Docker administration is technically available, while actual principal
+denial tests, independent custody and restricted storage remain absent. Neutral
+sentinel provisioning is not inherently forbidden by missing custody; this task
+stops because the user's explicit custody/identity stop condition is unmet.
+Review establishes neither a custodian appointment nor an isolation certificate.
+
+**Controls newly established by this task: none.** Newly verified existing controls
+are enforced HTTP policy, ordinary sandbox Docker denial and advertised resource
+controller support. They do not authorize annex receipt or oracle construction.
+No private material was sought or transferred; no hidden fixtures, oracle,
+competing implementations or trials began. Prior 115 capability tests were not
+rerun because runtime code did not change; this entry records infrastructure
+checks, not benchmark or full regression results.
+
+**Decision remains NO-GO. Single next action:** owner assigns the second custodian
+and administrator and provides a separately controlled stewardship account/store
+and actual implementation-agent identities with administrator/control-plane
+access denied, so the sentinel and recovery checks can be performed. This is the
+next prerequisite toward GO, not a promise of GO before those checks and the
+remaining environment/oracle-readiness requirements pass.
