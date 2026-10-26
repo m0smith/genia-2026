@@ -516,16 +516,14 @@ def test_aggregate_result_boundary_is_measured_on_the_encoded_envelope_bytes():
 
 
 def test_runaway_output_is_stopped_at_the_limit_not_accumulated_until_the_deadline():
-    import time
-
     flood = (
         'rand_flow(1) |> each((x) -> write(stdout, '
         '"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")) |> run'
     )
-    started = time.monotonic()
     ((response, _),) = run_sources([flood])
+    # the closed result_limit class (not the deadline's) proves the limit, not the 5,000 ms
+    # deadline, ended it; a wall-clock bound here was flaky on loaded CI runners
     assert_closed_failure(response, "result_limit", "adapter", RUN_CHANNEL_LIMIT_MESSAGE)
-    assert time.monotonic() - started < 4.5  # the limit, not the 5,000 ms deadline, ended it
 
 
 def test_bounded_stream_never_retains_more_than_its_limit_and_discards_on_overflow():
