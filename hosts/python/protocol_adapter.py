@@ -39,10 +39,10 @@ _PARTIAL_CAPABILITIES = frozenset({"shared_spec_runner"})
 # ``unsupported`` over the protocol, so the external-host applicability gate
 # (tools/spec_runner/capabilities.py::case_is_applicable) reports every case
 # that requires it ``unsupported`` without invoking this adapter. Staging a
-# name here never implements it. Issue #1269 (Slice C RED) stages
-# ``default_open_functions``; the GREEN commit removes it in the same change
-# that makes the gated cases pass.
-_VOCABULARY_ONLY_CAPABILITIES: frozenset[str] = frozenset({"default_open_functions"})
+# name here never implements it. The set is empty: issue #1269 (Slice C)
+# staged ``default_open_functions`` at RED and removed it once every gated
+# case passed through this adapter.
+_VOCABULARY_ONLY_CAPABILITIES: frozenset[str] = frozenset()
 
 
 def _python_claimed_capabilities() -> dict[str, str]:

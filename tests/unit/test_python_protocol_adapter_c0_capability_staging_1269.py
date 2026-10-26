@@ -3,12 +3,14 @@ Slice C / C0 (issue #1269, parent #1250) capability-staging regression tests
 for hosts/python/protocol_adapter.py::_VOCABULARY_ONLY_CAPABILITIES.
 
 PYTHON REFERENCE HOST: protocol-adapter capability advertisement only. At the
-Slice C RED phase the production override stages exactly `default_open_functions`
-as `unsupported`; that makes no claim that any default-open behavior is
-implemented. Temporary test staging is the union of the production override and
-the staged names (never a replacement), `PRE_C0_CAPABILITY_MAP` stays frozen
-history, and the GREEN commit removes the production staging (issue #1269,
-package section R6.5).
+Slice C RED phase the production override staged exactly `default_open_functions`
+as `unsupported`; that made no claim that any default-open behavior was
+implemented. At Slice C GREEN (B9) the production override is empty and the
+capability is advertised `supported`, after every gated case passed through the
+real adapter (`test_model_b_slice_c_capability_evidence.py`). Temporary test
+staging is the union of the production override and the staged names (never a
+replacement); `PRE_C0_CAPABILITY_MAP` and `RED_CAPABILITY_MAP` stay frozen
+history (issue #1269, package section R6.5).
 """
 from __future__ import annotations
 
@@ -69,14 +71,14 @@ PRE_C0_CAPABILITY_MAP = {
 }
 
 
-# Slice C RED phase (issue #1269): the manifest gains `default_open_functions`
-# and the production override stages it, so the advertised map is the frozen
-# pre-C0 map plus that one name reported `unsupported`. GREEN adds
-# GREEN_CAPABILITY_MAP (the same name `supported`) and PHASE_OVERRIDE becomes
-# frozenset(); RED_CAPABILITY_MAP is then retained as history.
+# Slice C RED phase (issue #1269): the manifest gained `default_open_functions`
+# and the production override staged it, so the advertised map was the frozen
+# pre-C0 map plus that one name reported `unsupported` (kept as history).
+# Slice C GREEN (B9): the same name is `supported` and the override is empty.
 RED_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "unsupported"}
-PHASE_OVERRIDE = frozenset({"default_open_functions"})
-PHASE_MAP = RED_CAPABILITY_MAP
+GREEN_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "supported"}
+PHASE_OVERRIDE = frozenset()
+PHASE_MAP = GREEN_CAPABILITY_MAP
 
 
 def _stage(monkeypatch: pytest.MonkeyPatch, *names: str) -> None:
@@ -128,13 +130,13 @@ def test_empty_override_keeps_open_functions_and_multi_file_eval_supported() -> 
     assert claimed["multi_file_eval"] == "supported"
 
 
-def test_default_open_functions_is_vocabulary_only_and_unsupported_at_red() -> None:
+def test_default_open_functions_is_in_the_vocabulary_and_supported_at_green() -> None:
     manifest = json.loads((REPO_ROOT / "spec" / "manifest.json").read_text(encoding="utf-8"))
     assert "default_open_functions" in known_capabilities()
     assert "default_open_functions" in manifest["optional_capabilities"]
     assert "default_open_functions" not in manifest["required_capabilities"]
-    assert "default_open_functions" in adapter._VOCABULARY_ONLY_CAPABILITIES
-    assert _python_claimed_capabilities()["default_open_functions"] == "unsupported"
+    assert "default_open_functions" not in adapter._VOCABULARY_ONLY_CAPABILITIES
+    assert _python_claimed_capabilities()["default_open_functions"] == "supported"
 
 
 # --- C0-B: vocabulary-only staging -----------------------------------------------------------------
@@ -189,7 +191,11 @@ def test_staged_capability_case_is_unsupported_without_invoking_the_host(
     assert not marker.exists()
 
 
-def test_default_open_functions_case_is_unsupported_without_invoking_the_host(tmp_path: Path) -> None:
+def test_default_open_functions_case_is_unsupported_when_staged_without_invoking_the_host(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Gate mechanism regression: re-staging the name (test-only) reports it unsupported."""
+    _stage(monkeypatch, "default_open_functions")
     marker = tmp_path / "host-was-invoked"
     host = tmp_path / "host.py"
     host.write_text(

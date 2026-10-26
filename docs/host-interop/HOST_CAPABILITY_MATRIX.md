@@ -94,8 +94,10 @@ capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`) and
 `default_open_functions`, shared evidence `spec/*/model-b-c-*`, which the in-process
 runner executes against the Python reference host); closed groups are rejected with
 `model-b-not-implemented`. Closed-function execution is not claimed. The Python
-protocol adapter still advertises `default_open_functions` as `unsupported`, so the
-external-host run reports its gated cases `unsupported` rather than passing them.
+protocol adapter advertises `default_open_functions` as `supported`, and the 143
+`model-b-c-*` cases (55 existing-behavior guards plus 88 gated cases) pass through that
+adapter; the 18 Python-host-only fixture/debug cases remain the only `unsupported`
+results of the external Python run.
 C++ does not claim `immutable_bindings` or `default_open_functions`: both are listed
 gaps in `spec/known_host_gaps.json` (tracking `genia-2026#1261` and `genia-2026#1269`;
 parser/lowering owned by genia-cpp #50).
