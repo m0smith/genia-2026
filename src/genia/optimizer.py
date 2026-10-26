@@ -22,6 +22,7 @@ if __package__ in (None, ""):
         IrPatLiteral,
         IrPatRest,
         IrPatTuple,
+        IrPatWildcard,
     )
     from genia.numeric_source import numeric_literal_runtime_value
 else:
@@ -43,6 +44,7 @@ else:
         IrPatLiteral,
         IrPatRest,
         IrPatTuple,
+        IrPatWildcard,
     )
     from .numeric_source import numeric_literal_runtime_value
 
@@ -134,6 +136,15 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
             return fn
 
     if empty_clause is None or zero_clause is None or recur_clause is None:
+        return fn
+    # The fast path is equivalent to the ordered clauses only for exactly this
+    # canonical arm sequence: no other arm may precede, interleave or follow, and
+    # the empty arm must accept every counter (a constrained counter is a miss).
+    if len(case.clauses) != 3 or not (
+        case.clauses[0] is empty_clause and case.clauses[1] is zero_clause and case.clauses[2] is recur_clause
+    ):
+        return fn
+    if not isinstance(empty_clause.pattern.items[0], (IrPatWildcard, IrPatBind)):
         return fn
     recur_pat = recur_clause.pattern
     assert isinstance(recur_pat, IrPatTuple)

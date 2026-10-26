@@ -519,7 +519,8 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
 - A grouped body `f(x) = (0) -> x | (n) -> n + x` is one declaration with one key; its arms see the
   header bindings and are not independent clauses.
 - Duplicates are rejected when declared (the group is unchanged): same shape and equal
-  pattern/guard keys up to bound-variable spelling. Keys are typed (`true`, `1`, `1.0` differ), quoted
+  pattern/guard keys up to bound-variable spelling, including immutable declarations inside guard blocks
+  (initializer keyed before the binder enters scope; shadowing and free references stay distinct). Keys are typed (`true`, `1`, `1.0` differ), quoted
   syntax is data, only active unquotes are references, lambda parameters in a guard are
   alpha-normalized. Two identifier headers keep `Duplicate function definition: f/N`; any other
   duplicate is `open-function-duplicate-clause`. Fixed `f(a)` and varargs `f(a, ..r)` are distinct
@@ -540,9 +541,13 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   other arities are not consulted.
 - `main` is auto-run only when its whole group is identifier-header clauses with distinct required
   arities; otherwise the source result is kept silently. REPL declarations never run `main`.
-- The list-traversal rewrite retains the unoptimized grouped case; its fast path runs only for a
-  numeric (non-Boolean) counter and a list, every other call evaluates the retained case, so
-  optimization never changes values, errors, effects or the terminal miss.
+- The list-traversal rewrite is admitted only for exactly three guard-free arms in this order: an
+  unconstrained-counter empty-list arm returning `nil`, a literal-`0` head arm returning the head, and the
+  tail-recursive `n - 1` arm. Any other arm, order or constrained counter keeps the original ordered
+  clauses. An admitted function retains its unoptimized grouped case; the fast path runs only for a
+  numeric (non-Boolean) counter and a list, every other call evaluates the retained case. Evidence is
+  an optimizer-on/off comparison over the shapes in `tests/unit/test_model_b_slice_c_optimizer_equivalence.py`,
+  not a general proof for other programs.
 - Implementation: `GeniaFunctionGroup` holds ordered records, the arity table is a derived index, an
   `(module identity, defining name)` owner identifies the declaring binding, and
   `src/genia/structural_key.py` is the one pure key walker. Closed `=:` functions, cross-module

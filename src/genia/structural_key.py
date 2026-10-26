@@ -267,8 +267,24 @@ def _lambda_key(node: ir.IrLambda, scope: dict[str, int], depth: int) -> tuple:
 
 
 def _block_key(node: ir.IrBlock, scope: dict[str, int], depth: int) -> tuple:
-    """Key a block as its ordered expression keys (assignments inside keep outer-binder references)."""
-    return ("IrBlock", tuple(_walk(expr, scope, depth) for expr in node.exprs))
+    """Key a block as its ordered expression keys under lexical immutable declarations.
+
+    Each `IrImmutableBind` initializer is keyed in the scope visible before it; only
+    afterwards does the binder receive a fresh ordinal (shadowing any earlier binding)
+    for the following expressions. The extended scope is local to the block, so the
+    caller's scope is unchanged on exit. Nothing is evaluated.
+    """
+    current = scope
+    keys: list[Any] = []
+    for expr in node.exprs:
+        if type(expr) is ir.IrImmutableBind:
+            initializer = _walk(expr.expr, current, depth)
+            annotations = _walk(expr.annotations, current, depth)
+            current = _bind(current, [expr.name])
+            keys.append(("IrImmutableBind", ("BIND", current[expr.name]), initializer, annotations))
+        else:
+            keys.append(_walk(expr, current, depth))
+    return ("IrBlock", tuple(keys))
 
 
 def _pattern_key(node: Any, scope: dict[str, int]) -> Any:

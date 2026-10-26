@@ -1,0 +1,17 @@
+E       AssertionError: assert (('fixed', 1)...l', False))))) == (('fixed', 1)...l', False)))))
+E       AssertionError: assert (('fixed', 1)..., (...))),)))) == (('fixed', 1)..., (...))),))))
+E       AssertionError: assert (('fixed', 1)...l', False))))) == (('fixed', 1)...l', False)))))
+E       AssertionError: assert (('fixed', 1)...l', False))))) == (('fixed', 1)...l', False)))))
+E       AssertionError: assert (('fixed', 1)...l', False))))) == (('fixed', 1)...l', False)))))
+E       AssertionError: assert (('fixed', 1)...l', False))))) == (('fixed', 1)...l', False)))))
+E       AssertionError: assert (('fixed', 1)...ool', False))) == (('fixed', 1)...ool', False)))
+E       AssertionError: assert ('IrBlock', (...'str', 'a')))) == ('IrBlock', (...'str', 'b'))))
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_renamed_guard_local_is_alpha_equivalent
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_lambda_guard_block_locals_are_alpha_equivalent
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_sequential_locals_are_alpha_equivalent_and_order_sensitive
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_initializer_resolves_before_binder_enters_scope
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_local_shadows_outer_pattern_variable
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_free_references_stay_distinct
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_outer_scope_restored_after_block
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_immutable_bind_node_is_lexical_in_blocks
+8 failed, 1 passed in 0.12s
