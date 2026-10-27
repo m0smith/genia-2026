@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: m0smith/genia-cpp
-          ref: 44456baea06b4bb7bdf727e39939dd7150261ee6 # Reviewed Cell/Process quiescence correction (genia-cpp #52)
+          ref: 8b4f3178d77a0ea7da792bf090d3f53bb54ab9e7 # Proposed conformance repair (genia-cpp #58); adopt after independent review
           path: workspace/genia-cpp
 
       - name: Build development image

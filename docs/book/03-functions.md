@@ -28,3 +28,11 @@ not implemented. C++ support for these declarations is not claimed.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
+
+## Bounded C++ host compatibility
+
+The C++ host repairs for genia-cpp #53–#57 preserve ordinary grouped-body header
+capture, fixed-arity accumulation and duplicate rejection, and short inline
+same-line docstrings as metadata. Explicit-open header capture retains its
+separate R20 restriction. These repairs do not implement default-open ordinary
+functions, `doc_help`, annotations, or cross-module linking in C++.

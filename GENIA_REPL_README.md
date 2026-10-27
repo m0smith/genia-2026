@@ -102,8 +102,9 @@ CLI contract summary (actual behavior):
 - Python is the full-language reference host. The bounded C++ production host
   (`m0smith/genia-cpp`) also implements the approved portable REPL contract's
   scripted-session observations (`docs/design/r26-cpp-repl-contract.md`) and
-  declares `repl` supported; the three capability-gated shared `cli` cases
-  pass and the host parity gate reports `PARITY_OK`. Interactive terminal
+  declares `repl` supported. Complete semicolon-separated programs evaluate
+  as one submission and echo the final value; incomplete input at EOF stays
+  inert, and REPL evaluation never implicitly calls `main`. Interactive terminal
   mechanics (banner, prompts, line editing, signals, colon commands) remain
   host-local and are not part of the portable contract.
 - The bounded C++ host also implements `genia -p '<stage expr>'` pipe mode for
