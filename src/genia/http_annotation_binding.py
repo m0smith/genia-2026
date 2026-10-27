@@ -60,7 +60,7 @@ def _is_exact_zero_argument_handler(value: Any) -> bool:
 
     if not isinstance(value, GeniaFunctionGroup) or value.sorted_arities() != [0]:
         return False
-    function = value.get(0)
+    function = value.single_plain_record()
     return function is not None and function.rest_param is None
 
 

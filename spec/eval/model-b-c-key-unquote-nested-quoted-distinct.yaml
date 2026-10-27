@@ -1,0 +1,20 @@
+name: model-b-c-key-unquote-nested-quoted-distinct
+id: model-b-c-key-unquote-nested-quoted-distinct
+category: eval
+description: "Slice C RED (#1269): D3; design 5.4 quasiquote depth"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) ? quasiquote(quasiquote(unquote(x))) == quasiquote(quasiquote(unquote(x))) = "x-form"
+    f(y) ? quasiquote(quasiquote(unquote(y))) == quasiquote(quasiquote(unquote(y))) = "y-form"
+    f(1)
+expected:
+  stdout: |
+    "x-form"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  at depth 2 the inner `unquote(x)` is data (observed: `quasiquote(quasiquote(unquote(x)))` prints `(quasiquote (unquote x))`), so the clauses differ by data and both install; f(1) selects the first

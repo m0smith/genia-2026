@@ -1,0 +1,19 @@
+name: model-b-c-own-local-alias-pattern-clause
+id: model-b-c-own-local-alias-pattern-clause
+category: error
+description: "Slice C RED (#1269): D5; pattern header is new syntax"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) = x
+    a = f
+    a(0, y) = y
+expected:
+  stdout: ''
+  stderr: |
+    Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

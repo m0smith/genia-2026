@@ -1,0 +1,4 @@
+main(a) = { print("fixed"); 1 }
+main(a, ..r) = { print("rest"); 2 }
+print("top")
+42

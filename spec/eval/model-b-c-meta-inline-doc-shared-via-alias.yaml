@@ -1,0 +1,20 @@
+name: model-b-c-meta-inline-doc-shared-via-alias
+id: model-b-c-meta-inline-doc-shared-via-alias
+category: eval
+description: "Slice C RED (#1269): contract 5.1 (inline doc syntax: `f(x) = \"doc\" body`)"
+requires: [doc_help]
+input:
+  source: |-
+    f(x) = "d1" x
+    a = f
+    f(x, y) = "d1" x + y
+    [doc("f"), doc("a"), a(1, 2)]
+expected:
+  stdout: |
+    ["d1", "d1", 3]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="[\"d1\", \"d1\", 3]\n" stderr="" exit=0.

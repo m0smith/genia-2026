@@ -1,0 +1,24 @@
+name: model-b-c-main-g1-main1-plus-pattern-arity1-pattern-first
+id: model-b-c-main-g1-main1-plus-pattern-arity1-pattern-first
+category: cli
+description: "Slice C B0 (#1269): C-MAIN G1 whole-group selection"
+requires: [default_open_functions]
+input:
+  source: spec/cli/model-b-c-main-g1-main1-plus-pattern-arity1-pattern-first.genia
+  file: spec/cli/model-b-c-main-g1-main1-plus-pattern-arity1-pattern-first.genia
+  command: null
+  stdin: ''
+  argv: [--x]
+  debug_stdio: false
+expected:
+  stdout: |-
+    top
+    42
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived from the maintainer-approved G1 decision (R7-D9, Option A: whole-group eligibility; PR #1270 comment 6378516076).
+  Shape: matching pattern arity-1 record declared before legacy main/1.
+  The entry selector may run `main` automatically only when the entire group is plain legacy identifier-header clauses with unique required-arity keys. This group is not, so the source result is preserved: no record, matcher, guard or body runs and there is no new diagnostic.
+  Baseline (Python at B0, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1.

@@ -1,0 +1,18 @@
+name: model-b-c-hdr-block-prefix-miss
+id: model-b-c-hdr-block-prefix-miss
+category: eval
+description: "Slice C RED (#1269): C1"
+input:
+  source: |-
+    f(x) { print("prefix"); k = x + 1; n ? n < 0 -> x }
+    f(2)
+expected:
+  stdout: |
+    prefix
+  stderr: |
+    Error: No matching case for function f/1 with arguments [2]
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="prefix\n" stderr="Error: No matching case for function f/1 with arguments [2]\n" exit=1.

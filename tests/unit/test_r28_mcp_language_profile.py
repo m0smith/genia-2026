@@ -203,10 +203,12 @@ def test_the_direct_evaluation_helper_really_evaluates():
     assert _direct("1 + 2") == 3  # guards the must-fail tests below against a broken helper
 
 
-def test_pattern_headers_parse_but_execution_requires_explicit_open():
-    # Slice A accepts the header for lowering; executable pattern dispatch still needs open.
+def test_pattern_headers_execute_by_default_after_slice_c():
+    # Slice C GREEN (issue #1269, phase-guard flip): ordinary pattern clauses are default-open;
+    # `open` stays accepted but is no longer required for executable pattern dispatch.
+    assert _direct("gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)") == 6
     with pytest.raises(RuntimeError, match="model-b-not-implemented"):
-        _direct("gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)")
+        _direct("f(0) =: 1")  # closed functions are still parse/lower only
 
 
 def test_the_absent_forms_really_are_absent_in_the_language():

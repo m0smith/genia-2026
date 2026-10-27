@@ -1,0 +1,4 @@
+main(["a"]) = { print("A"); 1 }
+main(["b"]) = { print("B"); 2 }
+print("top")
+42

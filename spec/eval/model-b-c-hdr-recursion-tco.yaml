@@ -1,0 +1,20 @@
+name: model-b-c-hdr-recursion-tco
+id: model-b-c-hdr-recursion-tco
+category: eval
+description: "Slice C RED (#1269): C1; twin of r20-open-ordinary-mutual-tail-call"
+requires: [default_open_functions]
+input:
+  source: |-
+    count(0) = "done"
+    count(n) = step(n - 1)
+    step(n) = count(n)
+    count(20000)
+expected:
+  stdout: |
+    "done"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

@@ -1,0 +1,19 @@
+name: model-b-c-key-true-vs-one
+id: model-b-c-key-true-vs-one
+category: eval
+description: "Slice C RED (#1269): D3 typed keys (pre-flight 2.2)"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(true) = 1
+    f(1) = 2
+    [f(true), f(1)]
+expected:
+  stdout: |
+    [1, 2]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

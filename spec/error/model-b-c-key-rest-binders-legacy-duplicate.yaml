@@ -1,0 +1,19 @@
+name: model-b-c-key-rest-binders-legacy-duplicate
+id: model-b-c-key-rest-binders-legacy-duplicate
+category: error
+description: "Slice C RED (#1269): design 13.4; contract 2.3 (rest binders participate)"
+input:
+  source: |-
+    f(x, ..r) = 1
+    f(y, ..s) = 2
+    f(1)
+expected:
+  stdout: ''
+  stderr: |
+    Error: Duplicate function definition: f/1
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1.
+  as above

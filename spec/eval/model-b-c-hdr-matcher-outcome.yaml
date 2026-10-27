@@ -1,0 +1,20 @@
+name: model-b-c-hdr-matcher-outcome
+id: model-b-c-hdr-matcher-outcome
+category: eval
+description: "Slice C RED (#1269): C1 matcher err is not a miss"
+requires: [default_open_functions]
+input:
+  source: |-
+    pattern M(v) = err("bad", v)
+    f(M(x)) = 1
+    f(y) = 2
+    f(3)
+expected:
+  stdout: |
+    err("bad", 3)
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

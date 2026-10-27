@@ -1,0 +1,19 @@
+name: model-b-c-d8-terminal-grouped-miss
+id: model-b-c-d8-terminal-grouped-miss
+category: error
+description: "Slice C RED (#1269): D8 terminal miss"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) = (0 -> x)
+    f(y) ? y > 5 = "later"
+    f(9)
+expected:
+  stdout: ''
+  stderr: |
+    Error: No matching case for function f/1 with arguments [9]
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

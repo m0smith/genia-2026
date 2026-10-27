@@ -1,0 +1,35 @@
+name: model-b-c-own-local-alias-owner-still-extendable
+id: model-b-c-own-local-alias-owner-still-extendable
+category: cli
+description: "Slice C RED (#1269): D5"
+requires: [default_open_functions, repl]
+input:
+  source: |-
+    f(x) = x; 0
+    a = f; 0
+    a(x, y) = x + y; 0
+    f(x, y) = x + y; 0
+    a(1, 2)
+  file: null
+  command: null
+  stdin: |-
+    f(x) = x; 0
+    a = f; 0
+    a(x, y) = x + y; 0
+    f(x, y) = x + y; 0
+    a(1, 2)
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    0
+    0
+    0
+    3
+  stderr: "Error: function-declaration-not-owner: cannot declare a/2: 'a' refers to function 'f' declared by another binding in this scope"
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required.
+  Baseline (Python main@79c073b, gate bypassed): stdout="0\n0\n0\n3" stderr="Error: Duplicate function definition: f/2" exit=0.
+  restored as a REPL twin; ownership text PROPOSED

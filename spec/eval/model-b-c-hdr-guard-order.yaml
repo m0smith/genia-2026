@@ -1,0 +1,23 @@
+name: model-b-c-hdr-guard-order
+id: model-b-c-hdr-guard-order
+category: eval
+description: "Slice C RED (#1269): C1 source-order guards"
+requires: [default_open_functions]
+input:
+  source: |-
+    t(s, r) = { print(s); r }
+    f(x) ? t("a", false) = 1
+    f(x) ? t("b", true) = 2
+    f(x) ? t("c", true) = 3
+    f(0)
+expected:
+  stdout: |
+    a
+    b
+    2
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

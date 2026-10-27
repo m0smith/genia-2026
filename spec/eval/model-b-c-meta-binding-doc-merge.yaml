@@ -1,0 +1,22 @@
+name: model-b-c-meta-binding-doc-merge
+id: model-b-c-meta-binding-doc-merge
+category: eval
+description: "Slice C RED (#1269): contract 5.1"
+requires: [doc_help]
+input:
+  source: |-
+    @doc "one"
+    @category "c1"
+    f(x) = x
+    @doc "two"
+    f(x, y) = x + y
+    [doc("f"), meta("f")]
+expected:
+  stdout: |
+    ["two", {doc: "two", category: "c1"}]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="[\"two\", {doc: \"two\", category: \"c1\"}]\n" stderr="" exit=0.

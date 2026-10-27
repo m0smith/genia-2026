@@ -22,6 +22,7 @@ if __package__ in (None, ""):
         IrPatLiteral,
         IrPatRest,
         IrPatTuple,
+        IrPatWildcard,
     )
     from genia.numeric_source import numeric_literal_runtime_value
 else:
@@ -43,20 +44,21 @@ else:
         IrPatLiteral,
         IrPatRest,
         IrPatTuple,
+        IrPatWildcard,
     )
     from .numeric_source import numeric_literal_runtime_value
 
 
 def _is_integer_literal_one(value: object) -> bool:
-    """True when an IrLiteral value denotes the Integer literal 1.
+    """True only for the typed Integer literal 1.
 
-    Handles both the R21 E21-2 tagged payload shape and (defensively) a
-    bare numeric value, without introducing any new numeric comparison
-    semantics beyond this existing tail-recursion-shape detection.
+    The decrement must be an Integer-kind payload: a Decimal `1.0` is numerically equal to 1
+    but `n - 1.0` runs Decimal arithmetic (and its resource checks), which the Integer fast
+    path does not reproduce. A bare Python 1 is accepted defensively; Booleans and floats are not.
     """
     if isinstance(value, dict):
-        return numeric_literal_runtime_value(value) == 1
-    return value == 1
+        return value.get("kind") == "integer" and numeric_literal_runtime_value(value) == 1
+    return type(value) is int and value == 1
 
 
 def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list[IrNode]:
@@ -73,6 +75,10 @@ def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list
 
 
 def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
+    """Rewrite a recognized nth-style list recursion to `IrListTraversalLoop`, else return `fn`.
+
+    The rewrite keeps the original grouped case on the node so evaluation can fall back to it.
+    """
     if fn.rest_param is not None or len(fn.params) != 2 or not isinstance(fn.body, IrCase):
         return fn
     case = fn.body
@@ -131,6 +137,15 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
 
     if empty_clause is None or zero_clause is None or recur_clause is None:
         return fn
+    # The fast path is equivalent to the ordered clauses only for exactly this
+    # canonical arm sequence: no other arm may precede, interleave or follow, and
+    # the empty arm must accept every counter (a constrained counter is a miss).
+    if len(case.clauses) != 3 or not (
+        case.clauses[0] is empty_clause and case.clauses[1] is zero_clause and case.clauses[2] is recur_clause
+    ):
+        return fn
+    if not isinstance(empty_clause.pattern.items[0], (IrPatWildcard, IrPatBind)):
+        return fn
     recur_pat = recur_clause.pattern
     assert isinstance(recur_pat, IrPatTuple)
     recur_n_pat, recur_xs_pat = recur_pat.items
@@ -158,6 +173,19 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
         return fn
     if not (isinstance(xs_arg, IrVar) and xs_arg.name == rest_name):
         return fn
+    # The recursive arm must impose no constraint beyond the list shape: a wildcard or
+    # fresh-binder head, and counter/head/rest binders that are pairwise distinct (a repeated
+    # binder is an equality constraint the fast path would skip).
+    head_pat = recur_xs_pat.items[0]
+    if not isinstance(head_pat, (IrPatWildcard, IrPatBind)):
+        return fn
+    binders = [recur_n_pat.name, rest_name] + ([head_pat.name] if isinstance(head_pat, IrPatBind) else [])
+    if len(set(binders)) != len(binders):
+        return fn
+    # The recursive call must resolve `fn.name` to the declared function: no header or arm binder
+    # may shadow it. Rebinding at runtime is checked by the evaluator before the fast path.
+    if fn.name in binders or fn.name in fn.params:
+        return fn
 
     return IrFuncDef(
         fn.name,
@@ -170,6 +198,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
             step_size=1,
             empty_clause=empty_clause,
             zero_clause=zero_clause,
+            case=case,
             span=fn.span,
         ),
         annotations=fn.annotations,

@@ -215,9 +215,11 @@ nested host-local optimized nodes.
 
 PYTHON REFERENCE HOST: parsing, lowering, normalization and validation are
 implemented. Evaluation executes `IrImmutableBind` with an Env-owned
-immutable-write policy (no Core IR change); closed and pattern declarations reject with
-`model-b-not-implemented` before child effects. This adds no Model B dispatcher,
-linker or closed-publication state machine. Optimizers preserve the atomic group.
+immutable-write policy (no Core IR change) and `IrPatternFuncDef` as an ordinary default-open
+clause (ordered group record, one shape stratum and first-match dispatch); closed declarations
+reject with `model-b-not-implemented` before child effects. This adds no linker or
+closed-publication state machine. Optimizers preserve the atomic group and retain a rewritten
+list-traversal declaration's original grouped case.
 C++ new-carrier support is not claimed; issue #1250 owns that follow-up.
 `core_ir_version` and R16 protocol stay unchanged; exact `contract_revision`
 continues to pin evidence. Syntax support implies no optional execution claim.

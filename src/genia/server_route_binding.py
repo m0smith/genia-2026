@@ -259,14 +259,15 @@ def assemble_route_handler(
 
 
 def _is_exact_one_argument_handler(value: Any) -> bool:
-    """Accept only a function group with one fixed arity-1 GeniaFunction arm.
+    """Accept only a function group with one fixed arity-1 identifier-header GeniaFunction arm.
 
-    Extra arities and rest parameters fail without invoking the handler.
+    Extra arities, extra same-arity records, pattern/guard headers and rest parameters
+    fail without invoking the handler.
     """
 
     if not isinstance(value, GeniaFunctionGroup) or value.sorted_arities() != [1]:
         return False
-    function = value.get(1)
+    function = value.single_plain_record()
     return isinstance(function, GeniaFunction) and function.rest_param is None
 
 

@@ -1,0 +1,19 @@
+name: model-b-c-hdr-block-prefix-multi-call
+id: model-b-c-hdr-block-prefix-multi-call
+category: eval
+description: "Slice C RED (#1269): C1"
+input:
+  source: |-
+    f(x) { print("prefix"); k = x + 1; n ? n < k -> x | _ -> 0 }
+    [f(1), f(2)]
+expected:
+  stdout: |
+    prefix
+    prefix
+    [1, 2]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="prefix\nprefix\n[1, 2]\n" stderr="" exit=0.

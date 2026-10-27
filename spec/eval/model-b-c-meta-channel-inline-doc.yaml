@@ -1,0 +1,19 @@
+name: model-b-c-meta-channel-inline-doc
+id: model-b-c-meta-channel-inline-doc
+category: eval
+description: "Slice C RED (#1269): contract 5.1 channel 2 (inline docstring, shared through the alias)"
+requires: [doc_help]
+input:
+  source: |-
+    f(x) = "inline" x
+    a = f
+    [doc("f"), doc("a")]
+expected:
+  stdout: |
+    ["inline", "inline"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="[\"inline\", \"inline\"]\n" stderr="" exit=0.

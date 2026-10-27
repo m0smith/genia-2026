@@ -1,0 +1,577 @@
+{
+ "capability": "supported",
+ "cases": [
+  {
+   "id": "model-b-c-ann-installed-clause-visible-via-alias",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-ann-later-annotation-suppressed",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-ann-old-metadata-retained",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-ann-pattern-clause-variants",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-ann-prior-effects-persist",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-ann-repl-recovery",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-d8-earlier-pattern-miss-continues",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-d8-forward-collision",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-d8-grouped-decl-one-key",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-d8-legacy-identical-header-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-d8-prefix-and-capture",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-d8-r20-flattening-unchanged",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-d8-reverse-collision",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-d8-terminal-grouped-miss",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-case-miss-identity",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-case-miss-pattern-group",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-duplicate-pattern-header",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-fixed-and-varargs-same-arity",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-fixed-over-varargs",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-no-clause-ambiguity-single-unit",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-no-matching-function",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-no-matching-function-new-group",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-p5-migration-drop-lower",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-p5-migration-fixed-clause",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-p5-varargs-minima-ambiguity",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-disp-p7-same-arity-ambiguity",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-block-prefix-miss",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-block-prefix-multi-call",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-block-prefix-once",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-grouped-body-captures-header",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-guard-error",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-guard-evaluated-once",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-guard-order",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-matcher-outcome",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-hdr-recursion-tco",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-imm-declare-after-function",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-imm-rebind-as-function",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-imm-rebind-as-pattern-function",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-alpha-equivalent-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-free-name-syntactic",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-guard-alpha-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-guard-differs-ok",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-lambda-shadow-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-lambda-shadow-outer-slot-distinct",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-legacy-dup-id",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-named-matcher-distinct",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-named-matcher-same-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-no-effects",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-one-vs-one-point-zero",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-quote-names-are-data",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-r20-delta-one-float",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-r20-delta-true-one",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-rest-binders-legacy-duplicate",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-same-binary64-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-spelling-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-true-vs-one",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-unquote-active-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-unquote-nested-active-dup",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-key-unquote-nested-quoted-distinct",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-command-mode",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-explicit-call-dispatches",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-explicit-call-miss",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-g1-fixed-plus-rest-same-minimum",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-g1-legacy-rest-plus-pattern-arity1",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-g1-main1-plus-pattern-arity1-legacy-first",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-g1-main1-plus-pattern-arity1-pattern-first",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-g1-mixed-main0-plus-pattern",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-g1-mixed-main1-plus-pattern",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-legacy-main0-fallback",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-legacy-main1-preferred",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-legacy-rest-main-selected",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-multi-pattern-group-not-selected",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-no-qualifying",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-pattern-command-mode",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-pattern-guard-not-evaluated",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-pattern-not-selected",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-repl-never-selects",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-repl-pattern-never-selects",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-test-mode-unchanged",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-main-wildcard-not-selected",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-alias-no-copy",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-binding-doc-merge",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-channel-alias-only",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-channel-binding-doc",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-channel-inline-doc",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-conflicting-inline-doc-before-install",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-inline-doc-body-runs",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-inline-doc-shared-via-alias",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-newer-key-overwrites",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-pattern-clause-annotations",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-meta-three-channel-trio",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-mode-command-pattern-program",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-mode-file-pattern-program",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-mode-import-pattern-program",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-mode-repl-failed-declaration-leaves-group",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-alias-sees-later-arity",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-call-before-later-clause",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-immutable-alias-stays-live",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-lambda-factory-distinct",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-noncontiguous-arities",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-noncontiguous-pattern",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-pattern-after-plain",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-persistent-arities",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-persistent-env",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-open-repl-alias-sees-later-arity",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-opt-delegation-to-aware-callee",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-opt-err-pipeline-value-short-circuits",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-opt-none-pattern-in-group-dispatches",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-opt-other-arity-clause-not-aware",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-opt-pipe-lift",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-opt-plain-identity-none",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-optim-collection-recursion",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-optim-late-declaration",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-alias-annotation-not-evaluated",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-alias-call-live",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-entry-prelude-name",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-explicit-open-alias-unchanged",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-extend-ordinary-rejected",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-immutable-alias-live",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-import-inert",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-imported-alias-rejected",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-local-alias-owner-still-extendable",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-local-alias-pattern-clause",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-local-alias-rejected",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-local-alias-state-after-rejection",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-local-alias-varargs",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-two-modules-independent",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-own-use-ordinary-base-unchanged",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-err",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-first-match-wins",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-fixed-miss-no-varargs-fallthrough",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-fixed-miss-two-args-varargs",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-guard-sees-header-binding",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-guard-selects",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-list-rest",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-literal-base-case",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-map",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-match-local-shadows-outer",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-named-matcher",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-some",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-string-body-is-body",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-pat-wildcard",
+   "kind": "pass"
+  },
+  {
+   "id": "model-b-c-stage-closed-rejected",
+   "kind": "pass"
+  }
+ ]
+}

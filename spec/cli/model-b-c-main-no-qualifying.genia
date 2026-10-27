@@ -1,0 +1,3 @@
+main(a, b) = { print("main2"); 12 }
+print("top")
+42

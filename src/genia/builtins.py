@@ -3218,17 +3218,14 @@ def make_global_env(
         return f"{span.filename}:{span.line}"
 
     def _format_function_shapes(group: GeniaFunctionGroup) -> str:
-        shapes: list[str] = []
-        for arity in group.sorted_arities():
-            fn_value = group.get(arity)
-            if fn_value is None:
-                continue
-            suffix = "+" if fn_value.rest_param is not None else ""
-            shapes.append(f"{arity}{suffix}")
+        """Render the distinct clause shapes ascending by arity (`1, 2, 3+`) or `unknown` when none."""
+        shapes = [f"{count}{'+' if kind == 'varargs' else ''}" for kind, count in group.shapes()]
+        shapes.sort(key=lambda text: (int(text.rstrip("+")), text.endswith("+")))
         return ", ".join(shapes) if shapes else "unknown"
 
     def _group_span(group: GeniaFunctionGroup) -> SourceSpan | None:
-        spans = [fn.span for fn in group.values() if isinstance(fn, GeniaFunction) and fn.span is not None]
+        """Earliest recorded declaration span among the group's records, else None."""
+        spans = [fn.span for fn in group.records if isinstance(fn, GeniaFunction) and fn.span is not None]
         if not spans:
             return None
         return min(spans, key=lambda s: (s.line, s.column, s.end_line, s.end_column))

@@ -1,0 +1,4 @@
+main(a, ..r) = { print("rest"); 12 }
+main(["--x"]) = { print("pattern"); 2 }
+print("top")
+42

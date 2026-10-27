@@ -713,7 +713,7 @@ Pipeline (Phase 2) evaluation model:
   execution (an exact argv, no shell, no PATH search) under a portable
   contract currently implemented by Python. Neither wraps or replaces the
   other.
-### Model B declarations (Partial: `=:` bindings execute; closed/pattern forms parse/lower only)
+### Model B declarations (Partial: `=:` and default-open functions execute; closed forms parse/lower only)
 
 LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`; consecutive
 same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
@@ -740,11 +740,12 @@ overwrite it.
 Immutability is shallow; Ref/Cell mutation, parameter assignment, `=` and entry write-through are unchanged.
 
 PYTHON REFERENCE HOST: an Env-owned policy enforces `=:` under one lock never held across user code.
-Closed and pattern-header evaluation fails with
+Pattern/guard declarations execute as default-open clauses (`default_open_functions`,
+`GENIA_RULES.md` 8.5.1): first match in declaration order, duplicate keys rejected,
+alias or imported declarations fail with `function-declaration-not-owner`. Closed `f(...) =: body` evaluation fails with
 `model-b-not-implemented` before initializer/annotation/guard/body effects.
-Default-open dispatch, linking and closed publication remain unimplemented.
-Unfinished `=:` keeps REPL input incomplete; completed submissions cannot extend
-earlier groups. C++ lacks `=:` (known gap `immutable_bindings`: genia-2026#1261; parser/lowering genia-cpp#50).
+Linking and closed publication remain unimplemented.
+Unfinished `=:` keeps REPL input incomplete; completed submissions never extend earlier groups. C++ lacks `=:` (gap `immutable_bindings`: genia-2026#1261) and default-open functions (#1269).
 
 ## 4) Functions and dispatch
 
@@ -774,16 +775,7 @@ earlier groups. C++ lacks `=:` (known gap `immutable_bindings`: genia-2026#1261;
     """ x + 1
     ```
   - docstrings are metadata, not runtime body expressions
-  - function bodies may still use the ordinary parenthesized case-expression style after a docstring
-    - example:
-      ```genia
-      sign(n) = """
-      # sign
-      """ (
-        0 -> 0 |
-        _ -> 1
-      )
-      ```
+  - function bodies may still use the parenthesized case-expression style after a docstring
   - for multi-clause named functions: zero docstrings = undocumented; one docstring total = valid; repeated identical docstrings = valid; conflicting docstrings raise a clear `TypeError`
 - prefix annotations now attach metadata to bindings
   - supported built-in annotations are:
@@ -806,7 +798,7 @@ earlier groups. C++ lacks `=:` (known gap `immutable_bindings`: genia-2026#1261;
   - `@test` annotations are discovered by the native test runner; `@test` does not execute by itself and does not affect language evaluation behavior outside native test mode; see section 9.2
 - resolution behavior:
   - exact fixed arity beats varargs
-  - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
+  - varargs candidates with different minima raise `TypeError("Ambiguous function resolution")`
 - named accessor (phase 1):
   - `lhs.name` is the canonical narrow named-access form; it is not general field-path lookup
   - legacy `lhs/name` compatibility has been removed
@@ -1896,6 +1888,7 @@ Behavior:
 - arity coercion is not performed by the entrypoint selector:
   - only exact `main/1` or exact `main/0` are auto-invoked
   - if neither exists, no entrypoint call is attempted
+- `main` auto-runs only for a plain identifier-header group (distinct arities)
 ### Refs
 
 R25 portability status: the observable Ref behavior in this section is the
@@ -2941,7 +2934,7 @@ Implemented tail-call/runtime behavior:
 
 Other implemented optimizations:
 
-- specialized nth-style list traversal rewrite to `IrListTraversalLoop` for a narrow recognized recursion shape
+- specialized nth-style `IrListTraversalLoop` rewrite with restricted admission and retained-case fallback
 
 Core IR shape includes:
 
@@ -3621,9 +3614,8 @@ PYTHON REFERENCE HOST (MCP adapter):
 - `language` is fixed except `contract_revision` (the launch revision). Its members are
   `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`,
   `examples` and `discovery`. Executable `gcd` and `factorial` examples return `6`
-  and `120`. `idioms.clauses` requires explicit `open` for executable pattern
-  dispatch; `name =: expr` executes (section 3); Model B pattern/guard
-  headers and closed `f(...) =: body` reject evaluation with `model-b-not-implemented`.
+  and `120`. `idioms.clauses` runs pattern clauses by default; `name =: expr` executes (section 3);
+  closed `f(...) =: body` rejects evaluation with `model-b-not-implemented`.
 - `idioms.pipelines`, `idioms.outcomes` and `idioms.flow` restate sections 2, 3,
   5 and 6: validated pipelines, Outcome lifting/short-circuiting and explicit
   recovery, lazy single-use Flow, bounded terminals and explicit stdin adaptation.

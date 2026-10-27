@@ -1,0 +1,17 @@
+name: model-b-c-disp-p5-migration-drop-lower
+id: model-b-c-disp-p5-migration-drop-lower
+category: eval
+description: "Slice C RED (#1269): D1 migration"
+input:
+  source: |-
+    f(a, b, ..s) = "min2"
+    f(1, 2)
+expected:
+  stdout: |
+    "min2"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="\"min2\"\n" stderr="" exit=0.

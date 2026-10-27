@@ -1,0 +1,20 @@
+name: model-b-c-opt-other-arity-clause-not-aware
+id: model-b-c-opt-other-arity-clause-not-aware
+category: eval
+description: "Slice C RED (#1269): C-OPT; r20-option twin"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(0) = "zero"
+    f(a, b) = (some(y), z) -> y
+    f(x) = "ran"
+    [f(none) == none]
+expected:
+  stdout: |
+    [true]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

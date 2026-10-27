@@ -1,0 +1,20 @@
+name: model-b-c-own-immutable-alias-live
+id: model-b-c-own-immutable-alias-live
+category: eval
+description: "Slice C RED (#1269): Slice B"
+requires: [immutable_bindings]
+input:
+  source: |-
+    f(x) = x
+    a =: f
+    f(x, y) = x + y
+    a(1, 2)
+expected:
+  stdout: |
+    3
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="3\n" stderr="" exit=0.
