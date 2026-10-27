@@ -46,6 +46,7 @@ ARGS = [0, 7, 3]
 
 
 def _expected(order):
+    """Reference model: for each argument in `ARGS`, the first label in `order` whose matcher accepts it."""
     results = []
     for arg in ARGS:
         results.append(next(label for label in order if CLAUSES[label][1](arg)))
@@ -140,6 +141,7 @@ def test_two_clauses_of_one_shape_cannot_be_held_by_the_legacy_arity_table_today
 
 
 def _dispatch(store: str, order, arg):
+    """Reference dispatch under a candidate store model (`ordered-records` is the honest one; the others are deliberately wrong); returns the first matching label or `None`."""
     matchers = [(label, CLAUSES[label][1]) for label in order]
     if store == "ordered-records":
         pass

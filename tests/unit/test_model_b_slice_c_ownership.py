@@ -37,6 +37,7 @@ LEAKS = re.compile(r"0x[0-9a-fA-F]+|/[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+|\.genia|<f
 
 
 def _declare(env, source: str):
+    """Run `source` in `env` under the `<command>` filename and return its result."""
     return genia.run_source(source, env, filename="<command>")
 
 
@@ -94,6 +95,7 @@ def test_ordinary_group_is_not_an_extend_or_use_target_today(tmp_path):
 
 @pytest.fixture
 def sealed():
+    """Fixture: an environment whose entry scope owns immutable binding `x`, so tests can attempt to extend it."""
     env, _ = fresh_env()
     runtime = env
     entry = runtime.create_entry_scope() if getattr(runtime, "_entry", None) is None else runtime._entry

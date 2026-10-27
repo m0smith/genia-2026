@@ -80,6 +80,7 @@ TEST_ACCEPTS = {
 
 
 def _map(**fields: object) -> GeniaMap:
+    """Build an immutable `GeniaMap` by putting each keyword field in order."""
     value = GeniaMap()
     for key, item in fields.items():
         value = value.put(key, item)
@@ -87,6 +88,7 @@ def _map(**fields: object) -> GeniaMap:
 
 
 def _group(source: str, name: str):
+    """Run `source` in a fresh environment and return the `GeniaFunctionGroup` bound to `name`; fails if the binding is not a group."""
     env, _printed = fresh_env()
     genia.run_source(source, env, filename="consumers.genia")
     value = env.get(name)

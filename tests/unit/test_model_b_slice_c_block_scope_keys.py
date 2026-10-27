@@ -18,6 +18,7 @@ from tests.unit.model_b_slice_c_support import dispatch_key
 
 
 def key(text: str) -> tuple:
+    """Dispatch key of the first clause of the `open` declaration `text`."""
     source = f"open {text}"
     node = lower_program(Parser(lex(source), source=source, filename="<command>").parse_program())[0]
     clause = node.clauses[0]
@@ -72,6 +73,7 @@ def test_keying_does_not_execute_initializers_or_annotations(monkeypatch):
     calls: list[str] = []
 
     def trap(self, *args, **kwargs):
+        """Stand-in for an Evaluator method: records the call and fails the test, proving key derivation never evaluates IR."""
         calls.append("evaluated")
         raise AssertionError("key generation must not evaluate IR")
 
@@ -115,6 +117,7 @@ def test_codex_reproducer_rejects_renamed_guard_local_duplicate_and_keeps_group(
 
 
 def _annotated_guard(local: str, reference: str, init: str = "x") -> ir.IrBlock:
+    """Guard block that declares `local` (initialized from `init`) with a `meta` annotation referencing `reference`, then yields true."""
     return ir.IrBlock(
         [
             ir.IrImmutableBind(
@@ -131,6 +134,7 @@ PAT = IrPatTuple([IrPatBind("x")])
 
 
 def _k(guard):
+    """Dispatch key of pattern `PAT` with the given guard."""
     return open_dispatch_key(PAT, guard)
 
 
@@ -151,6 +155,7 @@ def test_annotation_reference_to_header_variable_stays_header_bound():
 
 def test_sequential_annotated_declarations():
     def two(first: str, second: str, ref: str) -> ir.IrBlock:
+        """Guard block with two annotated declarations: `first` annotated with itself, `second` initialized from `first` and annotated with `ref`."""
         return ir.IrBlock(
             [
                 ir.IrImmutableBind(first, ir.IrVar("x"), annotations=[ir.IrAnnotation("meta", ir.IrVar(first))]),
@@ -174,6 +179,7 @@ def test_annotation_shadowing_and_scope_restoration():
     assert _k(shadow) == _k(renamed)
     # after the block the annotation binder is out of scope again: a trailing `a` is free.
     def after(trailing: str) -> ir.IrBlock:
+        """Block holding the annotated guard followed by a reference to `trailing`, which is free once the inner block has ended."""
         return ir.IrBlock([_annotated_guard("a", "a"), ir.IrVar(trailing)])
 
     assert _k(after("a")) == _k(after("a"))
@@ -181,6 +187,7 @@ def test_annotation_shadowing_and_scope_restoration():
 
 
 def _install(env, evaluator, guard, body_value):
+    """Evaluate a pattern function definition for `g` with `PAT`, `guard` and a literal body; returns the evaluation result."""
     node = ir.IrPatternFuncDef("g", PAT, guard, ir.IrLiteral(body_value))
     return evaluator.eval(node)
 
@@ -210,10 +217,12 @@ def test_annotation_effects_distinguish_bound_from_free_references():
     from tests.unit.model_b_slice_c_support import fresh_env
 
     def run(local_a: str, ref_a: str, local_b: str, ref_b: str):
+        """Declare two annotated pattern clauses of `g` and call `g(1)`; returns `(per-clause 'installed' or exception class name, printed annotation effects)`."""
         env, printed = fresh_env()
         genia.run_source("record = (v) -> { print(v); {} }\na = -1", env, filename="<command>")
 
         def guard(local, ref):
+            """Guard block that declares `local` from `x` with a `meta` annotation calling `record(ref)`."""
             return ir.IrBlock(
                 [
                     ir.IrImmutableBind(local, ir.IrVar("x"), annotations=[ir.IrAnnotation("meta", ir.IrCall(ir.IrVar("record"), [ir.IrVar(ref)]))]),

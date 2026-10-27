@@ -35,17 +35,20 @@ from tests.unit.model_b_slice_c_support import build_clause_record, dispatch_key
 
 
 def _clause(text: str):
+    """Lower one `open ...` declaration and return its first clause without evaluating it."""
     source = f"open {text}"
     node = lower_program(Parser(lex(source), source=source, filename="<command>").parse_program())[0]
     return node.clauses[0]
 
 
 def key(text: str) -> tuple:
+    """Dispatch key of the first clause of the `open` declaration `text`."""
     clause = _clause(text)
     return dispatch_key(clause.pattern, clause.guard)
 
 
 def same(a: str, b: str) -> bool:
+    """True when two `open` declarations produce equal dispatch keys, i.e. would be duplicate clauses."""
     return key(a) == key(b)
 
 
@@ -55,6 +58,7 @@ class _Unrenderable:
     renders = 0
 
     def __repr__(self) -> str:  # pragma: no cover - the assertion is that it is never called
+        """Render the object; the counter lets tests assert that key derivation never calls this."""
         type(self).renders += 1
         return "<unrenderable 0xDEADBEEF>"
 
@@ -63,6 +67,7 @@ class _Unrenderable:
 
 @pytest.fixture(autouse=True)
 def _reset_renders():
+    """Autouse fixture: reset `_Unrenderable.renders` so each test observes only its own render attempts."""
     _Unrenderable.renders = 0
     yield
 
@@ -238,6 +243,7 @@ def test_building_a_clause_record_evaluates_neither_guard_nor_pattern_today():
 
 def test_unrelated_value_types_are_not_a_fallback_for_unknown_ir_classes():
     class Fake(ir.IrNode):  # not a lowered IR class: no key may be derived from its repr
+        """IR node subclass the lowering never produces; key derivation must reject it rather than key off its repr."""
         pass
 
     pattern = IrPatTuple([IrPatBind("x")])

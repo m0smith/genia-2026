@@ -1,3 +1,6 @@
+# Slice C fixture: a `main` group made only of pattern-headed clauses is not selected as the entry point.
+# Expected: only the top-level statements run; neither pattern clause executes.
+@doc "Pattern-headed `main` clauses for `[\"a\"]` and `[\"b\"]`; a pattern-only group is never run by entry selection."
 main(["a"]) = { print("A"); 1 }
 main(["b"]) = { print("B"); 2 }
 print("top")

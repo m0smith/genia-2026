@@ -1,3 +1,6 @@
+# Slice C fixture (decision G1): a matching pattern-headed arity-1 `main` declared before legacy `main/1`.
+# Expected: declaration order does not matter; the mixed group is ineligible for entry selection.
+@doc "Pattern-headed `main([\"--x\"])` declared first, grouped with legacy `main(args)`; ineligible for entry selection."
 main(["--x"]) = { print("pattern"); 2 }
 main(args) = { print("legacy"); 1 }
 print("top")

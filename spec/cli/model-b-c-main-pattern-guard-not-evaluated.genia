@@ -1,4 +1,8 @@
+# Slice C fixture: a guarded pattern-headed `main` is not selected, so its guard is never evaluated.
+# Expected: neither `guard-ran` nor `body` is printed.
+@doc "Guard probe that prints `guard-ran` and returns true; visible output proves the guard was evaluated."
 ping() = { print("guard-ran"); true }
+@doc "Guarded `main(args)` clause whose guard calls `ping()`; its body prints `body` and returns 1 if ever run."
 main(args) ? ping() = { print("body"); 1 }
 print("top")
 42

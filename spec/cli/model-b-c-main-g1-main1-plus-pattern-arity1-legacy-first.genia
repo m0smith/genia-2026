@@ -1,3 +1,6 @@
+# Slice C fixture (decision G1): legacy `main/1` declared before a matching pattern-headed arity-1 `main`.
+# Expected: the mixed group is not eligible for entry selection, so no `main` clause runs.
+@doc "Legacy `main(args)` declared first, grouped with a pattern-headed arity-1 clause; ineligible for entry selection."
 main(args) = { print("legacy"); 1 }
 main(["--x"]) = { print("pattern"); 2 }
 print("top")

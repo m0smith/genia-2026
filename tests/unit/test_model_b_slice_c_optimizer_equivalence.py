@@ -20,6 +20,7 @@ from tests.unit.model_b_slice_c_support import fresh_env
 
 
 def _run(source: str, *, optimize: bool):
+    """Evaluate `source` with or without `optimize_program`; returns `(printed output, rendered result or 'Error: ...' text)`. Exceptions are captured because their text is the compared datum."""
     env, printed = fresh_env()
     try:
         nodes = lower_program(Parser(lex(source), source=source, filename="<command>").parse_program())
@@ -32,6 +33,7 @@ def _run(source: str, *, optimize: bool):
 
 
 def _rewritten(source: str) -> bool:
+    """True when, after optimization, some top-level node's body is an `IrListTraversalLoop`, i.e. the fast path was admitted."""
     nodes = optimize_program(lower_program(Parser(lex(source), source=source, filename="<command>").parse_program()))
     return any(isinstance(getattr(n, "body", None), ir.IrListTraversalLoop) for n in nodes)
 
@@ -92,6 +94,7 @@ TAIL = "pick(n - 1, rest)"
 
 
 def _pick(recur_pattern: str, call: str, tail: str = TAIL) -> str:
+    """Build a `pick/2` program with the canonical first two arms, the given recursive arm and tail, then the call text `call`."""
     return (
         "pick(n, xs) = (_, []) -> nil | (0, [x, .._]) -> x | "
         f"{recur_pattern} -> {tail}\n{call}"
@@ -171,6 +174,7 @@ def test_canonical_fast_path_still_taken_when_binding_is_stable():
 def test_canonical_fast_path_does_not_fall_back_to_the_retained_case(monkeypatch):
     """Non-vacuity: a stable canonical program must not reach the ordered-case evaluator."""
     def no_case(self, *args, **kwargs):
+        """Replacement for `Evaluator.eval_case_expr` that fails the test if the retained case is ever evaluated."""
         raise AssertionError("retained case evaluated on the canonical fast path")
 
     monkeypatch.setattr(Evaluator, "eval_case_expr", no_case)
@@ -182,6 +186,7 @@ def test_rebound_callee_does_reach_the_retained_case(monkeypatch):
     original = Evaluator.eval_case_expr
 
     def spy(self, *args, **kwargs):
+        """Wrap `Evaluator.eval_case_expr`, recording each call and delegating to the original."""
         reached.append(True)
         return original(self, *args, **kwargs)
 
@@ -196,6 +201,7 @@ from genia.numeric_runtime import _numeric_resource_limit_test_seam  # noqa: E40
 
 
 def _run_limited(source: str, *, optimize: bool, max_bits: int | None = None):
+    """`_run`, optionally under a numeric bit-width resource limit when `max_bits` is given."""
     if max_bits is None:
         return _run(source, optimize=optimize)
     with _numeric_resource_limit_test_seam(max_bits=max_bits):
@@ -250,6 +256,7 @@ def test_numeric_audit_canonical_matches_unoptimized(call, max_bits):
 
 def test_integer_counter_keeps_the_fast_path(monkeypatch):
     def no_case(self, *args, **kwargs):
+        """Replacement for `Evaluator.eval_case_expr` that fails the test if the retained case runs for an Integer counter."""
         raise AssertionError("retained case evaluated for an Integer counter")
 
     monkeypatch.setattr(Evaluator, "eval_case_expr", no_case)
