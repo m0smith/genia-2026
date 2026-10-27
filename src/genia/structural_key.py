@@ -271,7 +271,8 @@ def _block_key(node: ir.IrBlock, scope: dict[str, int], depth: int) -> tuple:
 
     Each `IrImmutableBind` initializer is keyed in the scope visible before it; only
     afterwards does the binder receive a fresh ordinal (shadowing any earlier binding)
-    for the following expressions. The extended scope is local to the block, so the
+    for its declaration-owned annotations (the evaluator commits the binding before
+    evaluating them) and for the following expressions. The extended scope is local to the block, so the
     caller's scope is unchanged on exit. Nothing is evaluated.
     """
     current = scope
@@ -279,8 +280,8 @@ def _block_key(node: ir.IrBlock, scope: dict[str, int], depth: int) -> tuple:
     for expr in node.exprs:
         if type(expr) is ir.IrImmutableBind:
             initializer = _walk(expr.expr, current, depth)
-            annotations = _walk(expr.annotations, current, depth)
             current = _bind(current, [expr.name])
+            annotations = _walk(expr.annotations, current, depth)
             keys.append(("IrImmutableBind", ("BIND", current[expr.name]), initializer, annotations))
         else:
             keys.append(_walk(expr, current, depth))

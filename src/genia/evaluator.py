@@ -888,6 +888,7 @@ class Evaluator:
             isinstance(xs_value, list)
             and isinstance(n_value, (int, float))
             and not isinstance(n_value, bool)
+            and self._traversal_recursion_is_stable(fn_name, body)
         ):
             return self.eval_case_expr(args, body.case, fn_name)
 
@@ -917,6 +918,26 @@ class Evaluator:
                 return OPTION_NONE
             n_value = n_value - body.step_size
             xs_value = xs_value[body.step_size:]
+
+    def _traversal_recursion_is_stable(self, fn_name: str | None, body: IrListTraversalLoop) -> bool:
+        """True when the unoptimized recursive call would re-enter exactly this declaration.
+
+        The recursive call resolves `fn_name` through ordinary lookup at every step and
+        dispatches through the whole group. The fast path is equivalent only while that
+        lookup yields a group whose sole arity-2 fixed candidate is the function owning
+        `body`. No user code runs between steps (the recognized arms are pure), so one
+        check at entry covers the whole traversal. Anything else deoptimizes to the case.
+        """
+        if fn_name is None:
+            return False
+        try:
+            callee = self.env.get(fn_name)
+        except NameError:
+            return False
+        if not isinstance(callee, GeniaFunctionGroup):
+            return False
+        candidates = [record for record in callee.records if record.shape == ("fixed", 2)]
+        return len(candidates) == 1 and candidates[0].body is body
 
     def eval_case_expr(self, args: tuple[Any, ...], case_expr: IrCase, fn_name: str | None = None) -> Any:
         for clause in case_expr.clauses:

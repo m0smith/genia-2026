@@ -520,7 +520,8 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   header bindings and are not independent clauses.
 - Duplicates are rejected when declared (the group is unchanged): same shape and equal
   pattern/guard keys up to bound-variable spelling, including immutable declarations inside guard blocks
-  (initializer keyed before the binder enters scope; shadowing and free references stay distinct). Keys are typed (`true`, `1`, `1.0` differ), quoted
+  (initializer keyed before the binder enters scope, annotations and later expressions after it;
+  shadowing and free references stay distinct). Keys are typed (`true`, `1`, `1.0` differ), quoted
   syntax is data, only active unquotes are references, lambda parameters in a guard are
   alpha-normalized. Two identifier headers keep `Duplicate function definition: f/N`; any other
   duplicate is `open-function-duplicate-clause`. Fixed `f(a)` and varargs `f(a, ..r)` are distinct
@@ -541,13 +542,14 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   other arities are not consulted.
 - `main` is auto-run only when its whole group is identifier-header clauses with distinct required
   arities; otherwise the source result is kept silently. REPL declarations never run `main`.
-- The list-traversal rewrite is admitted only for exactly three guard-free arms in this order: an
-  unconstrained-counter empty-list arm returning `nil`, a literal-`0` head arm returning the head, and the
-  tail-recursive `n - 1` arm. Any other arm, order or constrained counter keeps the original ordered
-  clauses. An admitted function retains its unoptimized grouped case; the fast path runs only for a
-  numeric (non-Boolean) counter and a list, every other call evaluates the retained case. Evidence is
-  an optimizer-on/off comparison over the shapes in `tests/unit/test_model_b_slice_c_optimizer_equivalence.py`,
-  not a general proof for other programs.
+- The list-traversal rewrite is admitted only when the guard-free function has exactly three arms in this
+  order: an empty-list arm with a wildcard/binder counter returning `nil`, a literal-`0` head arm
+  returning the head, and a recursive arm `(n, [_ or fresh head, ..rest]) -> f(n - 1, rest)` whose
+  binders are pairwise distinct and differ from `f` and the parameters. Anything else keeps the ordered
+  clauses. An admitted function retains its grouped case; the fast path runs only for a numeric
+  (non-Boolean) counter, a list, and a recursion that still resolves `f` to a group whose sole arity-2
+  candidate is this declaration; otherwise the retained case runs. Evidence is the optimizer-on/off
+  comparisons in `tests/unit/test_model_b_slice_c_optimizer_equivalence.py`, not a general proof.
 - Implementation: `GeniaFunctionGroup` holds ordered records, the arity table is a derived index, an
   `(module identity, defining name)` owner identifies the declaring binding, and
   `src/genia/structural_key.py` is the one pure key walker. Closed `=:` functions, cross-module

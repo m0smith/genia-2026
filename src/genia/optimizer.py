@@ -173,6 +173,19 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
         return fn
     if not (isinstance(xs_arg, IrVar) and xs_arg.name == rest_name):
         return fn
+    # The recursive arm must impose no constraint beyond the list shape: a wildcard or
+    # fresh-binder head, and counter/head/rest binders that are pairwise distinct (a repeated
+    # binder is an equality constraint the fast path would skip).
+    head_pat = recur_xs_pat.items[0]
+    if not isinstance(head_pat, (IrPatWildcard, IrPatBind)):
+        return fn
+    binders = [recur_n_pat.name, rest_name] + ([head_pat.name] if isinstance(head_pat, IrPatBind) else [])
+    if len(set(binders)) != len(binders):
+        return fn
+    # The recursive call must resolve `fn.name` to the declared function: no header or arm binder
+    # may shadow it. Rebinding at runtime is checked by the evaluator before the fast path.
+    if fn.name in binders or fn.name in fn.params:
+        return fn
 
     return IrFuncDef(
         fn.name,

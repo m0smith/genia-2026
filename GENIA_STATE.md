@@ -2934,7 +2934,7 @@ Implemented tail-call/runtime behavior:
 
 Other implemented optimizations:
 
-- specialized nth-style list traversal rewrite to `IrListTraversalLoop` for a narrow recognized recursion shape
+- specialized nth-style `IrListTraversalLoop` rewrite with restricted admission and retained-case fallback
 
 Core IR shape includes:
 
