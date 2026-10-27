@@ -1,0 +1,673 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "scope": "public-only clean dependency replay; benchmark gates unchanged",
+  "baseline": {
+    "source_commit": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+    "artifact_commit": "7f47be9c802edb86af8b7225a85798d3ab69cf32",
+    "lock_sha256": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+    "pyproject_sha256": "cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc",
+    "initial_venv_exists": false,
+    "initial_project_cache_exists": false,
+    "os": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "architecture": "x86_64"
+  },
+  "tools": {
+    "uv": "0.13.5",
+    "uv_binary_sha256": "8a70db72685b7138121bfcda71fa1a00cb709ed9f1fdc4ecf1dd871e8e167e52",
+    "python": "CPython 3.12.15",
+    "python_binary_sha256": "0886fb76ceec8ff568d23079b5da6342bb41675e216e11525d4d6a9e65988d10",
+    "git": "git version 2.52.0",
+    "distribution": "Debian GNU/Linux 13.6 (trixie)",
+    "kernel": "6.18.55",
+    "architecture": "x86_64",
+    "libc": "glibc 2.41",
+    "uv_bootstrap": {
+      "bootstrap_tool": "uv 0.12.23",
+      "argv": [
+        "uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--no-cache",
+        "--target",
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv",
+        "--python",
+        "/workspace/work/issue-1285-lock-remediation/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12",
+        "uv==0.13.5"
+      ],
+      "exit_code": 0,
+      "duration_seconds": null,
+      "duration_note": "Not separately measured; installation-stage monotonic timing recorded separately.",
+      "cache_policy": "--no-cache, separate bootstrap target; not the project package cache"
+    }
+  },
+  "installation": {
+    "argv": [
+      "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+      "--no-config",
+      "sync",
+      "--locked",
+      "--no-python-downloads",
+      "--python",
+      "/workspace/work/issue-1285-lock-remediation/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12",
+      "--default-index",
+      "https://pypi.org/simple",
+      "--link-mode",
+      "copy"
+    ],
+    "cwd": "/workspace/work/issue-1285-clean-replay/source",
+    "uv_version": "uv 0.13.5 (x86_64-unknown-linux-gnu)",
+    "python_version": "Python 3.12.15",
+    "before": {
+      "uv.lock": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+      "pyproject.toml": "cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc"
+    },
+    "after": {
+      "uv.lock": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+      "pyproject.toml": "cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc"
+    },
+    "exit_code": 0,
+    "duration_seconds": 6.357556776987622,
+    "initial_venv_exists": false,
+    "initial_package_cache_exists": false,
+    "cache_policy": "new initially absent package-cache; separate uv bootstrap cache",
+    "network": "allowed for public pinned package artifacts and isolated build dependencies",
+    "user_site_disabled": true,
+    "pythonpath_inherited": false,
+    "configuration": "uv --no-config, explicit index matching approved lock",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "b01e634904ed04d3589c9ea4280980e24fa96208fad4ebbefc0e56c758e536d6"
+  },
+  "installed_environment": {
+    "python": "3.12.15 (main, Oct  3 2026, 01:03:07) [Clang 22.1.3 ]",
+    "prefix": "/workspace/work/issue-1285-clean-replay/source/.venv",
+    "base_prefix": "/workspace/work/issue-1285-lock-remediation/python/cpython-3.12.15-linux-x86_64-gnu",
+    "enable_user_site": false,
+    "sys_path": [
+      "",
+      "/workspace/work/issue-1285-lock-remediation/python/cpython-3.12.15-linux-x86_64-gnu/lib/python312.zip",
+      "/workspace/work/issue-1285-lock-remediation/python/cpython-3.12.15-linux-x86_64-gnu/lib/python3.12",
+      "/workspace/work/issue-1285-lock-remediation/python/cpython-3.12.15-linux-x86_64-gnu/lib/python3.12/lib-dynload",
+      "/workspace/work/issue-1285-clean-replay/source/.venv/lib/python3.12/site-packages",
+      "/workspace/work/issue-1285-clean-replay/source/src"
+    ],
+    "packages": [
+      {
+        "name": "babel",
+        "version": "2.18.0"
+      },
+      {
+        "name": "backrefs",
+        "version": "8.1"
+      },
+      {
+        "name": "certifi",
+        "version": "2026.10.23"
+      },
+      {
+        "name": "charset-normalizer",
+        "version": "3.5.2"
+      },
+      {
+        "name": "click",
+        "version": "8.5.0"
+      },
+      {
+        "name": "colorama",
+        "version": "0.4.6"
+      },
+      {
+        "name": "coverage",
+        "version": "7.17.0"
+      },
+      {
+        "name": "execnet",
+        "version": "2.1.2"
+      },
+      {
+        "name": "genia",
+        "version": "0.1.14"
+      },
+      {
+        "name": "ghp-import",
+        "version": "2.1.0"
+      },
+      {
+        "name": "idna",
+        "version": "3.20"
+      },
+      {
+        "name": "iniconfig",
+        "version": "2.3.1"
+      },
+      {
+        "name": "Jinja2",
+        "version": "3.1.6"
+      },
+      {
+        "name": "Markdown",
+        "version": "3.11.2"
+      },
+      {
+        "name": "MarkupSafe",
+        "version": "3.0.4"
+      },
+      {
+        "name": "mergedeep",
+        "version": "1.3.4"
+      },
+      {
+        "name": "mkdocs",
+        "version": "1.6.1"
+      },
+      {
+        "name": "mkdocs-get-deps",
+        "version": "0.2.2"
+      },
+      {
+        "name": "mkdocs-material",
+        "version": "9.8.0"
+      },
+      {
+        "name": "mkdocs-material-extensions",
+        "version": "1.3.1"
+      },
+      {
+        "name": "packaging",
+        "version": "26.3"
+      },
+      {
+        "name": "paginate",
+        "version": "0.5.7"
+      },
+      {
+        "name": "pathspec",
+        "version": "1.1.1"
+      },
+      {
+        "name": "platformdirs",
+        "version": "4.13.5"
+      },
+      {
+        "name": "pluggy",
+        "version": "1.7.0"
+      },
+      {
+        "name": "Pygments",
+        "version": "2.21.0"
+      },
+      {
+        "name": "pymdown-extensions",
+        "version": "12.3"
+      },
+      {
+        "name": "pytest",
+        "version": "9.1.1"
+      },
+      {
+        "name": "pytest-cov",
+        "version": "7.1.0"
+      },
+      {
+        "name": "pytest-xdist",
+        "version": "3.8.0"
+      },
+      {
+        "name": "python-dateutil",
+        "version": "3.0.0"
+      },
+      {
+        "name": "PyYAML",
+        "version": "6.0.3"
+      },
+      {
+        "name": "pyyaml_env_tag",
+        "version": "1.1"
+      },
+      {
+        "name": "requests",
+        "version": "2.34.2"
+      },
+      {
+        "name": "ruff",
+        "version": "0.15.18"
+      },
+      {
+        "name": "six",
+        "version": "1.17.0"
+      },
+      {
+        "name": "tree-sitter",
+        "version": "0.25.2"
+      },
+      {
+        "name": "tree-sitter-bash",
+        "version": "0.25.1"
+      },
+      {
+        "name": "tree-sitter-cpp",
+        "version": "0.23.4"
+      },
+      {
+        "name": "tree-sitter-rust",
+        "version": "0.24.2"
+      },
+      {
+        "name": "tree-sitter-typescript",
+        "version": "0.23.2"
+      },
+      {
+        "name": "tzdata",
+        "version": "2026.5"
+      },
+      {
+        "name": "urllib3",
+        "version": "2.8.0"
+      },
+      {
+        "name": "watchdog",
+        "version": "6.0.0"
+      }
+    ]
+  },
+  "build_cache_additional_metadata": [
+    {
+      "name": "editables",
+      "version": "0.6",
+      "metadata_sha256": "3911cfe29cec3de216d1f8c776c551c77821daa1a46408da4bb745614840bb83"
+    },
+    {
+      "name": "hatchling",
+      "version": "1.32.4",
+      "metadata_sha256": "528714963680f0a6518efd3ccadccfc2e8b4c9a6a82be0f71372dc9b0a9defe4"
+    },
+    {
+      "name": "tomlkit",
+      "version": "0.15.2",
+      "metadata_sha256": "a2e59805b99c14685196efea6e2f17438853c9f18658a9b98370a883abcb2963"
+    },
+    {
+      "name": "trove-classifiers",
+      "version": "2026.9.21.13",
+      "metadata_sha256": "ca7e96493232b21f92aeccf456b2e01f1d4dbcaa8e17a9e1b5e6f03c6eb7461f"
+    }
+  ],
+  "build_cache_note": "Observed metadata, not complete isolated-build inventory or wheel artifact hashes; hatchling requirement unpinned.",
+  "initial_archive_checks": [
+    {
+      "name": "inventory",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "python",
+        "-c",
+        "import importlib.metadata as m,json,site,sys; print(json.dumps({\"python\":sys.version,\"prefix\":sys.prefix,\"base_prefix\":sys.base_prefix,\"enable_user_site\":site.ENABLE_USER_SITE,\"sys_path\":sys.path,\"packages\":sorted([{\"name\":d.metadata[\"Name\"],\"version\":d.version} for d in m.distributions()],key=lambda d:d[\"name\"].lower())},indent=2))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.09245032499893568,
+      "stdout_sha256": "e6c49c026e3d7004f171ae3818a360c7bc3d0d9f74b772605f8becd906014788",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 3716,
+      "stderr_bytes": 0,
+      "classification": "PASS"
+    },
+    {
+      "name": "instructions",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "python",
+        "tools/validate_llm_instructions.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.02067890399484895,
+      "stdout_sha256": "6f757a248bd5c405b5909f9950536f37ce13ef00f97fff5816223048d4f7fe3a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 35,
+      "stderr_bytes": 0,
+      "classification": "PASS"
+    },
+    {
+      "name": "function-docs",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "python",
+        "tools/gen_function_docs.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.2833316550095333,
+      "stdout_sha256": "60df1547818c86b627e7ca4cbf7419bec82aeff25e5bfa411f48cf615e6eeaa1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 34,
+      "stderr_bytes": 0,
+      "classification": "PASS"
+    },
+    {
+      "name": "doc-lint",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "python",
+        "tools/lint_doc.py",
+        "--scan-dir",
+        "src/genia/std/prelude",
+        "--require-coverage"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.09727989901148248,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2ef95836d37aaa36ee7b56f6ef3d339dd717ac83d35c26eb5382601f992b9e34",
+      "stdout_bytes": 0,
+      "stderr_bytes": 87,
+      "classification": "PASS"
+    },
+    {
+      "name": "validated-demo",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "python",
+        "-m",
+        "genia.interpreter",
+        "examples/validated_pipeline_demo.genia"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.1377323889901163,
+      "stdout_sha256": "a76be749d35e336e7fc95720eba9309ed83a0a9835a895d6731aaf6f50e74b4f",
+      "stderr_sha256": "b32fa5119d5f634d16b797777218093575a0c739d80b6a4c50da9493e73a2362",
+      "stdout_bytes": 863,
+      "stderr_bytes": 200,
+      "classification": "PASS"
+    },
+    {
+      "name": "regression-not-loopback",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-n",
+        "auto",
+        "-q",
+        "-m",
+        "not loopback"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 122.5676831939927,
+      "stdout_sha256": "f21a61075719acfa2555ff2da7b202226b65917c9f9955a0924fa880ea5de070",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1605179,
+      "stderr_bytes": 0,
+      "counts": {
+        "passed": 6387,
+        "skipped": 60,
+        "failed": 478,
+        "errors": 238
+      },
+      "classification": "FAIL"
+    },
+    {
+      "name": "regression-loopback",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-n",
+        "auto",
+        "-q",
+        "-m",
+        "loopback"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 4.483243675000267,
+      "stdout_sha256": "3a5f4f653241194199ceeb2fa4bd1b567f814dc5e7a6acd77b03487f5e2142ac",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 142,
+      "stderr_bytes": 0,
+      "counts": {
+        "passed": 31,
+        "skipped": 0,
+        "failed": 0,
+        "errors": 0
+      },
+      "classification": "PASS"
+    }
+  ],
+  "git_metadata_correction": {
+    "initial_export_git_present": false,
+    "reason": "Existing MCP/spec revision plumbing requires git rev-parse HEAD.",
+    "commands": [
+      "git init --initial-branch=replay",
+      "git fetch --depth=1 https://github.com/m0smith/genia-2026.git 9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+      "git reset --mixed 9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90"
+    ],
+    "head": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+    "source_modified": false,
+    "tests_modified": false,
+    "dependencies_resynchronized": false
+  },
+  "observed_resources": {
+    "cpu_max": "200000 100000",
+    "memory_max": 8589934592,
+    "pytest_auto_workers": 2,
+    "worker_override": "PYTEST_XDIST_AUTO_NUM_WORKERS=2",
+    "limits_are_candidate_equivalence_proof": false
+  },
+  "raw_log_manifest": {
+    "bootstrap.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "bootstrap.stderr": {
+      "bytes": 601,
+      "sha256": "c5664b5db271ffcf272f99258670f721ef44d2e04f3a710bc5c5d6ede34555f5"
+    },
+    "install.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "install.stderr": {
+      "bytes": 1661,
+      "sha256": "b01e634904ed04d3589c9ea4280980e24fa96208fad4ebbefc0e56c758e536d6"
+    },
+    "archive-regression-not-loopback.stdout": {
+      "bytes": 1605179,
+      "sha256": "f21a61075719acfa2555ff2da7b202226b65917c9f9955a0924fa880ea5de070"
+    },
+    "archive-regression-loopback.stdout": {
+      "bytes": 142,
+      "sha256": "3a5f4f653241194199ceeb2fa4bd1b567f814dc5e7a6acd77b03487f5e2142ac"
+    },
+    "inventory.stdout": {
+      "bytes": 3716,
+      "sha256": "e6c49c026e3d7004f171ae3818a360c7bc3d0d9f74b772605f8becd906014788"
+    },
+    "instructions.stdout": {
+      "bytes": 35,
+      "sha256": "6f757a248bd5c405b5909f9950536f37ce13ef00f97fff5816223048d4f7fe3a"
+    },
+    "function-docs.stdout": {
+      "bytes": 34,
+      "sha256": "60df1547818c86b627e7ca4cbf7419bec82aeff25e5bfa411f48cf615e6eeaa1"
+    },
+    "doc-lint.stderr": {
+      "bytes": 87,
+      "sha256": "2ef95836d37aaa36ee7b56f6ef3d339dd717ac83d35c26eb5382601f992b9e34"
+    },
+    "validated-demo.stdout": {
+      "bytes": 863,
+      "sha256": "a76be749d35e336e7fc95720eba9309ed83a0a9835a895d6731aaf6f50e74b4f"
+    },
+    "validated-demo.stderr": {
+      "bytes": 200,
+      "sha256": "b32fa5119d5f634d16b797777218093575a0c739d80b6a4c50da9493e73a2362"
+    },
+    "regression-not-loopback.stdout": {
+      "bytes": 9747,
+      "sha256": "c59515b2e9b9cff2a02a6700d9c0013d3d23c7f11d10d07696bf22428b03b4f1"
+    },
+    "regression-loopback.stdout": {
+      "bytes": 142,
+      "sha256": "0abc1ab8d03799959654b5c11fa04f1d198e346fbe4d3af035afb6ba997fbae1"
+    },
+    "targeted-lifecycle.stdout": {
+      "bytes": 1844,
+      "sha256": "74ee2ab7ec4c97f3402b5c0f879f457c5ac325a2c6bf0ab9bd640ff6fde9f3d8"
+    },
+    "targeted-lifecycle.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "remaining_limitations": [
+    "Not a hermetic/allowlisted host environment",
+    "Unpinned isolated build backend and incomplete backend artifact provenance",
+    "No image build, offline second install, or independent image replay",
+    "No candidate resource/isolation/custody verification",
+    "No hidden material, independent oracle, candidates or comparative trials"
+  ],
+  "corrected_git_checks": [
+    {
+      "name": "regression-not-loopback",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-n",
+        "auto",
+        "-q",
+        "-m",
+        "not loopback"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 420.776606030995,
+      "stdout_sha256": "c59515b2e9b9cff2a02a6700d9c0013d3d23c7f11d10d07696bf22428b03b4f1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 9747,
+      "stderr_bytes": 0,
+      "counts": {
+        "passed": 7102,
+        "skipped": 60,
+        "failed": 1,
+        "errors": 0
+      },
+      "classification": "FAIL"
+    },
+    {
+      "name": "regression-loopback",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-n",
+        "auto",
+        "-q",
+        "-m",
+        "loopback"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 4.349044453003444,
+      "stdout_sha256": "0abc1ab8d03799959654b5c11fa04f1d198e346fbe4d3af035afb6ba997fbae1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 142,
+      "stderr_bytes": 0,
+      "counts": {
+        "passed": 31,
+        "skipped": 0,
+        "failed": 0,
+        "errors": 0
+      },
+      "classification": "PASS"
+    }
+  ],
+  "targeted_lifecycle_diagnostic": {
+    "argv": [
+      "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+      "--no-config",
+      "run",
+      "--offline",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--showlocals",
+      "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 60.458683912002016,
+    "stdout_sha256": "74ee2ab7ec4c97f3402b5c0f879f457c5ac325a2c6bf0ab9bd640ff6fde9f3d8",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "counts": {
+      "passed": 0,
+      "failed": 1
+    },
+    "classification": "FAIL"
+  },
+  "final_integrity": {
+    "source_commit": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+    "tracked_blob_count": 2457,
+    "mismatches": [],
+    "git_status": "",
+    "lock_sha256": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+    "pyproject_sha256": "cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc"
+  },
+  "installed_inventory_unchanged_after_tests": true,
+  "corrected_combined_counts": {
+    "passed": 7133,
+    "skipped": 60,
+    "failed": 1,
+    "errors": 0
+  },
+  "failure_test": "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind",
+  "post_failure_process_observations": [
+    {
+      "captured_identity_slot": 1,
+      "identity_still_present": true,
+      "state": "Z",
+      "parent_pid": 1
+    },
+    {
+      "captured_identity_slot": 2,
+      "identity_still_present": false
+    }
+  ],
+  "assessment": {
+    "lock_integrity": "PASS",
+    "lock_source_compatibility": "PASS",
+    "fresh_dependency_installation": "PASS",
+    "public_documentation_checks": "PASS",
+    "public_full_regression": "FAIL",
+    "validated_pipeline_demo": "PASS",
+    "immutable_complete_environment": "NOT TESTED",
+    "public_frozen_runner_preparation_gate": "NO-GO",
+    "benchmark_gates": "NO-GO"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "proposed_reviewed_pair_not_merged",
+  "status": "merged_source_lock_pair",
   "scope": "issue-1285-public-experiment-only",
   "artifact": {
     "path": "BENJAMIN.lock",
@@ -263,5 +263,15 @@
     "dependency_sync_performed": false,
     "benchmark_gates": "NO-GO for hidden materials, independent oracle, candidate implementations and comparative trials",
     "budget": "$0 incremental spending; no paid service provisioned or billing setting changed"
-  }
+  },
+  "historical_validation_scope": "The validation object records original pre-merge lock-check evidence only; subsequent clean-install evidence is linked separately.",
+  "followup_evidence": [
+    {
+      "date": "2026-10-27",
+      "path": "clean-replay-evidence.json",
+      "report": "../../../process/issue-1285-clean-dependency-replay.md",
+      "scope": "public-only clean dependency replay; no benchmark gate discharge",
+      "result": "Fresh dependency installation PASS; public regression FAIL (one reproduced lifecycle cleanup failure); public frozen-runner preparation NO-GO."
+    }
+  ]
 }
