@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "status": "proposed_reviewed_pair_not_merged",
+  "scope": "issue-1285-public-experiment-only",
+  "artifact": {
+    "path": "BENJAMIN.lock",
+    "sha256": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+    "bytes": 284838,
+    "original_upload_filename": "genia-uv-lock-BENJAMIN.lock",
+    "original_bytes_preserved": true,
+    "owner_attestation": "User supplied as verified original; matches SHA-256 previously recorded on issue #1285. Host generation command/time not independently attested."
+  },
+  "source": {
+    "repository": "https://github.com/m0smith/genia-2026",
+    "commit": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+    "pyproject_toml_sha256": "cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc",
+    "requires_python": ">=3.10",
+    "root_package": "genia",
+    "root_version": "0.1.14",
+    "root_source": {
+      "editable": "."
+    },
+    "artifact_usage": "Copy lock bytes into uv.lock only in a new disposable export of this source; never overwrite a live checkout lock."
+  },
+  "comparison": {
+    "other_origin": "Existing ignored local lock from the Codex execution workspace; preserved before remediation. Not selected.",
+    "other_sha256": "c9543edd814d8ab75fc668908ca48cdfafe94d536a74e56266258a7f219e1ba7",
+    "other_bytes": 243688,
+    "benjamin_package_entries": 51,
+    "other_package_entries": 48,
+    "benjamin_unique_names": 47,
+    "other_unique_names": 46,
+    "shared_distribution_identities": 44,
+    "shared_identity_artifact_lists_equal": true,
+    "identity_key": [
+      "name",
+      "version",
+      "source"
+    ],
+    "changed_package_variants": {
+      "certifi": {
+        "benjamin": [
+          {
+            "version": "2026.10.23",
+            "markers": [],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ],
+        "other": [
+          {
+            "version": "2026.7.22",
+            "markers": [],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ]
+      },
+      "coverage": {
+        "benjamin": [
+          {
+            "version": "7.16.2",
+            "markers": [
+              "python_full_version < '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          },
+          {
+            "version": "7.17.0",
+            "markers": [
+              "python_full_version >= '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ],
+        "other": [
+          {
+            "version": "7.16.2",
+            "markers": [],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ]
+      },
+      "markdown": {
+        "benjamin": [
+          {
+            "version": "3.10.3",
+            "markers": [
+              "python_full_version < '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          },
+          {
+            "version": "3.11.2",
+            "markers": [
+              "python_full_version >= '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ],
+        "other": [
+          {
+            "version": "3.10.3",
+            "markers": [
+              "python_full_version < '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          },
+          {
+            "version": "3.11.1",
+            "markers": [
+              "python_full_version >= '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ]
+      },
+      "mkdocs-material": {
+        "benjamin": [
+          {
+            "version": "9.7.7",
+            "markers": [
+              "python_full_version < '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          },
+          {
+            "version": "9.8.0",
+            "markers": [
+              "python_full_version >= '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ],
+        "other": [
+          {
+            "version": "9.7.7",
+            "markers": [],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ]
+      },
+      "platformdirs": {
+        "benjamin": [
+          {
+            "version": "4.12.4",
+            "markers": [
+              "python_full_version < '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          },
+          {
+            "version": "4.13.5",
+            "markers": [
+              "python_full_version >= '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ],
+        "other": [
+          {
+            "version": "4.12.4",
+            "markers": [
+              "python_full_version < '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          },
+          {
+            "version": "4.13.3",
+            "markers": [
+              "python_full_version >= '3.11'"
+            ],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ]
+      },
+      "python-dateutil": {
+        "benjamin": [
+          {
+            "version": "3.0.0",
+            "markers": [],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ],
+        "other": [
+          {
+            "version": "2.9.0.post0",
+            "markers": [],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ]
+      },
+      "tzdata": {
+        "benjamin": [
+          {
+            "version": "2026.5",
+            "markers": [],
+            "source": {
+              "registry": "https://pypi.org/simple"
+            }
+          }
+        ],
+        "other": []
+      }
+    }
+  },
+  "validation": {
+    "date": "2026-10-27",
+    "python": "CPython 3.12.15",
+    "python_binary_sha256": "0886fb76ceec8ff568d23079b5da6342bb41675e216e11525d4d6a9e65988d10",
+    "uv": "0.12.23",
+    "reported_owner_uv": "0.13.5 (earlier owner report; not encoded in lock)",
+    "command_template": "uv lock --check --offline --no-python-downloads --python \"$python_31215\"",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr_summary": "Using CPython 3.12.15; Resolved 51 packages",
+    "lock_unchanged": true,
+    "pyproject_unchanged": true,
+    "root_requirement_metadata_matches_pyproject": true,
+    "linux_cpython_31215_active_graph_entries": 47,
+    "active_dependency_references_unique": true,
+    "fresh_install_verified": false,
+    "artifact_downloads_verified": false,
+    "image_verified": false
+  },
+  "boundaries": {
+    "root_uv_lock_policy_changed": false,
+    "regenerated": false,
+    "dependency_sync_performed": false,
+    "benchmark_gates": "NO-GO for hidden materials, independent oracle, candidate implementations and comparative trials",
+    "budget": "$0 incremental spending; no paid service provisioned or billing setting changed"
+  }
+}
