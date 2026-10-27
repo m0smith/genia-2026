@@ -544,10 +544,12 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   arities; otherwise the source result is kept silently. REPL declarations never run `main`.
 - The list-traversal rewrite is admitted only when the guard-free function has exactly three arms in this
   order: an empty-list arm with a wildcard/binder counter returning `nil`, a literal-`0` head arm
-  returning the head, and a recursive arm `(n, [_ or fresh head, ..rest]) -> f(n - 1, rest)` whose
+  returning the head, and a recursive arm `(n, [_ or fresh head, ..rest]) -> f(n - 1, rest)` (Integer
+  literal `1`; `n - 1.0` is not admitted) whose
   binders are pairwise distinct and differ from `f` and the parameters. Anything else keeps the ordered
-  clauses. An admitted function retains its grouped case; the fast path runs only for a numeric
-  (non-Boolean) counter, a list, and a recursion that still resolves `f` to a group whose sole arity-2
+  clauses. An admitted function retains its grouped case; the fast path runs only for an Integer
+  counter (Float64, Decimal, Rational and Boolean counters run the retained case, preserving mixed-domain
+  type errors and resource limits), a list, and a recursion that still resolves `f` to a group whose sole arity-2
   candidate is this declaration; otherwise the retained case runs. Evidence is the optimizer-on/off
   comparisons in `tests/unit/test_model_b_slice_c_optimizer_equivalence.py`, not a general proof.
 - Implementation: `GeniaFunctionGroup` holds ordered records, the arity table is a derived index, an

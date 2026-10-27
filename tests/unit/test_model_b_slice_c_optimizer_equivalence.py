@@ -188,3 +188,69 @@ def test_rebound_callee_does_reach_the_retained_case(monkeypatch):
     monkeypatch.setattr(Evaluator, "eval_case_expr", spy)
     assert _run(REBIND, optimize=True) == ("", "99")
     assert reached
+
+
+# --- N1/N2: numeric-domain equivalence (Codex checkpoint 6452663432) -----------------------
+
+from genia.numeric_runtime import _numeric_resource_limit_test_seam  # noqa: E402
+
+
+def _run_limited(source: str, *, optimize: bool, max_bits: int | None = None):
+    if max_bits is None:
+        return _run(source, optimize=optimize)
+    with _numeric_resource_limit_test_seam(max_bits=max_bits):
+        return _run(source, optimize=optimize)
+
+
+FLOAT_COUNTER = CANONICAL + "pick(float64(1), [7, 8])"
+DECIMAL_DECREMENT = CANONICAL.replace("n - 1", "n - 1.0") + "pick(-255, [7, 8])"
+DECIMAL_DECREMENT_OK = CANONICAL.replace("n - 1", "n - 1.0") + "pick(1, [7, 8])"
+
+
+def test_float64_counter_matches_mixed_domain_rejection():
+    on, off = _run(FLOAT_COUNTER, optimize=True), _run(FLOAT_COUNTER, optimize=False)
+    assert on == off
+    assert "type-error" in off[1] and on[1] != "8"
+
+
+def test_decimal_decrement_hits_the_same_resource_limit():
+    on = _run_limited(DECIMAL_DECREMENT, optimize=True, max_bits=8)
+    off = _run_limited(DECIMAL_DECREMENT, optimize=False, max_bits=8)
+    assert on == off
+    assert "numeric-resource-limit" in off[1]
+
+
+def test_decimal_decrement_at_the_production_bound_matches():
+    huge = -(2**14000)
+    source = CANONICAL.replace("n - 1", "n - 1.0") + f"pick({huge}, [7, 8])"
+    assert _run(source, optimize=True) == _run(source, optimize=False)
+    assert "numeric-resource-limit" in _run(source, optimize=False)[1]
+
+
+@pytest.mark.parametrize("source", [DECIMAL_DECREMENT, DECIMAL_DECREMENT_OK])
+def test_decimal_decrement_literal_is_not_admitted(source):
+    assert not _rewritten(source)
+    assert _run(source, optimize=True) == _run(source, optimize=False)
+
+
+NUMERIC_CALLS = [
+    "pick(0, [7])", "pick(1, [7, 8])", "pick(2, [7, 8, 9])", "pick(5, [1])", "pick(-1, [7])",
+    "pick(-255, [7, 8])", "pick(0, [])", "pick(3, [])", "pick(1.5, [7, 8])", "pick(0.0, [7])",
+    "pick(1.0, [7, 8])", "pick(float64(0), [7])", "pick(float64(2), [7, 8, 9])", "pick(float64(-1), [7])",
+    "pick(true, [7, 8])", "pick(1/2, [7, 8])", "pick(2/1, [7, 8, 9])", "pick(10 ** 3, [7])",
+]
+
+
+@pytest.mark.parametrize("call", NUMERIC_CALLS)
+@pytest.mark.parametrize("max_bits", [None, 8])
+def test_numeric_audit_canonical_matches_unoptimized(call, max_bits):
+    source = CANONICAL + call
+    assert _run_limited(source, optimize=True, max_bits=max_bits) == _run_limited(source, optimize=False, max_bits=max_bits)
+
+
+def test_integer_counter_keeps_the_fast_path(monkeypatch):
+    def no_case(self, *args, **kwargs):
+        raise AssertionError("retained case evaluated for an Integer counter")
+
+    monkeypatch.setattr(Evaluator, "eval_case_expr", no_case)
+    assert _run(CANONICAL + "pick(1, [7, 8])", optimize=True) == ("", "8")

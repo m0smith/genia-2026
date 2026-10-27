@@ -50,15 +50,15 @@ else:
 
 
 def _is_integer_literal_one(value: object) -> bool:
-    """True when an IrLiteral value denotes the Integer literal 1.
+    """True only for the typed Integer literal 1.
 
-    Handles both the R21 E21-2 tagged payload shape and (defensively) a
-    bare numeric value, without introducing any new numeric comparison
-    semantics beyond this existing tail-recursion-shape detection.
+    The decrement must be an Integer-kind payload: a Decimal `1.0` is numerically equal to 1
+    but `n - 1.0` runs Decimal arithmetic (and its resource checks), which the Integer fast
+    path does not reproduce. A bare Python 1 is accepted defensively; Booleans and floats are not.
     """
     if isinstance(value, dict):
-        return numeric_literal_runtime_value(value) == 1
-    return value == 1
+        return value.get("kind") == "integer" and numeric_literal_runtime_value(value) == 1
+    return type(value) is int and value == 1
 
 
 def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list[IrNode]:

@@ -63,3 +63,34 @@ Optimizer equivalence is evidenced by the on/off comparisons above, not proven i
 | Exact-18 parity pytest | `uv run pytest tests/spec/test_python_protocol_adapter_parity_762.py` | exit 0, 1 passed (521 s) |
 | Ruff 0.15.18 / strict MkDocs | `uv run ruff check .` / `uv run python -m mkdocs build --strict` | exit 0 / exit 0 |
 Not run: the full unit+doc selection was not re-run after the test-only harness fix; the rest of `tests/spec` and any whole-repository slow partition were not run in this round.
+
+---
+
+# Third repair round: numeric optimizer correctness (Codex checkpoint 6452663432)
+
+Starting commit: `f601b42ea745b39a3de970c45301be83da3d930f`. RED output: `issue-1269-n1n2-red-output.txt` (9 failed / 33 passed against `f601b42e`).
+
+## Violated numeric contract and RED reproductions
+- **N1 Float64.** `pick(float64(1), [7, 8])`: unoptimized `none("type-error", {source: "-", left: "float", right: "int"})` (ordinary `-` rejects mixed exact/Float64 operands), optimized `8`. The loop used Python `n - 1`. Also `float64(2)` and `float64(-1)` counters.
+- **N2 Decimal decrement.** `n - 1.0` was recognized as the decrement because `numeric_literal_runtime_value(Decimal 1.0) == 1`. With the private 8-bit resource seam and `pick(-255, [7, 8])`: unoptimized `numeric-resource-limit`, optimized `none("nil")`. The same divergence reproduced at the unchanged production bound with a counter of `-(2**14000)` (the control runs in well under a second).
+
+## Minimal changes
+- `optimizer.py::_is_integer_literal_one`: accepts only an Integer-kind literal payload (or a bare Python `int` 1); Decimal `1.0`, floats and Booleans are no longer a recognized decrement, so such functions keep their ordered clauses.
+- `evaluator.py::eval_list_traversal_loop`: the fast path requires `type(n_value) is int`. Float64, Decimal, Rational and Boolean counters run the retained case. For Python ints, `n - 1` is exactly what ordinary evaluation computes and has no resource check, so the whole traversal (not only the start) is equivalent. The unreachable `isinstance(n_value, (int, float))` re-check inside the loop is left as is.
+
+## Tests (`test_model_b_slice_c_optimizer_equivalence.py`, now 73 tests)
+N1 and N2 regressions (seam at 8 bits and the production-bound control), decimal-decrement non-admission, an 18-call by 2-limit numeric audit (integers, negatives, zero, floats, Float64, Boolean, rational, large power, empty list) comparing optimizer on/off, and a non-vacuity test that an Integer counter still never reaches `eval_case_expr`. Previously repaired R1/R2 files, A4 retention, Slice A, keys, optimizer-IR and `test_r22_misuse_resource_limits_894`: 353 passed together.
+
+## Documentation
+`GENIA_RULES.md` §8.5.1: Integer-literal decrement, and Integer-only fast path with the retained case for other numeric counters. `GENIA_STATE.md`, README, REPL README, semantic facts, MCP profile, host docs and roadmap: reviewed, no statement contradicted (none mention the numeric gate), so unchanged.
+
+## Third-round validation (commands actually run, final tree)
+| Check | Command | Result |
+|---|---|---|
+| Optimizer/R1/R2/retention/keys/R22 limits | `pytest` on the equivalence, block-scope, optimizer, retention, optimizer-regression, Slice A, keys, optimizer-IR and `test_r22_misuse_resource_limits_894` files | 353 passed |
+| Unit + doc | `uv run pytest tests/unit tests/doc -q -n auto` | exit 1: 7331 passed, 60 skipped, 1 failed: R28 `test_a_signal_to_the_client_launched_process_stops_the_entire_chain_and_cleans_up[SIGINT]` (separate R28 gate, not investigated; Codex established only a baseline discovery-cleanup failure) |
+| Shared in-process | `python -m tools.spec_runner` | exit 0, 1044 passed, 0 failed |
+| External adapter | `python -m tools.spec_runner --host "python -m hosts.python.protocol_adapter" --host-jobs 2 --host-timeout 120` | exit 0, 1026 passed, 18 unsupported, 0 other |
+| Exact-18 parity pytest (separate) | `uv run pytest tests/spec/test_python_protocol_adapter_parity_762.py` | exit 0, 1 passed (624 s) |
+| Docs / lint | `uv run pytest tests/doc -n auto`; `uv run ruff check .` (0.15.18); `uv run python -m mkdocs build --strict` | 397 passed, 35 skipped; all passed; exit 0 (an earlier mkdocs run launched while the test chain was running exited 1 and was not investigated; the rerun on an idle machine exited 0) |
+Not run: the rest of `tests/spec` and any whole-repository slow partition. Remaining separate gates are unchanged: code-documentation CI, C++ #53-#57, final-head CI/host parity, R28, #1251, Slice D/E, R29.

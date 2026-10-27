@@ -877,8 +877,9 @@ class Evaluator:
     ) -> Any:
         """Run the nth-style fast path for a numeric counter and list, else the retained case.
 
-        The loop is exact only when the counter is an int/float (not Boolean) and the second
-        argument is a list; any other call evaluates the original grouped case, so values,
+        The loop is exact only when the counter is an Integer (a Python int, not Boolean or Float64:
+        `n - 1` on a Float64 is a mixed-domain type error, and Decimal/Rational arithmetic has its own
+        resource checks) and the second argument is a list; any other call evaluates the original grouped case, so values,
         errors, effects and the terminal grouped miss agree with the unoptimized program.
         """
         values = dict(zip(params, args))
@@ -886,8 +887,7 @@ class Evaluator:
         xs_value = values.get(body.list_var)
         if body.case is not None and not (
             isinstance(xs_value, list)
-            and isinstance(n_value, (int, float))
-            and not isinstance(n_value, bool)
+            and type(n_value) is int
             and self._traversal_recursion_is_stable(fn_name, body)
         ):
             return self.eval_case_expr(args, body.case, fn_name)
