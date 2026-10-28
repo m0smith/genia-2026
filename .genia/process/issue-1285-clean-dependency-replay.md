@@ -308,3 +308,13 @@ remain in effect independently of the public-only runner-preparation verdict.
 process-reaping failure and propose a separately reviewed environment or lifecycle
 remediation supported by evidence. Do not freeze the runner as verified, weaken
 the test or begin benchmark work to work around it.
+
+## Follow-up: process-reaping remediation (2026-10-28)
+
+The historical failure above remains the result of that unchanged replay.
+The [subsequent investigation](issue-1285-reaping-investigation.md) identified
+fixture SIGKILL of its wrapper plus non-reaping PID 1, corrected fixture cleanup,
+and verified 7,136 passed / 60 skipped across both full-regression partitions.
+Public frozen-runner preparation may resume after review/merge; immutable image
+and independent custody/trial gates remain unverified. Original lock provenance
+and all benchmark NO-GO boundaries are unchanged.

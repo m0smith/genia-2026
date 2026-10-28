@@ -82,7 +82,7 @@ Initial EOF/SIGTERM/SIGKILL controls found that EOF and SIGTERM removed observed
 descendants, while SIGKILL orphaned the Genia launcher, which became a zombie
 after the host disappeared. A tool-selection detail was discovered: the nested
 configured command resolved uv 0.12.23 from PATH despite the outer verifier using
-0.13.5. Those original captures are retained; an explicit nested-uv-0.13.5
+0.13.5. The original A/B traces are retained (the controls were rerun and replaced); an explicit nested-uv-0.13.5
 comparison is required before attributing the effect independently of uv version.
 Initial diagnostic role labeling was corrected so a uv argv containing a launcher
 script is not itself mislabeled as the Python launcher; raw earlier trace is
@@ -92,10 +92,9 @@ Direct execution outside this container/under BENJAMIN is BLOCKED: no direct hos
 access is supplied. A proper init Docker image is NOT TESTED; the supported
 process-local subreaper comparison is evidence about reaping, not image validation.
 
-## Pending evidence, remediation and final gates
+## Executed evidence, remediation and final gates
 
-The controlled reference-uv comparisons, final classification, RED/implementation
-commits, broader tests and actual-commit review will be appended as executed.
+The controlled comparisons and remediation results follow below.
 No runtime defect is assumed. A PID-1 orphan and a process the runtime still owns
 are different responsibilities; a killed parent cannot reap, while a living
 subreaper/PID 1 can adopt and wait for an orphan.
@@ -104,3 +103,66 @@ Budget stays $0 incremental spending. No paid infrastructure/model/storage,
 billing change, manual CI dispatch or private material is involved. This is not
 authorization to ignore an unexplained failure or weaken the original assertion.
 All hidden-material/oracle/candidate/comparison NO-GO boundaries remain in force.
+
+## Controlled findings and remediation (2026-10-28)
+
+Classification: **MULTIPLE_CAUSES** — fixture ownership error plus a non-reaping
+container PID 1, not a demonstrated Genia runtime ownership defect. With both
+outer and nested uv fixed at 0.13.5, the unchanged test failed under ordinary
+supervision in 60.481503s and passed under a process-local subreaper in 0.912314s.
+Ordinary chain: pytest 21656 → uv 21662 → launcher 21665 → host 21667.
+After fixture SIGKILL of uv, launcher 21665 was adopted by PID 1 and became Z;
+the host disappeared. The tracer's wait returned ECHILD, confirming no custody.
+Under subreaper 21870, orphan launchers 21879 and 21886 were adopted and waited
+at exit status 0; no captured identity remained. PID/start-token identities,
+PPID/PGID/SID and state transitions are recorded in the
+[public evidence](../experiments/issue-1285/process-reaping/evidence.json).
+
+Supported-shutdown controls with the same nested uv: EOF exited 0 and removed
+descendants in 0.031531s; SIGTERM returned raw status 241 and removed descendants
+in 0.007358s. SIGKILL returned -9 and orphaned launcher 21912, which became Z
+under PID 1 after host 21914 disappeared. No interpretation of raw 241 is claimed.
+The diagnostic parent alone enabled Linux prctl PR_SET_CHILD_SUBREAPER (36, 1),
+verified PR_GET_CHILD_SUBREAPER (37), and used waitpid(-1) to reap adopted exits
+while supervising unchanged pytest. Ordinary mode did not enable adoption.
+This is an init-equivalent comparison, not a tested Docker image. Direct
+BENJAMIN/host execution remains unavailable; image/init verification is deferred.
+Complete raw traces/logs remain in this session's diagnosis workspace; selected
+ownership transitions and raw-file hashes/lengths are committed for review.
+
+RED commit `5b35386fd5d4d2b15e1afea346cac8371c741c63` added a real exceptional-
+context subprocess regression: it failed before correction (60.31s). Fix commit
+`38eb980ee5fc95bdad45f197543861c2c2eb6046` changes only the shared test fixture:
+request TERM, close stdin, wait up to 25 seconds, then kill and wait the direct
+command for up to 5 seconds. This retains the existing total 30-second budget.
+A real TERM-ignoring child regression verifies bounded fallback and pipe closure.
+No existing assertion, worker deadline, zombie detection or skip was weakened.
+Runtime/launcher code, authoritative semantics, CI and dependency lock are unchanged.
+
+GREEN: original target plus both regressions, 3 passed in 25.96s. The original
+target then passed five independent repetitions (0.82–0.88s wall each).
+Full two-worker regression: non-loopback 7,105 passed / 60 skipped (415.55s),
+loopback 31 passed (3.98s), total **7,136 passed / 60 skipped / 0 failures**.
+JUnit subsets include 23 lifecycle and 507 MCP conformance tests; these are
+included in the total, not additional independent executions. Documentation
+inventory, instruction validation, generated MCP profile check and changed-file
+Ruff all passed. Full commands, timings and log hashes are in evidence.json.
+Execution reused the approved clean 44-package environment without sync/install;
+uv 0.13.5, CPython 3.12.15 and original BENJAMIN lock were preserved.
+
+Independent maintainability review of actual implementation commit 38eb980e:
+PASS, no blocking or deferred findings. The reviewer checked ownership, signal/
+EOF behavior, fallback boundedness, callers and both real subprocess regressions.
+Final actual-commit evidence audit is recorded in the PR handoff after completion.
+
+#1226 applicability was checked: issue closed; comment 6368569494 records the
+five-observation pilot complete. No new observation was posted or policy extended.
+For this task Python/Linux process tooling is class D (another tool is better);
+no Genia substitution/comparison was made, and review time was not measured.
+
+**Gate:** GO only to resume public frozen-runner preparation. This does not
+verify an immutable image, package/backend/OS freeze, equal independent workers,
+identity isolation or private custody. All hidden-material/oracle/candidate/trial
+NO-GO boundaries remain. No paid service or manual workflow execution occurred.
+**Single next action:** owner review and merge of this narrow remediation before
+resuming public immutable-runner preparation and its independent replay gate.
