@@ -72,9 +72,12 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`78e61181a2c9ce32c33060b936b662c2f65ab2f0`, the independently reviewed
-implementation merged by [genia-cpp #58](https://github.com/m0smith/genia-cpp/pull/58)
-at `930ea94c0407ee3d150d131a05e1b5f27560e256`. It preserves the earlier
+`1af65fd2425526573f9ca765b3a027e37dfa5c74`, the independently reviewed
+comment-compatibility follow-up [genia-cpp #59](https://github.com/m0smith/genia-cpp/pull/59),
+based on [#58](https://github.com/m0smith/genia-cpp/pull/58) merged at
+`930ea94c0407ee3d150d131a05e1b5f27560e256`. It ignores # line comments outside
+strings, preserves diagnostic source lines and keeps annotations unsupported.
+It preserves the earlier
 Cell/Process quiescence correction and repairs ordinary header capture,
 duplicate/alias rejection, inline metadata, fixed-arity accumulation, complete
 semicolon-separated REPL submissions and parser-depth safety. No capability,

@@ -75,3 +75,18 @@ C++ is already merged; no temporary semantic gap is created by this ordering.
 GO for the explicitly authorized integration, 2026-10-28. Independent truth audit
 and required checks still gate acceptance. No self-approval, branch-protection
 bypass, #1270 main merge, semantic-foundation completion or R29 authorization.
+
+## Authorized compatibility follow-up
+
+Final integration testing found three ordinary main guards became unsupported
+because required fixture documentation introduced # comments. The pinned host
+also rejects @doc annotations; the same documentation is retained as existing
+inline function metadata in those fixtures. Oracles and applicability stay frozen.
+The user explicitly authorized a bounded C++ tokenizer follow-up, native RED/
+regression coverage, a new reviewed implementation pin, and independent Codex
+sub-agent review with posted evidence because GitHub Codex review quota is
+exhausted. New pin: 1af65fd2425526573f9ca765b3a027e37dfa5c74 (genia-cpp #59).
+Independent reviewer /root/cpp_comment_review returned PASS at that exact SHA.
+The local full suite restores 293 PASS / 751 UNSUPPORTED; hosted final-pin proof
+and final combined independent review still gate integration. This amendment
+changes no capability, oracle, normalizer, checker, baseline or process exception.
