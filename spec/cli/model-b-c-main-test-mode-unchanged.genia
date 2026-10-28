@@ -1,2 +1,5 @@
+# Slice C fixture: test mode runs only `test(...)` cases and does not invoke a pattern-headed `main`.
+# Expected: one passing test and no `main-ran` output.
 test("passes", () -> none)
+@doc "Pattern-headed `main([\"x\"])` that prints `main-ran` and returns 0 if ever run; test mode must not call it."
 main(["x"]) = { print("main-ran"); 0 }

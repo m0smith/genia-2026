@@ -32,10 +32,12 @@ class Outcome:
 
     @property
     def error_class(self) -> str | None:
+        """Class name of the raised exception, or `None` when evaluation produced a value."""
         return None if self.error is None else type(self.error).__name__
 
     @property
     def message(self) -> str | None:
+        """Text of the raised exception, or `None` when evaluation produced a value."""
         return None if self.error is None else str(self.error)
 
 
@@ -118,6 +120,7 @@ def reachable_case_clauses(root: Any) -> list[Any]:
     seen: set[int] = set()
 
     def visit(node: Any) -> None:
+        """Depth-first walk that descends lists, tuples and dataclass fields and records each `IrCaseClause` once, tracked by object identity."""
         if isinstance(node, (list, tuple)):
             for item in node:
                 visit(item)

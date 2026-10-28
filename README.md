@@ -12,6 +12,11 @@ The strongest end-to-end proof is the [validated pipeline demo](#run-the-validat
 
 > **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R27 production host with Ref, Cell, local Process, a scripted REPL, Bytes/UTF-8 plus strict JSON data bridges, Flow phase 1, and pipe mode. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
 
+The bounded C++ host preserves ordinary fixed-arity `main/1` then `main/0`
+selection in command/file mode and raw command arguments. Its scripted REPL
+evaluates complete semicolon-separated submissions without implicit `main`
+dispatch. These repairs do not implement Python Slice C's default-open functions.
+
 ## Model B declarations: partial support
 
 Python executes immutable `name =: expr` (optional capability `immutable_bindings`):

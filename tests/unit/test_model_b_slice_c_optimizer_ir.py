@@ -44,6 +44,7 @@ SOURCE_CASES = sorted(
 
 
 def _lowered(source: str, filename: str = "<command>"):
+    """Parse and lower `source` to Core IR without optimizing or evaluating it."""
     return lower_program(Parser(lex(source), source=source, filename=filename).parse_program())
 
 
@@ -62,6 +63,7 @@ def _run_ir(source: str, *, optimize: bool) -> tuple[str, str, int]:
 
 
 def _run_source(source: str) -> tuple[str, str, int]:
+    """Run `source` through the Python host and render `(stdout, stderr, exit code)` as the CLI does: errors become `Error: ...` with exit 1; `none('nil')` renders as nothing."""
     result = outcome(source)
     if result.error is not None:
         return "".join(result.printed), f"Error: {result.error}\n", 1
@@ -121,6 +123,7 @@ JOIN_SECONDS = 20.0
 
 
 def _run_threads(*targets) -> None:
+    """Run each target on its own daemon thread and assert all finish within `JOIN_SECONDS`, so a deadlock fails the test instead of hanging it."""
     threads = [threading.Thread(target=t, daemon=True) for t in targets]
     for thread in threads:
         thread.start()
@@ -135,7 +138,9 @@ def test_two_writers_declaring_the_same_pattern_key_publish_exactly_once():
     results: list[Any] = []
 
     def writer(source):
+        """Return a thread body that waits on the shared barrier, then evaluates `source` and appends its outcome to `results`."""
         def run():
+            """Wait on the barrier so both writers start together, then evaluate the captured source."""
             barrier.wait()
             results.append(outcome(source, env=env))
 
@@ -154,10 +159,12 @@ def test_declaration_racing_an_immutable_rebind_never_bypasses_the_policy():
     results: dict[str, Any] = {}
 
     def declare():
+        """Thread body: after the barrier, declare `f(0)` in the shared environment."""
         barrier.wait()
         results["declare"] = outcome('f(0) = "zero"', env=env)
 
     def bind():
+        """Thread body: after the barrier, immutably rebind `f` in the shared environment."""
         barrier.wait()
         results["bind"] = outcome("f =: 5", env=env)
 
@@ -174,6 +181,7 @@ def test_annotation_that_reenters_evaluation_neither_deadlocks_nor_loses_either_
     env, _ = fresh_env()
 
     def reenter_doc():
+        """Host `@doc` callback that evaluates a second declaration (`g(0)`) while the outer declaration's annotation is being evaluated."""
         genia.run_source('g(0) = "inner"', env)
         return "doc text"
 
@@ -181,6 +189,7 @@ def test_annotation_that_reenters_evaluation_neither_deadlocks_nor_loses_either_
     box: dict[str, Any] = {}
 
     def run():
+        """Thread body: evaluate the outer declaration whose `@doc` re-enters evaluation."""
         box["outcome"] = outcome('@doc reenter_doc()\nf(0) = "outer"', env=env)
 
     _run_threads(run)
@@ -193,6 +202,7 @@ def test_user_code_never_runs_while_the_binding_lock_is_held_for_legacy_annotati
     observed: list[bool] = []
 
     def probe_doc():
+        """Host `@doc` callback that records whether the binding lock was free when user code ran."""
         acquired = _BINDING_LOCK.acquire(blocking=False)
         if acquired:
             _BINDING_LOCK.release()
@@ -209,6 +219,7 @@ def test_user_code_never_runs_while_the_binding_lock_is_held_for_pattern_annotat
     observed: list[bool] = []
 
     def probe_doc():
+        """Host `@doc` callback that records whether the binding lock was free when user code ran."""
         acquired = _BINDING_LOCK.acquire(blocking=False)
         if acquired:
             _BINDING_LOCK.release()

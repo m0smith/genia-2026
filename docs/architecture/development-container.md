@@ -194,8 +194,12 @@ checkouts, then runs:
 6. the real shared conformance runner against `genia-adapter`
 
 Both this workflow and the host-parity workflow pin the C++ source checkout to
-`44456baea06b4bb7bdf727e39939dd7150261ee6` (merged `genia-cpp` #52),
-which corrects host-private Cell/Process staged-send quiescence. Changing that
+`1af65fd2425526573f9ca765b3a027e37dfa5c74`, the independently reviewed
+comment-compatibility follow-up in `genia-cpp` #59, based on merged #58. It
+accepts # line comments outside strings while preserving source lines and the
+bounded annotation rejection. It preserves the earlier Cell/Process
+quiescence correction and repairs existing supported function/REPL behavior
+and parser-depth safety without adding a capability. Changing that
 source pin does not change the adapter's declared semantic contract revision,
 `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. A run against newer main remains
 compatibility evidence; exact-contract conformance requires that declared

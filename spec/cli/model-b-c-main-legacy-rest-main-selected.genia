@@ -1,3 +1,6 @@
+# Slice C guard fixture: a lone legacy varargs `main(a, ..r)` is selected as the entry point.
+# Expected: `top`, then `mainrest`, then the entry result 12.
+@doc "Legacy varargs entry point that prints `mainrest` and returns 12."
 main(a, ..r) = { print("mainrest"); 12 }
 print("top")
 42

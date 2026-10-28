@@ -27,6 +27,7 @@ INTERPRETER = REPO_ROOT / "src" / "genia" / "interpreter.py"
 
 
 def _function_defs(tree: ast.AST) -> dict[str, ast.FunctionDef]:
+    """Map each function name in `tree` to its `ast.FunctionDef`; later definitions of the same name win."""
     return {n.name: n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
 
 

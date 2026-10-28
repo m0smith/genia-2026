@@ -341,6 +341,7 @@ CAPABILITY = "default_open_functions"
 
 
 def _load():
+    """Discover every shared spec once; returns `(specs, invalid)` exactly as `discover_specs` reports them."""
     specs, invalid = discover_specs()
     return specs, invalid
 

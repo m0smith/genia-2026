@@ -40,7 +40,7 @@ Browser playground adapter note:
 | CLI file mode | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | `genia path/to/file.genia` |
 | `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | command mode |
 | `-p` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | pipe mode; C++ (R27 E27-2) passes the 16 `requires: [cli_pipe_mode]` shared cases, with no trailing script arguments and no config/model/Template/`json_compat` pipelines |
-| REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | portable `repl` contract in `../design/r26-cpp-repl-contract.md`; C++ (R26-1) implements the scripted-session observations, declares `repl` supported, and passes the shared evidence; interactive terminal mechanics remain host-local |
+| REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | portable `repl` contract in `../design/r26-cpp-repl-contract.md`; C++ implements the scripted-session observations, including complete semicolon-separated submissions without implicit main dispatch, and declares `repl` supported; interactive terminal mechanics remain host-local |
 | Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | lazy pull-based single-use Flow; C++ (R27 E27-1, E27-5) passes the 37 `requires: [flow_phase_1]` shared cases; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan` and Flow display are not implemented in C++ |
 | configuration environment snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python snapshots `os.environ` only during explicit immutable provider construction; portable hosts may report capability unavailable; E13-7 verifies public portability wording |
 | configuration `.env` snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python reads bytes from one exact explicit path once during provider construction; portable hosts may report capability unavailable; E13-7 verifies public portability wording |
@@ -72,10 +72,16 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`44456baea06b4bb7bdf727e39939dd7150261ee6`, the merge of
-[genia-cpp #52](https://github.com/m0smith/genia-cpp/pull/52). This revision
-corrects host-private Cell/Process causal completion accounting for staged
-sends; it adds no capability, public wait API, protocol or language semantics.
+`1af65fd2425526573f9ca765b3a027e37dfa5c74`, the independently reviewed
+comment-compatibility follow-up [genia-cpp #59](https://github.com/m0smith/genia-cpp/pull/59),
+based on [#58](https://github.com/m0smith/genia-cpp/pull/58) merged at
+`930ea94c0407ee3d150d131a05e1b5f27560e256`. It ignores # line comments outside
+strings, preserves diagnostic source lines and keeps annotations unsupported.
+It preserves the earlier
+Cell/Process quiescence correction and repairs ordinary header capture,
+duplicate/alias rejection, inline metadata, fixed-arity accumulation, complete
+semicolon-separated REPL submissions and parser-depth safety. No capability,
+protocol or language semantics are added.
 
 The source revision is distinct from the adapter's declared semantic contract
 revision, `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. Runs using a newer

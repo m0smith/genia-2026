@@ -1,3 +1,6 @@
+# Slice C fixture (decision G1): legacy `main(a, ..r)` plus a matching pattern-headed arity-1 `main`.
+# Expected: the mixed group is not eligible for entry selection, so no `main` clause runs.
+@doc "Legacy varargs `main` grouped with a pattern-headed clause; the mixed group is ineligible for entry selection."
 main(a, ..r) = { print("rest"); 12 }
 main(["--x"]) = { print("pattern"); 2 }
 print("top")

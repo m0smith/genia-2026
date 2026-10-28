@@ -36,6 +36,7 @@ GREEN_CAPABILITY_MAP_NAMES = 36
 
 
 def _specs():
+    """Map every shared spec whose name starts with `model-b-c-` to its loaded spec object, keyed by name."""
     return {s.name: s for s in discover_specs()[0] if s.name.startswith("model-b-c-")}
 
 

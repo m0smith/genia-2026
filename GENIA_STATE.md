@@ -122,7 +122,7 @@ Scaffolded or planned, not implemented as hosts:
   declared `supported` only for the shared cases carrying the matching `requires:` capability. It is not Python feature parity; pinned
   evidence and gaps live in `docs/releases/R24.md` through `R27.md`, `spec/known_host_gaps.json`, and the host parity gate.
   - **Numeric subset:** see [bounded numeric support and gaps](https://github.com/m0smith/genia-2026/blob/main/docs/host-interop/numeric-host-status.md), sections 9.21/9.32.
-  - **Scripted REPL:** one environment retained across complete submissions, normalized failure reporting, recovery; interactive
+  - **Scripted REPL:** one environment retained across complete semicolon-separated submissions, normalized failure reporting, recovery; interactive
     prompt/banner/history stays host-local.
   - **Data bridge contract** (`docs/design/r26-cpp-data-bridge-contract.md`): `bytes_utf8` (`utf8_decode` for well-formed UTF-8 only; `<bytes N>`
     display) and `json_strict` (full grammar, nesting bounded at exactly 128 containers for decode and encode, duplicate-key rejection with the
@@ -130,8 +130,7 @@ Scaffolded or planned, not implemented as hosts:
     (`json_parse`/`json_stringify`/`json_pretty`/`parse_jsonl_record`, capability `json_compat`) is **not portable** and stays Python-host-only;
     ZIP is out of R26. `spec/manifest.json` declares `bytes_utf8`, `json_strict`, and `json_compat`.
   - **Flow phase 1 and pipe mode** (`flow_phase_1`, `cli_pipe_mode`): lazy single-use Flow with `lines`, `evolve`, `map`/`filter`/`take`/`drop`/
-    `scan`/`keep_some`/`each`, and `collect`/`run`/`reduce`. C++ limits: no trailing script arguments after `-p <expr>`; `argv()` only in pipe
-    mode; `upper`/`trim`/`parse_int` decide ASCII input only; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan`, Flow display, and a
+    `scan`/`keep_some`/`each`, and `collect`/`run`/`reduce`. C++ limits: no trailing script arguments after `-p <expr>`; file arguments unsupported; `upper`/`trim`/`parse_int` decide ASCII input only; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan`, Flow display, and a
     pipeline inside call arguments are unsupported; config/model/Template/JSON cross-release Flow and pipe cases stay Python-host-only.
   - The HTTP server and outbound HTTP are not part of the C++ floor; both remain Python-host-only with tracked C++ gaps.
 - **Python reference-host repairs recorded for the data bridge:** decoding or computing a Decimal whose `10 ** exponent` expansion would exceed the

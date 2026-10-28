@@ -546,7 +546,7 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   order: an empty-list arm with a wildcard/binder counter returning `nil`, a literal-`0` head arm
   returning the head, and a recursive arm `(n, [_ or fresh head, ..rest]) -> f(n - 1, rest)` (Integer
   literal `1`; `n - 1.0` is not admitted) whose
-  binders are pairwise distinct and differ from `f` and the parameters. Anything else keeps the ordered
+  binders are pairwise distinct; neither the arm binders nor the parameters shadow `f`. Anything else keeps the ordered
   clauses. An admitted function retains its grouped case; the fast path runs only for an Integer
   counter (Float64, Decimal, Rational and Boolean counters run the retained case, preserving mixed-domain
   type errors and resource limits), a list, and a recursion that still resolves `f` to a group whose sole arity-2

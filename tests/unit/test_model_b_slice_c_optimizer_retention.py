@@ -43,6 +43,7 @@ ZERO_PICK = NIL_PICK.replace("-> nil", "-> 0")  # the frozen shared-case spellin
 
 
 def _lowered(source: str):
+    """Parse and lower `source` to Core IR without optimizing or evaluating it."""
     return lower_program(Parser(lex(source), source=source, filename="<command>").parse_program())
 
 
@@ -57,10 +58,12 @@ def _arm_record(ordinal: int, clause: ir.IrCaseClause) -> tuple:
 
 
 def _arms(program: Any) -> list[tuple]:
+    """Ordered per-arm records for every case clause reachable from `program`."""
     return [_arm_record(i, c) for i, c in enumerate(_clauses(program))]
 
 
 def _run(source: str, *, optimize: bool) -> tuple[str, str, int]:
+    """Evaluate `source` with or without `optimize_program`; returns `(stdout, stderr, exit code)` with errors rendered as `Error: ...` and exit 1."""
     env, printed = fresh_env()
     try:
         nodes = _lowered(source)
