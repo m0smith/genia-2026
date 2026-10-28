@@ -72,10 +72,13 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`44456baea06b4bb7bdf727e39939dd7150261ee6`, the merge of
-[genia-cpp #52](https://github.com/m0smith/genia-cpp/pull/52). This revision
-corrects host-private Cell/Process causal completion accounting for staged
-sends; it adds no capability, public wait API, protocol or language semantics.
+`78e61181a2c9ce32c33060b936b662c2f65ab2f0`, the independently reviewed
+implementation merged by [genia-cpp #58](https://github.com/m0smith/genia-cpp/pull/58)
+at `930ea94c0407ee3d150d131a05e1b5f27560e256`. It preserves the earlier
+Cell/Process quiescence correction and repairs ordinary header capture,
+duplicate/alias rejection, inline metadata, fixed-arity accumulation, complete
+semicolon-separated REPL submissions and parser-depth safety. No capability,
+protocol or language semantics are added.
 
 The source revision is distinct from the adapter's declared semantic contract
 revision, `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. Runs using a newer
