@@ -1,6 +1,6 @@
 # Slice C guard fixture: a lone legacy `main/0` is run by the entry selector after the top-level statements.
 # Expected: `top`, then `main0`, then the entry result 10.
-@doc "Legacy zero-argument entry point that prints `main0` and returns 10."
-main() = { print("main0"); 10 }
+# Inline documentation keeps this guard within the bounded C++ host syntax.
+main() = "Legacy zero-argument entry point that prints `main0` and returns 10." { print("main0"); 10 }
 print("top")
 42

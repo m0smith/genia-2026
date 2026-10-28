@@ -1,6 +1,6 @@
 # Slice C guard fixture: `main(a, b)` has no arity the entry selector can call with argv.
 # Expected: only the top-level statements run and the program result is 42.
-@doc "Two-argument `main` that the entry selector cannot call with a single argv list; never run here."
-main(a, b) = { print("main2"); 12 }
+# Inline documentation keeps this guard within the bounded C++ host syntax.
+main(a, b) = "Two-argument `main` that the entry selector cannot call with a single argv list; never run here." { print("main2"); 12 }
 print("top")
 42
