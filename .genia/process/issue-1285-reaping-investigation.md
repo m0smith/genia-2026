@@ -110,7 +110,8 @@ Classification: **MULTIPLE_CAUSES** — fixture ownership error plus a non-reapi
 container PID 1, not a demonstrated Genia runtime ownership defect. With both
 outer and nested uv fixed at 0.13.5, the unchanged test failed under ordinary
 supervision in 60.481503s and passed under a process-local subreaper in 0.912314s.
-Ordinary chain: pytest 21656 → uv 21662 → launcher 21665 → host 21667.
+Ordinary chain: outer uv 21656 → pytest 21660 → configured uv 21662 →
+launcher 21665 → host 21667.
 After fixture SIGKILL of uv, launcher 21665 was adopted by PID 1 and became Z;
 the host disappeared. The tracer's wait returned ECHILD, confirming no custody.
 Under subreaper 21870, orphan launchers 21879 and 21886 were adopted and waited
