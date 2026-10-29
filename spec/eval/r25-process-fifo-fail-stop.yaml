@@ -6,14 +6,16 @@ input:
   fixtures: [r25_concurrency]
   source: |
     log = ref([])
+    admitted = ref()
     handle(msg) =
-      "boom" -> 1 / 0 |
+      "boom" -> ref_get(admitted) / 0 |
       value -> ref_update(log, (xs) -> append(xs, [value]))
     p = spawn(handle)
     send(p, 1)
     send(p, 2)
     send(p, "boom")
     send(p, 3)
+    ref_set(admitted, 1)
     _r25_await_idle()
     [ref_get(log), process_failed?(p), process_alive?(p), some?(process_error(p))]
 expected:
@@ -24,3 +26,4 @@ notes: |
   issue: 1001
   release: R25 E25-0
   contract: docs/design/r25-stateful-runtime-concurrency-contract.md section 6
+  repair: issue 1299; release the failing handler only after all four sends return.

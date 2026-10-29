@@ -1,0 +1,266 @@
+{
+  "implementation_sha": "276c60d64149d0dfe67f31fec985d243fb11df28",
+  "case": "r25-process-fifo-fail-stop",
+  "original_yaml_sha256": "321f645119ef569ffce2c0465566be14899260654f88ff16067a78193d1e92f6",
+  "repaired_yaml_sha256": "0f9077bb7f7736069bbee3e76ac481994f1f2440a76a5e05d0971a02fd619580",
+  "stress_script_sha256": "07aa993b45ba0ad2dbab534d0d06d51fc8d3f1cef4a0b53ad738e88f7d919b46",
+  "records": [
+    {
+      "file": "issue1299-final-prior-batch1.json",
+      "sha256": "1908db8a2a7a626e4c67347ed541c44064164bbdbfb0200cb769af2aa4913b16",
+      "request_timeout_seconds": 10,
+      "requests": 1000,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 1000
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-final-python-batch1.json",
+      "sha256": "2044e8437ead23050604328739edf2c06a1f58063b1d480b31fed310663a8c6a",
+      "request_timeout_seconds": 10,
+      "requests": 200,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 200
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-final-selected-batch1.json",
+      "sha256": "a2630409e6444ba516cd6ea9a2d3e5e2f9352a5aa7082f5a2111a211b130921f",
+      "request_timeout_seconds": 10,
+      "requests": 1000,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 1000
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-final-selected-batch2.json",
+      "sha256": "a2630409e6444ba516cd6ea9a2d3e5e2f9352a5aa7082f5a2111a211b130921f",
+      "request_timeout_seconds": 10,
+      "requests": 1000,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 1000
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-green-new-batch1.json",
+      "sha256": "a2630409e6444ba516cd6ea9a2d3e5e2f9352a5aa7082f5a2111a211b130921f",
+      "request_timeout_seconds": 30,
+      "requests": 1000,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 1000
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-green-new-batch2.json",
+      "sha256": "a2630409e6444ba516cd6ea9a2d3e5e2f9352a5aa7082f5a2111a211b130921f",
+      "request_timeout_seconds": 30,
+      "requests": 1000,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 1000
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-green-old-batch1.json",
+      "sha256": "1908db8a2a7a626e4c67347ed541c44064164bbdbfb0200cb769af2aa4913b16",
+      "request_timeout_seconds": 30,
+      "requests": 1000,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 1000
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-green-python-batch1.json",
+      "sha256": "2044e8437ead23050604328739edf2c06a1f58063b1d480b31fed310663a8c6a",
+      "request_timeout_seconds": 30,
+      "requests": 200,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 200
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-independent-cpp200-default.json",
+      "sha256": "14500bdff218a9f3304590be98d84135806df45bd97d66cf7d8029bf75f277b4",
+      "request_timeout_seconds": 10,
+      "requests": 200,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 200
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-independent-cpp200.json",
+      "sha256": "77991d5b37a144f481661052174cd52121cbf40ef2f62accce7bd0e8bece92ff",
+      "request_timeout_seconds": 30,
+      "requests": 200,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 200
+      },
+      "failures": []
+    },
+    {
+      "file": "issue1299-red-new.json",
+      "sha256": "e48bd30a07d9f318ff61dbd37bd88033d45d3ab20507b35e5ceee01d4c2120f2",
+      "request_timeout_seconds": 30,
+      "requests": 200,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 198,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "index": 143,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 196,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        }
+      ]
+    },
+    {
+      "file": "issue1299-red-old.json",
+      "sha256": "fb01807880a666ab16bffcfc3252b3dba9ea93ffbae2081a43bf310679829c9d",
+      "request_timeout_seconds": 30,
+      "requests": 200,
+      "max_concurrent": 8,
+      "counts": {
+        "pass": 191,
+        "fail": 9
+      },
+      "failures": [
+        {
+          "index": 27,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 47,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 48,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 90,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 93,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 124,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 168,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 169,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        },
+        {
+          "index": 180,
+          "classification": "fail",
+          "kind": "ok",
+          "result": {
+            "exit_code": 1,
+            "stderr": "Error: send: process is failed\n",
+            "stdout": ""
+          },
+          "reason": null
+        }
+      ]
+    }
+  ]
+}
