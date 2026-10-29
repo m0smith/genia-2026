@@ -96,7 +96,7 @@
     {
       "file": "issue1299-independent-cpp200-default.json",
       "sha256": "14500bdff218a9f3304590be98d84135806df45bd97d66cf7d8029bf75f277b4",
-      "request_timeout_seconds": 30,
+      "request_timeout_seconds": 10,
       "requests": 200,
       "max_concurrent": 8,
       "counts": {
