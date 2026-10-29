@@ -744,7 +744,7 @@ Pattern/guard declarations execute as default-open clauses (`default_open_functi
 alias or imported declarations fail with `function-declaration-not-owner`. Closed `f(...) =: body` evaluation fails with
 `model-b-not-implemented` before initializer/annotation/guard/body effects.
 Linking and closed publication remain unimplemented.
-Unfinished `=:` keeps REPL input incomplete; completed submissions never extend earlier groups. C++ lacks `=:` (gap `immutable_bindings`: genia-2026#1261) and default-open functions (#1269).
+Unfinished `=:` keeps REPL input incomplete; completed submissions end closed groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch
 

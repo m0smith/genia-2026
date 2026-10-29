@@ -72,16 +72,32 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`1af65fd2425526573f9ca765b3a027e37dfa5c74`, the independently reviewed
-comment-compatibility follow-up [genia-cpp #59](https://github.com/m0smith/genia-cpp/pull/59),
-based on [#58](https://github.com/m0smith/genia-cpp/pull/58) merged at
-`930ea94c0407ee3d150d131a05e1b5f27560e256`. It ignores # line comments outside
-strings, preserves diagnostic source lines and keeps annotations unsupported.
+`1f33886606fc94dadab679ed56182a15ca503a4b`, the independently reviewed
+local guard/capture follow-up [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60),
+merged at `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`. It includes the earlier
+[#59](https://github.com/m0smith/genia-cpp/pull/59) comment compatibility and
+[#58](https://github.com/m0smith/genia-cpp/pull/58) repairs. It ignores # line
+comments outside strings, preserves diagnostic lines and keeps annotations unsupported.
 It preserves the earlier
 Cell/Process quiescence correction and repairs ordinary header capture,
 duplicate/alias rejection, inline metadata, fixed-arity accumulation, complete
 semicolon-separated REPL submissions and parser-depth safety. No capability,
-protocol or language semantics are added.
+protocol or language semantics are added. Ordinary grouped-arm guards and local
+explicit-R20 guards use the bounded expression subset. Ordinary header bindings
+are visible before arm-local shadowing; guards run once after a pattern match,
+in source order, and errors stop dispatch. Guard-sensitive duplicate keys retain
+alpha-normalized pattern/lambda references. Explicit-open grouped arms still
+refuse free header capture in guards/results. Nested lambda-arm header capture
+is demonstrated; this is not ordinary pattern/guard-header or default-open support.
+
+Accepted #60 candidate-suite evidence is **1,044 total / 295 PASS / 749 UNSUPPORTED**
+with all actual failure classes zero in that run; only `pattern-guard-pass` and
+`pattern-guard-skip` become passing relative to the earlier 293/751 result.
+The unchanged R25 fixture race remains unresolved in [#1299](https://github.com/m0smith/genia-2026/issues/1299):
+a separate full run had 294 PASS / 1 FAIL / 749 UNSUPPORTED, and independent
+1,000-request stress runs had 34 failures on the prior binary and 30 on #60.
+Clean evidence does not erase those failures. #60's scoped acceptance exception
+does not waive failing checks or grant #1270/#1251/R29 acceptance.
 
 The source revision is distinct from the adapter's declared semantic contract
 revision, `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. Runs using a newer

@@ -194,16 +194,28 @@ checkouts, then runs:
 6. the real shared conformance runner against `genia-adapter`
 
 Both this workflow and the host-parity workflow pin the C++ source checkout to
-`1af65fd2425526573f9ca765b3a027e37dfa5c74`, the independently reviewed
-comment-compatibility follow-up in `genia-cpp` #59, based on merged #58. It
-accepts # line comments outside strings while preserving source lines and the
-bounded annotation rejection. It preserves the earlier Cell/Process
-quiescence correction and repairs existing supported function/REPL behavior
-and parser-depth safety without adding a capability. Changing that
+`1f33886606fc94dadab679ed56182a15ca503a4b`, the independently reviewed
+guard/capture implementation in [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60)
+(merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`), including #59/#58.
+It retains line-comment compatibility, source provenance, annotation rejection,
+the earlier Cell/Process quiescence correction, function/REPL repairs and parser
+nesting safety. Bounded ordinary grouped-arm and local explicit-R20 guards
+preserve header/arm capture, once-per-attempt evaluation, error order and
+guard-sensitive duplicate keys; nested lambda-arm capture is tested.
+Default-open/pattern-header support, varargs and module linking are not added.
+No capability changes. Changing that
 source pin does not change the adapter's declared semantic contract revision,
 `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. A run against newer main remains
 compatibility evidence; exact-contract conformance requires that declared
 contract checkout. The pin itself makes no validation-result claim.
+
+The accepted #60 candidate-suite run is 1,044 total / 295 PASS / 749 UNSUPPORTED,
+with all failure classes zero. Preserve the separate failing run (294 PASS /
+1 FAIL / 749 UNSUPPORTED) and independently reproduced R25 fixture race in
+[#1299](https://github.com/m0smith/genia-2026/issues/1299): prior/new binaries
+failed 34/30 of 1,000 stress requests. This pin does not resolve that issue;
+do not skip, retry away, weaken or reclassify its observation. A green image or
+parity run certifies that run, not fixture determinism or final release acceptance.
 
 This workflow proves the development image only. It does not replace the
 existing Python compatibility matrix or `genia-cpp`'s pinned conformance CI.

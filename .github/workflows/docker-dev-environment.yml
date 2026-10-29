@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: m0smith/genia-cpp
-          ref: 1af65fd2425526573f9ca765b3a027e37dfa5c74 # Reviewed documented-fixture comment compatibility (genia-cpp #59, including #58)
+          ref: 1f33886606fc94dadab679ed56182a15ca503a4b # Reviewed local guard/capture acceptance (genia-cpp #60, including #59/#58)
           path: workspace/genia-cpp
 
       - name: Build development image

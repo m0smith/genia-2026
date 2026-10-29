@@ -19,8 +19,10 @@ an alias or imported binding is rejected with `function-declaration-not-owner`.
 Atomic closed-function clause groups (`f(...) =: body`) are accepted and
 lowered, but their evaluation fails with `model-b-not-implemented`; cross-module
 linking changes and closed publication remain unimplemented. Explicit R20 `open`
-retains its existing execution behavior. C++ does not support default-open
-functions or `=:`.
+retains its existing execution behavior. C++ supports guards inside ordinary grouped bodies (with header capture) and
+local explicit-R20 clauses (whose grouped headers remain nonbinding), with
+guard-sensitive duplicate keys. It does not
+support ordinary pattern/guard headers, default-open functions or `=:`.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
