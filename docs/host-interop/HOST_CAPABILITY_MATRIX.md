@@ -66,7 +66,7 @@ Browser playground adapter note:
 | shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Partial | generic runner evidence covers the declared R24 floor; pinned totals are in `docs/releases/R24.md` |
 | shell pipeline stage `$(...)` | Python-host-only | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |
 | external process execution `execution.process` | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Portable semantic contract (`docs/design/execution-process-contract.md`), implemented only by the Python reference host today. Registered as `execution_process` in `spec/manifest.json`'s `optional_capabilities` (self-declared `supported` by the Python protocol adapter, matching `shell_stage`/`debugger_stdio`'s existing name-only registration precedent); no shared-spec case requires it yet, since no host-neutral capability-provisioning fixture mechanism exists — see `docs/host-interop/capabilities.md`'s entry for the runtime-implementation-vs-conformance-evidence distinction. Distinct from `$(...)`: structured argv, no shell, no `PATH` search. See `GENIA_STATE.md` section 9.40. |
-| open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval`; the host has no tail-call optimization (call-depth limit 300), so deep mutual-tail-call cases report unsupported; a grouped open clause that captures a header name (contract section 3.3) is refused as unsupported, not diagnosed |
+| open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval`; the host has no tail-call optimization (call-depth limit 300), so deep mutual-tail-call cases report unsupported; a grouped open clause that freely captures a header name (contract section 3.3) is refused as unsupported, not diagnosed |
 | multi-file eval fixture (R16/#836) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Optional protocol-v1 `eval.input.modules` transport, advertised as `multi_file_eval`; independent of `open_functions`, and never sent to a host that does not claim it supported |
 
 ### C++ integration source revision
@@ -148,5 +148,6 @@ Owner: m0smith integration owner and C++ implementer, tracked in
 [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
 The boundary is removed only after the bounded C++ parser/lowering implementation
 passes the affected shared cases at a current contract revision. Until then, no
-C++ conformance or new-carrier parity is claimed. Default-open dispatch,
-cross-module linking changes and closed publication are not implemented on any host.
+C++ conformance or parity for these new carriers is claimed. C++ does not implement
+default-open dispatch. Cross-module linking of ordinary functions and closed
+publication are not implemented on any host.

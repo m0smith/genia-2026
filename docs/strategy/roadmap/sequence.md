@@ -155,9 +155,10 @@ Issue #1067 is scheduled after R28 and before R29 as an unnumbered follow-up to
 completed R20. It is not an R28 deliverable and does not renumber later releases.
 The gate first repairs/re-validates R20 defects, separately evaluates module
 entry-scope isolation, and only then permits a unified internal Function/Clause
-contract/runtime refactor if the evidence still supports it. `open` remains
-the explicit cross-module extensibility declaration; ordinary functions remain
-closed by default. Portable repairs require shared evidence and accurate
+contract/runtime refactor if the evidence still supports it. In that historical #1067 scope, `open` remained
+the explicit cross-module extensibility declaration and ordinary functions remained
+closed by default. The separate Model B gate below describes the candidate's
+current partial behavior. Portable repairs require shared evidence and accurate
 Python/C++ conformance claims. Breaking Core IR consolidation remains deferred
 to R41 or another separately approved versioned-IR gate.
 
