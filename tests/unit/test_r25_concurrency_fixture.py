@@ -1,9 +1,52 @@
-"""Tests for the private R25 concurrency fixture's deterministic idle barrier."""
+"""Python-host scheduling tests for private R25 fixture mechanics, not portable authority."""
 
 from __future__ import annotations
 
+from pathlib import Path
+import threading
+
+import yaml
+
+from hosts.python.exec_r25_concurrency_fixture import _build_env
 from hosts.python.exec_eval import run_eval_subprocess
 from genia import make_global_env, run_source
+from genia.values import GeniaProcess, GeniaRef
+
+
+def test_shared_fifo_fixture_admits_messages_before_terminal_failure(monkeypatch) -> None:
+    """Force the worker ahead of the sender, exposing admission races without sleeps."""
+    case_path = Path(__file__).resolve().parents[2] / "spec/eval/r25-process-fifo-fail-stop.yaml"
+    case = yaml.safe_load(case_path.read_text(encoding="utf-8"))
+    boundary = threading.Event()
+    failed_handler = threading.Event()
+    sender_thread = threading.current_thread()
+    original_get = GeniaRef.get
+    original_error_text = GeniaProcess._error_text
+    original_send = GeniaProcess.send
+
+    def observe_blocking_read(ref):
+        if threading.current_thread() is not sender_thread and not ref.is_set():
+            boundary.set()
+        return original_get(ref)
+
+    def observe_handler_failure(process, error):
+        failed_handler.set()
+        boundary.set()
+        return original_error_text(process, error)
+
+    def yield_to_worker_after_boom(process, message):
+        original_send(process, message)
+        if message == "boom":
+            assert boundary.wait(5), "worker reached neither blocking Ref nor failure"
+            if failed_handler.is_set():
+                process._thread.join(5)
+                assert not process._thread.is_alive(), "failing worker did not terminate"
+
+    monkeypatch.setattr(GeniaRef, "get", observe_blocking_read)
+    monkeypatch.setattr(GeniaProcess, "_error_text", observe_handler_failure)
+    monkeypatch.setattr(GeniaProcess, "send", yield_to_worker_after_boom)
+    result = run_source(case["input"]["source"], _build_env())
+    assert result == [[1, 2], True, False, True]
 
 
 def test_r25_await_idle_is_not_in_the_ordinary_environment() -> None:
