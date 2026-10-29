@@ -25,16 +25,19 @@ def test_shared_fifo_fixture_admits_messages_before_terminal_failure(monkeypatch
     original_send = GeniaProcess.send
 
     def observe_blocking_read(ref):
+        """Signal that the worker reached a Ref wait the sender can release."""
         if threading.current_thread() is not sender_thread and not ref.is_set():
             boundary.set()
         return original_get(ref)
 
     def observe_handler_failure(process, error):
+        """Signal an ungated handler error while preserving diagnostic formatting."""
         failed_handler.set()
         boundary.set()
         return original_error_text(process, error)
 
     def yield_to_worker_after_boom(process, message):
+        """Advance the worker to a causal boundary before the sender continues."""
         original_send(process, message)
         if message == "boom":
             assert boundary.wait(5), "worker reached neither blocking Ref nor failure"
@@ -117,4 +120,24 @@ def test_r25_fixture_waits_for_process_failure_thread_exit() -> None:
         "stdout": "[[1], true, false, true]\n",
         "stderr": "",
         "exit_code": 0,
+    }
+
+
+def test_r25_fixture_post_failure_send_keeps_python_error_contract() -> None:
+    """Settling terminal failure must not reopen admission in the Python host."""
+    result = run_eval_subprocess(
+        """
+        p = spawn((msg) -> 1 / 0)
+        send(p, 1)
+        _r25_await_idle()
+        send(p, 2)
+        print("unreachable")
+        """,
+        None,
+        ("r25_concurrency",),
+    )
+    assert result == {
+        "stdout": "",
+        "stderr": "Error: Process has failed: ZeroDivisionError: exact division by zero\n",
+        "exit_code": 1,
     }
