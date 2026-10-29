@@ -199,9 +199,10 @@ guard/capture implementation in [genia-cpp #60](https://github.com/m0smith/genia
 (merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`), including #59/#58.
 It retains line-comment compatibility, source provenance, annotation rejection,
 the earlier Cell/Process quiescence correction, function/REPL repairs and parser
-nesting safety. Bounded ordinary grouped-arm and local explicit-R20 guards
-preserve header/arm capture, once-per-attempt evaluation, error order and
-guard-sensitive duplicate keys; nested lambda-arm capture is tested.
+nesting safety. Bounded ordinary grouped-arm guards preserve header/arm capture;
+local explicit-R20 grouped headers remain nonbinding. Both preserve
+once-per-attempt evaluation, error order and guard-sensitive duplicate keys;
+nested lambda-arm capture is tested.
 Default-open/pattern-header support, varargs and module linking are not added.
 No capability changes. Changing that
 source pin does not change the adapter's declared semantic contract revision,
