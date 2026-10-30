@@ -59,3 +59,6 @@ development-container page and existing descriptive gap reason. No report or
 process narrative was added under docs/. Remaining semantic-foundation scope
 and issue acceptance belong on #1251. Temporary coordination handoffs are safe
 to discard; no temporary handoff is committed.
+
+## Final post-merge evidence update
+Native GCC and Docker Clang CTest7/7 each; Docker representative Python12PASS, formatting/static analysis exit0 with warnings retained, full C++295/749/all actual failures0. Broader local selection1339PASS/35existing skips; nearby223PASS, consumers336PASS, IR89PASS. The separately predeclared Python200-request10s/max8 stress batch returned194PASS/6TIMEOUT, postfailure negativePASS. No retry or reclassification; #1299 and #1251 remain open. C++#53/#54 individually satisfy their bounded criteria and are closed with completion matrices. Full report, producer outcomes, per-case records, stress requests and compressed logs/digests are in issue-1251-post-merge-evidence. No new semantic edit or root-authority change followed documentation validation.

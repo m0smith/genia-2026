@@ -1,0 +1,69 @@
+{
+  "authority_commit": "09804b565a30c2995a7d045d74faf8e880994ff4",
+  "authority_tree": "f8a686c96aaa67034ff5aaab721c107f0e6974e0",
+  "candidate": "663a727dd5b0cc967fb633255e15aa93e494d566",
+  "candidate_tree": "a2bed8c3fdc10bdac502ca083f217ef0b12ee5fe",
+  "cpp_source": "1f33886606fc94dadab679ed56182a15ca503a4b",
+  "cpp_tree": "f647b244b43f87eaeefe803c2b79e7934a4fe871",
+  "cpp_merge": "fef41e58dcd3b80aaedcac98c92943fcfbfd1945",
+  "cpp_declared_contract": "6402e668ae85a1e7efe94b3ac3d51f233b730ca4",
+  "local_python_counts": {
+    "crash": 0,
+    "fail": 0,
+    "invalid": 0,
+    "pass": 1025,
+    "protocol_error": 0,
+    "timeout": 1,
+    "unsupported": 18
+  },
+  "local_cpp_counts": {
+    "crash": 0,
+    "fail": 0,
+    "invalid": 0,
+    "pass": 295,
+    "protocol_error": 0,
+    "timeout": 0,
+    "unsupported": 749
+  },
+  "local_parity": "FAIL: Python timeout=1",
+  "cpp_stress": {
+    "pass": 1000
+  },
+  "python_stress": {
+    "pass": 194,
+    "timeout": 6
+  },
+  "stress_timeout_seconds": 10,
+  "stress_max_concurrent": 8,
+  "doc_correction_pr": "https://github.com/m0smith/genia-2026/pull/1302",
+  "hosted_main_ci": 41089720094,
+  "hosted_main_parity": 41089720060,
+  "slice_c_fully_verified": "NO",
+  "issue_1251": "remain open",
+  "issue_1299": "remain open: Python stress194 pass/6 timeout",
+  "cpp_53": "closed",
+  "cpp_54": "closed",
+  "r29": "NO-GO",
+  "native_gcc_ctest": "7/7 pass",
+  "docker_ctest": "7/7 pass",
+  "docker_representative_python": "12 pass",
+  "docker_integration_exit": 0,
+  "local_primary_regression": {
+    "pass": 1339,
+    "skip_existing": 35
+  },
+  "local_nearby_regression": {
+    "pass": 223
+  },
+  "local_consumer_regression": {
+    "pass": 336
+  },
+  "local_ir_regression": {
+    "pass": 89
+  },
+  "correction_docs": {
+    "pass": 244,
+    "skip_existing": 34
+  },
+  "main_unchanged_at_final_fetch": true
+}

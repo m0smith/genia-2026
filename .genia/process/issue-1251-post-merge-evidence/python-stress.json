@@ -1,0 +1,1220 @@
+{
+  "host": [
+    "/workspace/genia-2026/.venv/bin/python",
+    "-m",
+    "hosts.python.protocol_adapter"
+  ],
+  "requests": 200,
+  "max_concurrent": 8,
+  "timeout_seconds": 10,
+  "counts": {
+    "pass": 194,
+    "timeout": 6
+  },
+  "results": [
+    {
+      "index": 0,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 1,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 2,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 3,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 4,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 5,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 6,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 7,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 8,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 9,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 10,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 11,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 12,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 13,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 14,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 15,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 16,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 17,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 18,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 19,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 20,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 21,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 22,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 23,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 24,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 25,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 26,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 27,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 28,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 29,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 30,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 31,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 32,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 33,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 34,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 35,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 36,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 37,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 38,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 39,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 40,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 41,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 42,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 43,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 44,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 45,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 46,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 47,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 48,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 49,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 50,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 51,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 52,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 53,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 54,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 55,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 56,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 57,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 58,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 59,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 60,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 61,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 62,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 63,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 64,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 65,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 66,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 67,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 68,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 69,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 70,
+      "kind": "timeout",
+      "reason": "adapter exceeded 10.0s timeout",
+      "failures": "()"
+    },
+    {
+      "index": 71,
+      "kind": "timeout",
+      "reason": "adapter exceeded 10.0s timeout",
+      "failures": "()"
+    },
+    {
+      "index": 72,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 73,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 74,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 75,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 76,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 77,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 78,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 79,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 80,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 81,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 82,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 83,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 84,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 85,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 86,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 87,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 88,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 89,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 90,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 91,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 92,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 93,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 94,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 95,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 96,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 97,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 98,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 99,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 100,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 101,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 102,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 103,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 104,
+      "kind": "timeout",
+      "reason": "adapter exceeded 10.0s timeout",
+      "failures": "()"
+    },
+    {
+      "index": 105,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 106,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 107,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 108,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 109,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 110,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 111,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 112,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 113,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 114,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 115,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 116,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 117,
+      "kind": "timeout",
+      "reason": "adapter exceeded 10.0s timeout",
+      "failures": "()"
+    },
+    {
+      "index": 118,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 119,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 120,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 121,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 122,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 123,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 124,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 125,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 126,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 127,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 128,
+      "kind": "timeout",
+      "reason": "adapter exceeded 10.0s timeout",
+      "failures": "()"
+    },
+    {
+      "index": 129,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 130,
+      "kind": "timeout",
+      "reason": "adapter exceeded 10.0s timeout",
+      "failures": "()"
+    },
+    {
+      "index": 131,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 132,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 133,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 134,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 135,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 136,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 137,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 138,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 139,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 140,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 141,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 142,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 143,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 144,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 145,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 146,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 147,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 148,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 149,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 150,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 151,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 152,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 153,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 154,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 155,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 156,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 157,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 158,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 159,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 160,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 161,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 162,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 163,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 164,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 165,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 166,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 167,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 168,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 169,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 170,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 171,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 172,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 173,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 174,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 175,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 176,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 177,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 178,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 179,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 180,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 181,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 182,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 183,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 184,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 185,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 186,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 187,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 188,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 189,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 190,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 191,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 192,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 193,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 194,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 195,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 196,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 197,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 198,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "index": 199,
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    }
+  ],
+  "post_failure_send": {
+    "ok": true,
+    "response": "AdapterOutcome(kind='ok', result={'exit_code': 1, 'stderr': 'Error: Process has failed: ZeroDivisionError: exact division by zero\\n', 'stdout': ''}, reason=None, stdout_raw='{\"case_id\": \"post-failure-send\", \"operation\": \"eval\", \"protocol_version\": \"1\", \"result\": {\"exit_code\": 1, \"stderr\": \"Error: Process has failed: ZeroDivisionError: exact division by zero\\\\n\", \"stdout\": \"\"}, \"status\": \"ok\", \"unsupported_reason\": null}\\n', stderr_raw='')"
+  }
+}
