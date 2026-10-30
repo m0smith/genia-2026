@@ -1,0 +1,187 @@
+{
+  "python": {
+    "crash": 0,
+    "fail": 0,
+    "invalid": 0,
+    "pass": 1026,
+    "protocol_error": 0,
+    "timeout": 0,
+    "unsupported": 18
+  },
+  "cpp": {
+    "crash": 0,
+    "fail": 0,
+    "invalid": 0,
+    "pass": 295,
+    "protocol_error": 0,
+    "timeout": 0,
+    "unsupported": 749
+  },
+  "events": [
+    {
+      "event": "acceptance_begin",
+      "commit": "1f068de7f665543a87e6b3925230118aa99a2cc3",
+      "tree": "48e9c77b62e799b6c1c38f7f940b3b755f033745",
+      "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "cpp_source": "1f33886606fc94dadab679ed56182a15ca503a4b",
+      "cpp_binary_sha256": "8f8c6fd62d699b5b413ed8752eb433a3d4af73788142968f1ca87ba2a5d45d98",
+      "no_competing_scheduled_tests_or_builds": true,
+      "before": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3171597082\nuser_usec 2914215955\nsystem_usec 257381126\nnice_usec 0\nnr_periods 34335\nnr_throttled 13840\nthrottled_usec 1346773011\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3549188096\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      }
+    },
+    {
+      "event": "full_end",
+      "host": "python",
+      "exit": 0,
+      "wall": 226.59675724200042,
+      "child_user": 410.752343,
+      "child_system": 36.755678,
+      "after": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3619287759\nuser_usec 3325124486\nsystem_usec 294163272\nnice_usec 0\nnr_periods 36601\nnr_throttled 14250\nthrottled_usec 1348223191\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3537399808\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      }
+    },
+    {
+      "event": "full_end",
+      "host": "cpp",
+      "exit": 0,
+      "wall": 1.5791591150000386,
+      "child_user": 1.9552560000000199,
+      "child_system": 0.4285339999999991,
+      "after": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3621675430\nuser_usec 3326715797\nsystem_usec 294959632\nnice_usec 0\nnr_periods 36617\nnr_throttled 14252\nthrottled_usec 1348233155\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3538485248\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      }
+    },
+    {
+      "event": "parity",
+      "exit": 0
+    },
+    {
+      "event": "postfailure_negative",
+      "host": "python",
+      "kind": "ok",
+      "result": {
+        "exit_code": 1,
+        "stderr": "Error: Process has failed: ZeroDivisionError: exact division by zero\n",
+        "stdout": ""
+      },
+      "pass": true
+    },
+    {
+      "event": "postfailure_negative",
+      "host": "cpp",
+      "kind": "ok",
+      "result": {
+        "exit_code": 1,
+        "stderr": "Error: send: process is failed\n",
+        "stdout": ""
+      },
+      "pass": true
+    },
+    {
+      "event": "acceptance_end",
+      "after": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3747694482\nuser_usec 3442670216\nsystem_usec 305024266\nnice_usec 0\nnr_periods 37264\nnr_throttled 14338\nthrottled_usec 1348488040\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3542614016\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      }
+    }
+  ],
+  "batches": [
+    {
+      "host": "cpp",
+      "case": "r25-process-fifo-fail-stop",
+      "samples": 1000,
+      "concurrency": 2,
+      "deadline": 10,
+      "counts": {
+        "pass": 1000
+      },
+      "wall": 1.7607583260005413,
+      "child_user": 1.4629189999999426,
+      "child_system": 0.46568600000000515,
+      "before": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3736193230\nuser_usec 3432651276\nsystem_usec 303541953\nnice_usec 0\nnr_periods 37197\nnr_throttled 14334\nthrottled_usec 1348476795\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3539042304\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      },
+      "after": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3738712035\nuser_usec 3434008110\nsystem_usec 304703924\nnice_usec 0\nnr_periods 37215\nnr_throttled 14334\nthrottled_usec 1348476795\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3541667840\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      }
+    },
+    {
+      "host": "python",
+      "case": "r25-process-fifo-fail-stop",
+      "samples": 200,
+      "concurrency": 2,
+      "deadline": 10,
+      "counts": {
+        "pass": 200
+      },
+      "wall": 57.97372440399977,
+      "child_user": 105.32801300000006,
+      "child_system": 8.444987999999995,
+      "before": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3621718804\nuser_usec 3326759171\nsystem_usec 294959632\nnice_usec 0\nnr_periods 36617\nnr_throttled 14252\nthrottled_usec 1348233155\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3537756160\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      },
+      "after": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3736190970\nuser_usec 3432649016\nsystem_usec 303541953\nnice_usec 0\nnr_periods 37197\nnr_throttled 14334\nthrottled_usec 1348476795\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3538636800\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      }
+    },
+    {
+      "host": "python",
+      "case": "r20-cross-module-view-mutual-tail-call",
+      "samples": 8,
+      "concurrency": 2,
+      "deadline": 10,
+      "counts": {
+        "pass": 8
+      },
+      "wall": 4.400106263999987,
+      "child_user": 8.15295500000002,
+      "child_system": 0.27766899999999595,
+      "before": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3738719576\nuser_usec 3434015652\nsystem_usec 304703924\nnice_usec 0\nnr_periods 37215\nnr_throttled 14334\nthrottled_usec 1348476795\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3542876160\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      },
+      "after": {
+        "cpu.max": "200000 100000\n",
+        "cpu.stat": "usage_usec 3747168351\nuser_usec 3442176878\nsystem_usec 304991473\nnice_usec 0\nnr_periods 37259\nnr_throttled 14338\nthrottled_usec 1348488040\nnr_bursts 0\nburst_usec 0\n",
+        "memory.max": "8589934592\n",
+        "memory.current": "3542491136\n",
+        "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+      }
+    }
+  ]
+}

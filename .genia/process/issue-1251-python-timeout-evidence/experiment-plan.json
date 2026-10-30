@@ -1,0 +1,201 @@
+{
+  "authority": "09804b565a30c2995a7d045d74faf8e880994ff4",
+  "tree": "f8a686c96aaa67034ff5aaab721c107f0e6974e0",
+  "frozen_cwd": "/workspace/work/1251/main",
+  "python": "/workspace/genia-2026/.venv/bin/python",
+  "deadline_seconds": 10,
+  "isolated_competitors": 0,
+  "controlled_cpu_burners": 2,
+  "cpu_burner_per_batch_hard_limit_seconds": 180,
+  "observations": "diagnostic, never replace original outcomes",
+  "batches": [
+    {
+      "phase": "isolated",
+      "case": "r20",
+      "concurrency": 1,
+      "samples": 3,
+      "burners": 0
+    },
+    {
+      "phase": "isolated",
+      "case": "fixture",
+      "concurrency": 1,
+      "samples": 8,
+      "burners": 0
+    },
+    {
+      "phase": "scaling",
+      "case": "r20",
+      "concurrency": 1,
+      "samples": 8,
+      "burners": 0
+    },
+    {
+      "phase": "scaling",
+      "case": "fixture",
+      "concurrency": 1,
+      "samples": 32,
+      "burners": 0
+    },
+    {
+      "phase": "scaling",
+      "case": "r20",
+      "concurrency": 2,
+      "samples": 8,
+      "burners": 0
+    },
+    {
+      "phase": "scaling",
+      "case": "fixture",
+      "concurrency": 2,
+      "samples": 32,
+      "burners": 0
+    },
+    {
+      "phase": "scaling",
+      "case": "r20",
+      "concurrency": 4,
+      "samples": 8,
+      "burners": 0
+    },
+    {
+      "phase": "scaling",
+      "case": "fixture",
+      "concurrency": 4,
+      "samples": 32,
+      "burners": 0
+    },
+    {
+      "phase": "scaling",
+      "case": "r20",
+      "concurrency": 8,
+      "samples": 8,
+      "burners": 0
+    },
+    {
+      "phase": "scaling",
+      "case": "fixture",
+      "concurrency": 8,
+      "samples": 32,
+      "burners": 0
+    },
+    {
+      "phase": "controlled_contention",
+      "case": "r20",
+      "concurrency": 1,
+      "samples": 4,
+      "burners": 2
+    },
+    {
+      "phase": "controlled_contention",
+      "case": "fixture",
+      "concurrency": 1,
+      "samples": 16,
+      "burners": 2
+    },
+    {
+      "phase": "controlled_contention",
+      "case": "r20",
+      "concurrency": 2,
+      "samples": 4,
+      "burners": 2
+    },
+    {
+      "phase": "controlled_contention",
+      "case": "fixture",
+      "concurrency": 2,
+      "samples": 16,
+      "burners": 2
+    },
+    {
+      "phase": "controlled_contention",
+      "case": "r20",
+      "concurrency": 4,
+      "samples": 4,
+      "burners": 2
+    },
+    {
+      "phase": "controlled_contention",
+      "case": "fixture",
+      "concurrency": 4,
+      "samples": 16,
+      "burners": 2
+    },
+    {
+      "phase": "controlled_contention",
+      "case": "r20",
+      "concurrency": 8,
+      "samples": 4,
+      "burners": 2
+    },
+    {
+      "phase": "controlled_contention",
+      "case": "fixture",
+      "concurrency": 8,
+      "samples": 16,
+      "burners": 2
+    },
+    {
+      "phase": "recovery",
+      "case": "r20",
+      "concurrency": 1,
+      "samples": 4,
+      "burners": 0
+    },
+    {
+      "phase": "recovery",
+      "case": "fixture",
+      "concurrency": 1,
+      "samples": 16,
+      "burners": 0
+    },
+    {
+      "phase": "recovery",
+      "case": "r20",
+      "concurrency": 8,
+      "samples": 4,
+      "burners": 0
+    },
+    {
+      "phase": "recovery",
+      "case": "fixture",
+      "concurrency": 8,
+      "samples": 16,
+      "burners": 0
+    }
+  ],
+  "full_suite_diagnostics": {
+    "samples": 1,
+    "host_jobs": 8,
+    "competitors": 0,
+    "deadline": 10,
+    "all_cases": 1044
+  },
+  "startup_phase_probes": {
+    "samples_each": 3,
+    "cases": [
+      "capabilities",
+      "arithmetic",
+      "r20",
+      "fixture"
+    ],
+    "instrumentation": "stderr/file side-channel only; original handle/main and comparator"
+  },
+  "lifecycle_probe": {
+    "samples": 1,
+    "deadline": 10,
+    "child_duration_seconds": 15,
+    "purpose": "synthetic transport child pipe/reaping mechanics, not Genia conformance"
+  },
+  "acceptance_reserved": {
+    "after_cause_and_remediation_only": true,
+    "full_python_runs": 1,
+    "full_cpp_runs": 1,
+    "python_fixture_samples": 200,
+    "cpp_fixture_samples": 1000,
+    "r20_samples": 8,
+    "deadline": 10,
+    "concurrency": "chosen once from diagnostic evidence, capped2 unless evidence requires1",
+    "no_compilation_or_unrelated_tests": true
+  }
+}

@@ -132,6 +132,14 @@ command as one shell-quoted string, e.g.:
 python -m tools.spec_runner --host 'python3 -m my_host.adapter' --host-timeout 10
 ```
 
+On POSIX, each request starts its adapter in a private session/process group.
+Timeout or caller cancellation kills that group and reaps the direct adapter;
+the original timeout classification and partial diagnostics are preserved.
+This stops same-group descendants, not deliberately detached processes, and
+does not make the runner a sandbox or a grandchild reaper. Successful-request
+descendant behavior is unchanged. Non-POSIX retains direct-process cancellation.
+The default request deadline remains 10 seconds.
+
 External-host cases are serial by default. `--host-jobs N` permits up to `N`
 independent case requests to run concurrently. This changes runner scheduling
 only: every request still spawns exactly one E16-1 adapter process, keeps its
