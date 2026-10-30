@@ -91,3 +91,15 @@ The second command requires local loopback socket permission. The two commands
 together are equivalent to ordinary full-suite selection; neither partition
 alone is full regression. Do not automatically skip loopback tests when socket
 permission is unavailable.
+
+## Resource envelope for external-host verification
+
+Record CPU quota, available memory and competing work when investigating a
+request timeout. Schedule compilation, documentation builds and semantic host
+verification sequentially in a resource-limited workspace. Choose and record
+`--host-jobs` for that envelope (for example, `--host-jobs 2` under a two-CPU
+quota); concurrency does not change case discovery, expected results, the
+default 10-second request deadline or outcome classification. A finite green
+run does not prove determinism or explain an earlier timeout. Retain failures,
+label diagnostic versus acceptance runs and do not repeat failures to replace
+their outcomes with PASS.
