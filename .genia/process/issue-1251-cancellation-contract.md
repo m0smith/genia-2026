@@ -1,7 +1,7 @@
 # Bounded adapter cancellation contract analysis
 
 The synthetic10s diagnostic confirms that direct adapter termination leaves an
-owned evaluator descendant alive after the request is classified TIMEOUT. This
+owned synthetic adapter descendant alive after the request is classified TIMEOUT. This
 is a conformance transport resource-ownership defect, independent of whether it
 caused any original Genia timeout. Existing R16 wire envelopes, case selection,
 normalizers/comparators, semantic observations, capability claims and request
@@ -29,3 +29,6 @@ remains unresolved:291 targeted diagnostics pass, imposed CPU/concurrency
 increases latency without reproducing10s failures. Historical memory events
 cannot be linked to those requests. This correction addresses the demonstrated
 surviving-child mechanism, not a fabricated complete historical root cause.
+Python exec_eval.py's real second-interpreter launch is exposed to the same
+ownership boundary, but this synthetic observation does not prove a real Genia
+evaluator survived any historical request.
