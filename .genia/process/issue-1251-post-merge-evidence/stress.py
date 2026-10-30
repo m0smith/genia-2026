@@ -13,6 +13,13 @@ command = [host] if 'genia-adapter' in host else [host, '-m', 'hosts.python.prot
 spec = load_spec(Path('spec/eval/r25-process-fifo-fail-stop.yaml'))
 caps = {'process_primitives': 'supported', 'refs': 'supported'}
 def run(index):
+    """Run one indexed fixture request through the canonical 10-second comparator.
+
+    Each call starts the selected host adapter and returns its classification,
+    reason and comparator failures; timeouts remain timeouts. Exceptions propagate
+    to the batch collector. This historical driver does not measure startup/CPU
+    time or guarantee cleanup of evaluator descendants after adapter cancellation.
+    """
     result = execute_spec_via_host(spec, command, timeout=10.0, host_capabilities=caps)
     return {'index': index, 'kind': result.kind, 'reason': result.reason, 'failures': repr(result.failures)}
 with ThreadPoolExecutor(max_workers=8) as pool:

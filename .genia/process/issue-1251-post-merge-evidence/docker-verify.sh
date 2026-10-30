@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Reproduce the retained container checks from the fixed authority/C++ worktrees.
+# Requires the verification image, mounted source trees and public CA bundle at
+# /run/codex-ca.pem. Syncs a development venv and writes C++ build/evidence outputs
+# under /workspace/work/1251; prints tool versions and check results to stdout.
+# Stops with the first command's nonzero status; performs no retries or cleanup.
 set -euo pipefail
 cd /workspace/work/1251/main
 export UV_PROJECT_ENVIRONMENT=/workspace/work/1251/docker-venv
