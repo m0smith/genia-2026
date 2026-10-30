@@ -1,0 +1,110 @@
+{
+  "python-conformance.log": {
+    "bytes": 7755,
+    "sha256": "89925e4a82ab38aeac4140cba6796026bce9653da3c499f1f83613848b7275ff"
+  },
+  "cpp-conformance.log": {
+    "bytes": 803387,
+    "sha256": "10197d2394079dd5ab08c69a1613c9417ec4975d15c859f0b0bad642a3c874d3"
+  },
+  "parity.log": {
+    "bytes": 6369,
+    "sha256": "239c6436a5c22801fccf06759c681eba21214ead542112e587f39f5cf95dc582"
+  },
+  "cpp-configure.log": {
+    "bytes": 380,
+    "sha256": "65047ab7617f93293a5b587f9b03f08672ad096ce45dcd631746c5f7ff32cbed"
+  },
+  "cpp-build.log": {
+    "bytes": 13702,
+    "sha256": "5172590a6dd363cd4d81fab05d17ed7b951a864d43e8004290a4655d2d8d716c"
+  },
+  "cpp-native.log": {
+    "bytes": 862,
+    "sha256": "a3b46b78a3a1b06619ca2c734c5c2c259156674a467f92620d4fcacd9262840c"
+  },
+  "cpp-positive-acceptance.log": {
+    "bytes": 730,
+    "sha256": "83fe0b11c0dd53a3ce8def84a71faf29bc3098a097113606194bbe70c82f67cd"
+  },
+  "targeted-tests.log": {
+    "bytes": 1646,
+    "sha256": "a6cce4b6afe8de671900d2cff4e608d1e8894bb98bc0adcbbc87d4fe9b23282e"
+  },
+  "nearby-tests.log": {
+    "bytes": 395,
+    "sha256": "598f45cf77302f426354522e1d7c08222cf98addc92cb017e91ee94a35ba98f3"
+  },
+  "consumer-regressions.log": {
+    "bytes": 475,
+    "sha256": "a3aa26d90b99bc30a0d93925823d8fe51c55effe144354e37cfec768096a0e04"
+  },
+  "ir-regressions.log": {
+    "bytes": 223,
+    "sha256": "4b4c257c36fa2c8074be48ce3a7eeb738673a2064229cee2af77ba8047ea219d"
+  },
+  "function-docs.log": {
+    "bytes": 34,
+    "sha256": "60df1547818c86b627e7ca4cbf7419bec82aeff25e5bfa411f48cf615e6eeaa1"
+  },
+  "mcp-profile.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "doc-lint.log": {
+    "bytes": 87,
+    "sha256": "2ef95836d37aaa36ee7b56f6ef3d339dd717ac83d35c26eb5382601f992b9e34"
+  },
+  "docker-build.log": {
+    "bytes": 26198,
+    "sha256": "64f402125b9d0449e4a228938e8eb7fbdedc7f1ec0ee8d1f496e3a3e8be827ca"
+  },
+  "docker-integration-setup.log": {
+    "bytes": 441,
+    "sha256": "e1dda21b3eb2b63ef3c448c4e92bd805d22a67a8ba9cec0f204aa616925a3c04"
+  },
+  "docker-integration.log": {
+    "bytes": 833975,
+    "sha256": "58e3aed372b968cc1782b90e39da26685283e1ce17cf63341776705b76374b05"
+  },
+  "hosted-parity.log": {
+    "bytes": 1050220,
+    "sha256": "77c696f26e5ad36b4724c4cb79fe97dad58d7ede41f0661ecd8608fa54afe46d"
+  },
+  "hosted-fast-tests.log": {
+    "bytes": 2311068,
+    "sha256": "c8a9d49d0bf80a223033c115167c5654198e5d007a8c0f4c11b55e630f2685db"
+  },
+  "hosted-docs.log": {
+    "bytes": 112261,
+    "sha256": "f4f09a5ca8b1c8df8ce9d5810bae4af17b7d192388f16e0fe3dad424bb9e429e"
+  },
+  "correction-doc-tests.log": {
+    "bytes": 352,
+    "sha256": "b4aef9a9d78de9b709ffe6aea4a7e4567cfdfd6c8ac09557c819cb0c57216032"
+  },
+  "correction-lint.log": {
+    "bytes": 87,
+    "sha256": "2ef95836d37aaa36ee7b56f6ef3d339dd717ac83d35c26eb5382601f992b9e34"
+  },
+  "correction-mkdocs-default.log": {
+    "bytes": 6072,
+    "sha256": "1c22b34ca7817a4adff061d91daacbf483f852959f823bc0e9f5c012feb571b5"
+  },
+  "correction-mkdocs-strict.log": {
+    "bytes": 6072,
+    "sha256": "2e804564115d0a0c3be22cf9298973abad3397fc532cb897f3b61429c416afcb"
+  },
+  "correction-profile.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "correction-reference.log": {
+    "bytes": 34,
+    "sha256": "60df1547818c86b627e7ca4cbf7419bec82aeff25e5bfa411f48cf615e6eeaa1"
+  },
+  "correction-stage.log": {
+    "bytes": 69,
+    "sha256": "93d8ec21f8d7bf4865e59cd9bc82c23e9a875c91d5066ffcf555edb029e42591"
+  }
+}

@@ -214,9 +214,15 @@ The accepted #60 candidate-suite run is 1,044 total / 295 PASS / 749 UNSUPPORTED
 with all failure classes zero. Preserve the separate failing run (294 PASS /
 1 FAIL / 749 UNSUPPORTED) and independently reproduced R25 fixture race in
 [#1299](https://github.com/m0smith/genia-2026/issues/1299): prior/new binaries
-failed 34/30 of 1,000 stress requests. This pin does not resolve that issue;
-do not skip, retry away, weaken or reclassify its observation. A green image or
-parity run certifies that run, not fixture determinism or final release acceptance.
+failed 34/30 of 1,000 stress requests. The separate admission-order fixture
+repair in [#1301](https://github.com/m0smith/genia-2026/pull/1301), integrated by
+[#1270](https://github.com/m0smith/genia-2026/pull/1270), gates handler failure
+on an unset Ref until all sends return. Expected results and runtime semantics
+are unchanged; historical failures remain evidence. Post-merge
+[parity](https://github.com/m0smith/genia-2026/actions/runs/41089720060) at
+`09804b565a30c2995a7d045d74faf8e880994ff4` records 295 PASS / 749 UNSUPPORTED
+with zero actual failure classes. A source pin or a green image alone does not
+certify fixture determinism or final semantic-foundation acceptance.
 
 This workflow proves the development image only. It does not replace the
 existing Python compatibility matrix or `genia-cpp`'s pinned conformance CI.

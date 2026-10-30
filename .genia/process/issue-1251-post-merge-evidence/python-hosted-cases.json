@@ -1,0 +1,5222 @@
+[
+  {
+    "category": "cli",
+    "name": "command_mode_argv",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "command_mode_basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "command_mode_collect_sum",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "command_mode_double_dash",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "debug_stdio_suppression",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "cli",
+    "name": "error_parse",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "error_pipe_mode_explicit_run",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "error_runtime",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "file_mode_argv",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "file_mode_basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "file_mode_double_dash",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "file_mode_main_argv",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-b-repl-failed-initializer-name-reusable",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-b-repl-immutable-persists",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-ann-installed-clause-visible-via-alias",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-ann-old-metadata-retained",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-ann-repl-recovery",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-command-mode",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-explicit-call-dispatches",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-explicit-call-miss",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-g1-fixed-plus-rest-same-minimum",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-g1-legacy-rest-plus-pattern-arity1",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-g1-main1-plus-pattern-arity1-legacy-first",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-g1-main1-plus-pattern-arity1-pattern-first",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-g1-mixed-main0-plus-pattern",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-g1-mixed-main1-plus-pattern",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-legacy-main0-fallback",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-legacy-main1-preferred",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-legacy-rest-main-selected",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-multi-pattern-group-not-selected",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-no-qualifying",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-pattern-command-mode",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-pattern-guard-not-evaluated",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-pattern-not-selected",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-repl-never-selects",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-repl-pattern-never-selects",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-test-mode-unchanged",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-main-wildcard-not-selected",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-mode-command-pattern-program",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-mode-file-pattern-program",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-mode-repl-failed-declaration-leaves-group",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-open-persistent-arities",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-open-persistent-env",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-open-repl-alias-sees-later-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-own-local-alias-owner-still-extendable",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "model-b-c-own-local-alias-state-after-rejection",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "native_test_runner_discovery_error_suite_outcome",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "native_test_runner_error_suite_outcome",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "native_test_runner_passing_suite_outcome",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_argv_empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_bare_contains_guidance",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_bare_parse_int_error",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_bypass_main",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_collect_error",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_count_final_int",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_explicit_run_error",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_full_program_rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_map_parse_int",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_output_before_error",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_record_pipeline_collect_validated_boundary_error",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_shadowed_reserved_name_allowed",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_sum_error",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_take_bounded",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "pipe_mode_undefined_name_stage",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r10-cross-mode-command",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r10-cross-mode-file",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r10-cross-mode-pipe",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r10-validated-pipeline-proving-case",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r11-model-fixture-command",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "cli",
+    "name": "r11-model-fixture-file",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "cli",
+    "name": "r11-model-fixture-pipe",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "cli",
+    "name": "r11-validated-pipeline-proving-case",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "cli",
+    "name": "r12-grounded-proving-case",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "cli",
+    "name": "r13-config-args-argv",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r13-cross-mode-command",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r13-cross-mode-file",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r13-cross-mode-pipe",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r13-validated-pipeline-proving-case",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r14-repeated-record-lifecycle-proving-case",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r14-youversion-bible-proxy-proving-case",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r15-composed-messy-record-proving-case",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r15-cross-mode-command",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r15-cross-mode-file",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r15-cross-mode-pipe",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "r9-composed-json-template-pipeline",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "repl_failed_submission_diagnostic",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "repl_none_result_rendering",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "repl_persistent_binding_basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "validated-data-pipeline-demo",
+    "outcome": "pass"
+  },
+  {
+    "category": "cli",
+    "name": "validated_record_pipeline_killer_workflow",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "collect-validated-non-outcome-item-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "collect-validated-non-seq-source-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "collect-validated-wrong-arity-two",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "collect-validated-wrong-arity-zero",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "diagnostic-error-wrong-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "diagnostic-field-non-map-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "diagnostic-field-wrong-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "diagnostic-reason-non-map-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "diagnostic-reason-wrong-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "diagnostic-skipped-wrong-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-accumulate-non-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-accumulate-opaque-template",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-alternatives-branch-template-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-alternatives-branches-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-alternatives-discriminator-field-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-chunk-callback-non-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-collect-sheet-missing-column",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-collect-sheet-not-seq",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-config-args-malformed",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-config-get-invalid-key",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-config-get-or-default-noncallable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-config-provider-invalid-values",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-config-view-invalid-prefix",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-default-field-template-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-eval-assignment-target",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-eval-undefined-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-exact-shape-field-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-exact-shape-field-template-result",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-exact-shape-field-template-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-exact-shape-field-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-exact-shape-spec-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-compose-invalid-piece",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-compose-missing-placeholder",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-compose-non-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-compose-string-argument",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-debug-composed-spec",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-bare-width",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-bool-zero-pad",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-combined-spec",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-empty-spec",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-grouping-non-numeric",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-incomplete-align",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-invalid-double-dot",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-invalid-index",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-invalid-leading-dot",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-invalid-trailing-dot",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-missing-nested",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-missing-top-level",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-mixed-slash-dot",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-non-map-intermediate",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-slash-nested",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-path-slash-separator",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-precision-non-string-non-numeric",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-field-zero-pad-non-numeric",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-first-class-constructor-non-string",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-first-class-non-string-non-format",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-invalid-placeholder-empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-invalid-placeholder-whitespace",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-missing-named-field",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-missing-positional-field",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-named-non-map",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-non-string-template",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-positional-non-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-template-number-input",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-template-string-input",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-unmatched-left-brace",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-format-unmatched-right-brace",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-import-disallowed-host",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-import-missing-module",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-json-decode-input-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-json-schema-input",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-json-schema-root-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-json-schema-wrong-facet",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-lambda-pattern-miss",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-model-empty-messages",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "error",
+    "name": "error-model-structured-template",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "error",
+    "name": "error-named-pattern-non-outcome-return",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-named-pattern-ordinary-function",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-named-pattern-unknown",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-open-shape-field-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-open-shape-field-template-result",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-open-shape-field-template-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-open-shape-field-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-open-shape-spec-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-outcome-err-invalid-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-outcome-err-missing-reason",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-outcome-some-invalid-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-outcome-some-zero-arg",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-parse-bad-rest-pattern",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-pattern-glob-malformed",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-pattern-guard-all-fail",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-pattern-miss",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-pipeline-stage-undefined-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-pipeline-stage-undefined-name-in-argument",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r10-cross-mode-protected-print",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r12-grounded-provider-failure",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "error",
+    "name": "error-r13-standard-source-failure",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r20-cross-module-duplicate-alias-selection",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r20-cross-module-extend-header-capture",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r20-cross-module-incompatible-target",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r20-cross-module-overlapping-unit-ambiguity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r20-local-duplicate-clause",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r20-no-matching-case",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r20-open-grouped-header-capture",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r20-varargs-ambiguity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-r23-format-zero-pad-rational-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-recursive-template-builder-return-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-recursive-template-builder-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-recursive-template-max-depth-too-large",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-recursive-template-name-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-refinement-match-predicate-result",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-refinement-match-predicate-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-refinement-predicate-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-render-csv-not-sheet",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-render-csv-unsupported-cell",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-represent-empty-facet",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-represent-reserved-secret",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-representation-match-facet-type",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-representation-match-reserved-secret",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-represented-unsupported-map-key",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-row-get-missing-column",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-row-get-not-row",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-secret-view-invalid-logical-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-sheet-derive-duplicate-column",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-sheet-select-missing-column",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-sheet-unequal-column-lengths",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-strip-representation-reserved-secret",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-strip-representation-unrepresented",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-strip-representation-wrong-outer",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-at-assert-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-at-assert-non-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-at-assert-non-outcome-return",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-at-assert-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-at-check-non-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-at-check-non-outcome-return",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-compose-left-non-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-compose-left-non-outcome-return",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-compose-right-non-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-compose-right-non-outcome-return",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-description-non-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-direct-call-non-outcome",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-template-schema-non-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "error-validated-pipeline-predicate-non-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "f2-module-cannot-read-entry-binding",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-ann-later-annotation-suppressed",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-ann-pattern-clause-variants",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-d8-legacy-identical-header-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-d8-r20-flattening-unchanged",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-d8-terminal-grouped-miss",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-disp-case-miss-identity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-disp-case-miss-pattern-group",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-disp-duplicate-pattern-header",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-disp-no-matching-function",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-disp-no-matching-function-new-group",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-disp-p5-varargs-minima-ambiguity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-disp-p7-same-arity-ambiguity",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-imm-declare-after-function",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-imm-rebind-as-function",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-imm-rebind-as-pattern-function",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-alpha-equivalent-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-guard-alpha-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-lambda-shadow-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-legacy-dup-id",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-named-matcher-same-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-no-effects",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-rest-binders-legacy-duplicate",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-same-binary64-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-spelling-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-unquote-active-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-key-unquote-nested-active-dup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-meta-conflicting-inline-doc-before-install",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-open-call-before-later-clause",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-own-alias-annotation-not-evaluated",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-own-explicit-open-alias-unchanged",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-own-extend-ordinary-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-own-imported-alias-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-own-local-alias-pattern-clause",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-own-local-alias-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-own-local-alias-varargs",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-own-use-ordinary-base-unchanged",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "model-b-c-pat-fixed-miss-no-varargs-fallthrough",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "parse-csv-row-invalid-header-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "parse-csv-row-non-list-headers-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "parse-csv-row-non-string-line-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "parse-jsonl-record-non-string-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r11-flow-conversation-model-failure",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r11-validated-pipeline-structured-failure",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "error",
+    "name": "r13-validated-pipeline-config-failure",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r18-map-key-nan-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r18-map-key-nan-rejected-on-lookup",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r18-map-key-nested-nan-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r18-surface-assert-eq-rejects-cross-kind",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r22-exact-division-by-zero-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r22-exact-nan-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r22-exact-remainder-by-zero-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r22-float64-division-by-zero-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r22-float64-magnitude-overflow-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r22-float64-remainder-by-zero-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r22-rational-non-integer-argument-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "r22-rational-zero-denominator-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "validate-each-rejects-non-callable-validator",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "validate-each-rejects-non-list-source",
+    "outcome": "pass"
+  },
+  {
+    "category": "error",
+    "name": "validate-each-rejects-non-outcome-validator-result",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "apply-raw-basic-ordinary-value",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "apply-raw-contrast-normal-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "apply-raw-empty-args",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "apply-raw-lambda-identity-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "apply-raw-none-arg-body-executes",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "apply-raw-none-multi-arg",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "arithmetic-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "arithmetic-precedence",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "as-seq-empty-list-collect",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "as-seq-empty-string-collect",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "as-seq-list-collect",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "as-seq-list-reusable",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "as-seq-nested-list-preserves-inner-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "as-seq-rejects-number",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "as-seq-string-collect",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "as-seq-string-each-run",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "assignment-rebind",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "block-body-function",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "chunk-document-provenance",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "chunk-invalid-span",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "collect-sheet-core",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "collect-validated-all-clean",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "collect-validated-bare-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "collect-validated-empty-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "collect-validated-err-without-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "collect-validated-flow-source",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "collect-validated-mixed-some-none-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "collect-validated-some-context-ignored",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "config-args-normalization",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "config-get-or-defaults",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "config-provider-empty-and-opaque",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "config-provider-literal-lookup",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "config-qualified-views",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "config-standard-composition",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "config-standard-invalid-arguments",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "count-flow-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "diagnostic-helper-accessors",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "diagnostic-helper-constructors",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "each-on-list-seq-compatible",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "error-bad-rest-pattern",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "error-undefined-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "exact-shape-empty-and-order",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "exact-shape-field-set",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "exact-shape-nested-composition",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "exact-shape-outcome-semantics",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "exact-shape-structural-precedence",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "exact-shape-template-operators",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "f2-meta-reflection-binds-to-meta-frame",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "f2-meta-reflection-bound-callable-keeps-captured-scope",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "f2-meta-reflection-does-not-use-module-fallback",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "f2-meta-reflection-entry-names-stay-invisible",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "f2-module-entry-isolation-explicit-passing-and-local-writes",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "f2-module-reflection-cannot-name-entry-binding",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "f2-module-reflection-resolves-in-module-scope",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "f2-reflection-frame-parameter-precedes-runtime-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "first-on-flow-type-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-compose-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-compose-empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-compose-mixed-pieces",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-compose-nested",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-compose-preserves-existing-format",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-compose-repeated-placeholder",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-debug-mode-170",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-display-number",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-display-option-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-display-option-some",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-display-string",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-empty-template",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-escaped-braces-left",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-escaped-braces-mixed",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-escaped-braces-right",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-align-center-even",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-align-center-odd",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-align-left",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-align-noop",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-align-right",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-escaped-braces-spec-text",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-format-value-parity-align",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-format-value-parity-numeric",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-grouping-decimal",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-grouping-integer",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-grouping-large",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-grouping-negative",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-numeric-precision-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-numeric-precision-integer",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-numeric-precision-zero",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-path-debug-rendering",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-path-format-spec",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-path-mixed-top-level",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-path-multi-nested",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-path-nested",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-path-repeated",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-positional-with-spec",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-string-precision-noop",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-string-precision-truncate",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-string-precision-zero",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-zero-pad-already-wide",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-zero-pad-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-field-zero-pad-negative",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-first-class-format-debug-repr",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-first-class-format-display",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-first-class-format-empty-template",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-first-class-format-no-placeholders",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-first-class-format-positional",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-first-class-format-value-backward-compat",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-first-class-format-value-inline",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-first-class-format-value-named",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-named-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-named-multiple",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-pipeline-map-named",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-positional-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-positional-leading-zeros",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-positional-multiple",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-repeated-placeholders",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-template-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-template-debug-placeholder",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-template-empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-template-escaped-braces",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-template-named-value",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "format-tic-tac-toe-row",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "function-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "higher-order-apply",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "integer-arithmetic-large-magnitude-no-overflow",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-bool-collect-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-list-drop",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-map-collect-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-plain-list-three-items",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-string-collect-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-string-each-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-string-map-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-string-run-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "issue-306-seq-boundary-wrapped-list-one-item",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-decode-bom-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-decode-duplicate-key-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-decode-lone-surrogate-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-decode-nesting-boundary",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-encode-escape-set-and-layout",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-encode-key-sort-basis",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-encode-nesting-boundary",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-representation-decode",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-representation-encode",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-representation-errors",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-representation-number-boundaries",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-schema-compilation-errors",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-schema-keyword-shape-errors",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-schema-object-template",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-schema-recursive-types",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "json-schema-template-operators",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "lambda-body-newline-after-arrow",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "lambda-pattern-list-param",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "lambda-pattern-map-param",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "lambda-pattern-option-none-param",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "lambda-pattern-option-param",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "lambda-pattern-quoted-param",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "lambda-pattern-rest-duplicate-param",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "list-literal-construction-and-equality",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-item-key",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-item-value",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-items",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-items-map-item-key-pipeline",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-items-map-item-value-pipeline",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-keys",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-put-replace-existing-key-preserves-order",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-put-replace-existing-key-preserves-order-via-items",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-remove-then-reinsert-appends-at-end",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "map-values",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-a-recursion-in-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-a-recursion-in-map",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-annotation-metadata-attaches",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-cell-mutation-observable",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-closure-write-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-duplicate-immutable-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-existing-mutable-blocks-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-failed-initializer-leaves-name-unbound",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-fresh-entry-binding",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-function-name-blocks-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-import-alias-blocks-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-import-alias-collision-before-load",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-initializer-runs-once",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-local-immutable-blocks-local-assignment",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-module-binding-separation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-module-internal-reassignment-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-named-function-writer-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-nested-explicit-shadow",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-parameter-blocks-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-parameter-remains-mutable",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-reassign-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-reassign-rhs-effects-suppressed",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-ref-mutation-allowed",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-ref-rebinding-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-reserved-loaded-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-reserved-unloaded-prelude-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-b-reserved-unregistered-prelude-helper",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-ann-prior-effects-persist",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-d8-earlier-pattern-miss-continues",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-d8-forward-collision",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-d8-grouped-decl-one-key",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-d8-prefix-and-capture",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-d8-reverse-collision",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-disp-fixed-and-varargs-same-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-disp-fixed-over-varargs",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-disp-no-clause-ambiguity-single-unit",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-disp-p5-migration-drop-lower",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-disp-p5-migration-fixed-clause",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-block-prefix-miss",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-block-prefix-multi-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-block-prefix-once",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-grouped-body-captures-header",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-guard-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-guard-evaluated-once",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-guard-order",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-matcher-outcome",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-hdr-recursion-tco",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-free-name-syntactic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-guard-differs-ok",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-lambda-shadow-outer-slot-distinct",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-named-matcher-distinct",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-one-vs-one-point-zero",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-quote-names-are-data",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-r20-delta-one-float",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-r20-delta-true-one",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-true-vs-one",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-key-unquote-nested-quoted-distinct",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-alias-no-copy",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-binding-doc-merge",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-channel-alias-only",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-channel-binding-doc",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-channel-inline-doc",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-inline-doc-body-runs",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-inline-doc-shared-via-alias",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-newer-key-overwrites",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-pattern-clause-annotations",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-meta-three-channel-trio",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-mode-import-pattern-program",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-open-alias-sees-later-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-open-immutable-alias-stays-live",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-open-lambda-factory-distinct",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-open-noncontiguous-arities",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-open-noncontiguous-pattern",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-open-pattern-after-plain",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-opt-delegation-to-aware-callee",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-opt-err-pipeline-value-short-circuits",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-opt-none-pattern-in-group-dispatches",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-opt-other-arity-clause-not-aware",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-opt-pipe-lift",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-opt-plain-identity-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-optim-collection-recursion",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-optim-late-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-own-alias-call-live",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-own-entry-prelude-name",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-own-immutable-alias-live",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-own-import-inert",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-own-two-modules-independent",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-first-match-wins",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-fixed-miss-two-args-varargs",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-guard-sees-header-binding",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-guard-selects",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-list-rest",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-literal-base-case",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-map",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-match-local-shadows-outer",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-named-matcher",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-some",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-string-body-is-body",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-pat-wildcard",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-b-c-stage-closed-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "model-fixture-structured-call",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "eval",
+    "name": "model-fixture-structured-failures",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "eval",
+    "name": "model-fixture-text-call",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "eval",
+    "name": "named-pattern-basic-success",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "named-pattern-does-not-hijack-outcome-constructors",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "named-pattern-duplicate-binding-still-enforced",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "named-pattern-err-does-not-fall-through",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "named-pattern-inner-pattern-miss-falls-through",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "named-pattern-miss-falls-through",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "named-pattern-nested-map-binding",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "open-shape-empty-and-compatibility",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "open-shape-nested",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "open-shape-outcome-order",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "open-shape-required-extra",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "option-none-render-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "option-some-render-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-err-context-render",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-err-not-absence",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-err-render",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-none-bare-render",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-none-context-render",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-none-reason-render",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-pattern-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-pattern-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-pipeline-err-short-circuit",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-pipeline-some-context-preserved",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "outcome-some-context-render",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "output-log",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "output-print",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "output-print-and-log",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pairs-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pairs-empty-both",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pairs-empty-first",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pairs-pattern-match",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pairs-shorter-first",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pairs-shorter-second",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pairs-strings",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-blank-line",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-data-after-closing-quote",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-embedded-line-break",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-header-map",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-header-mismatch",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-malformed",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-pipeline-shape",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-quote-in-unquoted-field",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-csv-row-quoted-fields",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-jsonl-record-blank-lines",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-jsonl-record-invalid-json",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-jsonl-record-json-parse-regression",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-jsonl-record-non-object-json",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-jsonl-record-pipeline-shape",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-jsonl-record-valid-object",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "parse-jsonl-record-valid-object-whitespace-line",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-duplicate-binding",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-duplicate-binding-false",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-first-match-wins",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-glob-non-string",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-glob-star",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-guard-pass",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-guard-skip",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-list-empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-list-exact",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-list-exact-miss",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-list-head",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-list-rest",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-literal-int",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-literal-string",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-map-key-binding",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-map-partial",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-map-shorthand",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-option-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-option-none-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-option-none-reason",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-option-some",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-tuple-multiarg",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-variable-binding",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pattern-wildcard",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pipeline-call-shape-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pipeline-map-sum",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pipeline-option-none-short-circuit",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "pipeline-option-some-lift",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "protected-secret-acquisition-and-matching",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r10-cross-mode-explicit-provider",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r11-flow-conversation-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r11-validated-pipeline-structured-success",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "eval",
+    "name": "r12-grounded-cross-mode",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "eval",
+    "name": "r13-cross-mode-explicit-standard",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r13-validated-pipeline-qualified-ports",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-conformance-cross-family-summary",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-conformance-protected-in-containers-and-patterns",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-conformance-represented-and-pair-structure",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-conformance-sheet-structural-equality",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-equality-boolean-number-separation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-equality-exact-int-float-bridge",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-equality-inequality-is-negation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-equality-kind-separation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-equality-nan-non-reflexive",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-equality-signed-zero-and-infinities",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-equality-structural-contents",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-identity-bearing-equality",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-legal-key-kind-separation-integer-string",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-map-equal-keys-share-every-operation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-map-key-equivalence-is-equality",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-map-structural-equality",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-protected-equality-is-carrier-identity",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-protected-non-interference-through-containers",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-structural-equality-bytes-and-lists",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-surface-agreement-across-equality-like-paths",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-surface-assert-eq-uses-one-relation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r18-surface-sheet-column-identity",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r19-unicode-byte-length-widths",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r19-unicode-debug-escape-c1",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r19-unicode-debug-escape-remaining-c0-and-del",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r19-unicode-debug-escape-short",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r19-unicode-debug-literal-non-control",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r19-unicode-utf8-encode-decode-roundtrip",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-alias-interface-identity",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-alias-rebinding",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-consumer-non-transitivity",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-contribution-through-two-aliases",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-disjoint-explicit-selection",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-lexical-visibility",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-noncontiguous-extend-runs",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-option-contribution-awareness",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-order-independence",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-view-mutual-tail-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-cross-module-view-reports-base-metadata",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-gcd-grouped-clause-equivalent",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-gcd-repeated-clauses",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-help-provenance",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-doc-annotation-documents-the-interface",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-grouped-header-name-rebound-by-arm",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-grouped-header-name-shadowed-by-lambda",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-grouped-header-name-unreferenced",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-grouped-outer-name-still-visible",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-meta-annotation-attaches-interface-metadata",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-mutual-tail-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-ordinary-mutual-tail-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-string-body-is-not-interface-documentation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-string-body-is-the-body",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-open-string-followed-by-expression-is-body-and-statement",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-option-delegation-to-aware-callee",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-option-err-pipeline-value-short-circuits",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-option-none-pattern-in-stratum-dispatches",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-option-other-arity-clause-not-aware",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-option-some-pattern-in-stratum-dispatches",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-option-varargs-stratum-ignores-fixed-clause",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r20-varargs-over-fixed-precedence",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-cross-surface-quoted-and-pattern",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-exact-arithmetic-promotion-lattice",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-exact-division-required-proofs",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-exact-family-and-float64-ordering",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-exact-family-equality",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-exact-floor-remainder",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-float64-arithmetic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-float64-exact-round-trip",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-mixed-exact-float64-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-numeric-map-key-cross-kind",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r22-rational-construction",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-format-align-rational-canonical-atom",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-format-precision-decimal-half-up",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-format-precision-float64-exact-dyadic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-format-precision-rational-exact-ratio",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-json-encode-decimal-stable",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-json-encode-decimal-unstable-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-json-encode-float64-finite",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-json-encode-rational-nonterminating-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-json-encode-rational-terminating",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r23-json-round-trip-rational-terminating-cross-kind-equality",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r25-async-send-return-values",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r25-cell-fifo-failure",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r25-cell-nested-send-transaction",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r25-cell-restart-generation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r25-process-fifo-fail-stop",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r25-ref-basic-observations",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "r25-ref-blocking-process-producer",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "recursion-factorial",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "reduce-nonseq-int-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "reduce-on-flow-type-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "refinement-open-shape-operators",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "refinement-template-outcomes",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "render-csv-core",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "representation-debug-repr-values",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "representation-display-values",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "representation-equality-rendering-keys",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "representation-match-and-nesting",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "representation-matcher-operators",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "representation-strip-one-layer",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "representation-transport-and-derivation",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "row-get-core",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "secret-qualified-view",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-collect-nonseq-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-drop-nonseq-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-each-nonseq-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-filter-nonseq-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-list-collect",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-list-each-lazy-unconsumed",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-list-each-preserves-items",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-list-each-run",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-list-run-no-output",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-list-scan",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-list-transform-chain",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-map-nonseq-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-range-each-run-regression",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-range-transform-chain",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-run-nonseq-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-scan-nonseq-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "seq-compatible-take-nonseq-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "sheet-derive-core",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "sheet-empty-core",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "sheet-select-immutable",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "sheet-shape-columns-rows",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "sheet-where-core",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdin-refine-sum-fifth",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-filter-list-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-filter-list-no-match",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-filter-option-elements",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-first-list-empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-first-list-some",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-last-list-empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-last-list-some",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-map-list-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-map-list-empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-map-option-elements",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-nth-list-out-of-bounds",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-nth-list-some",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-reduce-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-reduce-empty",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "stdlib-reduce-none-elements",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-accumulate-default-field",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-accumulate-exact-missing-extra-order",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-accumulate-multi-field-failures",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-accumulate-nested-depth-first",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-accumulate-refinement-leaf",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-accumulate-success-returns-real-value",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-alias-composition",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-alternatives-accumulate",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-alternatives-branch-selection",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-alternatives-description-and-schema",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-alternatives-discriminator-diagnostics",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-alternatives-pattern-composition",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-at-assert-some",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-at-check-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-at-check-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-at-check-some",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-compose-first-err-short-circuit",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-compose-first-none-short-circuit",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-compose-right-sees-original-subject",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-compose-second-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-compose-success-passes-value",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-default-field-description-hides-value",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-default-field-missing-uses-default",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-default-field-multiple-defaults",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-default-field-nested-shape",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-default-field-normalization-pipeline",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-default-field-present-invalid-fails",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-description-exact-shape",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-description-json-schema",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-description-no-identity-effect",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-description-opaque",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-description-open-shape",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-description-refinement",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-direct-call-outcomes",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-direct-call-vs-at-check",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-first-class-callable",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-recursive-depth-exceeded",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-recursive-description-and-schema",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-recursive-tree-validates",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-recursive-unresolved-reference",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-schema-nested-shape",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-schema-round-trip",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-schema-shape-of-json-schema-fields",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-schema-unsupported-default-field",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-schema-unsupported-opaque",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "template-schema-unsupported-refinement-field",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validate-each-empty-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validate-each-preserves-none-and-err-results",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validate-each-preserves-some-results",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validated-pipeline-invalid-field",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validated-pipeline-missing-required-field",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validated-pipeline-valid-record",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-helpers-feed-collect-validated",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-nested-missing-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-nested-present-valid",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-optional-absent-none",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-optional-present-invalid-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-optional-present-valid",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-record-diagnostic-context-layers",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-record-diagnostic-without-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "eval",
+    "name": "validation-required-present-valid",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "chunk-zero-result-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "config-get-or-conversion-template-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "count-as-pipe-stage-type-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "evolve-init-f-doubles-from-seed",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "evolve-init-f-integer-progression",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "exact-shape-template-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-collect-bare-stdin-hint",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-collect-non-seq-value-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-downstream-consumes-upstream-lazily",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-downstream-reuse-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-each-print-order-then-collect",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-error-propagation-sum-on-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-filter-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-keep-some-non-flow-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-keep-some-parse-int",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-map-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-map-filter-chain",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-parse-int-option-forms",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-run-non-seq-value-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-single-use-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-stdin-sources-share-position",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-take-bounded-demand-effects",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-take-drop-count-bounds",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-take-single-use-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-tee-zip-list-pairs",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "flow-zip-list-pairs",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "issue-306-seq-boundary-flow-collect",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "issue-306-seq-boundary-flow-drop",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "issue-306-seq-boundary-flow-each",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "issue-306-seq-boundary-flow-run",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "json-representation-template-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "json-schema-validated-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "model-fixture-structured-flow",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "flow",
+    "name": "open-shape-template-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "protected-secret-flow-transport",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "r11-flow-conversation-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "r11-validated-pipeline-flow",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "flow",
+    "name": "r12-grounded-bounded-flow",
+    "outcome": "unsupported"
+  },
+  {
+    "category": "flow",
+    "name": "r13-validated-pipeline-flow",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "rand-flow-deterministic-bounded",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "rand-int-flow-deterministic-bounded",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "reduce-flow-bounded-evolve",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "reduce-flow-option-accumulator",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "reduce-flow-range-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "refine-step-emit-deterministic",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "representation-flow-transport",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "rules-defaulting-and-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "rules-identity-stage",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "rules-rule-emit-deterministic",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "rules-structured-none-skips",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "seq-compatible-evolve-each-run",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "seq-compatible-flow-each-preserves-items",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "seq-compatible-flow-scan-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "seq-compatible-flow-scan-bounded-evolve",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "seq-compatible-flow-transform-chain",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "seq-finalization-drop-take",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "stdin-lines-collect-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "stdin-lines-take-early-stop",
+    "outcome": "pass"
+  },
+  {
+    "category": "flow",
+    "name": "step-rule-helper-equivalence",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "block-and-assign",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "call-spread",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "case-patterns",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "config-provider-ordinary-calls",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "config-views-ordinary-calls",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "delay",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "dot-named-access",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "funcdef-annotated",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "funcdef-block-body",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "funcdef-varargs",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "import-pipeline-stage",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "ir-named-pattern-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "lambda-basic",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "lambda-pattern-param",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "lambda-varargs",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "map-literal",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-annotated-immutable",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-calls",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-closed",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-closed-grouped",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-closed-run",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-guard-identifier",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-guard-pattern",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-immutable",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-legacy-dotted-assignment",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-legacy-dotted-function",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-legacy-dotted-function-arrow",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-legacy-dotted-function-block",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-legacy-lambda-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-legacy-lambda-named",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-legacy-rest",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-legacy-some-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-ordinary-independent",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-err",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-err-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-list",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-literal",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-map",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-named",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-some-context",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-string-body",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-pattern-tuple",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-b-a-split",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "model-ordinary-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "none-bare",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "option-constructors",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "option-patterns",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "pattern-glob",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "pattern-map",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "pipeline-explicit",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "quasiquote-unquote-splicing-var",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "quasiquote-unquote-var",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "quote-expr",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r12-grounded-existing-ir",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r13-existing-call-ir",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r15-existing-call-ir",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r20-extend-contribution",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r20-open-annotated-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r20-open-grouped-equivalence",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r20-open-repeated-clauses",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r20-open-varargs-shape",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r20-use-selection",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r21-decimal-dotted-literal-tagged-payload",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r21-decimal-equivalent-spellings-identical-payload",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r21-decimal-exponent-literal-tagged-payload",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r21-huge-integer-literal-tagged-payload",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r21-integer-literal-tagged-payload",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r21-slash-remains-ordinary-binary",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "r21-unary-negative-decimal-tagged-payload",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "slash-operator",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "template-at-assert",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "template-at-check-composed-matcher",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "template-compose",
+    "outcome": "pass"
+  },
+  {
+    "category": "ir",
+    "name": "unary-operators",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-dotted-closed-target",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-dotted-guard-target",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-dotted-pattern-target",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-guard-arrow",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-guard-grouped",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-index",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-missing-body",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-missing-init",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-mixed",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-mixed-reverse",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-nested",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-pattern-arrow",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-pattern-grouped",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "model-b-a-target",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-assignment-simple",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-config-provider-ordinary-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-decimal-literal-regression",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-dot-named-access",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-dot-named-access-trailing-dot-error",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-named-pattern-declaration-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-named-pattern-use-arity",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r20-extend-requires-qualified-target",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r20-nested-open-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r20-open-grouped-header-capture",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r20-open-grouped-header-capture-guard",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r20-open-grouped-header-capture-nested-lambda",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r20-open-redeclaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r20-use-missing-with",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r21-leading-dot-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r21-malformed-exponent-missing-digits",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r21-malformed-exponent-sign-only",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-r21-trailing-dot-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-error-unclosed-paren",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-lambda-list-pattern-param",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-lambda-multi-arm-rejected",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-literal-number",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-model-ordinary-call",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-named-pattern-declaration",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-named-pattern-use-in-case-arm",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r12-grounded-existing-forms",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r13-existing-call-forms",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r15-existing-call-forms",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r20-extend-contribution-clause",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r20-open-grouped-clause",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r20-open-repeated-clauses",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r20-ordinary-funcdef-unaffected",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r20-use-selection-statement",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r21-decimal-dot-exponent-classification",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r21-decimal-dotted-classification",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r21-decimal-equivalent-spelling-exponent-form",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r21-decimal-equivalent-spelling-trailing-zero",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r21-decimal-exponent-only-classification",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r21-huge-integer-source-classification",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-r21-integer-source-classification",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-template-at-assert",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-template-at-check",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-template-at-check-compose-precedence",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-template-at-check-composed-matcher",
+    "outcome": "pass"
+  },
+  {
+    "category": "parse",
+    "name": "parse-template-compose",
+    "outcome": "pass"
+  }
+]
