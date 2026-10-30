@@ -23,6 +23,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import os
+import signal
 import subprocess
 from typing import Any, Mapping, Sequence
 
@@ -223,6 +225,48 @@ def validate_envelope(raw_stdout: str, *, expected_case_id: str, expected_operat
     return AdapterOutcome(kind="unsupported", reason=unsupported_reason, stdout_raw=raw_stdout)
 
 
+def _run_adapter_process(
+    command: Sequence[str],
+    payload: bytes,
+    *,
+    timeout: float,
+    cwd: str | None,
+    env: Mapping[str, str] | None,
+) -> subprocess.CompletedProcess[bytes]:
+    """Execute the adapter with bounded ownership of POSIX cancellation work.
+
+    POSIX requests start a private session/process group. If communication is
+    interrupted or times out, kill that group and reap the direct adapter before
+    re-raising the original exception, including its partial stdout/stderr. This
+    stops same-group descendants, not deliberately detached processes; it is not
+    a sandbox or a guarantee that this process can reap grandchildren. Successful
+    requests retain existing descendant behavior. Non-POSIX keeps subprocess.run's
+    existing direct-process cancellation. Spawn/communication/cleanup OS errors
+    propagate; only an already-gone group is ignored during cancellation.
+    """
+    if os.name != "posix":
+        return subprocess.run(
+            list(command), input=payload, capture_output=True, timeout=timeout,
+            cwd=cwd, env=dict(env) if env is not None else None,
+        )
+
+    with subprocess.Popen(
+        list(command), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, cwd=cwd,
+        env=dict(env) if env is not None else None, start_new_session=True,
+    ) as process:
+        try:
+            stdout, stderr = process.communicate(input=payload, timeout=timeout)
+        except BaseException:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.wait()
+            raise
+        return subprocess.CompletedProcess(process.args, process.returncode, stdout, stderr)
+
+
 def run_adapter_request(
     command: Sequence[str],
     request: Mapping[str, Any],
@@ -237,17 +281,18 @@ def run_adapter_request(
     stdout is read in full and classified by ``validate_envelope``; its own
     stderr is captured only for diagnostics (``stderr_raw``) and never
     affects classification. A nonzero exit is ``crash``; exceeding
-    ``timeout`` is ``timeout`` (the process is killed).
+    ``timeout`` is ``timeout``. Cancellation kills the private POSIX request
+    process group and reaps the direct adapter; non-POSIX retains direct-process
+    cancellation. Deliberately detached descendants are outside that ownership.
     """
     payload = encode_request(request)
     try:
-        completed = subprocess.run(
-            list(command),
-            input=payload,
-            capture_output=True,
+        completed = _run_adapter_process(
+            command,
+            payload,
             timeout=timeout,
             cwd=cwd,
-            env=dict(env) if env is not None else None,
+            env=env,
         )
     except subprocess.TimeoutExpired as exc:
         return AdapterOutcome(
