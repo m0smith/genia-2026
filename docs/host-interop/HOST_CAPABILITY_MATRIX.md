@@ -93,11 +93,19 @@ is demonstrated; this is not ordinary pattern/guard-header or default-open suppo
 Accepted #60 candidate-suite evidence is **1,044 total / 295 PASS / 749 UNSUPPORTED**
 with all actual failure classes zero in that run; only `pattern-guard-pass` and
 `pattern-guard-skip` become passing relative to the earlier 293/751 result.
-The unchanged R25 fixture race remains unresolved in [#1299](https://github.com/m0smith/genia-2026/issues/1299):
-a separate full run had 294 PASS / 1 FAIL / 749 UNSUPPORTED, and independent
-1,000-request stress runs had 34 failures on the prior binary and 30 on #60.
-Clean evidence does not erase those failures. #60's scoped acceptance exception
-does not waive failing checks or grant #1270/#1251/R29 acceptance.
+The R25 fixture admission race tracked in [#1299](https://github.com/m0smith/genia-2026/issues/1299)
+was repaired through [#1301](https://github.com/m0smith/genia-2026/pull/1301) and
+integrated into main by [#1270](https://github.com/m0smith/genia-2026/pull/1270).
+An unset Ref gates handler failure until all expected sends return; FIFO,
+queued-message discard, the original expected output and post-failure send
+rejection are preserved. No runtime or capability changed.
+Historical evidence remains: 294 PASS / 1 FAIL / 749 UNSUPPORTED in one full
+run, and 34/30 failures per 1,000 requests on the prior/#60 binaries.
+Post-merge [parity](https://github.com/m0smith/genia-2026/actions/runs/41089720060)
+at authority commit `09804b565a30c2995a7d045d74faf8e880994ff4` records
+1,044 total / 295 PASS / 749 UNSUPPORTED and zero actual failure classes.
+Individual issue acceptance and the separate semantic-foundation/R29 gate are
+recorded in #1299 and [#1251](https://github.com/m0smith/genia-2026/issues/1251).
 
 The source revision is distinct from the adapter's declared semantic contract
 revision, `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. Runs using a newer
