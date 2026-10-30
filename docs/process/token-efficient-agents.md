@@ -30,12 +30,27 @@ At the beginning of each task, consult the latest `AGENTS.md` and the four autho
 - Store comprehensive findings, test artifacts and provenance in the relevant GitHub issue/PR. Return a short decision summary: outcome, actual blockers, evidence link and next action. Logs remain accessible, not suppressed.
 - Prefer a lower-cost model for mechanical, well-bounded work when supported; use deeper reasoning for semantic uncertainty, architecture, root-cause analysis and independent skeptical audits. Model choice never relaxes acceptance criteria.
 
-## 5. Measure rather than assume savings
+## 5. Optional OpenClaw coordination (experimental)
+
+OpenClaw may coordinate Codex, Claude Code or other agents for Genia tasks, but **it is not installed, connected, proven or required by this policy**. Use the established standalone agent process when orchestration is unavailable or less efficient. OpenClaw must read and respect the same repository guidance; a coordinator is not a new semantic authority or approval gate.
+
+When OpenClaw is available:
+
+- **Single issue intake:** resolve the issue, current candidate SHA, relevant sections, scope/risk tier, acceptance gates and existing evidence once. Give each worker a small task-specific context and link the exact GitHub source; do not forward entire historical transcripts or repeated large documents by default.
+- **Explicit delegation:** default to one implementer. Route independent review to a separate agent/session when mandated; make independence, branch/worktree isolation and reviewer scope explicit. Prefer sequential handoffs to redundant simultaneous agents.
+- **Bounded concurrency:** cap simultaneous sessions and expensive builds to the machine's measured resource envelope. Avoid contention-induced timeouts; do not alter the conformance deadline or change results to green. Each worker records failures and exact run provenance.
+- **Durable handoff:** coordinator maintains a compact issue/PR handoff (decision, commit/tree, host pins, test evidence links, blockers, owner, next step). GitHub and the authoritative repository files remain durable truth; OpenClaw memory/session summaries are convenience caches and cannot override them.
+- **Costs and limits:** account for coordinator tokens, each delegated session, cached/context tokens where provided, and repeated tool/test calls. Separate subscription-backed usage from API-billed usage where observable. Do not promise savings until a measured comparison shows them.
+- **Safety and authority:** use minimum necessary tool permissions; separate read-only review from code-writing and GitHub mutation; preserve explicit approvals and PR/CI gates. Do not delegate secrets or protected inputs unnecessarily. A coordinator must not merge, close an issue or authorize R29 merely because all workers report success.
+
+**Pilot gate:** first run a small, reversible coordination trial on a bounded nonsemantic task and compare completion quality, token usage and operator effort against the standalone workflow. Do not introduce a mandatory OpenClaw step or replace existing CI until the integration is actually working and reviewed.
+
+## 6. Measure rather than assume savings
 
 For the next **five substantial eligible tasks** after this policy is adopted, when token/usage figures are accessible, record issue/PR, task tier, model(s), input/output/cached tokens, agent count, repeated full-run count, and whether required checks passed. If token figures are unavailable, say **not measured**, not zero or estimated. Summarize at the fifth task: cost/usage per accepted change, regressions, review quality and any added delays. Compare with a grounded historical baseline only when available.
 
 The proposed **40–60% token reduction is a hypothesis, not achieved savings or a target that outranks correctness**. Publish an ADOPT / REVISE / RETIRE assessment in a follow-up issue or PR; avoid turning this pilot into a permanent new gate without an explicit decision. This usage pilot is independent of the temporary #1226 Genia-dogfooding observations.
 
-## 6. Prompt template
+## 7. Prompt template
 
 > Follow current AGENTS.md and authority documents. Work on [issue] at [exact ref]. Goal: [one measurable outcome]. Use the existing change gates and smallest justified evidence delta; preserve required full acceptance checks and all failed results. Publish detailed evidence on the issue/PR. Return decision, blockers and next action. Keep authority documentation up to date for verified shipped behavior.
