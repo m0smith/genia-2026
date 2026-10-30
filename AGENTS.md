@@ -139,6 +139,10 @@ Prefer references over duplicated semantic rules.
 
 ---
 
+## Token-Efficient Agent Workflow Pilot
+
+Follow [the token-efficient agent workflow](docs/process/token-efficient-agents.md) to minimize repeated prompts, redundant re-reading, overlapping agents and unnecessary duplicate test runs. The pilot **does not supersede any required pre-flight, test, independent-review, portability, documentation or release gate**. Preserve failed evidence and quantify savings only when actual usage data is available. This is a process-efficiency pilot, not Genia language semantics.
+
 ## Temporary Genia Dogfooding Observation Pilot (#1226)
 
 For the **next four eligible, independent substantial Genia development tasks** after the first prospective observation recorded on #1226 (five prospective tasks total), **Codex and Claude** should leave a short, evidence-based post-task observation on [issue #1226](https://github.com/m0smith/genia-2026/issues/1226) whenever they run such a task. This is a **time-limited, non-blocking observation request**, not a new mandatory lifecycle phase, CI gate, or requirement to rewrite working host tooling in Genia. The retrospective five PRs do not count toward the five prospective observations.
