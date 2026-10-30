@@ -1,0 +1,27 @@
+name: model-b-c-main-repl-pattern-never-selects
+id: model-b-c-main-repl-pattern-never-selects
+category: cli
+description: "Slice C RED (#1269): R26 REPL contract 2.7; C-MAIN"
+requires: [default_open_functions, repl]
+input:
+  source: |-
+    main(["x"]) = { print("p"); 1 }; 0
+    42
+  file: null
+  command: null
+  stdin: |-
+    main(["x"]) = { print("p"); 1 }; 0
+    42
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    0
+    42
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="42" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=0.
+  NEW id (pattern-bearing main in the REPL)

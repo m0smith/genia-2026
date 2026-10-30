@@ -1,0 +1,6 @@
+# Slice C fixture: a wildcard-headed `main(_)` is not a plain identifier header, so it is not selected as the entry point.
+# Expected: only the top-level statements run.
+@doc "Wildcard-headed `main(_)` that prints `wild` and returns 7 if ever run."
+main(_) = { print("wild"); 7 }
+print("top")
+42

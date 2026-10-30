@@ -1,0 +1,20 @@
+name: model-b-c-disp-p5-migration-fixed-clause
+id: model-b-c-disp-p5-migration-fixed-clause
+category: eval
+description: "Slice C RED (#1269): D1 migration fix"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(a, ..r) = "min1"
+    f(a, b, ..s) = "min2"
+    f(a, b) = "exact2"
+    f(1, 2)
+expected:
+  stdout: |
+    "exact2"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/2\n" exit=1.

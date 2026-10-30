@@ -1,0 +1,23 @@
+name: model-b-c-open-noncontiguous-pattern
+id: model-b-c-open-noncontiguous-pattern
+category: eval
+description: "Slice C RED (#1269): contract 2.2 noncontiguous accumulation"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(0) = "a"
+    g(y) = y
+    print(f(0))
+    f(1) = "b"
+    [f(0), f(1)]
+expected:
+  stdout: |
+    a
+    ["a", "b"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  explicit-open twin is invalid by design (open requires contiguous clauses), so the oracle is contract-derived

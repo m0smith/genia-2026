@@ -1,0 +1,7 @@
+# Slice C fixture (decision G1): `main(a)` plus `main(a, ..r)` share a required-arity minimum.
+# Expected: the group is not eligible for entry selection, so only the top-level statements run.
+@doc "Fixed-arity `main(a)` clause paired with a varargs clause of the same minimum; never run by entry selection here."
+main(a) = { print("fixed"); 1 }
+main(a, ..r) = { print("rest"); 2 }
+print("top")
+42

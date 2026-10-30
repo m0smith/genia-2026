@@ -9,11 +9,20 @@ a fresh binding in the current scope, rejected before its initializer on any
 same-scope binding and, **at entry scope only**, on any runtime-owned name
 (module and nested scopes may still declare such a name locally). Later
 `=`/function/import writes to it are rejected, `=` before its right-hand side
-runs. Binding immutability is shallow. Atomic closed-function
-clause groups and ordinary pattern/guard headers are accepted and lowered, but
-their evaluation fails with `model-b-not-implemented`; default-open execution,
-cross-module linking changes and closed publication remain unimplemented.
-Ordinary `=` and explicit R20 `open` retain their existing execution behavior. C++ support for the new syntax is not claimed.
+runs. Binding immutability is shallow. Ordinary pattern/guard-headed
+`name(header) = body` declarations execute as default-open clauses (Python
+reference host; shared cases require `default_open_functions`): same-scope,
+same-name declarations accumulate in declaration order into one group that
+aliases share, a call selects the fixed or sole varargs shape and then the first
+matching clause, equal pattern/guard keys are duplicates, and declaring through
+an alias or imported binding is rejected with `function-declaration-not-owner`.
+Atomic closed-function clause groups (`f(...) =: body`) are accepted and
+lowered, but their evaluation fails with `model-b-not-implemented`; cross-module
+linking changes and closed publication remain unimplemented. Explicit R20 `open`
+retains its existing execution behavior. C++ supports guards inside ordinary grouped bodies (with header capture) and
+local explicit-R20 clauses (whose grouped headers remain nonbinding), with
+guard-sensitive duplicate keys. It does not
+support ordinary pattern/guard headers, default-open functions or `=:`.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
@@ -202,7 +211,7 @@ Required constraints:
 ## 8) Function resolution invariants
 
 - fixed-arity match is preferred over varargs match
-- varargs ambiguity must raise `TypeError("Ambiguous function resolution")`
+- varargs ambiguity (eligible varargs clauses with more than one distinct minimum) must raise `TypeError("Ambiguous function resolution")`; the larger minimum is never chosen
 - named-function groups may carry one canonical docstring:
   - no docstrings => undocumented
   - one docstring total => valid
@@ -426,11 +435,12 @@ Required constraints:
 - `open`, `extend`, and `use` are soft keywords recognized only as the first
   token of a fresh top-level statement (exactly like `import`/`pattern`
   already are); they remain ordinary identifiers everywhere else.
-- Openness is declared, never inferred: a pattern-headed clause (any
-  non-identifier pattern item, or a trailing `..rest`) for a name not
-  already declared `open` earlier in the same module still hits the
-  existing plain-parameter-list `SyntaxError` — R20 adds no new error path
-  for that case.
+- Explicit `open` still declares an R20 interface that other modules may
+  extend with `extend`/`use`. Since Model B Slice C an ordinary pattern- or
+  guard-headed clause for a name not declared `open` no longer fails: it is a
+  default-open clause of the module's ordinary function group (not an `open`
+  interface, never an `extend`/`use` target), and R20 adds no new error path
+  for it.
 - `open`/repeated clauses for one interface must form one contiguous run of
   top-level statements in a module; interleaving unrelated statements does not
   merge across the gap. `extend` clauses are different: all of a module's
@@ -490,6 +500,64 @@ Required constraints:
   effects: no clause body executes and no lifecycle/resource/network
   activation occurs merely because an `open`/`extend`/`use` statement is
   evaluated.
+
+## 8.5.1) Default-open ordinary function invariants (Model B Slice C; Python reference host)
+
+LANGUAGE CONTRACT (shared cases `model-b-c-*`, optional capability `default_open_functions`): an
+ordinary `name(header) = body` declaration is open by default. The header is an identifier/rest
+parameter list or any R20 tuple pattern with an optional `? guard`.
+
+- Same-scope same-name declarations, also noncontiguous ones, accumulate in declaration order into one
+  group that aliases share; a clause is visible once its statement has run; `open` is optional.
+- Dispatch: if any clause has fixed arity `n`, only those clauses are candidates (varargs never backs
+  up a fixed miss); otherwise the eligible varargs clauses must share one minimum, else `Ambiguous
+  function resolution`; no eligible shape is `No matching function: f/N. Available: ...`. The first
+  clause in declaration order whose pattern and guard match runs. Patterns and guards run once per
+  attempted clause, in order; nothing after a match or an error is evaluated.
+- An identifier header always matches; a miss in its grouped body, or exhausting the candidates, is
+  the terminal `No matching case for function f/N with arguments [...]`. A matcher `err(...)`
+  Outcome is the call's value; matcher, guard and body errors propagate. Tail calls use the shared
+  trampoline.
+- A grouped body `f(x) = (0) -> x | (n) -> n + x` is one declaration with one key; its arms see the
+  header bindings and are not independent clauses.
+- Duplicates are rejected when declared (the group is unchanged): same shape and equal
+  pattern/guard keys up to bound-variable spelling, including immutable declarations inside guard blocks
+  (initializer keyed before the binder enters scope, annotations and later expressions after it;
+  shadowing and free references stay distinct). Keys are typed (`true`, `1`, `1.0` differ), quoted
+  syntax is data, only active unquotes are references, lambda parameters in a guard are
+  alpha-normalized. Two identifier headers keep `Duplicate function definition: f/N`; any other
+  duplicate is `open-function-duplicate-clause`. Fixed `f(a)` and varargs `f(a, ..r)` are distinct
+  shapes.
+- Ownership: a declaration whose name resolves in the current scope to a group declared by another
+  binding or module fails with `function-declaration-not-owner` before annotations run and installs
+  nothing; the diagnostic names only the declared name, the owning name and, for a foreign owner, the
+  canonical module identity. Declaration over a lambda, builtin, immutable or explicit-open target
+  keeps its existing diagnostic. `extend`/`use` on an ordinary function stays
+  `open-function-target-not-open`.
+- Metadata: binding annotations, inline documentation and effective help stay separate channels. The
+  clause is installed before its annotations run; a failing annotation keeps the clause and the prior
+  metadata, earlier annotation effects persist, later annotations do not run. A conflicting inline
+  docstring fails before installation. The string after a pattern header's `=` is the body.
+- Consumers: route, outbound-HTTP and `@test` discovery need exactly one identifier-header clause;
+  lifecycle binding accepts any group; `help` lists every declared shape (`h/1, 2, 3+`).
+- `none` arguments propagate unless a clause in the selected candidate set handles absence; clauses of
+  other arities are not consulted.
+- `main` is auto-run only when its whole group is identifier-header clauses with distinct required
+  arities; otherwise the source result is kept silently. REPL declarations never run `main`.
+- The list-traversal rewrite is admitted only when the guard-free function has exactly three arms in this
+  order: an empty-list arm with a wildcard/binder counter returning `nil`, a literal-`0` head arm
+  returning the head, and a recursive arm `(n, [_ or fresh head, ..rest]) -> f(n - 1, rest)` (Integer
+  literal `1`; `n - 1.0` is not admitted) whose
+  binders are pairwise distinct; neither the arm binders nor the parameters shadow `f`. Anything else keeps the ordered
+  clauses. An admitted function retains its grouped case; the fast path runs only for an Integer
+  counter (Float64, Decimal, Rational and Boolean counters run the retained case, preserving mixed-domain
+  type errors and resource limits), a list, and a recursion that still resolves `f` to a group whose sole arity-2
+  candidate is this declaration; otherwise the retained case runs. Evidence is the optimizer-on/off
+  comparisons in `tests/unit/test_model_b_slice_c_optimizer_equivalence.py`, not a general proof.
+- Implementation: `GeniaFunctionGroup` holds ordered records, the arity table is a derived index, an
+  `(module identity, defining name)` owner identifies the declaring binding, and
+  `src/genia/structural_key.py` is the one pure key walker. Closed `=:` functions, cross-module
+  linking of ordinary functions and application lifecycle are not implemented.
 
 ## 8.6) R21 numeric source classification invariants (Experimental)
 

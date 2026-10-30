@@ -1,0 +1,18 @@
+name: model-b-c-imm-declare-after-function
+id: model-b-c-imm-declare-after-function
+category: error
+description: "Slice C RED (#1269): Slice B"
+requires: [immutable_bindings]
+input:
+  source: |-
+    f(a) = a
+    f =: 1
+expected:
+  stdout: ''
+  stderr: |
+    Error: Cannot declare immutable binding f: name is already bound in this scope
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Cannot declare immutable binding f: name is already bound in this scope\n" exit=1.

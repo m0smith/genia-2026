@@ -122,7 +122,7 @@ Scaffolded or planned, not implemented as hosts:
   declared `supported` only for the shared cases carrying the matching `requires:` capability. It is not Python feature parity; pinned
   evidence and gaps live in `docs/releases/R24.md` through `R27.md`, `spec/known_host_gaps.json`, and the host parity gate.
   - **Numeric subset:** see [bounded numeric support and gaps](https://github.com/m0smith/genia-2026/blob/main/docs/host-interop/numeric-host-status.md), sections 9.21/9.32.
-  - **Scripted REPL:** one environment retained across complete submissions, normalized failure reporting, recovery; interactive
+  - **Scripted REPL:** one environment retained across complete semicolon-separated submissions, normalized failure reporting, recovery; interactive
     prompt/banner/history stays host-local.
   - **Data bridge contract** (`docs/design/r26-cpp-data-bridge-contract.md`): `bytes_utf8` (`utf8_decode` for well-formed UTF-8 only; `<bytes N>`
     display) and `json_strict` (full grammar, nesting bounded at exactly 128 containers for decode and encode, duplicate-key rejection with the
@@ -130,8 +130,7 @@ Scaffolded or planned, not implemented as hosts:
     (`json_parse`/`json_stringify`/`json_pretty`/`parse_jsonl_record`, capability `json_compat`) is **not portable** and stays Python-host-only;
     ZIP is out of R26. `spec/manifest.json` declares `bytes_utf8`, `json_strict`, and `json_compat`.
   - **Flow phase 1 and pipe mode** (`flow_phase_1`, `cli_pipe_mode`): lazy single-use Flow with `lines`, `evolve`, `map`/`filter`/`take`/`drop`/
-    `scan`/`keep_some`/`each`, and `collect`/`run`/`reduce`. C++ limits: no trailing script arguments after `-p <expr>`; `argv()` only in pipe
-    mode; `upper`/`trim`/`parse_int` decide ASCII input only; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan`, Flow display, and a
+    `scan`/`keep_some`/`each`, and `collect`/`run`/`reduce`. C++ limits: no trailing script arguments after `-p <expr>`; file arguments unsupported; `upper`/`trim`/`parse_int` decide ASCII input only; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan`, Flow display, and a
     pipeline inside call arguments are unsupported; config/model/Template/JSON cross-release Flow and pipe cases stay Python-host-only.
   - The HTTP server and outbound HTTP are not part of the C++ floor; both remain Python-host-only with tracked C++ gaps.
 - **Python reference-host repairs recorded for the data bridge:** decoding or computing a Decimal whose `10 ** exponent` expansion would exceed the
@@ -713,7 +712,7 @@ Pipeline (Phase 2) evaluation model:
   execution (an exact argv, no shell, no PATH search) under a portable
   contract currently implemented by Python. Neither wraps or replaces the
   other.
-### Model B declarations (Partial: `=:` bindings execute; closed/pattern forms parse/lower only)
+### Model B declarations (Partial: `=:` and default-open functions execute; closed forms parse/lower only)
 
 LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`; consecutive
 same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
@@ -740,11 +739,12 @@ overwrite it.
 Immutability is shallow; Ref/Cell mutation, parameter assignment, `=` and entry write-through are unchanged.
 
 PYTHON REFERENCE HOST: an Env-owned policy enforces `=:` under one lock never held across user code.
-Closed and pattern-header evaluation fails with
+Pattern/guard declarations execute as default-open clauses (`default_open_functions`,
+`GENIA_RULES.md` 8.5.1): first match in declaration order, duplicate keys rejected,
+alias or imported declarations fail with `function-declaration-not-owner`. Closed `f(...) =: body` evaluation fails with
 `model-b-not-implemented` before initializer/annotation/guard/body effects.
-Default-open dispatch, linking and closed publication remain unimplemented.
-Unfinished `=:` keeps REPL input incomplete; completed submissions cannot extend
-earlier groups. C++ lacks `=:` (known gap `immutable_bindings`: genia-2026#1261; parser/lowering genia-cpp#50).
+Linking and closed publication remain unimplemented.
+Unfinished `=:` keeps REPL input incomplete; completed submissions end closed groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch
 
@@ -774,16 +774,7 @@ earlier groups. C++ lacks `=:` (known gap `immutable_bindings`: genia-2026#1261;
     """ x + 1
     ```
   - docstrings are metadata, not runtime body expressions
-  - function bodies may still use the ordinary parenthesized case-expression style after a docstring
-    - example:
-      ```genia
-      sign(n) = """
-      # sign
-      """ (
-        0 -> 0 |
-        _ -> 1
-      )
-      ```
+  - function bodies may still use the parenthesized case-expression style after a docstring
   - for multi-clause named functions: zero docstrings = undocumented; one docstring total = valid; repeated identical docstrings = valid; conflicting docstrings raise a clear `TypeError`
 - prefix annotations now attach metadata to bindings
   - supported built-in annotations are:
@@ -806,7 +797,7 @@ earlier groups. C++ lacks `=:` (known gap `immutable_bindings`: genia-2026#1261;
   - `@test` annotations are discovered by the native test runner; `@test` does not execute by itself and does not affect language evaluation behavior outside native test mode; see section 9.2
 - resolution behavior:
   - exact fixed arity beats varargs
-  - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
+  - varargs candidates with different minima raise `TypeError("Ambiguous function resolution")`
 - named accessor (phase 1):
   - `lhs.name` is the canonical narrow named-access form; it is not general field-path lookup
   - legacy `lhs/name` compatibility has been removed
@@ -1896,6 +1887,7 @@ Behavior:
 - arity coercion is not performed by the entrypoint selector:
   - only exact `main/1` or exact `main/0` are auto-invoked
   - if neither exists, no entrypoint call is attempted
+- `main` auto-runs only for a plain identifier-header group (distinct arities)
 ### Refs
 
 R25 portability status: the observable Ref behavior in this section is the
@@ -2941,7 +2933,7 @@ Implemented tail-call/runtime behavior:
 
 Other implemented optimizations:
 
-- specialized nth-style list traversal rewrite to `IrListTraversalLoop` for a narrow recognized recursion shape
+- specialized nth-style `IrListTraversalLoop` rewrite with restricted admission and retained-case fallback
 
 Core IR shape includes:
 
@@ -3621,9 +3613,8 @@ PYTHON REFERENCE HOST (MCP adapter):
 - `language` is fixed except `contract_revision` (the launch revision). Its members are
   `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`,
   `examples` and `discovery`. Executable `gcd` and `factorial` examples return `6`
-  and `120`. `idioms.clauses` requires explicit `open` for executable pattern
-  dispatch; `name =: expr` executes (section 3); Model B pattern/guard
-  headers and closed `f(...) =: body` reject evaluation with `model-b-not-implemented`.
+  and `120`. `idioms.clauses` runs pattern clauses by default; `name =: expr` executes (section 3);
+  closed `f(...) =: body` rejects evaluation with `model-b-not-implemented`.
 - `idioms.pipelines`, `idioms.outcomes` and `idioms.flow` restate sections 2, 3,
   5 and 6: validated pipelines, Outcome lifting/short-circuiting and explicit
   recovery, lazy single-use Flow, bounded terminals and explicit stdin adaptation.

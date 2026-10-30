@@ -1,0 +1,20 @@
+name: model-b-c-d8-r20-flattening-unchanged
+id: model-b-c-d8-r20-flattening-unchanged
+category: error
+description: "Slice C RED (#1269): D8 explicit-open unchanged"
+requires: [open_functions]
+input:
+  source: |-
+    open f(x) = (0) -> 1 | (n) -> 2
+    f(0) = 3
+    f(0)
+expected:
+  stdout: ''
+  stderr: |
+    Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n" exit=1.
+  source chosen by the revision-6 author; the package gives only the outcome

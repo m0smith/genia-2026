@@ -1,0 +1,6 @@
+# Slice C fixture: a pattern-headed function declared in a file program runs through default-open dispatch.
+# Expected: `f(0)` matches the literal clause and `f(1)` falls to the catch-all.
+@doc "Literal-headed `f(0)` returns `\"zero\"` and the catch-all `f(n)` returns `\"other\"`."
+f(0) = "zero"
+f(n) = "other"
+print([f(0), f(1)])

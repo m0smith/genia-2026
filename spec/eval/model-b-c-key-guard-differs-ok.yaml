@@ -1,0 +1,19 @@
+name: model-b-c-key-guard-differs-ok
+id: model-b-c-key-guard-differs-ok
+category: eval
+description: "Slice C RED (#1269): D3"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) ? x > 0 = 1
+    f(x) ? x < 0 = 2
+    [f(1), f(-1)]
+expected:
+  stdout: |
+    [1, 2]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

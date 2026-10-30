@@ -38,8 +38,10 @@ _PARTIAL_CAPABILITIES = frozenset({"shared_spec_runner"})
 # runtime behavior is not implemented yet. A name listed here is advertised
 # ``unsupported`` over the protocol, so the external-host applicability gate
 # (tools/spec_runner/capabilities.py::case_is_applicable) reports every case
-# that requires it ``unsupported`` without invoking this adapter. Empty in
-# production (issue #1269, C0): staging a name here never implements it.
+# that requires it ``unsupported`` without invoking this adapter. Staging a
+# name here never implements it. The set is empty: issue #1269 (Slice C)
+# staged ``default_open_functions`` at RED and removed it once every gated
+# case passed through this adapter.
 _VOCABULARY_ONLY_CAPABILITIES: frozenset[str] = frozenset()
 
 

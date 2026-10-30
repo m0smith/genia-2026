@@ -1,0 +1,21 @@
+name: model-b-c-meta-pattern-clause-annotations
+id: model-b-c-meta-pattern-clause-annotations
+category: eval
+description: "Slice C RED (#1269): contract 5.1; observed legacy twin `@doc \"zero\"\\nf(x) = 1`"
+requires: [default_open_functions, doc_help]
+input:
+  source: |-
+    @doc "zero"
+    f(0) = 1
+    f(x) = x
+    doc("f")
+expected:
+  stdout: |
+    "zero"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  open twin may reject annotations (R20 restriction): then the oracle is CD from the legacy-clause behaviour

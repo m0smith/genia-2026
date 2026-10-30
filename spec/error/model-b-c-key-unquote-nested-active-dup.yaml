@@ -1,0 +1,19 @@
+name: model-b-c-key-unquote-nested-active-dup
+id: model-b-c-key-unquote-nested-active-dup
+category: error
+description: "Slice C RED (#1269): D3; design 5.4 quasiquote depth"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) ? quasiquote(quasiquote(unquote(unquote(x)))) == 1 = "a"
+    f(y) ? quasiquote(quasiquote(unquote(unquote(y)))) == 1 = "b"
+expected:
+  stdout: ''
+  stderr: |
+    Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived future error; spelling is the R20 renderer text observed on the other duplicate cases; byte-lock at RED baseline.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  the doubly-unquoted `x` is active (observed: `quasiquote(quasiquote(unquote(unquote(x))))` evaluates `x`), so the clauses are alpha-equivalent duplicates

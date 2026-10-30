@@ -1,0 +1,19 @@
+name: model-b-c-d8-legacy-identical-header-dup
+id: model-b-c-d8-legacy-identical-header-dup
+category: error
+description: "Slice C RED (#1269): D8 legacy identity; design 13.4"
+input:
+  source: |-
+    describe(x) = (0) -> "zero" | (n) -> "other"
+    describe(y) = "later"
+    describe(0)
+expected:
+  stdout: ''
+  stderr: |
+    Error: Duplicate function definition: describe/1
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: describe/1\n" exit=1.
+  trailing call chosen so a host cannot satisfy the case by reporting unsupported on a declaration-ending program

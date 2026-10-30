@@ -1,0 +1,19 @@
+name: model-b-c-key-legacy-dup-id
+id: model-b-c-key-legacy-dup-id
+category: error
+description: "Slice C RED (#1269): design 13.4 legacy identities; contract 2.3 alpha-equivalent duplicate"
+input:
+  source: |-
+    f(x) = 1
+    f(y) = 2
+    f(1)
+expected:
+  stdout: ''
+  stderr: |
+    Error: Duplicate function definition: f/1
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1.
+  portable rejection of an alpha-equivalent duplicate; the exact English text is pinned here only because the exact-output runner compares stderr (R20 precedent) and is a decision item; trailing call chosen so a host cannot satisfy the case by reporting unsupported on a declaration-ending program

@@ -1,0 +1,32 @@
+name: model-b-c-ann-repl-recovery
+id: model-b-c-ann-repl-recovery
+category: cli
+description: "Slice C RED (#1269): contract 5.2; C6 (pattern clause)"
+requires: [default_open_functions, doc_help, repl]
+input:
+  source: |-
+    f(x) = x; 0
+    a = f; 0
+    @doc 7; f(0, y) = y
+    a(0, 5)
+  file: null
+  command: null
+  stdin: |-
+    f(x) = x; 0
+    a = f; 0
+    @doc 7; f(0, y) = y
+    a(0, 5)
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    0
+    0
+    5
+  stderr: "Error: @doc annotation expected a string, received int"
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="0\n0" stderr="Error: model-b-not-implemented: declaration evaluation is not available\nError: No matching function: a/2. Available: a/1" exit=0.
+  contract-derived: the clause is installed before the failing annotation is published, as for legacy clauses

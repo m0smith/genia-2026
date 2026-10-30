@@ -9,11 +9,20 @@ a fresh binding in the current scope, rejected before its initializer on any
 same-scope binding and, **at entry scope only**, on any runtime-owned name
 (module and nested scopes may still declare such a name locally). Later
 `=`/function/import writes to it are rejected, `=` before its right-hand side
-runs. Binding immutability is shallow. Atomic closed-function
-clause groups and ordinary pattern/guard headers are accepted and lowered, but
-their evaluation fails with `model-b-not-implemented`; default-open execution,
-cross-module linking changes and closed publication remain unimplemented.
-Ordinary `=` and explicit R20 `open` retain their existing execution behavior. C++ support for the new syntax is not claimed.
+runs. Binding immutability is shallow. Ordinary pattern/guard-headed
+`name(header) = body` declarations execute as default-open clauses (Python
+reference host; shared cases require `default_open_functions`): same-scope,
+same-name declarations accumulate in declaration order into one group that
+aliases share, a call selects the fixed or sole varargs shape and then the first
+matching clause, equal pattern/guard keys are duplicates, and declaring through
+an alias or imported binding is rejected with `function-declaration-not-owner`.
+Atomic closed-function clause groups (`f(...) =: body`) are accepted and
+lowered, but their evaluation fails with `model-b-not-implemented`; cross-module
+linking changes and closed publication remain unimplemented. Explicit R20 `open`
+retains its existing execution behavior. C++ supports guards inside ordinary grouped bodies (with header capture) and
+local explicit-R20 clauses (whose grouped headers remain nonbinding), with
+guard-sensitive duplicate keys. It does not
+support ordinary pattern/guard headers, default-open functions or `=:`.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
@@ -95,8 +104,9 @@ CLI contract summary (actual behavior):
 - Python is the full-language reference host. The bounded C++ production host
   (`m0smith/genia-cpp`) also implements the approved portable REPL contract's
   scripted-session observations (`docs/design/r26-cpp-repl-contract.md`) and
-  declares `repl` supported; the three capability-gated shared `cli` cases
-  pass and the host parity gate reports `PARITY_OK`. Interactive terminal
+  declares `repl` supported. Complete semicolon-separated programs evaluate
+  as one submission and echo the final value; incomplete input at EOF stays
+  inert, and REPL evaluation never implicitly calls `main`. Interactive terminal
   mechanics (banner, prompts, line editing, signals, colon commands) remain
   host-local and are not part of the portable contract.
 - The bounded C++ host also implements `genia -p '<stage expr>'` pipe mode for

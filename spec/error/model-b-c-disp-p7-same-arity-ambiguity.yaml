@@ -1,0 +1,18 @@
+name: model-b-c-disp-p7-same-arity-ambiguity
+id: model-b-c-disp-p7-same-arity-ambiguity
+category: error
+description: "Slice C RED (#1269): D1 unchanged P7"
+input:
+  source: |-
+    f(a, ..r) = "min1"
+    f(a, b, ..s) = "min2"
+    f(1, 2, 3)
+expected:
+  stdout: ''
+  stderr: |
+    Error: Ambiguous function resolution: f/3. Matching varargs: f/1+, f/2+
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Ambiguous function resolution: f/3. Matching varargs: f/1+, f/2+\n" exit=1.

@@ -651,7 +651,7 @@ class Env:
             self._reject_immutable_write(fn.name, "rebind")
             existing = self.values.get(fn.name)
             if existing is None:
-                group = GeniaFunctionGroup(fn.name)
+                group = GeniaFunctionGroup(fn.name, owner=(self.module_identity(), fn.name))
                 if metadata is not None:
                     group.merge_metadata(metadata)
                 group.add_clause(fn)
@@ -666,6 +666,14 @@ class Env:
                         "interface or linked view, which an ordinary definition cannot replace"
                     )
                 raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
+            owner = existing.owner
+            if owner is not None and owner != (self.module_identity(), fn.name):
+                from . import callable as _callable
+
+                raise _callable.FunctionDeclarationNotOwnerError(
+                    fn.name, _callable._record_shape(fn), owner[0], owner[1],
+                    foreign=owner[0] != self.module_identity(),
+                )
             if metadata is not None:
                 existing.merge_metadata(metadata)
                 self.binding_metadata[fn.name] = existing.metadata

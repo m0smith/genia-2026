@@ -1,0 +1,21 @@
+name: model-b-c-key-named-matcher-distinct
+id: model-b-c-key-named-matcher-distinct
+category: eval
+description: "Slice C RED (#1269): D3 distinct matcher references"
+requires: [default_open_functions]
+input:
+  source: |-
+    pattern P(v) = some(v)
+    pattern Q(v) = some(v)
+    f(P(x)) = "p"
+    f(Q(x)) = "q"
+    f(1)
+expected:
+  stdout: |
+    "p"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

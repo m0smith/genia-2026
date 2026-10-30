@@ -11,7 +11,8 @@ Model B `name =: expr` is an **immutable binding in Python** (optional
 capability `immutable_bindings`; no C++ support): a fresh name in the current
 scope, rejected before its initializer if the name is already bound there or (at entry
 scope only) is runtime-owned, and later `name = ...` fails before evaluating the right-hand side.
-Ordinary pattern/guard headers and closed `f(x) =: body` functions are
+Ordinary pattern/guard headers execute on the Python host as default-open clauses
+(declaration order, first match). Closed `f(x) =: body` functions are
 **parse/lower only**: evaluation rejects with `model-b-not-implemented`.
 
 <!-- [case: core-immutable-binding-shallow] -->

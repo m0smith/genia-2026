@@ -1,0 +1,19 @@
+name: model-b-c-open-pattern-after-plain
+id: model-b-c-open-pattern-after-plain
+category: eval
+description: "Slice C RED (#1269): C-PAT first match; D3"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) = x
+    f(0) = 9
+    [f(0), f(1)]
+expected:
+  stdout: |
+    [0, 1]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

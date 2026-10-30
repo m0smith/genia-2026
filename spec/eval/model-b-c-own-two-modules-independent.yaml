@@ -1,0 +1,31 @@
+name: model-b-c-own-two-modules-independent
+id: model-b-c-own-two-modules-independent
+category: eval
+description: "Slice C RED (#1269): D5 independent groups"
+requires: [default_open_functions, multi_file_eval]
+input:
+  modules:
+    entry: main.genia
+    files:
+    - path: m1.genia
+      source: |-
+        f(0) = "m1-zero"
+        f(n) = "m1-other"
+    - path: m2.genia
+      source: |-
+        f(0) = "m2-zero"
+        f(n) = "m2-other"
+    - path: main.genia
+      source: |-
+        import m1
+        import m2
+        [m1.f(0), m1.f(3), m2.f(0), m2.f(3)]
+expected:
+  stdout: |
+    ["m1-zero", "m1-other", "m2-zero", "m2-other"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

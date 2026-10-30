@@ -1,0 +1,26 @@
+name: model-b-c-main-command-mode
+id: model-b-c-main-command-mode
+category: cli
+description: "Slice C RED (#1269): C-MAIN"
+input:
+  source: |-
+    main(a) = { print("cmdmain"); a }
+    print("top")
+  file: null
+  command: |-
+    main(a) = { print("cmdmain"); a }
+    print("top")
+  stdin: ''
+  argv: [x, y]
+  debug_stdio: false
+expected:
+  stdout: |-
+    top
+    cmdmain
+    ["x", "y"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="top\ncmdmain\n[\"x\", \"y\"]" stderr="" exit=0.

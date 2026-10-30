@@ -28,11 +28,20 @@ def test_repl_missing_initializer_incomplete(source):
     assert not is_complete(source)
 
 
-@pytest.mark.parametrize('source', ['f(x) =: x','f([x]) = x','f(x) ? true = x'])
+@pytest.mark.parametrize('source', ['f(x) =: x'])
 def test_transitional_rejection(run, source):
-    """Slice B executes `x =: expr`; the remaining declarations still reject execution instead of silently using legacy mutable semantics."""
+    """Slice B executes `x =: expr`; closed `=:` functions still reject execution instead of silently using legacy mutable semantics.
+
+    Slice C GREEN (issue #1269, B9 phase-guard flip): the `f([x]) = x` and `f(x) ? true = x` pattern/guard
+    headers are no longer rejected; they execute as ordinary default-open clauses (see the next test).
+    """
     with pytest.raises(Exception, match='model-b-not-implemented'):
         run(source)
+
+
+@pytest.mark.parametrize('source', ['f([x]) = x\nf([7])', 'f(x) ? true = x\nf(7)'])
+def test_pattern_and_guard_headers_execute_after_slice_c(run, source):
+    assert run(source) == 7
 
 
 def declaration():

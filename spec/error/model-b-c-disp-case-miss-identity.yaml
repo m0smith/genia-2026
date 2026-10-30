@@ -1,0 +1,17 @@
+name: model-b-c-disp-case-miss-identity
+id: model-b-c-disp-case-miss-identity
+category: error
+description: "Slice C RED (#1269): P20 unchanged"
+input:
+  source: |-
+    f(x) = (0 -> x)
+    f(1)
+expected:
+  stdout: ''
+  stderr: |
+    Error: No matching case for function f/1 with arguments [1]
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: No matching case for function f/1 with arguments [1]\n" exit=1.

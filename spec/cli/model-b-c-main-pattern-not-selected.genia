@@ -1,0 +1,6 @@
+# Slice C fixture: a pattern-headed `main` declared after a top-level statement is not selected as the entry point.
+# Expected: only the top-level statements run.
+print("top")
+@doc "Pattern-headed `main([\"--x\"])` that prints `pattern-main` and returns 1 if ever run."
+main(["--x"]) = { print("pattern-main"); 1 }
+42

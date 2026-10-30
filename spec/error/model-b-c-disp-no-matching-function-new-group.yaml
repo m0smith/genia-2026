@@ -1,0 +1,20 @@
+name: model-b-c-disp-no-matching-function-new-group
+id: model-b-c-disp-no-matching-function-new-group
+category: error
+description: "Slice C RED (#1269): D1/D3 renderer reuse"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(x) = 1
+    f(x, y) = 2
+    f(x, ..r) = 3
+    f()
+expected:
+  stdout: ''
+  stderr: |
+    Error: No matching function: f/0. Available: f/1, f/2, f/1+
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Duplicate function definition: f/1\n" exit=1.

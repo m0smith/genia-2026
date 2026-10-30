@@ -1,0 +1,7 @@
+# Slice C guard fixture: when both legacy `main/1` and `main/0` exist, the entry selector prefers `main/1`.
+# Expected: `top`, then `main1`, then the entry result 11; `main/0` does not run.
+# Inline documentation keeps this guard within the bounded C++ host syntax.
+main(args) = "Legacy `main(args)` entry point that prints `main1` and returns 11; preferred over the zero-argument clause." { print("main1"); 11 }
+main() = { print("main0"); 10 }
+print("top")
+42

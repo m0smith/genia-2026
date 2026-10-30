@@ -511,11 +511,13 @@ def _select_execution_mode(
 
 
 def _resolve_program_result(run_result: Any, env: Env) -> Any:
-    """Dispatch entry main/1 before main/0, preserving the source result if absent."""
+    """Dispatch entry main/1 before main/0, preserving the source result if absent or not eligible."""
     env = env.entry_scope()
     owner = env.binding_owner("main")
     main_group = owner.values.get("main") if owner is not None else None
-    if not isinstance(main_group, GeniaFunctionGroup):
+    if not isinstance(main_group, GeniaFunctionGroup) or not main_group.is_simple:
+        # Entry selection runs `main` only when the whole group is plain identifier-header
+        # clauses with distinct required arities; no pattern or guard is ever evaluated here.
         return run_result
     main_with_args = main_group.get(1)
     if main_with_args is not None:

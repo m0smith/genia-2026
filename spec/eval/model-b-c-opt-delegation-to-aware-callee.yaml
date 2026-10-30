@@ -1,0 +1,19 @@
+name: model-b-c-opt-delegation-to-aware-callee
+id: model-b-c-opt-delegation-to-aware-callee
+category: eval
+description: "Slice C RED (#1269): C-OPT; r20-option twin"
+requires: [default_open_functions]
+input:
+  source: |-
+    f(1) = "one"
+    f(x) = unwrap_or(0, x)
+    [f(none)]
+expected:
+  stdout: |
+    [0]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

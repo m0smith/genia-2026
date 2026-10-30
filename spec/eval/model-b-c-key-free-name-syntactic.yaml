@@ -1,0 +1,21 @@
+name: model-b-c-key-free-name-syntactic
+id: model-b-c-key-free-name-syntactic
+category: eval
+description: "Slice C RED (#1269): D3 free names are syntactic"
+requires: [default_open_functions]
+input:
+  source: |-
+    limit = 1
+    cap = 1
+    f(x) ? x > limit = "limit"
+    f(x) ? x > cap = "cap"
+    f(5)
+expected:
+  stdout: |
+    "limit"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: observed on explicit-open twin + contract.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

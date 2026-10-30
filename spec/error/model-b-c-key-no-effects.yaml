@@ -1,0 +1,20 @@
+name: model-b-c-key-no-effects
+id: model-b-c-key-no-effects
+category: error
+description: "Slice C RED (#1269): D3 no effects at key time"
+requires: [default_open_functions]
+input:
+  source: |-
+    trace() = { print("effect"); true }
+    f(x) ? trace() = { print("body"); 1 }
+    f(y) ? trace() = { print("body2"); 2 }
+expected:
+  stdout: ''
+  stderr: |
+    Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:2, duplicate at <command>:3)
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: L: wording observed on the explicit-open twin; byte-lock at RED baseline.
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  stdout must stay empty: replaces the Ref log (one-shot eval stops at the first failure)

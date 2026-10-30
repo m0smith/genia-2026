@@ -1,0 +1,21 @@
+E       assert ('', '8') == ('', 'none("t...ght: "int"})')
+E       assert ('', 'none("nil")') == ('', 'Error: ...source-limit')
+E         At index 1 diff: 'none("nil")' != 'Error: numeric-resource-limit'
+E       assert ('', 'none("nil")') == ('', 'Error: ...source-limit')
+E         At index 1 diff: 'none("nil")' != 'Error: numeric-resource-limit'
+E       AssertionError: assert not True
+E       AssertionError: assert not True
+E       assert ('', '9') == ('', 'none("t...ght: "int"})')
+E       assert ('', 'none("nil")') == ('', 'none("t...ght: "int"})')
+E       assert ('', '9') == ('', 'none("t...ght: "int"})')
+E       assert ('', 'none("nil")') == ('', 'none("t...ght: "int"})')
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_float64_counter_matches_mixed_domain_rejection
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_decimal_decrement_hits_the_same_resource_limit
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_decimal_decrement_at_the_production_bound_matches
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_decimal_decrement_literal_is_not_admitted[pick(n, xs) = (_, []) -> nil | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1.0, rest)\npick(-255, [7, 8])]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_decimal_decrement_literal_is_not_admitted[pick(n, xs) = (_, []) -> nil | (0, [x, .._]) -> x | (n, [_, ..rest]) -> pick(n - 1.0, rest)\npick(1, [7, 8])]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_numeric_audit_canonical_matches_unoptimized[None-pick(float64(2), [7, 8, 9])]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_numeric_audit_canonical_matches_unoptimized[None-pick(float64(-1), [7])]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_numeric_audit_canonical_matches_unoptimized[8-pick(float64(2), [7, 8, 9])]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_numeric_audit_canonical_matches_unoptimized[8-pick(float64(-1), [7])]
+9 failed, 33 passed, 31 deselected in 0.62s

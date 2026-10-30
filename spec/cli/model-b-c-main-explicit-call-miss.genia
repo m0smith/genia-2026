@@ -1,0 +1,5 @@
+# Slice C fixture: an explicit `main(["--y"])` call that matches no pattern clause raises a no-matching-case error.
+# Expected: exit 1 with the `No matching case for function main/1` diagnostic.
+@doc "Pattern-headed `main` that accepts only `[\"--x\"]` and returns 1; any other argument list has no matching case."
+main(["--x"]) = 1
+main(["--y"])

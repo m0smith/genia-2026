@@ -1,0 +1,28 @@
+name: model-b-c-main-pattern-command-mode
+id: model-b-c-main-pattern-command-mode
+category: cli
+description: "Slice C RED (#1269): C-MAIN"
+requires: [default_open_functions]
+input:
+  source: |-
+    main(["x", "y"]) = { print("body"); 1 }
+    print("top")
+    42
+  file: null
+  command: |-
+    main(["x", "y"]) = { print("body"); 1 }
+    print("top")
+    42
+  stdin: ''
+  argv: [x, y]
+  debug_stdio: false
+expected:
+  stdout: |-
+    top
+    42
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=1.

@@ -1,0 +1,29 @@
+name: model-b-c-mode-repl-failed-declaration-leaves-group
+id: model-b-c-mode-repl-failed-declaration-leaves-group
+category: cli
+description: "Slice C RED (#1269): Slice B x D3; C-MODE"
+requires: [default_open_functions, immutable_bindings, repl]
+input:
+  source: |-
+    x =: 1; 0
+    x(0) = 1; 0
+    x
+  file: null
+  command: null
+  stdin: |-
+    x =: 1; 0
+    x(0) = 1; 0
+    x
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    0
+    1
+  stderr: "Error: Cannot rebind immutable binding: x"
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived.
+  Baseline (Python main@79c073b, gate bypassed): stdout="0\n1" stderr="Error: model-b-not-implemented: declaration evaluation is not available" exit=0.
+  duplicate/ownership REPL variants omitted: the span label of a REPL submission (`<memory>`) is an unspecified host detail; the immutable rejection has no span

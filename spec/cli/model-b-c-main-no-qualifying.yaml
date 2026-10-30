@@ -1,0 +1,21 @@
+name: model-b-c-main-no-qualifying
+id: model-b-c-main-no-qualifying
+category: cli
+description: "Slice C RED (#1269): C-MAIN"
+input:
+  source: spec/cli/model-b-c-main-no-qualifying.genia
+  file: spec/cli/model-b-c-main-no-qualifying.genia
+  command: null
+  stdin: ''
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    top
+    42
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="top\n42" stderr="" exit=0.

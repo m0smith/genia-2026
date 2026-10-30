@@ -155,9 +155,10 @@ Issue #1067 is scheduled after R28 and before R29 as an unnumbered follow-up to
 completed R20. It is not an R28 deliverable and does not renumber later releases.
 The gate first repairs/re-validates R20 defects, separately evaluates module
 entry-scope isolation, and only then permits a unified internal Function/Clause
-contract/runtime refactor if the evidence still supports it. `open` remains
-the explicit cross-module extensibility declaration; ordinary functions remain
-closed by default. Portable repairs require shared evidence and accurate
+contract/runtime refactor if the evidence still supports it. In that historical #1067 scope, `open` remained
+the explicit cross-module extensibility declaration and ordinary functions remained
+closed by default. The separate Model B gate below describes the candidate's
+current partial behavior. Portable repairs require shared evidence and accurate
 Python/C++ conformance claims. Breaking Core IR consolidation remains deferred
 to R41 or another separately approved versioned-IR gate.
 
@@ -180,7 +181,7 @@ when related code changes; no new implementation work is authorized here.
 
 ## Pre-R29 function-openness and immutable-binding semantics gate
 
-This is an unnumbered **new semantic follow-up**, not a reopening of completed R20 or the historical #1067 work, and not an R28 expansion. Candidate syntax is `f(pattern) = expr` for open-by-default functions, `name =: expr` for immutable lexical bindings, and `f(pattern) =: expr` for closed functions. **None of these proposed changes is implemented or approved by roadmap placement.** Current `GENIA_STATE.md` and `GENIA_RULES.md` remain the behavior authority.
+This is an unnumbered **new semantic follow-up**, not a reopening of completed R20 or the historical #1067 work, and not an R28 expansion. Candidate syntax is `f(pattern) = expr` for open-by-default functions, `name =: expr` for immutable lexical bindings, and `f(pattern) =: expr` for closed functions. Roadmap placement approves nothing: the Python reference host executes `name =: expr` and ordinary open-by-default `f(pattern) = expr` clauses, while closed `f(pattern) =: expr` functions and cross-module linking of ordinary functions are not implemented. Current `GENIA_STATE.md` and `GENIA_RULES.md` remain the behavior authority.
 
 **Gate order:** [#1249](https://github.com/m0smith/genia-2026/issues/1249) is the pre-flight and contract decision; [#1250](https://github.com/m0smith/genia-2026/issues/1250) is approved-contract-only failing specs and bounded implementation; [#1251](https://github.com/m0smith/genia-2026/issues/1251) is integration, host-conformance, documentation truth, and skeptical audit. Do not start language-facing R29 implementation until #1249 explicitly resolves the default-openness, immutable-binding, closed-function clause, and module-extension authority questions, and #1251 records acceptance for any changes deemed prerequisites. R29 planning and independent maintenance may proceed in parallel.
 

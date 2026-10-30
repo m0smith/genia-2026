@@ -846,8 +846,14 @@ class Evaluator:
         body: IrNode,
         fn_name: str | None = None,
     ) -> Any:
+        """Evaluate a selected function body in tail position inside the bound header frame.
+
+        A list-traversal loop takes its fast path or falls back to its retained case; a grouped
+        case (also a block's final case) matches the original arguments, with a miss raising the
+        terminal `No matching case`; any other body evaluates as an ordinary tail expression.
+        """
         if isinstance(body, IrListTraversalLoop):
-            return self.eval_list_traversal_loop(params, args, body)
+            return self.eval_list_traversal_loop(params, args, body, fn_name)
         if isinstance(body, IrCase):
             return self.eval_case_expr(args, body, fn_name)
         if isinstance(body, IrBlock):
@@ -862,10 +868,29 @@ class Evaluator:
             return self.eval_tail(last)
         return self.eval_tail(body)
 
-    def eval_list_traversal_loop(self, params: list[str], args: tuple[Any, ...], body: IrListTraversalLoop) -> Any:
+    def eval_list_traversal_loop(
+        self,
+        params: list[str],
+        args: tuple[Any, ...],
+        body: IrListTraversalLoop,
+        fn_name: str | None = None,
+    ) -> Any:
+        """Run the nth-style fast path for a numeric counter and list, else the retained case.
+
+        The loop is exact only when the counter is an Integer (a Python int, not Boolean or Float64:
+        `n - 1` on a Float64 is a mixed-domain type error, and Decimal/Rational arithmetic has its own
+        resource checks) and the second argument is a list; any other call evaluates the original grouped case, so values,
+        errors, effects and the terminal grouped miss agree with the unoptimized program.
+        """
         values = dict(zip(params, args))
         n_value = values.get(body.counter_var)
         xs_value = values.get(body.list_var)
+        if body.case is not None and not (
+            isinstance(xs_value, list)
+            and type(n_value) is int
+            and self._traversal_recursion_is_stable(fn_name, body)
+        ):
+            return self.eval_case_expr(args, body.case, fn_name)
 
         while True:
             current_args = (n_value, xs_value)
@@ -893,6 +918,26 @@ class Evaluator:
                 return OPTION_NONE
             n_value = n_value - body.step_size
             xs_value = xs_value[body.step_size:]
+
+    def _traversal_recursion_is_stable(self, fn_name: str | None, body: IrListTraversalLoop) -> bool:
+        """True when the unoptimized recursive call would re-enter exactly this declaration.
+
+        The recursive call resolves `fn_name` through ordinary lookup at every step and
+        dispatches through the whole group. The fast path is equivalent only while that
+        lookup yields a group whose sole arity-2 fixed candidate is the function owning
+        `body`. No user code runs between steps (the recognized arms are pure), so one
+        check at entry covers the whole traversal. Anything else deoptimizes to the case.
+        """
+        if fn_name is None:
+            return False
+        try:
+            callee = self.env.get(fn_name)
+        except NameError:
+            return False
+        if not isinstance(callee, GeniaFunctionGroup):
+            return False
+        candidates = [record for record in callee.records if record.shape == ("fixed", 2)]
+        return len(candidates) == 1 and candidates[0].body is body
 
     def eval_case_expr(self, args: tuple[Any, ...], case_expr: IrCase, fn_name: str | None = None) -> Any:
         for clause in case_expr.clauses:
@@ -1362,6 +1407,8 @@ class Evaluator:
         if isinstance(node, (IrImmutableBind, IrClosedFuncDef, IrPatternFuncDef)):
             from .ir import assert_portable_core_ir
             assert_portable_core_ir([node])
+            if isinstance(node, IrPatternFuncDef):
+                return self._eval_function_declaration(node)
             if not isinstance(node, IrImmutableBind):
                 raise RuntimeError("model-b-not-implemented: declaration evaluation is not available")
             return self._eval_immutable_bind(node)
@@ -1484,33 +1531,7 @@ class Evaluator:
             return value
 
         if isinstance(node, IrFuncDef):
-            self._reject_route_metadata_rebinding(node.name, node.annotations)
-            self._reject_http_annotation_metadata_rebinding(node.name, node.annotations)
-            if sum(annotation.name == "route" for annotation in node.annotations) > 1:
-                raise TypeError(f"duplicate @route annotation on {node.name}")
-            fn = GeniaFunction(
-                node.name,
-                node.params,
-                node.rest_param,
-                node.docstring,
-                node.body,
-                self.env,
-                span=node.span,
-                debug_hooks=self.debug_hooks,
-                debug_mode=self.debug_mode,
-                internal_access=self.env.internal_access,
-            )
-            self.env.define_function(fn)
-            if node.annotations:
-                metadata = self.eval_annotations(
-                    node.annotations,
-                    target_name=node.name,
-                    target_kind="function",
-                )
-                self._reject_route_metadata_replacement(node.name, metadata)
-                self._reject_http_annotation_metadata_replacement(node.name, metadata)
-                self.env.merge_binding_metadata(node.name, metadata)
-            return fn
+            return self._eval_function_declaration(node)
         if isinstance(node, IrNamedPatternDef):
             matcher = GeniaFunction(
                 node.name,
@@ -1621,6 +1642,61 @@ class Evaluator:
         if isinstance(node, IrListTraversalLoop):
             raise RuntimeError("Optimized list traversal nodes are only valid as function bodies")
         raise RuntimeError(f"Unknown node: {node!r}")
+
+    def _eval_function_declaration(self, node: "IrFuncDef | IrPatternFuncDef") -> GeniaFunction:
+        """Declare one ordinary function clause (identifier or pattern/guard header) in this scope.
+
+        The clause is installed through `Env.define_function` (ordered record in the
+        shared group, ownership and duplicate checks included) before its annotations
+        run; annotation failures leave the installed clause and the prior metadata.
+        """
+        self._reject_route_metadata_rebinding(node.name, node.annotations)
+        self._reject_http_annotation_metadata_rebinding(node.name, node.annotations)
+        if sum(annotation.name == "route" for annotation in node.annotations) > 1:
+            raise TypeError(f"duplicate @route annotation on {node.name}")
+        if isinstance(node, IrPatternFuncDef):
+            items = node.pattern.items
+            rest = None
+            if items and isinstance(items[-1], IrPatRest):
+                rest = items[-1].name or ""
+            fn = GeniaFunction(
+                node.name,
+                [],
+                rest,
+                None,
+                node.body,
+                self.env,
+                span=node.span,
+                debug_hooks=self.debug_hooks,
+                debug_mode=self.debug_mode,
+                internal_access=self.env.internal_access,
+                pattern=node.pattern,
+                guard=node.guard,
+            )
+        else:
+            fn = GeniaFunction(
+                node.name,
+                node.params,
+                node.rest_param,
+                node.docstring,
+                node.body,
+                self.env,
+                span=node.span,
+                debug_hooks=self.debug_hooks,
+                debug_mode=self.debug_mode,
+                internal_access=self.env.internal_access,
+            )
+        self.env.define_function(fn)
+        if node.annotations:
+            metadata = self.eval_annotations(
+                node.annotations,
+                target_name=node.name,
+                target_kind="function",
+            )
+            self._reject_route_metadata_replacement(node.name, metadata)
+            self._reject_http_annotation_metadata_replacement(node.name, metadata)
+            self.env.merge_binding_metadata(node.name, metadata)
+        return fn
 
     def _eval_immutable_bind(self, node: IrImmutableBind) -> Any:
         """Declare a fresh immutable binding in the current lexical scope (Model B Slice B).

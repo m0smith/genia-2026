@@ -1,0 +1,18 @@
+name: model-b-c-imm-rebind-as-function
+id: model-b-c-imm-rebind-as-function
+category: error
+description: "Slice C RED (#1269): Slice B"
+requires: [immutable_bindings]
+input:
+  source: |-
+    x =: 1
+    x(a) = a
+expected:
+  stdout: ''
+  stderr: |
+    Error: Cannot rebind immutable binding: x
+  exit_code: 1
+notes: |
+  Kind: existing-behavior guard (passes on the Python reference host).
+  Oracle: observed (Python baseline main@79c073b).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: Cannot rebind immutable binding: x\n" exit=1.

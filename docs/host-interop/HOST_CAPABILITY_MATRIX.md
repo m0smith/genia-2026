@@ -40,7 +40,7 @@ Browser playground adapter note:
 | CLI file mode | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | `genia path/to/file.genia` |
 | `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | command mode |
 | `-p` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | pipe mode; C++ (R27 E27-2) passes the 16 `requires: [cli_pipe_mode]` shared cases, with no trailing script arguments and no config/model/Template/`json_compat` pipelines |
-| REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | portable `repl` contract in `../design/r26-cpp-repl-contract.md`; C++ (R26-1) implements the scripted-session observations, declares `repl` supported, and passes the shared evidence; interactive terminal mechanics remain host-local |
+| REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | portable `repl` contract in `../design/r26-cpp-repl-contract.md`; C++ implements the scripted-session observations, including complete semicolon-separated submissions without implicit main dispatch, and declares `repl` supported; interactive terminal mechanics remain host-local |
 | Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | lazy pull-based single-use Flow; C++ (R27 E27-1, E27-5) passes the 37 `requires: [flow_phase_1]` shared cases; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan` and Flow display are not implemented in C++ |
 | configuration environment snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python snapshots `os.environ` only during explicit immutable provider construction; portable hosts may report capability unavailable; E13-7 verifies public portability wording |
 | configuration `.env` snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python reads bytes from one exact explicit path once during provider construction; portable hosts may report capability unavailable; E13-7 verifies public portability wording |
@@ -66,16 +66,38 @@ Browser playground adapter note:
 | shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Partial | generic runner evidence covers the declared R24 floor; pinned totals are in `docs/releases/R24.md` |
 | shell pipeline stage `$(...)` | Python-host-only | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |
 | external process execution `execution.process` | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Portable semantic contract (`docs/design/execution-process-contract.md`), implemented only by the Python reference host today. Registered as `execution_process` in `spec/manifest.json`'s `optional_capabilities` (self-declared `supported` by the Python protocol adapter, matching `shell_stage`/`debugger_stdio`'s existing name-only registration precedent); no shared-spec case requires it yet, since no host-neutral capability-provisioning fixture mechanism exists — see `docs/host-interop/capabilities.md`'s entry for the runtime-implementation-vs-conformance-evidence distinction. Distinct from `$(...)`: structured argv, no shell, no `PATH` search. See `GENIA_STATE.md` section 9.40. |
-| open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval`; the host has no tail-call optimization (call-depth limit 300), so deep mutual-tail-call cases report unsupported; a grouped open clause that captures a header name (contract section 3.3) is refused as unsupported, not diagnosed |
+| open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval`; the host has no tail-call optimization (call-depth limit 300), so deep mutual-tail-call cases report unsupported; a grouped open clause that freely captures a header name (contract section 3.3) is refused as unsupported, not diagnosed |
 | multi-file eval fixture (R16/#836) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Optional protocol-v1 `eval.input.modules` transport, advertised as `multi_file_eval`; independent of `open_functions`, and never sent to a host that does not claim it supported |
 
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`44456baea06b4bb7bdf727e39939dd7150261ee6`, the merge of
-[genia-cpp #52](https://github.com/m0smith/genia-cpp/pull/52). This revision
-corrects host-private Cell/Process causal completion accounting for staged
-sends; it adds no capability, public wait API, protocol or language semantics.
+`1f33886606fc94dadab679ed56182a15ca503a4b`, the independently reviewed
+local guard/capture follow-up [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60),
+merged at `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`. It includes the earlier
+[#59](https://github.com/m0smith/genia-cpp/pull/59) comment compatibility and
+[#58](https://github.com/m0smith/genia-cpp/pull/58) repairs. It ignores # line
+comments outside strings, preserves diagnostic lines and keeps annotations unsupported.
+It preserves the earlier
+Cell/Process quiescence correction and repairs ordinary header capture,
+duplicate/alias rejection, inline metadata, fixed-arity accumulation, complete
+semicolon-separated REPL submissions and parser-depth safety. No capability,
+protocol or language semantics are added. Ordinary grouped-arm guards and local
+explicit-R20 guards use the bounded expression subset. Ordinary header bindings
+are visible before arm-local shadowing; guards run once after a pattern match,
+in source order, and errors stop dispatch. Guard-sensitive duplicate keys retain
+alpha-normalized pattern/lambda references. Explicit-open grouped arms still
+refuse free header capture in guards/results. Nested lambda-arm header capture
+is demonstrated; this is not ordinary pattern/guard-header or default-open support.
+
+Accepted #60 candidate-suite evidence is **1,044 total / 295 PASS / 749 UNSUPPORTED**
+with all actual failure classes zero in that run; only `pattern-guard-pass` and
+`pattern-guard-skip` become passing relative to the earlier 293/751 result.
+The unchanged R25 fixture race remains unresolved in [#1299](https://github.com/m0smith/genia-2026/issues/1299):
+a separate full run had 294 PASS / 1 FAIL / 749 UNSUPPORTED, and independent
+1,000-request stress runs had 34 failures on the prior binary and 30 on #60.
+Clean evidence does not erase those failures. #60's scoped acceptance exception
+does not waive failing checks or grant #1270/#1251/R29 acceptance.
 
 The source revision is distinct from the adapter's declared semantic contract
 revision, `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. Runs using a newer
@@ -84,16 +106,23 @@ exact-contract conformance or satisfaction of required Model B syntax gaps.
 Historical release counts above and below retain their original scope; selecting
 this source revision alone is not evidence of a passing workflow.
 
-### Model B declarations: parser/lowering and immutable-binding boundary
+### Model B declarations: parser/lowering, immutable-binding and default-open boundary
 
 Python parses and lowers `=:` declarations, atomic closed groups and ordinary
 pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
 `IrPatternFuncDef`. Python evaluation executes `IrImmutableBind` (optional
-capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`); closed
-groups and pattern headers are rejected with `model-b-not-implemented`. This is
-not a default-open or closed-function execution capability claim. C++ does not
-claim `immutable_bindings`: it is a listed gap in `spec/known_host_gaps.json`
-(tracking `genia-2026#1261`; parser/lowering owned by genia-cpp #50).
+capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`) and
+`IrPatternFuncDef` as default-open ordinary function clauses (optional capability
+`default_open_functions`, shared evidence `spec/*/model-b-c-*`, which the in-process
+runner executes against the Python reference host); closed groups are rejected with
+`model-b-not-implemented`. Closed-function execution is not claimed. The Python
+protocol adapter advertises `default_open_functions` as `supported`, and the 143
+`model-b-c-*` cases (55 existing-behavior guards plus 88 gated cases) pass through that
+adapter; the 18 Python-host-only fixture/debug cases remain the only `unsupported`
+results of the external Python run.
+C++ does not claim `immutable_bindings` or `default_open_functions`: both are listed
+gaps in `spec/known_host_gaps.json` (tracking `genia-2026#1261` and `genia-2026#1269`;
+parser/lowering owned by genia-cpp #50).
 
 Python details (`GENIA_STATE.md` section 3 is authoritative): diagnostics are
 `Cannot assign to immutable binding: x`, `Cannot rebind immutable binding: x` and
@@ -119,5 +148,6 @@ Owner: m0smith integration owner and C++ implementer, tracked in
 [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
 The boundary is removed only after the bounded C++ parser/lowering implementation
 passes the affected shared cases at a current contract revision. Until then, no
-C++ conformance or new-carrier parity is claimed. Default-open dispatch,
-cross-module linking changes and closed publication are not implemented on any host.
+C++ conformance or parity for these new carriers is claimed. C++ does not implement
+default-open dispatch. Cross-module linking of ordinary functions and closed
+publication are not implemented on any host.

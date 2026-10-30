@@ -1,0 +1,26 @@
+name: model-b-c-mode-import-pattern-program
+id: model-b-c-mode-import-pattern-program
+category: eval
+description: "Slice C RED (#1269): C-MODE import"
+requires: [default_open_functions, multi_file_eval]
+input:
+  modules:
+    entry: main.genia
+    files:
+    - path: lib.genia
+      source: |-
+        f(0) = "zero"
+        f(n) = "other"
+    - path: main.genia
+      source: |-
+        import lib
+        [lib.f(0), lib.f(1)]
+expected:
+  stdout: |
+    ["zero", "other"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

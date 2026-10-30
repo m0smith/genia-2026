@@ -1,0 +1,25 @@
+name: model-b-c-own-imported-alias-rejected
+id: model-b-c-own-imported-alias-rejected
+category: error
+description: "Slice C RED (#1269): D5 (P11)"
+requires: [default_open_functions, multi_file_eval]
+input:
+  modules:
+    entry: main.genia
+    files:
+    - {path: lib.genia, source: g(x) = x}
+    - path: main.genia
+      source: |-
+        import lib
+        h = lib.g
+        h(x, y) = x + y
+expected:
+  stdout: ''
+  stderr: |
+    Error: function-declaration-not-owner: cannot declare h/2: 'h' refers to function 'g' owned by module 'lib'
+  exit_code: 1
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: PROPOSED text (pre-flight D3); not observable on the current runtime; maintainer approval required.
+  Baseline (Python main@79c073b, gate bypassed): stdout="<function h/2>\n" stderr="" exit=0.
+  ungated (keeping multi_file_eval) under Option A

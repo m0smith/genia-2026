@@ -3,10 +3,11 @@
 This document freezes the minimal portable Core IR contract for Genia.
 
 Python is the current full-language reference host and may use additional host-local optimized IR after lowering.
-C++ implements the bounded R24 subset through this same portable boundary.
+C++ implements its bounded R27 host subset through this same portable boundary;
+this does not imply support for every portable node or optional capability.
 Those host-local optimized nodes are explicitly outside the shared portability contract.
 
-Planned external direct execution does not add a Core IR node. Its architecture
+Implemented external direct execution on the Python host adds no Core IR node. Its architecture
 boundary is recorded separately in
 [External Process Execution Architecture](external-process-execution.md).
 
@@ -109,7 +110,8 @@ The following fields are omitted from the normalized portable IR when empty or a
 
 ## Executable Validation
 
-This portability contract is executable in the shared Semantic Spec System for the current Python reference host.
+This portability contract is executable in the shared Semantic Spec System for
+the Python reference host and the supported C++ subset.
 
 Shared IR cases under `spec/ir/` validate:
 
@@ -123,7 +125,11 @@ Contract rule:
 - shared IR validation happens before host-local optimization
 - host-local optimized nodes are rejected from the shared IR path
 
-Python is the only executing host today. This does not imply multi-host IR execution exists.
+The generic runner executes shared source-based parse/lower/eval cases through
+Python and C++ host adapters. C++ returns `unsupported` for lowering requests
+outside its implemented subset. This does not establish arbitrary serialized-IR
+execution or universal portable-node support. The browser-native execution path
+remains planned, not an implemented host.
 
 
 ## Strict Error Normalization and Category Boundaries
@@ -178,12 +184,14 @@ Implemented today:
 - frozen minimal portable Core IR contract (this document)
 - Python-host guard to detect host-local node leakage before optimization
 - executable shared IR semantic-spec validation in the Python reference host
+- bounded C++ parse/lower/eval support and the generic external-host spec runner
 - tests that lock the boundary between lowered portable IR and host-local optimized IR
 
 Not implemented today:
 
-- second host implementation
-- generic multi-host spec runner implementation
+- universal execution of every portable node on every host
+- Model B closed-function execution and ordinary-function cross-module linking
+  (the carriers below are not execution claims)
 
 ## Model B declaration carriers (Partial)
 
@@ -215,9 +223,11 @@ nested host-local optimized nodes.
 
 PYTHON REFERENCE HOST: parsing, lowering, normalization and validation are
 implemented. Evaluation executes `IrImmutableBind` with an Env-owned
-immutable-write policy (no Core IR change); closed and pattern declarations reject with
-`model-b-not-implemented` before child effects. This adds no Model B dispatcher,
-linker or closed-publication state machine. Optimizers preserve the atomic group.
+immutable-write policy (no Core IR change) and `IrPatternFuncDef` as an ordinary default-open
+clause (ordered group record, one shape stratum and first-match dispatch); closed declarations
+reject with `model-b-not-implemented` before child effects. This adds no linker or
+closed-publication state machine. Optimizers preserve the atomic group and retain a rewritten
+list-traversal declaration's original grouped case.
 C++ new-carrier support is not claimed; issue #1250 owns that follow-up.
 `core_ir_version` and R16 protocol stay unchanged; exact `contract_revision`
 continues to pin evidence. Syntax support implies no optional execution claim.

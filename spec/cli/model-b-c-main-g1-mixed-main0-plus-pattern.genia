@@ -1,0 +1,7 @@
+# Slice C fixture (decision G1): legacy `main/0` plus a pattern-headed arity-1 `main` that would match argv.
+# Expected: the mixed group is not eligible for entry selection, so neither clause runs.
+@doc "Legacy zero-argument `main` grouped with a pattern-headed arity-1 clause; ineligible for entry selection."
+main() = { print("main0"); 10 }
+main(["--x"]) = { print("pattern1"); 2 }
+print("top")
+42

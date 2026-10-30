@@ -1,0 +1,19 @@
+name: model-b-c-d8-forward-collision
+id: model-b-c-d8-forward-collision
+category: eval
+description: "Slice C RED (#1269): D8"
+requires: [default_open_functions]
+input:
+  source: |-
+    describe(x) = (0) -> "zero" | (n) -> "other"
+    describe(0) = "ZERO"
+    [describe(0), describe(7)]
+expected:
+  stdout: |
+    ["zero", "other"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B future-behavior case (fails until Slice C GREEN).
+  Oracle: contract-derived (RED author confirms at baseline).
+  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.

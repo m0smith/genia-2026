@@ -1,0 +1,39 @@
+E       AssertionError: assert ('', '8') == ('', 'Error: ... [1, [7, 8]]')
+E         At index 1 diff: '8' != 'Error: No matching case for function pick/2 with arguments [1, [7, 8]]'
+E       AssertionError: assert ('', '8') == ('', 'Error: ... [1, [7, 8]]')
+E         At index 1 diff: '8' != 'Error: No matching case for function pick/2 with arguments [1, [7, 8]]'
+E       AssertionError: assert not True
+E       AssertionError: assert not True
+E       AssertionError: assert ('', '8') == ('', 'Error: ... [1, [7, 8]]')
+E         At index 1 diff: '8' != 'Error: No matching case for function pick/2 with arguments [1, [7, 8]]'
+E       AssertionError: assert False
+E        +  where False = <built-in method startswith of str object at 0x7f58822de070>('Error: No matching case for function pick/2 with arguments [1, [7, 8]]')
+E       AssertionError: assert ('', '8') == ('', '99')
+E       AssertionError: assert ('', '8') == ('', 'Error: ...eceived list')
+E         At index 1 diff: '8' != 'Error: pipeline stage expected a callable value, received list'
+E       AssertionError: assert ('', '8') == ('', 'Error: ...received int')
+E         At index 1 diff: '8' != 'Error: pipeline stage expected a callable value, received int'
+E       AssertionError: assert ('', '9') == ('', '55')
+E       AssertionError: assert (('fixed', 1)...ol', True))))) == (('fixed', 1)...ol', True)))))
+E       AssertionError: assert (('fixed', 1), ('IrPatTuple', ('seq', (('BIND', 0),))), ('IrBlock', (('IrImmutableBind', ('BIND', 1), ('BINDREF', 0), ('seq', ((.
+E       AssertionError: assert (('fixed', 1)...ol', True))))) == (('fixed', 1)...ol', True)))))
+E       AssertionError: assert (('fixed', 1)...ol', True))))) == (('fixed', 1)...ol', True)))))
+E       AssertionError: assert 'installed' == 'OpenFunction...teClauseError'
+E         - OpenFunctionDuplicateClauseError
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_constrained_recursive_arm_is_equivalent_and_not_admitted[constant-head]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_constrained_recursive_arm_is_equivalent_and_not_admitted[repeated-counter-head]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_constrained_recursive_arm_is_equivalent_and_not_admitted[repeated-counter-head-matching]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_constrained_recursive_arm_is_equivalent_and_not_admitted[nested-list-head]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_constrained_recursive_arm_is_equivalent_and_not_admitted[head-repeats-rest]
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_constrained_recursive_head_keeps_the_grouped_miss
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_rebinding_resolves_the_current_callee
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_local_rest_binder_shadowing_the_callee_is_not_admitted
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_parameter_shadowing_the_callee_is_not_admitted
+FAILED tests/unit/test_model_b_slice_c_optimizer_equivalence.py::test_recursive_call_dispatches_through_the_whole_group
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_annotation_self_reference_is_alpha_equivalent
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_annotation_bound_versus_free_reference_is_distinct
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_sequential_annotated_declarations
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_annotation_shadowing_and_scope_restoration
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_direct_ir_duplicate_installation_matches_key_classification
+FAILED tests/unit/test_model_b_slice_c_block_scope_keys.py::test_annotation_effects_distinguish_bound_from_free_references
+16 failed, 30 passed in 0.44s
