@@ -1,0 +1,423 @@
+{
+  "quantile_convention": "nearest-rank ceiling, recomputed from retained request walls; raw files unchanged",
+  "batches": [
+    {
+      "batch": 0,
+      "phase": "isolated",
+      "case": "r20",
+      "concurrency": 1,
+      "samples": 3,
+      "burners": 0,
+      "effective_peak_requests": 1,
+      "counts": {
+        "pass": 3
+      },
+      "min_wall": 0.9117797680000876,
+      "median_wall": 1.01220629799991,
+      "p95_wall_nearest_rank": 1.030095097999947,
+      "max_wall": 1.030095097999947,
+      "median_child_cpu": 1.0064469999999999,
+      "throttled_usec_delta": 0,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 1,
+      "phase": "isolated",
+      "case": "fixture",
+      "concurrency": 1,
+      "samples": 8,
+      "burners": 0,
+      "effective_peak_requests": 1,
+      "counts": {
+        "pass": 8
+      },
+      "min_wall": 0.5346430359995793,
+      "median_wall": 0.548317766999844,
+      "p95_wall_nearest_rank": 0.5936692080003922,
+      "max_wall": 0.5936692080003922,
+      "median_child_cpu": 0.545184,
+      "throttled_usec_delta": 0,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 2,
+      "phase": "scaling",
+      "case": "r20",
+      "concurrency": 1,
+      "samples": 8,
+      "burners": 0,
+      "effective_peak_requests": 1,
+      "counts": {
+        "pass": 8
+      },
+      "min_wall": 0.9218545960002302,
+      "median_wall": 0.9878128729997115,
+      "p95_wall_nearest_rank": 1.0577249600000869,
+      "max_wall": 1.0577249600000869,
+      "median_child_cpu": 0.9855430000000004,
+      "throttled_usec_delta": 0,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 3,
+      "phase": "scaling",
+      "case": "fixture",
+      "concurrency": 1,
+      "samples": 32,
+      "burners": 0,
+      "effective_peak_requests": 1,
+      "counts": {
+        "pass": 32
+      },
+      "min_wall": 0.4859516279993841,
+      "median_wall": 0.5432211134998397,
+      "p95_wall_nearest_rank": 0.618893068000034,
+      "max_wall": 0.703146740000193,
+      "median_child_cpu": 0.538198,
+      "throttled_usec_delta": 0,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 4,
+      "phase": "scaling",
+      "case": "r20",
+      "concurrency": 2,
+      "samples": 8,
+      "burners": 0,
+      "effective_peak_requests": 2,
+      "counts": {
+        "pass": 8
+      },
+      "min_wall": 1.0575509969994528,
+      "median_wall": 1.1988190179999947,
+      "p95_wall_nearest_rank": 1.4078437600001052,
+      "max_wall": 1.4078437600001052,
+      "median_child_cpu": 1.1699424999999999,
+      "throttled_usec_delta": 284934,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 5,
+      "phase": "scaling",
+      "case": "fixture",
+      "concurrency": 2,
+      "samples": 32,
+      "burners": 0,
+      "effective_peak_requests": 2,
+      "counts": {
+        "pass": 32
+      },
+      "min_wall": 0.49814245000015944,
+      "median_wall": 0.5782832710001458,
+      "p95_wall_nearest_rank": 0.708148529999562,
+      "max_wall": 0.7296788840003501,
+      "median_child_cpu": 0.5647820000000003,
+      "throttled_usec_delta": 361195,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 6,
+      "phase": "scaling",
+      "case": "r20",
+      "concurrency": 4,
+      "samples": 8,
+      "burners": 0,
+      "effective_peak_requests": 4,
+      "counts": {
+        "pass": 8
+      },
+      "min_wall": 1.161138989000392,
+      "median_wall": 1.8564912889996776,
+      "p95_wall_nearest_rank": 3.5125680789997205,
+      "max_wall": 3.5125680789997205,
+      "median_child_cpu": 1.1401815000000002,
+      "throttled_usec_delta": 3559309,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 7,
+      "phase": "scaling",
+      "case": "fixture",
+      "concurrency": 4,
+      "samples": 32,
+      "burners": 0,
+      "effective_peak_requests": 4,
+      "counts": {
+        "pass": 32
+      },
+      "min_wall": 0.8967073310004707,
+      "median_wall": 1.3342097954996461,
+      "p95_wall_nearest_rank": 1.8734208010000657,
+      "max_wall": 2.052458046000538,
+      "median_child_cpu": 0.6601115,
+      "throttled_usec_delta": 10141221,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 8,
+      "phase": "scaling",
+      "case": "r20",
+      "concurrency": 8,
+      "samples": 8,
+      "burners": 0,
+      "effective_peak_requests": 8,
+      "counts": {
+        "pass": 8
+      },
+      "min_wall": 4.496282820000488,
+      "median_wall": 5.8208099915000275,
+      "p95_wall_nearest_rank": 6.136804839999968,
+      "max_wall": 6.136804839999968,
+      "median_child_cpu": 1.445687,
+      "throttled_usec_delta": 5898949,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 9,
+      "phase": "scaling",
+      "case": "fixture",
+      "concurrency": 8,
+      "samples": 32,
+      "burners": 0,
+      "effective_peak_requests": 8,
+      "counts": {
+        "pass": 32
+      },
+      "min_wall": 0.9761710779994246,
+      "median_wall": 2.5327231745000063,
+      "p95_wall_nearest_rank": 3.6625394980001147,
+      "max_wall": 3.78777257999991,
+      "median_child_cpu": 0.6508655000000001,
+      "throttled_usec_delta": 10486151,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 10,
+      "phase": "controlled_contention",
+      "case": "r20",
+      "concurrency": 1,
+      "samples": 4,
+      "burners": 2,
+      "effective_peak_requests": 1,
+      "counts": {
+        "pass": 4
+      },
+      "min_wall": 1.59505828500005,
+      "median_wall": 1.665965995499846,
+      "p95_wall_nearest_rank": 1.73157343100047,
+      "max_wall": 1.73157343100047,
+      "median_child_cpu": 1.076441,
+      "throttled_usec_delta": 6620165,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 11,
+      "phase": "controlled_contention",
+      "case": "fixture",
+      "concurrency": 1,
+      "samples": 16,
+      "burners": 2,
+      "effective_peak_requests": 1,
+      "counts": {
+        "pass": 16
+      },
+      "min_wall": 0.8121758690003844,
+      "median_wall": 0.9494535554999857,
+      "p95_wall_nearest_rank": 1.0054150589994606,
+      "max_wall": 1.0054150589994606,
+      "median_child_cpu": 0.5966094999999997,
+      "throttled_usec_delta": 14625364,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 12,
+      "phase": "controlled_contention",
+      "case": "r20",
+      "concurrency": 2,
+      "samples": 4,
+      "burners": 2,
+      "effective_peak_requests": 2,
+      "counts": {
+        "pass": 4
+      },
+      "min_wall": 1.5717780189997939,
+      "median_wall": 1.7362802964998991,
+      "p95_wall_nearest_rank": 3.647699145999468,
+      "max_wall": 3.647699145999468,
+      "median_child_cpu": 1.103807,
+      "throttled_usec_delta": 5025148,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 13,
+      "phase": "controlled_contention",
+      "case": "fixture",
+      "concurrency": 2,
+      "samples": 16,
+      "burners": 2,
+      "effective_peak_requests": 2,
+      "counts": {
+        "pass": 16
+      },
+      "min_wall": 0.8694176380004137,
+      "median_wall": 1.3987394350001523,
+      "p95_wall_nearest_rank": 2.0907750229998783,
+      "max_wall": 2.0907750229998783,
+      "median_child_cpu": 0.6370125000000001,
+      "throttled_usec_delta": 11884123,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 14,
+      "phase": "controlled_contention",
+      "case": "r20",
+      "concurrency": 4,
+      "samples": 4,
+      "burners": 2,
+      "effective_peak_requests": 4,
+      "counts": {
+        "pass": 4
+      },
+      "min_wall": 3.549638133999906,
+      "median_wall": 3.8258807214997432,
+      "p95_wall_nearest_rank": 3.94553091600028,
+      "max_wall": 3.94553091600028,
+      "median_child_cpu": 1.1535815,
+      "throttled_usec_delta": 3920139,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 15,
+      "phase": "controlled_contention",
+      "case": "fixture",
+      "concurrency": 4,
+      "samples": 16,
+      "burners": 2,
+      "effective_peak_requests": 4,
+      "counts": {
+        "pass": 16
+      },
+      "min_wall": 1.3210812229999647,
+      "median_wall": 1.898923100000502,
+      "p95_wall_nearest_rank": 2.6058855820001554,
+      "max_wall": 2.6058855820001554,
+      "median_child_cpu": 0.6221805,
+      "throttled_usec_delta": 7964512,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 16,
+      "phase": "controlled_contention",
+      "case": "r20",
+      "concurrency": 8,
+      "samples": 4,
+      "burners": 2,
+      "effective_peak_requests": 4,
+      "counts": {
+        "pass": 4
+      },
+      "min_wall": 2.9464231760002804,
+      "median_wall": 3.560513108500345,
+      "p95_wall_nearest_rank": 3.94551855500049,
+      "max_wall": 3.94551855500049,
+      "median_child_cpu": 1.216247,
+      "throttled_usec_delta": 3939716,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 17,
+      "phase": "controlled_contention",
+      "case": "fixture",
+      "concurrency": 8,
+      "samples": 16,
+      "burners": 2,
+      "effective_peak_requests": 8,
+      "counts": {
+        "pass": 16
+      },
+      "min_wall": 3.109423737000725,
+      "median_wall": 3.4993201884999507,
+      "p95_wall_nearest_rank": 4.573959106000075,
+      "max_wall": 4.573959106000075,
+      "median_child_cpu": 0.6956825000000001,
+      "throttled_usec_delta": 7733243,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 18,
+      "phase": "recovery",
+      "case": "r20",
+      "concurrency": 1,
+      "samples": 4,
+      "burners": 0,
+      "effective_peak_requests": 1,
+      "counts": {
+        "pass": 4
+      },
+      "min_wall": 0.9366636759996254,
+      "median_wall": 1.0075466714997674,
+      "p95_wall_nearest_rank": 1.036752126000465,
+      "max_wall": 1.036752126000465,
+      "median_child_cpu": 1.0066815,
+      "throttled_usec_delta": 0,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 19,
+      "phase": "recovery",
+      "case": "fixture",
+      "concurrency": 1,
+      "samples": 16,
+      "burners": 0,
+      "effective_peak_requests": 1,
+      "counts": {
+        "pass": 16
+      },
+      "min_wall": 0.49748830899989116,
+      "median_wall": 0.5470908984998459,
+      "p95_wall_nearest_rank": 0.6302452239997365,
+      "max_wall": 0.6302452239997365,
+      "median_child_cpu": 0.5448730000000002,
+      "throttled_usec_delta": 0,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 20,
+      "phase": "recovery",
+      "case": "r20",
+      "concurrency": 8,
+      "samples": 4,
+      "burners": 0,
+      "effective_peak_requests": 4,
+      "counts": {
+        "pass": 4
+      },
+      "min_wall": 1.6412562100003925,
+      "median_wall": 2.240052637500412,
+      "p95_wall_nearest_rank": 2.4204985520000264,
+      "max_wall": 2.4204985520000264,
+      "median_child_cpu": 1.1605775,
+      "throttled_usec_delta": 2214797,
+      "memory_max_events_delta": 0
+    },
+    {
+      "batch": 21,
+      "phase": "recovery",
+      "case": "fixture",
+      "concurrency": 8,
+      "samples": 16,
+      "burners": 0,
+      "effective_peak_requests": 8,
+      "counts": {
+        "pass": 16
+      },
+      "min_wall": 1.3263871559993277,
+      "median_wall": 2.432880943500095,
+      "p95_wall_nearest_rank": 3.718244682000659,
+      "max_wall": 3.718244682000659,
+      "median_child_cpu": 0.664372,
+      "throttled_usec_delta": 5104869,
+      "memory_max_events_delta": 0
+    }
+  ]
+}

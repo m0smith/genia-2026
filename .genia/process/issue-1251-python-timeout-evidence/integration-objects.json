@@ -1,0 +1,63 @@
+{
+  "accepted": "1f068de7f665543a87e6b3925230118aa99a2cc3",
+  "integrated": "45e263cc9e15f3ae14080346d4835090285b4e4e",
+  "objects": [
+    {
+      "path": "src",
+      "accepted": "398ce08e3c007cf4d99fd6a10725ad654312701a",
+      "integrated": "398ce08e3c007cf4d99fd6a10725ad654312701a",
+      "equal": true
+    },
+    {
+      "path": "hosts",
+      "accepted": "19822e6c593d905345eb7a4fedda1babe218f609",
+      "integrated": "19822e6c593d905345eb7a4fedda1babe218f609",
+      "equal": true
+    },
+    {
+      "path": "tests",
+      "accepted": "984857f275a5a37b544719023ee91197d01da934",
+      "integrated": "984857f275a5a37b544719023ee91197d01da934",
+      "equal": true
+    },
+    {
+      "path": "tools",
+      "accepted": "8d8ce59a55f94a39f664eeac5f9598eb497dee74",
+      "integrated": "8d8ce59a55f94a39f664eeac5f9598eb497dee74",
+      "equal": true
+    },
+    {
+      "path": "GENIA_STATE.md",
+      "accepted": "8b3d127f839435cab4e832e8772938a8ce4b2372",
+      "integrated": "8b3d127f839435cab4e832e8772938a8ce4b2372",
+      "equal": true
+    },
+    {
+      "path": "GENIA_RULES.md",
+      "accepted": "3f21837f6d69e58d7bb399059fc65eef5dde6d1b",
+      "integrated": "3f21837f6d69e58d7bb399059fc65eef5dde6d1b",
+      "equal": true
+    },
+    {
+      "path": "GENIA_REPL_README.md",
+      "accepted": "1b4c268c5495d5e15346e90c557bed23a5471c5c",
+      "integrated": "1b4c268c5495d5e15346e90c557bed23a5471c5c",
+      "equal": true
+    },
+    {
+      "path": "README.md",
+      "accepted": "543ea9cc254e71db397e30edff88900f207a20cd",
+      "integrated": "543ea9cc254e71db397e30edff88900f207a20cd",
+      "equal": true
+    },
+    {
+      "path": "AGENTS.md",
+      "accepted": "b072beb55d22d5856d3d356d73c60704e04d197f",
+      "integrated": "b072beb55d22d5856d3d356d73c60704e04d197f",
+      "equal": true
+    }
+  ],
+  "known_gap_changed_paths": [
+    "/gaps/18/reason"
+  ]
+}
