@@ -2,11 +2,11 @@
 
 **Status: MAINTAINER-APPROVED SEMANTIC CONTRACT (2026-10-16) — PARTIALLY IMPLEMENTED (Python reference host: immutable bindings and ordinary default-open execution; closed functions and cross-module linking are not implemented).** Maintainer explicitly approved the consolidated Model B semantics in conversation on 2026-10-16. Independent Codex focused semantic review of revision `5060d52` returned **PASS** (no new blocker in that focused diff). The subsequent consolidation was checked for preservation of the reviewed semantic decisions; neither the focused PASS nor approval constitutes implementation or host parity evidence. `GENIA_STATE.md` remains the source of truth for what Genia currently implements.
 
-**B1 exception to the approval status above:** §5.4 is a **PROPOSED clarification,
-pending explicit maintainer acceptance**, for issue #1249. It resolves an ambiguity
-in unimplemented D1/D2 behavior; it is not covered by the 2026-10-16 approval and
-does not describe shipped snapshots or linking. Until accepted, §5.3's B1 case
-remains unresolved and D1 advancement remains NO-GO.
+**B1 approval update:** §5.4 was accepted through maintainer merge of PR #1305
+at `24f26efabdd26011374a84accedef986717d9a31`, following focused independent
+contract review. The separate #1250 D1 readiness reassessment (comment6550211564)
+records GO to bounded design only. This resolves B1's contract ambiguity, not
+implementation of snapshots/linking or authorization to begin RED/code.
 
 **Scope:** New default function openness, additive cross-module contribution coherence, `=:` immutable lexical bindings, `f(...)=:` closed function definitions, compatibility and portability boundaries. Applies prospectively after #1250/#1251 implementation, tests, documentation synchronization, and audit. Existing R20 behavior is unchanged until then.
 
@@ -113,9 +113,9 @@ A linked view of a default-open ordinary base uses channel 1 for `meta(view)`, c
 
 For example, where the defining binding has `@doc "canonical"`, the callable inline documentation is `"inline"`, and an alias adds only shared help category metadata, `doc(view)` remains `"canonical"` while `help(view)` renders `"inline"`. The frozen help fallback is not incorrectly derived from the defining-binding `doc`.
 
-### 5.4 B1: defining-name replacement before completion (PROPOSED)
+### 5.4 B1: defining-name replacement before completion (accepted)
 
-**Not approved or implemented.** This proposed rule makes §5.3 precise when an
+**Accepted contract; not implemented.** This rule makes §5.3 precise when an
 ordinary callable remains exported through an alias after its original defining
 name is reassigned, replaced by an import alias, or subsequently reused. It
 neither changes ordinary lexical writes/reflection nor activates contributions.
@@ -175,7 +175,7 @@ inline documentation `"G-inline"`; its defining slot initially has
 `@doc "original"`. Any comparison with a replacement callable H assumes H's own
 distinct identity. The entries describe G's future projection, not a new source API.
 
-| Before successful original completion | Proposed positive/negative result |
+| Before successful original completion | Contract positive/negative result |
 |---|---|
 | `f = g`, where `g` is H | G remains eligible through `a`. With no replacement annotation, the slot retains `"original"`; G's projected doc is `"original"`. H's clauses/inline docs do not replace G's. |
 | `@doc "replacement"` on `f = g` | G's projected binding doc is `"replacement"`; G's shared help remains its own. A view's projected doc is not required to equal its help documentation. |
