@@ -2,6 +2,12 @@
 
 **Status: MAINTAINER-APPROVED SEMANTIC CONTRACT (2026-10-16) — PARTIALLY IMPLEMENTED (Python reference host: immutable bindings and ordinary default-open execution; closed functions and cross-module linking are not implemented).** Maintainer explicitly approved the consolidated Model B semantics in conversation on 2026-10-16. Independent Codex focused semantic review of revision `5060d52` returned **PASS** (no new blocker in that focused diff). The subsequent consolidation was checked for preservation of the reviewed semantic decisions; neither the focused PASS nor approval constitutes implementation or host parity evidence. `GENIA_STATE.md` remains the source of truth for what Genia currently implements.
 
+**B1 exception to the approval status above:** §5.4 is a **PROPOSED clarification,
+pending explicit maintainer acceptance**, for issue #1249. It resolves an ambiguity
+in unimplemented D1/D2 behavior; it is not covered by the 2026-10-16 approval and
+does not describe shipped snapshots or linking. Until accepted, §5.3's B1 case
+remains unresolved and D1 advancement remains NO-GO.
+
 **Scope:** New default function openness, additive cross-module contribution coherence, `=:` immutable lexical bindings, `f(...)=:` closed function definitions, compatibility and portability boundaries. Applies prospectively after #1250/#1251 implementation, tests, documentation synchronization, and audit. Existing R20 behavior is unchanged until then.
 
 **Evidence and history:** merged pre-flight `docs/analysis/pre-r29-function-immutability-preflight-DRAFT.md`; implemented R20 and `docs/design/r20-open-functions-contract.md`; incremental review/correction commits `de68abba`, `3151ff6`, `3fa80b3`, `b8262d5`, `f578efa`, `3abbb59`, `5060d52`. Git history preserves the full successive drafts. The final PASS was a **focused contract review**, with read-only Python baseline probes, not a runtime implementation, full regression, C++ parity certification, or maintainer approval.
@@ -106,6 +112,80 @@ A linked view of a default-open ordinary base uses channel 1 for `meta(view)`, c
 **No new view-binding override:** annotating a local assignment/alias of a linked view may create ordinary local binding annotations, but these do **not** overlay or replace linked-view `doc`/`meta`/`help` introspection; linked-view callable projection takes precedence for that lookup and propagates through ordinary view aliases. Direct annotation on `use` remains prohibited. This is an **intentional candidate compatibility divergence** from asymmetric lookup observed in the current Python R20 implementation, not an implicit rewriting of historical explicit-`open` views; those keep their approved R20 interface projection.
 
 For example, where the defining binding has `@doc "canonical"`, the callable inline documentation is `"inline"`, and an alias adds only shared help category metadata, `doc(view)` remains `"canonical"` while `help(view)` renders `"inline"`. The frozen help fallback is not incorrectly derived from the defining-binding `doc`.
+
+### 5.4 B1: defining-name replacement before completion (PROPOSED)
+
+**Not approved or implemented.** This proposed rule makes §5.3 precise when an
+ordinary callable remains exported through an alias after its original defining
+name is reassigned, replaced by an import alias, or subsequently reused. It
+neither changes ordinary lexical writes/reflection nor activates contributions.
+
+For an original module-owned declared ordinary callable **G**, distinguish its
+identity and original provenance from its defining lexical **slot**: the original
+module's own binding under G's original defining name. Replacing that slot's value
+does not revoke G's identity or make an exported alias into a new interface.
+If G remains directly exported through any binding when its original module
+successfully completes, it remains an eligible base under the existing §2.1
+authority rules. A re-export preserves this origin; it never substitutes the
+re-export module's binding or metadata. Lambda, builtin, host-callable and local
+factory aliases still acquire no module-owned interface authority.
+
+At that original completion event, G's projection has:
+
+1. **Binding metadata:** the successfully attached annotation map in the original
+   local slot at that moment, or an empty map if no such binding/map remains.
+   Do not follow the slot's current value to another callable/module, copy an
+   exported alias's map, or recover historical metadata from an earlier value.
+2. **Projected documentation:** a string `doc` entry in that map, otherwise G's
+   own inline documentation, otherwise the existing missing-documentation state.
+   This defines the projection's effective documentation for §5.3; it is **not**
+   ordinary `doc` lookup on the slot's replacement value. In particular, a
+   replacement callable's inline documentation cannot become G's fallback.
+3. **Shared help:** G's own effective help metadata/documentation at completion,
+   with G's own inline fallback independently of channels 1 and 2. Metadata on
+   another callable currently occupying the original slot is not G's help map.
+
+**Deliberate consequence:** before completion, successfully attached annotations
+on a replacement value under the original defining name **can change G's projected
+binding metadata/documentation**, because that channel belongs to the lexical slot,
+not a historical callable generation. They do not thereby change G's shared help.
+Annotations on an alias currently referring to G can affect G's shared help under
+§5.1, but that alias's binding map never substitutes for the original slot's map.
+
+Existing writer rules determine the slot map: ordinary assignment preserves its
+metadata and successful new annotations merge/override keys; import-alias
+replacement publishes the import binding without the previous map. A subsequent
+permitted restoration of G uses the slot's then-current map; it does not resurrect
+metadata discarded by a prior replacement. These projection rules introduce no
+new permission to redeclare, append through an alias, overwrite an immutable name,
+or reuse a name where current ordinary semantics reject it.
+
+Capture once after successful original initialization. Subsequent changes to the
+slot, aliases or shared help cannot alter this completed projection or projections
+used by later views. G's clauses, inline fallback and callable identity always
+belong to G; another callable never inherits them merely by occupying the same
+spelling or having equal diagnostic provenance. Failed/unfinished initialization
+publishes no completed projection; ordinary values and already performed effects
+are not invalidated or rolled back by this rule. No binding-generation history,
+new public introspection or new error category is specified.
+
+**Prospective behavioral examples, not executed D1/D2 claims.** In these examples,
+an original module declares G as `f`, retains `a = f`, and exports `a`. G has
+inline documentation `"G-inline"`; its defining slot initially has
+`@doc "original"`. Any comparison with a replacement callable H assumes H's own
+distinct identity. The entries describe G's future projection, not a new source API.
+
+| Before successful original completion | Proposed positive/negative result |
+|---|---|
+| `f = g`, where `g` is H | G remains eligible through `a`. With no replacement annotation, the slot retains `"original"`; G's projected doc is `"original"`. H's clauses/inline docs do not replace G's. |
+| `@doc "replacement"` on `f = g` | G's projected binding doc is `"replacement"`; G's shared help remains its own. A view's projected doc is not required to equal its help documentation. |
+| Original slot has no string doc; `f = g` and H has inline `"H-inline"` | G's projected doc falls back to `"G-inline"`, never `"H-inline"`; with no G inline it retains missing-doc state. |
+| `import other as f` | The old slot map is cleared; G remains exported through `a`, has an empty projected binding map and falls back to `"G-inline"`. Importing selects no contribution and grants no authority to the module value. |
+| `import other as f`, then permitted `f = a` | G is restored to its original slot; the discarded `"original"` map does not return. New successful annotations on restored `f` affect its current slot/help channels normally. |
+| `@doc "alias-help"` on `a = a` | G's projected binding doc stays `"original"`; the alias map is not substituted. G's shared help may now use `"alias-help"`. |
+| Another module re-exports G and annotates its alias | It reuses G's original completed projection. Its annotations do not recapture that projection, even if they affect the live ordinary callable's help channel. |
+| A completed projection exists; original slot or aliases change later | Existing and future linked views of that completed base retain the same projection; no recapture. Live ordinary reflection keeps its separately specified behavior. |
+| Only the spelling/provenance matches, or the exported value is a lambda/host callable | No inheritance of G's clause snapshot, callable identity or interface eligibility. Alias transport is not authority to append declarations. |
 
 ## 6. Compatibility, portability and process gates
 
