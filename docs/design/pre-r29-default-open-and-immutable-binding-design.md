@@ -307,6 +307,14 @@ base interface's ordered clause records and metadata projection once. Failed or
 loading modules are not linkable. Re-exported interface aliases retain the
 original completed snapshot; do not recapture their alias binding metadata.
 
+**B1 remains a contract gate:** the contract's [proposed §5.4 clarification](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md#54-b1-defining-name-replacement-before-completion-proposed)
+distinguishes original callable identity from completion-time metadata in its
+original lexical slot when the defining name is replaced. That subsection is
+pending explicit maintainer acceptance, not part of the earlier approval or
+implemented behavior. Do not select a binding-generation or current-value lookup
+policy implicitly in D1 storage design; D1 advancement remains NO-GO until this
+contract gate is accepted and its preflight is reassessed.
+
 `extend` accepts an exported module-owned ordinary or explicit-open interface,
 never a linked view, closed callable, arbitrary alias-created interface or an
 unfinished module. Contributions retain their own closures and accumulate
