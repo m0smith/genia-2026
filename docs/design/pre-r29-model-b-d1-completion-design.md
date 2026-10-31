@@ -124,10 +124,16 @@ For an imported/re-exported ordinary G, locate its original completed module in
 this execution's existing completed cache, then its exact-identity association.
 Reuse that same immutable projection reference; do not use re-export module's
 slot maps, recapture live metadata or key a projection solely by an export alias.
-Successful original completion guarantees the association for an eligible G.
-Absence does not authorize manufacturing a new interface: preserve non-eligible
-ordinary values as normal exports, and treat a missing association for an eligible
-completed origin as an internal invariant failure, not a new language diagnostic.
+An existing exact-identity association, established when G was directly exported
+by its successfully completed original module, is the completion witness for a
+re-export. Owner text or the presence of a same-named completed module is not that
+witness. If no such association exists, preserve G as a normal ordinary export
+without a projection; do not reject the module or manufacture interface eligibility.
+This includes values escaped through Ref/Cell from a failed origin, an origin that
+never directly exported G, and an old G after a retry cached a distinct G2 with
+the same diagnostic provenance. Later re-export does not repair missing original
+completion. Internal invariant tests must detect loss of associations that were
+actually established, without imposing new validity errors on these legal values.
 
 Repeated import returns the already completed ModuleValue and projection. Failed
 origin initialization has no completed association; escaped ordinary values are
@@ -200,7 +206,7 @@ These are design obligations, not new tests or executed D1 evidence.
 | A1 / D1-01 | Success captures once before cache publication; a cache hit shares the original association. No visible half-built projection. | Internal loader/barrier tests; existing public import cache observations. |
 | A2 / D1-02 | Live list/record/header/body/guard or returned execution-copy mutation cannot change owned syntax/key/order/provenance. Closure and Ref/Cell identities stay shared; grouped arms retain original order/pairing, including optimized retained cases. | Host-local structural/mutation/direct-IR tests; existing source/optimizer preservation specs. |
 | A3 / D1-03 | Canonical binding-doc differs correctly from inline-help fallback; absent doc and all three maps remain independent. No renderer/autoload effects during extraction. | Internal construction assertions plus shared expressible metadata preservation. |
-| A4 / D1-04 | Multiple aliases deduplicate G; re-export reuses original projection despite alias help mutation, with no recapture after completion. | Internal identity assertions; existing alias/import specs; future D2 observable view tests remain separate. |
+| A4 / D1-04 | Multiple aliases deduplicate G; re-export reuses original projection despite alias help mutation. An escaped failed-origin or never-directly-exported G has no projection and remains an ordinary valid export, even when a retry cached G2 with equal owner text. No recapture or inferred eligibility. | Internal identity assertions; existing alias/import specs; future D2 observable view tests remain separate. |
 | A5 / D1-05 | Replacement preserves slot map; new replacement annotations affect G binding doc; H-inline never substitutes; import clears, restore does not resurrect; alias map affects only its allowed channel; equal owner text does not merge identities. | Internal B1 RED and direct-IR/source preservation; future shared linking/introspection RED. |
 | A6 / D1-06 | Failure at each pre-publication preparation boundary leaves no local completed entry or leaked projection. Sentinel clears; prior effects/dependency caches remain; explicit retry uses fresh identities. No E-style invalidation. | Host-local failure injection and cache inspection, public failure/retry observations where expressible. |
 | A7 / D1-07 | Self/mutual cycles retain existing errors; host fast paths unchanged; ordinary live aliases, reflection, immutable writers, metadata failure timing, module isolation and explicit-R20 semantics preserved. Ordinary extend/use still rejected. | Existing R16 module/ordinary/R20 specs and legitimate host internals. |
