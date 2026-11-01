@@ -1,0 +1,29 @@
+{
+  "base": "ca0b72e1f48c07a169feb812b6f6dde6caf1e56e",
+  "red_commit": "98697c20fae59dadffd36fdb58c3ee7ba6d65c2a",
+  "documented_head": "90c41e56f9edc7501cc3c30ab20662abf0eb4baf",
+  "docstring_stripped_ast_equal": true,
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "uv_project_environment": "/workspace/genia-2026/.venv",
+  "uv_cache_dir": "/workspace/.cache/uv",
+  "pythonpath": "/workspace/work/1250-d1-red/src",
+  "red_command": "uv run --no-sync pytest -q --maxfail=20 --junitxml=/workspace/work/1250-d1-red-evidence/final-red.xml tests/unit/test_model_b_d1_completion.py tests/spec/test_model_b_d1_preservation.py",
+  "nearby_command": "uv run --no-sync pytest -q --maxfail=20 tests/unit/test_modules_phase1.py tests/unit/test_annotation_metadata.py tests/unit/test_model_b_slice_c_ownership.py tests/unit/test_r20_open_functions_cross_module.py",
+  "run_counts": {
+    "initial": {
+      "expected_fail": 17,
+      "test_bug": 1,
+      "pass": 7
+    },
+    "d1ac5045": {
+      "expected_fail": 18,
+      "test_bug": 1,
+      "pass": 9
+    },
+    "98697c20": {
+      "expected_fail": 19,
+      "test_bug": 0,
+      "pass": 9
+    }
+  }
+}
