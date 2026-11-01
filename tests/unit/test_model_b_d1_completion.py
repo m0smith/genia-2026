@@ -55,18 +55,19 @@ def test_d1_02_detaches_record_body_parameters_and_execution_copies(tmp_path):
     root, entry = modules(tmp_path, {'base': 'f(x) = 17'})
     mod = root.load_module('base', entry)
     group = mod.get_export('f')
-    assert group.records[0].params == ['x'] and group.records[0].body.value == 17
+    assert group.records[0].params == ['x']
+    assert group.records[0].body.value == {'kind': 'integer', 'digits': '17'}
     snap = projection(mod, group)
     assert isinstance(snap.clauses, tuple) and len(snap.clauses) == 1
     copied = snap.clauses[0].materialize()
     assert copied is not group.records[0] and copied.closure is group.records[0].closure
-    assert copied.params == ['x'] and copied.body.value == 17
+    assert copied.params == ['x'] and copied.body.value == {'kind': 'integer', 'digits': '17'}
     group.records[0].params[0] = 'changed'
-    group.records[0].body.value = 99
+    group.records[0].body.value['digits'] = '99'
     copied.params.append('leak')
-    copied.body.value = -1
+    copied.body.value['digits'] = '1'
     fresh = snap.clauses[0].materialize()
-    assert fresh.params == ['x'] and fresh.body.value == 17
+    assert fresh.params == ['x'] and fresh.body.value == {'kind': 'integer', 'digits': '17'}
     assert fresh is not copied and fresh.body is not copied.body
     with pytest.raises((AttributeError, TypeError)):
         snap.clauses += (snap.clauses[0],)
