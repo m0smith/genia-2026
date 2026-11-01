@@ -5,8 +5,8 @@
 **B1 approval update:** §5.4 was accepted through maintainer merge of PR #1305
 at `24f26efabdd26011374a84accedef986717d9a31`, following focused independent
 contract review. The separate #1250 D1 readiness reassessment (comment6550211564)
-records GO to bounded design only. This resolves B1's contract ambiguity, not
-implementation of snapshots/linking or authorization to begin RED/code.
+recorded GO to bounded design. Python D1 now implements private completion
+capture; ordinary linking and closed publication remain unimplemented.
 
 **Scope:** New default function openness, additive cross-module contribution coherence, `=:` immutable lexical bindings, `f(...)=:` closed function definitions, compatibility and portability boundaries. Applies prospectively after #1250/#1251 implementation, tests, documentation synchronization, and audit. Existing R20 behavior is unchanged until then.
 
@@ -115,7 +115,8 @@ For example, where the defining binding has `@doc "canonical"`, the callable inl
 
 ### 5.4 B1: defining-name replacement before completion (accepted)
 
-**Accepted contract; not implemented.** This rule makes §5.3 precise when an
+**Accepted contract; Python private completion capture implemented. Public linking
+and view introspection remain unimplemented.** This rule makes §5.3 precise when an
 ordinary callable remains exported through an alias after its original defining
 name is reassigned, replaced by an import alias, or subsequently reused. It
 neither changes ordinary lexical writes/reflection nor activates contributions.

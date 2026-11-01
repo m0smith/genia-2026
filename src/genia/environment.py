@@ -798,38 +798,50 @@ class Env:
         """
         runtime = _interpreter_runtime()
 
-        root = self.root()
-        if module_name in root.loaded_modules:
-            return root.loaded_modules[module_name]
-        if module_name in root.loading_modules:
-            raise RuntimeError(f"Module import cycle detected while loading {module_name}")
-        if module_name == "python" or module_name.startswith("python."):
-            module_value = runtime._build_python_host_module(root, module_name)
-            root.loaded_modules[module_name] = module_value
-            return module_value
+        from .ordinary_completion import prepare_module_completions
 
-        source, key, trusted = root.resolve_module_source(module_name, requester_filename)
-        root.loading_modules.add(module_name)
+        root = self.root()
+        with _BINDING_LOCK:
+            if module_name in root.loaded_modules:
+                return root.loaded_modules[module_name]
+            if module_name in root.loading_modules:
+                raise RuntimeError(f"Module import cycle detected while loading {module_name}")
+        host_module = module_name == "python" or module_name.startswith("python.")
+        if not host_module:
+            source, key, trusted = root.resolve_module_source(module_name, requester_filename)
+        with _BINDING_LOCK:
+            # Resolution is outside the lock; recheck before reserving this attempt.
+            if module_name in root.loaded_modules:
+                return root.loaded_modules[module_name]
+            if module_name in root.loading_modules:
+                raise RuntimeError(f"Module import cycle detected while loading {module_name}")
+            root.loading_modules.add(module_name)
         try:
+            if host_module:
+                module_value = runtime._build_python_host_module(root, module_name)
+                with _BINDING_LOCK:
+                    root.loaded_modules[module_name] = module_value
+                return module_value
             module_env = Env(root, rebind_parent=False)
             module_env._unit_scope = module_env
             module_env.debug_hooks = root.debug_hooks
             module_env.debug_mode = root.debug_mode
-            # R20: canonical module identity is the requested/cached module
-            # name — the same key `loaded_modules` is keyed by — never the
-            # import alias or resolved filesystem path (contract §2.1).
             module_env.module_id = module_name
             runtime.run_source(
-                source,
-                module_env,
-                filename=key,
-                debug_hooks=root.debug_hooks,
-                debug_mode=root.debug_mode,
-                internal_access=trusted,
+                source, module_env, filename=key, debug_hooks=root.debug_hooks,
+                debug_mode=root.debug_mode, internal_access=trusted,
             )
-            exports = dict(module_env.values)
-            module_value = ModuleValue(module_name, exports, key, dict(module_env.open_contributions))
-            root.loaded_modules[module_name] = module_value
+            # Coherent pure capture and all fallible preparation precede publication.
+            # Never call a locking writer, renderer or user callback in this section.
+            with _BINDING_LOCK:
+                exports = dict(module_env.values)
+                completions = prepare_module_completions(module_env, exports)
+                module_value = ModuleValue(
+                    module_name, exports, key, dict(module_env.open_contributions),
+                    _ordinary_completions=completions,
+                )
+                root.loaded_modules[module_name] = module_value
             return module_value
         finally:
-            root.loading_modules.remove(module_name)
+            with _BINDING_LOCK:
+                root.loading_modules.remove(module_name)

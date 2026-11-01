@@ -46,6 +46,11 @@ See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
 
 ## Quick start
 
+Python privately snapshots ordinary clauses/provenance and three B1 metadata
+channels at successful module completion. Live callables stay unchanged;
+re-exports reuse exact original completion witnesses. There is no public snapshot
+API, ordinary cross-module linking or closed-function publication.
+
 Start the REPL from a source checkout:
 
 ```bash

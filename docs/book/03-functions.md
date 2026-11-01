@@ -20,10 +20,13 @@ arrows and grouped case bodies. Legacy identifier headers retain grouped bodies
 and inline documentation. Comments/blank lines/per-clause annotations do not
 split a closed group; unrelated statements and completed REPL submissions do.
 
-Classification: Python-host `name =: expr` is implemented and covered by shared
-tests; closed and pattern declarations only parse and lower and are not runnable.
-Default-open dispatch, cross-module linking changes and closed publication are
-not implemented. C++ support for these declarations is not claimed.
+Classification: Python-host immutable bindings and default-open pattern/guard
+clauses execute with shared evidence. Closed groups only parse/lower and reject
+execution. Successful Python module completion privately snapshots ordinary
+clauses/provenance and B1's separate defining-slot map/doc and callable help.
+Re-exports reuse only exact original completion witnesses. This does not freeze
+live callable values or expose a snapshot API. Ordinary cross-module linking and
+closed publication remain unimplemented; C++ support is not claimed.
 
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new

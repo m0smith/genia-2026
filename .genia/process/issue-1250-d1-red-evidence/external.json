@@ -1,0 +1,72 @@
+{
+  "sha": "98697c20fae59dadffd36fdb58c3ee7ba6d65c2a",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "deadline": 10,
+  "concurrency": 1,
+  "records": [
+    {
+      "host": "python",
+      "case": "model-b-d1-preserve-ordinary-extension-rejection.yaml",
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "host": "python",
+      "case": "model-b-d1-preserve-binding-channels.yaml",
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "host": "python",
+      "case": "model-b-d1-preserve-module-cache.yaml",
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "host": "python",
+      "case": "model-b-d1-preserve-reexport.yaml",
+      "kind": "pass",
+      "reason": null,
+      "failures": "()"
+    },
+    {
+      "host": "cpp",
+      "case": "model-b-d1-preserve-ordinary-extension-rejection.yaml",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval']",
+      "failures": "()"
+    },
+    {
+      "host": "cpp",
+      "case": "model-b-d1-preserve-binding-channels.yaml",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'doc_help']",
+      "failures": "()"
+    },
+    {
+      "host": "cpp",
+      "case": "model-b-d1-preserve-module-cache.yaml",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval']",
+      "failures": "()"
+    },
+    {
+      "host": "cpp",
+      "case": "model-b-d1-preserve-reexport.yaml",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'doc_help']",
+      "failures": "()"
+    }
+  ],
+  "resource": {
+    "cpu.max": "200000 100000\n",
+    "memory.max": "8589934592\n",
+    "memory.current": "3922259968\n",
+    "memory.events": "low 0\nhigh 0\nmax 59689\noom 0\noom_kill 0\noom_group_kill 0\n"
+  },
+  "cpp_binary_sha256": "8f8c6fd62d699b5b413ed8752eb433a3d4af73788142968f1ca87ba2a5d45d98"
+}

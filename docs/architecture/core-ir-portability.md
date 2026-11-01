@@ -195,6 +195,11 @@ Not implemented today:
 
 ## Model B declaration carriers (Partial)
 
+Python D1's private module-completion records detach existing syntax while
+preserving closure/runtime-value identities. They are not new Core IR carriers
+or a serialized artifact format. Source/lowered behavior and the public
+ordinary-linking/closed-publication boundary remain unchanged.
+
 LANGUAGE CONTRACT: `GENIA_STATE.md` section 3 governs these additive carriers.
 `IrImmutableBind(name, expr, annotations=[], span)` represents a fresh binding.
 `IrPatternFuncDef(name, pattern, guard, body, annotations=[], span)` requires one

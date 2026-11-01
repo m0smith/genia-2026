@@ -1,7 +1,8 @@
 # Model B D1: ordinary module-completion projections
 
-Status: **DESIGN ONLY — not implemented.** Bounded #1250 D1; no ordinary linking,
-closed publication or new public observation. The [accepted B1 contract](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md#54-b1-defining-name-replacement-before-completion-accepted)
+Status: **Python private D1 completion implemented; acceptance evidence is tracked
+on #1250.** No ordinary linking, closed publication or new public observation.
+The [accepted B1 contract](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md#54-b1-defining-name-replacement-before-completion-accepted)
 and its §§2.1–2.2/5.1–5.3 govern intended behavior. STATE remains final implemented
 authority. This document refines the [portable design](pre-r29-default-open-and-immutable-binding-design.md#53-completion-and-atomic-linking),
 not its dispatch or extension-authority contract.
@@ -235,13 +236,12 @@ genia-cpp#50; Python internal success is not C++ parity or a waiver. Other hosts
 remain planned. Preserve source/direct-IR meaning, not Python class names as a
 new portable wire contract.
 
-STATE/RULES/REPL/README/AGENTS correctly describe A/B/C and absent linking/closed
-publication; no current behavior changed by this design. Do not advertise D1 as
-shipped. Future verified internal implementation should synchronize existing
-architecture/code documentation while retaining the public unimplemented boundary.
-No MCP language-knowledge impact until a verified public fact changes: no registry
-or generated profile edit now. Use existing strict doc/profile checks for this
-design; do not repeat A/B/C implementation audits.
+STATE/RULES/REPL/README describe private Python completion while retaining absent
+linking/closed publication; AGENTS continues to require truthful host claims.
+Architecture/code documentation records the verified internal implementation,
+not public linking support. No MCP language-knowledge impact follows from private
+machinery alone; registry and generated profile remain unchanged. Required D1
+acceptance checks do not replace or relabel accepted A/B/C evidence.
 
 ## 9. Complexity and phase gate
 
@@ -251,8 +251,7 @@ dispatch, generic immutable-IR serialization or changes to all module exports.
 Acceptance requires checking actual copier/record fields and writer locking in the
 later implementation diff, not trusting an outer frozen declaration.
 
-This design is ready for focused independent review. After design acceptance and
-an explicit next prompt, perform TEST ONLY: committed meaningful D1 RED and scoped
-public-preservation cases, with exact base/environment and host applicability.
-Implementation is a subsequent separately authorized phase citing that RED commit.
-No code/RED, D2, E, #1251 closure or R29 is authorized by this document.
+The accepted RED and D1 implementation follow this design; independent reviews
+and exact acceptance evidence remain in #1250. No D2, E, #1251 closure or R29 is
+authorized by this document. Private completion success is not portable linking
+conformance or completion of the broader semantic foundation.

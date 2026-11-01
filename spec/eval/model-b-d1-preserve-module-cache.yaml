@@ -1,0 +1,24 @@
+name: model-b-d1-preserve-module-cache
+category: eval
+description: D1 public preservation; imports remain cached and aliases share live ordinary groups.
+requires: [multi_file_eval]
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          print("initialized")
+          f(x)=x
+          a=f
+          f(x,y)=x+y
+      - path: main.genia
+        source: |
+          import base
+          import base as again
+          [base == again, base.a == base.f, again.a(2,3)]
+expected:
+  stdout: "initialized\n[true, true, 5]\n"
+  stderr: ''
+  exit_code: 0
+notes: Preservation only; no private projection observation or D2 claim. Issue1250.
