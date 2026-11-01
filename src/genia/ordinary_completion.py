@@ -157,7 +157,7 @@ def prepare_module_completions(module_env: Any, exports: dict) -> tuple:
         if original:
             associations.append((value, _capture(value, module_env)))
             continue
-        origin = module_env.root().loaded_modules.get(value.owner[0])
+        origin = module_env.runtime_scope().loaded_modules.get(value.owner[0])
         if origin is not None:
             for group, projection in origin._ordinary_completions:
                 if group is value:
