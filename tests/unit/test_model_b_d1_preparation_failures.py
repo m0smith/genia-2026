@@ -74,3 +74,27 @@ def test_literal_runtime_value_is_not_confused_with_numeric_syntax_payload():
     copied_numeric = ordinary_completion._copy_syntax(numeric)
     numeric.value['digits'] = '99'
     assert copied_numeric.value == {'kind': 'integer', 'digits': '17'}
+
+
+@pytest.mark.parametrize('kind', [[], {}], ids=['list-kind', 'map-kind'])
+def test_opaque_literal_kind_is_not_hashed(kind):
+    """Unhashable runtime payloads are not misclassified as numeric source syntax."""
+    payload = {'kind': kind}
+    assert ordinary_completion._copy_syntax(ir.IrLiteral(payload)).value is payload
+
+
+def test_literal_kind_never_invokes_user_hash_or_equality():
+    """A string subclass tag cannot execute host hooks during capture under the lock."""
+    class HostileKind(str):
+        """A runtime value masquerading as a numeric tag, with forbidden conversions."""
+
+        def __hash__(self):
+            """Signal an incorrect classification before any callback can re-enter the loader."""
+            raise AssertionError('kind hash hook executed')
+
+        def __eq__(self, other):
+            """Signal an incorrect user-value comparison during syntax classification."""
+            raise AssertionError('kind equality hook executed')
+
+    payload = {'kind': HostileKind('integer')}
+    assert ordinary_completion._copy_syntax(ir.IrLiteral(payload)).value is payload
