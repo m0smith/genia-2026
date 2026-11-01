@@ -26,7 +26,8 @@ def _copy_syntax(value: Any) -> Any:
         # Numeric source payloads are syntax. Other literal values belong to the
         # language runtime, including mutable handles or host-injected lists.
         payload = value.value
-        if type(payload) is dict and payload.get('kind') in {'integer', 'decimal', 'float64', 'rational'}:
+        kind = payload.get('kind') if type(payload) is dict else None
+        if type(kind) is str and kind in {'integer', 'decimal', 'float64', 'rational'}:
             payload = _copy_syntax(payload)
         return ir.IrLiteral(payload, span=_copy_syntax(value.span))
     if type(value) is list:
