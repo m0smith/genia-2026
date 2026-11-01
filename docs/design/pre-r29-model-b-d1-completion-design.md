@@ -1,7 +1,8 @@
 # Model B D1: ordinary module-completion projections
 
-Status: **DESIGN ONLY — not implemented.** Bounded #1250 D1; no ordinary linking,
-closed publication or new public observation. The [accepted B1 contract](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md#54-b1-defining-name-replacement-before-completion-accepted)
+Status: **Python private D1 completion implemented; acceptance evidence is tracked
+on #1250.** No ordinary linking, closed publication or new public observation.
+The [accepted B1 contract](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md#54-b1-defining-name-replacement-before-completion-accepted)
 and its §§2.1–2.2/5.1–5.3 govern intended behavior. STATE remains final implemented
 authority. This document refines the [portable design](pre-r29-default-open-and-immutable-binding-design.md#53-completion-and-atomic-linking),
 not its dispatch or extension-authority contract.
@@ -251,8 +252,7 @@ dispatch, generic immutable-IR serialization or changes to all module exports.
 Acceptance requires checking actual copier/record fields and writer locking in the
 later implementation diff, not trusting an outer frozen declaration.
 
-This design is ready for focused independent review. After design acceptance and
-an explicit next prompt, perform TEST ONLY: committed meaningful D1 RED and scoped
-public-preservation cases, with exact base/environment and host applicability.
-Implementation is a subsequent separately authorized phase citing that RED commit.
-No code/RED, D2, E, #1251 closure or R29 is authorized by this document.
+The accepted RED and D1 implementation follow this design; independent reviews
+and exact acceptance evidence remain in #1250. No D2, E, #1251 closure or R29 is
+authorized by this document. Private completion success is not portable linking
+conformance or completion of the broader semantic foundation.

@@ -29,6 +29,12 @@ pattern/guard declaration targets require simple names.
 See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
 
 
+Python D1 module completion owns private detached ordinary clause/provenance
+snapshots. B1 captures the original local-slot metadata/doc with the original
+callable's inline fallback, separately from its shared help. Exact original
+completion witnesses support re-export reuse; owner text alone confers none.
+These are internal facts, not public linking or closed-function support.
+
 ## 1) Expression vs case grammar separation
 
 - Case syntax (`->`, `?`, `|`) is not a normal infix-expression system.

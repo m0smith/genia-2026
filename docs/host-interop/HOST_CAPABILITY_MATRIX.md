@@ -116,6 +116,12 @@ this source revision alone is not evidence of a passing workflow.
 
 ### Model B declarations: parser/lowering, immutable-binding and default-open boundary
 
+Python D1 completion captures private detached ordinary clauses/provenance and
+three independent B1 metadata observations before atomic cache publication.
+Re-exports reuse exact original completion associations; escaped values without
+one remain normal exports. No public linking/introspection surface or capability
+is added. C++ gaps below are unchanged; private Python tests do not prove parity.
+
 Python parses and lowers `=:` declarations, atomic closed groups and ordinary
 pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
 `IrPatternFuncDef`. Python evaluation executes `IrImmutableBind` (optional
