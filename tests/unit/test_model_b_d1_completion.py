@@ -217,6 +217,7 @@ def test_d1_01_cache_publication_already_contains_projection(tmp_path):
         """Observe actual cache publication without implementing a snapshot or loader."""
 
         def __setitem__(self, name, value):
+            """Require a complete association table at the real publication assignment."""
             if name == 'base':
                 assert isinstance(getattr(value, '_ordinary_completions', None), tuple), 'D1: publishing incomplete module'
                 assert len(value._ordinary_completions) == 1
@@ -235,6 +236,7 @@ def test_d1_01_cache_hit_synchronizes_with_completion_writer_lock(tmp_path):
         """Check the accepted Python lock boundary deterministically, without sleeps."""
 
         def __contains__(self, key):
+            """Witness cache admission under the accepted existing writer lock."""
             if key == 'base':
                 assert environments._BINDING_LOCK.locked(), 'D1: cache hit reads outside completion synchronization'
             return super().__contains__(key)
@@ -253,6 +255,7 @@ def test_d1_06_publication_failure_discards_private_candidate_and_retry_is_fresh
         """Retain failed candidate to inspect leakage; raise before inserting it."""
 
         def __setitem__(self, key, value):
+            """Fail before publication and retain only a test-side candidate reference."""
             if key == 'base':
                 seen.append(value)
                 raise FailedPublication('publication sentinel')
