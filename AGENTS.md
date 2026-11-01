@@ -139,6 +139,10 @@ Prefer references over duplicated semantic rules.
 
 ---
 
+## Durable GitHub Phase Handoffs
+
+For an issue-tracked change, use the **task GitHub issue's top-level comments** as the canonical, append-only ledger for intermediate phase results across Claude, Codex, Copilot, ChatGPT and optional OpenClaw coordination. Before each phase, read relevant prior comments, acceptance criteria and linked commit/PR evidence; preserve the requirement for explicit authorization to proceed to subsequent phases. Before declaring a phase complete, publish a structured comment including the phase/iteration, agent/reviewer, verdict, exact candidate SHA, evidence, blockers and next authorized action. Explicitly link superseded phase comments on retries. If the comment cannot be published/verified, mark the handoff blocked; local temporary files are scratch only, not authoritative handoffs. Do not publish secrets or protected data. See [the shared prompt wrapper](docs/process/llm-prompts.md). Comments do not supersede `GENIA_STATE.md`, committed contract/spec/test artifacts, or independent review gates.
+
 ## Token-Efficient Agent Workflow Pilot
 
 Follow [the token-efficient agent workflow](docs/process/token-efficient-agents.md) to minimize repeated prompts, redundant re-reading, overlapping agents and unnecessary duplicate test runs. The pilot **does not supersede any required pre-flight, test, independent-review, portability, documentation or release gate**. Preserve failed evidence and quantify savings only when actual usage data is available. This is a process-efficiency pilot, not Genia language semantics.

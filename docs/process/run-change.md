@@ -12,6 +12,8 @@ releases through R25.
 
 For work requiring pre-flight:
 
+**Phase handoffs:** For issue-tracked work, follow the [GitHub issue comment handoff contract](llm-prompts.md) for each phase below. Read preceding phase comments and linked evidence before proceeding. Post and verify the structured issue comment before declaring each phase complete; retain failing and intermediate evidence. A local temporary handoff file is optional scratch, never the authoritative record. If GitHub publication fails, mark the phase handoff BLOCKED and do not advance. Commit gates, independent review, explicit authorization, and semantic source-of-truth precedence remain unchanged.
+
 1. Create branch: `issue-<number>-<short-name>`
 2. Run preflight prompt
    - Pre-flight must include a completed PORTABILITY ANALYSIS block (section 3a).
@@ -66,8 +68,7 @@ For work requiring pre-flight:
     summary. Record the reviewer, evidence, findings, verdict, and follow-ups.
 13. Resolve blocking maintainability findings and obtain a fresh review verdict;
     commit any necessary focused fixes. Do not proceed with a FAIL verdict.
-14. Commit the maintainability-review handoff/evidence according to the
-    existing handoff conventions.
+14. Publish the maintainability-review handoff as a GitHub issue comment; commit any version-controlled review artifacts when applicable.
 15. Run docs prompt
 16. Commit docs
 17. Run audit prompt (independent behavioral/documentation truth audit;
