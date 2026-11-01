@@ -1,0 +1,6 @@
+set -e
+umount /tmp/claude-0/-home-user/7a72fbdf-6c34-5c03-9141-c9fd3363cb3b/scratchpad/rohome 2>/dev/null || true
+mkdir -p /tmp/claude-0/-home-user/7a72fbdf-6c34-5c03-9141-c9fd3363cb3b/scratchpad/rohome; mount -t tmpfs tmpfs /tmp/claude-0/-home-user/7a72fbdf-6c34-5c03-9141-c9fd3363cb3b/scratchpad/rohome; mkdir -p /tmp/claude-0/-home-user/7a72fbdf-6c34-5c03-9141-c9fd3363cb3b/scratchpad/rohome/.cache/uv; mount -o remount,ro /tmp/claude-0/-home-user/7a72fbdf-6c34-5c03-9141-c9fd3363cb3b/scratchpad/rohome
+export HOME=/tmp/claude-0/-home-user/7a72fbdf-6c34-5c03-9141-c9fd3363cb3b/scratchpad/rohome
+cd /home/user/d1-wt
+.venv/bin/pytest -q -p no:cacheprovider -n 2 tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind tests/unit/test_r28_mcp_conformance_lifecycle.py::test_sighup_to_the_client_launched_process_stops_the_chain_and_cleans_up tests/unit/test_r28_mcp_entrypoint.py::test_the_entrypoint_works_from_any_working_directory tests/unit/test_r28_mcp_stdio_launch.py tests/unit/test_r28_mcp_stdio_lifecycle.py 2>&1 | grep -E "^FAILED|passed|failed|Failed to initialize|Read-only" | sort | uniq -c | sort -rn | cut -c1-200
