@@ -307,13 +307,13 @@ base interface's ordered clause records and metadata projection once. Failed or
 loading modules are not linkable. Re-exported interface aliases retain the
 original completed snapshot; do not recapture their alias binding metadata.
 
-**B1 remains a contract gate:** the contract's [proposed §5.4 clarification](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md#54-b1-defining-name-replacement-before-completion-proposed)
+**B1 is accepted:** the contract's [§5.4 clarification](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md#54-b1-defining-name-replacement-before-completion-accepted)
 distinguishes original callable identity from completion-time metadata in its
-original lexical slot when the defining name is replaced. That subsection is
-pending explicit maintainer acceptance, not part of the earlier approval or
-implemented behavior. Do not select a binding-generation or current-value lookup
-policy implicitly in D1 storage design; D1 advancement remains NO-GO until this
-contract gate is accepted and its preflight is reassessed.
+original lexical slot when the defining name is replaced. PR #1305 accepted the
+clarification; #1250 comment6550211564 records independently reviewed GO to D1
+design only. Snapshots/linking remain unimplemented. The bounded
+[D1 completion design](pre-r29-model-b-d1-completion-design.md) specifies private
+ownership and capture, not a new binding-generation policy or linking activation.
 
 `extend` accepts an exported module-owned ordinary or explicit-open interface,
 never a linked view, closed callable, arbitrary alias-created interface or an
