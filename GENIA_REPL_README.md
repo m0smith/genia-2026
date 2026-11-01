@@ -31,6 +31,11 @@ See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
 
 ## Run
 
+Python module completion privately snapshots ordinary clauses/provenance and the
+three B1 metadata channels. It preserves live callable and reflection behavior;
+re-exports reuse only exact original completion witnesses. This introduces no
+REPL command, public snapshot API, ordinary linking or closed publication.
+
 Run the REPL:
 
 ```bash

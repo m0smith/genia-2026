@@ -1,0 +1,30 @@
+name: model-b-d1-preserve-reexport
+category: eval
+description: Re-export aliases preserve ordinary identity while binding metadata remains local.
+requires: [multi_file_eval, doc_help]
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          @doc "original"
+          f(x)="inline" x
+      - path: again.genia
+        source: |
+          import base
+          @doc "alias"
+          a=base.f
+          observe()=doc("a")
+      - path: main.genia
+        source: |
+          import base
+          import again
+          [base.f == again.a,again.a(4),again.observe()]
+expected:
+  stdout: '[true, 4, "alias"]
+
+    '
+  stderr: ''
+  exit_code: 0
+notes: Public live metadata semantics only; completed private projection is not exposed.

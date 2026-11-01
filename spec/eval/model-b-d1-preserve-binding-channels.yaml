@@ -1,0 +1,28 @@
+name: model-b-d1-preserve-binding-channels
+category: eval
+description: D1 preserves distinct ordinary binding and alias documentation after replacement.
+requires: [multi_file_eval, doc_help]
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          @doc "original"
+          f(x)="G-inline" x
+          a=f
+          g(x)="H-inline" x
+          @doc "replacement"
+          f=g
+          observe()=[doc("f"),doc("a"),meta("a")]
+      - path: main.genia
+        source: |
+          import base
+          [base.a(4),base.observe()]
+expected:
+  stdout: '[4, ["replacement", "G-inline", {}]]
+
+    '
+  stderr: ''
+  exit_code: 0
+notes: Existing live reflection, not projected-doc evidence; issue1250.

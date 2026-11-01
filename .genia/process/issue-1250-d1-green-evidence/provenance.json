@@ -1,0 +1,75 @@
+{
+  "decision": "BLOCKED / STOP; no final GREEN acceptance",
+  "base": "ca0b72e1f48c07a169feb812b6f6dde6caf1e56e",
+  "accepted_red": "98697c20fae59dadffd36fdb58c3ee7ba6d65c2a",
+  "candidate": "c38b4dffafdc50a8ba7f369c8e477eddc8ca1199",
+  "candidate_tree": "9ea50abfb140fc5265dbf9280eb2a00fa031df89",
+  "objects": {
+    "src": "8f0bed4e0608cad30ef170c96a2919ca9023e8ca",
+    "tests": "7882b7f3e232c0b84e9dd0250b97059b648a67ba",
+    "spec": "16b19a8c6394b369bbcaececcc6fb7c78687f38b",
+    "docs": "c4cce4176af186c0bca932edcfe32ddb8dc73d9b",
+    "GENIA_STATE.md": "617d718535e8fc9c1ff429dd2edefee1ef2a526b",
+    "GENIA_RULES.md": "99ad9a2592824821b44c4cb2cc9ee13e0b0e0738",
+    "GENIA_REPL_README.md": "603bb36ba33821c286204baa6323c93a295baa07",
+    "README.md": "6b338b850575d7a8cbedeeeb33abd09cb5ac6c45",
+    "AGENTS.md": "7dd12845b1ca484a480777c95e7b12a7d6363756"
+  },
+  "documented_red_tests_and_specs_unchanged": true,
+  "red_evidence_directory_unchanged": true,
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "cwd": "/workspace/work/1250-d1-red",
+    "UV_CACHE_DIR": "/workspace/.cache/uv",
+    "UV_PROJECT_ENVIRONMENT": "/workspace/genia-2026/.venv",
+    "PYTHONPATH": "/workspace/work/1250-d1-red/src",
+    "PYTEST_XDIST_AUTO_NUM_WORKERS": "2",
+    "cpu_max": "200000 100000",
+    "memory_max": "8589934592",
+    "heavy_local_jobs": "one full pytest invocation, two workers; no simultaneous builds/doc builds"
+  },
+  "exact_candidate_commands": [
+    {
+      "command": "uv run --no-sync pytest -q tests/unit/test_model_b_d1_completion.py tests/unit/test_model_b_d1_preparation_failures.py tests/spec/test_model_b_d1_preservation.py tests/unit/test_f2_p2_b_boundaries.py",
+      "log": "runtime-scope-targeted.log",
+      "result": {
+        "pass": 82,
+        "seconds": 2.78,
+        "exit": 0
+      }
+    },
+    {
+      "command": "uv run --no-sync pytest -n auto -q --maxfail=20 -m 'not loopback'",
+      "log": "c38-full-nonloopback.log",
+      "result": {
+        "fail": 22,
+        "pass": 7125,
+        "skip": 62,
+        "seconds": 856.49,
+        "exit": 2,
+        "incomplete": true
+      }
+    }
+  ],
+  "not_run_after_mandatory_stop": [
+    "local full loopback partition",
+    "additional local test/doc acceptance invocations"
+  ],
+  "scope_guard_fix": {
+    "failed_candidate": "044269c912b4420127f39f08c9caac9dfe66b55f",
+    "fixed_candidate": "c38b4dffafdc50a8ba7f369c8e477eddc8ca1199",
+    "changed_oracle": false
+  },
+  "supporting_exploratory_logs": {
+    "literal-boundary-red.log": "working-tree supplemental test over70dec5b3 source; source fixad9ef661",
+    "opaque-kind-red.log": "committedd97eb7b8, fix6f47c0e5",
+    "opaque-key-red.log": "committed684ee436, fix044269c9",
+    "opaque-key-probe.log": "diagnostic atc893a090",
+    "full-nonloopback.log": "c893a090 incomplete867PASS/35skip, explicit interrupt for opaque-key finding",
+    "final-full-nonloopback.log": "044269c9 incomplete1FAIL/3335PASS/35skip, explicit interrupt for known scope guard",
+    "note": "Supporting exploratory logs retain output/node IDs and source history. Exact exploratory invocation flags were not independently recovered for this receipt; only the two primary c38 commands above are asserted exact."
+  },
+  "historical_timeouts": "Seven original Python failures retain their original evidence and unresolved causation; no reclassification or causal explanation.",
+  "usage": "not measured"
+}

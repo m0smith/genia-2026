@@ -716,34 +716,37 @@ Pipeline (Phase 2) evaluation model:
 
 LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`; consecutive
 same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
-Comments/blank lines/prefix annotations preserve grouping and per-clause metadata;
-unrelated statements and completed REPL submissions end it. Mixed `=`/`=:` runs
+Comments, blanks and prefix annotations preserve groups/metadata;
+unrelated statements and completed REPL submissions end groups. Mixed `=`/`=:` runs
 raise `mixed-function-declaration-operators`.
 
-Historical ordinary dotted targets are literal binding names, not property
-writes; new `=:` and pattern/guard targets require simple names. Legacy unguarded
-identifier headers keep `IrFuncDef`, grouped bodies, inline documentation and
-varargs. Pattern/guard headers use `IrPatternFuncDef` (one full tuple pattern,
-optional guard, R20 grammar), reject `->` and grouped bodies, and their post-`=`
-string is a body, never documentation. Wire shapes: `docs/architecture/core-ir-portability.md`.
+Historical ordinary dotted targets are literal names, not property writes;
+`=:` and pattern/guard targets require simple names. Unguarded identifier headers
+retain `IrFuncDef`, grouped bodies, inline docs and varargs. `IrPatternFuncDef`
+uses one full tuple pattern/optional guard (R20 grammar), rejects `->` and grouped
+bodies; its post-`=` string is a body, not documentation. Wire shapes:
+`docs/architecture/core-ir-portability.md`.
 
 LANGUAGE CONTRACT (optional capability `immutable_bindings`): `name =: init`
-declares a fresh immutable binding in the current lexical scope. Before the
-initializer runs it fails on any same-scope binding (including parameters, import
-aliases, functions) and, at entry scope, on any runtime-owned name, even an
-unloaded prelude name (static manifest, no autoload). The initializer runs once;
-commit revalidates, so a reentrant or racing write fails the commit without
-rolling back initializer effects. A nested `=:` may shadow an outer user binding. `name = v` fails before evaluating `v` if the nearest binding is
-immutable. Functions, named patterns, import aliases, `open` and `use` cannot
-overwrite it.
-Immutability is shallow; Ref/Cell mutation, parameter assignment, `=` and entry write-through are unchanged.
+declares a fresh current-scope immutable binding. Before initialization it rejects
+same-scope bindings (parameters/imports/functions included) and entry-scope
+runtime-owned names, including unloaded prelude names (static manifest, no autoload).
+Initialization runs once; commit revalidates against reentrant/racing writes
+without rolling back effects. Nested `=:` may shadow an outer user binding.
+`name = v` rejects a nearest immutable binding before evaluating `v`; functions,
+named patterns, imports, `open` and `use` cannot overwrite it. Immutability is
+shallow: Ref/Cell mutation, parameter assignment and entry write-through are unchanged.
 
-PYTHON REFERENCE HOST: an Env-owned policy enforces `=:` under one lock never held across user code.
+PYTHON REFERENCE HOST: Env enforces `=:` under a lock never held across user code.
 Pattern/guard declarations execute as default-open clauses (`default_open_functions`,
 `GENIA_RULES.md` 8.5.1): first match in declaration order, duplicate keys rejected,
 alias or imported declarations fail with `function-declaration-not-owner`. Closed `f(...) =: body` evaluation fails with
 `model-b-not-implemented` before initializer/annotation/guard/body effects.
-Linking and closed publication remain unimplemented.
+Successful module completion privately captures detached ordinary clauses/provenance,
+the original local-slot metadata/doc (G-inline fallback), and independent G help.
+Exact-callable witnesses preserve re-exports; incomplete origins confer none.
+Capture/cache publication synchronizes with writers; live calls stay unchanged.
+This adds no public snapshot API. Linking and closed publication remain unimplemented.
 Unfinished `=:` keeps REPL input incomplete; completed submissions end closed groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch
