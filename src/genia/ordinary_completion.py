@@ -22,6 +22,13 @@ def _copy_syntax(value: Any) -> Any:
     Literal numeric payload dictionaries are syntax; opaque language values remain
     shared. No portable-IR validator is used, so host-only bodies remain valid.
     """
+    if isinstance(value, ir.IrLiteral):
+        # Numeric source payloads are syntax. Other literal values belong to the
+        # language runtime, including mutable handles or host-injected lists.
+        payload = value.value
+        if type(payload) is dict and payload.get('kind') in {'integer', 'decimal', 'float64', 'rational'}:
+            payload = _copy_syntax(payload)
+        return ir.IrLiteral(payload, span=_copy_syntax(value.span))
     if type(value) is list:
         return [_copy_syntax(item) for item in value]
     if type(value) is tuple:
