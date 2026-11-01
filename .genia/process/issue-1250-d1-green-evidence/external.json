@@ -1,0 +1,107 @@
+{
+  "candidate": "c38b4dffafdc50a8ba7f369c8e477eddc8ca1199",
+  "merge_checkout": "0a8fc887aa0f325fa98bf0c9fa0133b3317bfa5b",
+  "tree": "9ea50abfb140fc5265dbf9280eb2a00fa031df89",
+  "checked_utc": "2026-11-01T14:09Z",
+  "workflows": [
+    {
+      "id": 41313789776,
+      "name": "Code documentation",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/m0smith/genia-2026/actions/runs/41313789776"
+    },
+    {
+      "id": 41313789850,
+      "name": "Docs",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/m0smith/genia-2026/actions/runs/41313789850"
+    },
+    {
+      "id": 41313789849,
+      "name": "Validate LLM instructions",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/m0smith/genia-2026/actions/runs/41313789849"
+    },
+    {
+      "id": 41313789791,
+      "name": "Host parity gate",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/m0smith/genia-2026/actions/runs/41313789791"
+    },
+    {
+      "id": 41313789771,
+      "name": "Docker development environment",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/m0smith/genia-2026/actions/runs/41313789771"
+    },
+    {
+      "id": 41313789814,
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/m0smith/genia-2026/actions/runs/41313789814"
+    }
+  ],
+  "host": {
+    "cpp_selected_source": "1f33886606fc94dadab679ed56182a15ca503a4b",
+    "cpp_declared_contract": "6402e668ae85a1e7efe94b3ac3d51f233b730ca4",
+    "cpp_classification": "resolvable_ancestor",
+    "python": {
+      "total": 1048,
+      "pass": 1030,
+      "unsupported": 18,
+      "fail": 0,
+      "timeout": 0,
+      "crash": 0,
+      "protocol_error": 0,
+      "invalid": 0
+    },
+    "cpp": {
+      "total": 1048,
+      "pass": 295,
+      "unsupported": 753,
+      "fail": 0,
+      "timeout": 0,
+      "crash": 0,
+      "protocol_error": 0,
+      "invalid": 0
+    },
+    "request_deadline_seconds": 10,
+    "python_host_jobs": 8,
+    "cpp_host_jobs": 1,
+    "artifact_id": 13086667294,
+    "artifact_sha256": "57182c3f69338f84c8b91bae0c8a3a1a05eb65639dda25f89d0a7bb9b78f732e"
+  },
+  "ci_fast": {
+    "python": "3.14",
+    "non_slow_nonloopback": {
+      "pass": 7590,
+      "skip": 63,
+      "seconds": 418.93
+    },
+    "non_slow_loopback": {
+      "pass": 31,
+      "seconds": 10.54
+    },
+    "in_process_specs": {
+      "total": 1048,
+      "pass": 1048,
+      "fail": 0,
+      "invalid": 0
+    }
+  },
+  "earlier_failed_ci": {
+    "candidate": "044269c912b4420127f39f08c9caac9dfe66b55f",
+    "run_id": 41313289308,
+    "job_id": 124867975826,
+    "fail": 1,
+    "pass": 1824,
+    "skip": 35,
+    "reason": "Existing B11 source guard rejected implicit .root() in new module; production fix c38b4dff; guard unchanged"
+  }
+}
