@@ -34,6 +34,8 @@ At the beginning of each task, consult the latest `AGENTS.md` and the four autho
 
 OpenClaw may coordinate Codex, Claude Code or other agents for Genia tasks, but **it is not installed, connected, proven or required by this policy**. Use the established standalone agent process when orchestration is unavailable or less efficient. OpenClaw must read and respect the same repository guidance; a coordinator is not a new semantic authority or approval gate.
 
+Before launching tests in a delegated worktree, follow [agent test-environment preflight](agent-test-environment.md): initialize `uv.lock` via `uv sync` where required, verify child `$HOME/.cache/uv` writability and loopback access, and retain original failed runs. The coordinator's environment does not prove that sanitized MCP child processes have the same permissions.
+
 When OpenClaw is available:
 
 - **Single issue intake:** resolve the issue, current candidate SHA, relevant sections, scope/risk tier, acceptance gates and existing evidence once. Give each worker a small task-specific context and link the exact GitHub source; do not forward entire historical transcripts or repeated large documents by default.
