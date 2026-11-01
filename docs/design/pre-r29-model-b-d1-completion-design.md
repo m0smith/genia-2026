@@ -236,13 +236,12 @@ genia-cpp#50; Python internal success is not C++ parity or a waiver. Other hosts
 remain planned. Preserve source/direct-IR meaning, not Python class names as a
 new portable wire contract.
 
-STATE/RULES/REPL/README/AGENTS correctly describe A/B/C and absent linking/closed
-publication; no current behavior changed by this design. Do not advertise D1 as
-shipped. Future verified internal implementation should synchronize existing
-architecture/code documentation while retaining the public unimplemented boundary.
-No MCP language-knowledge impact until a verified public fact changes: no registry
-or generated profile edit now. Use existing strict doc/profile checks for this
-design; do not repeat A/B/C implementation audits.
+STATE/RULES/REPL/README describe private Python completion while retaining absent
+linking/closed publication; AGENTS continues to require truthful host claims.
+Architecture/code documentation records the verified internal implementation,
+not public linking support. No MCP language-knowledge impact follows from private
+machinery alone; registry and generated profile remain unchanged. Required D1
+acceptance checks do not replace or relabel accepted A/B/C evidence.
 
 ## 9. Complexity and phase gate
 
