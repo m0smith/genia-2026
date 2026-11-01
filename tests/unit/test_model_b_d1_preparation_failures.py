@@ -98,3 +98,20 @@ def test_literal_kind_never_invokes_user_hash_or_equality():
 
     payload = {'kind': HostileKind('integer')}
     assert ordinary_completion._copy_syntax(ir.IrLiteral(payload)).value is payload
+
+
+def test_literal_dictionary_key_lookup_does_not_invoke_equality():
+    """Even a colliding opaque dictionary key must not execute code during capture."""
+    class CollidingKey:
+        """A host value whose hash collides with the literal-tag lookup key."""
+
+        def __hash__(self):
+            """Allow fixture construction outside capture without invoking equality."""
+            return hash('kind')
+
+        def __eq__(self, other):
+            """Reject the dictionary lookup that used to run under the writer lock."""
+            raise AssertionError('opaque key equality executed')
+
+    payload = {CollidingKey(): 1}
+    assert ordinary_completion._copy_syntax(ir.IrLiteral(payload)).value is payload
