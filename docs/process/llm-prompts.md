@@ -31,19 +31,26 @@ If additional files are required → STOP and report.
 
 ---
 
-# HANDOFF
+# HANDOFF — GITHUB ISSUE COMMENTS (CANONICAL)
 
-Change slug: <change-slug>
+Task issue: <GitHub issue URL and number>
+Phase: <phase-number>-<phase-name>
 
-Read prior handoffs:
-- .genia/process/tmp/handoffs/<change-slug>/00-preflight.md
-- .genia/process/tmp/handoffs/<change-slug>/01-contract.md
-- .genia/process/tmp/handoffs/<change-slug>/02-design.md
+Before starting:
+- Read the issue body, relevant preceding phase comments, and linked commits/PR evidence.
+- Resolve the latest accepted iteration of each prerequisite phase. If a prerequisite is missing, blocked, or ambiguous, STOP and report. Do not assume a local file or agent memory is authoritative.
+- Respect the separate authorization required to advance phases.
 
-Write this phase handoff to:
-.genia/process/tmp/handoffs/<change-slug>/<phase-number>-<phase-name>.md
+Before reporting this phase complete, publish **one top-level comment on the task issue** with:
+- heading `Phase <number> — <name> (iteration <n>)`, agent/reviewer and UTC timestamp;
+- PASS / PASS WITH NON-BLOCKING FINDINGS / FAIL / BLOCKED verdict and scope/decision;
+- branch, exact commit/tree SHA and linked PR where applicable;
+- test commands, observed results, failures, and evidence links (include host/version pins when relevant);
+- blockers, accountable follow-ups, superseded comment URL if retrying, and authorized next action.
 
-If required handoffs are missing → STOP and report.
+GitHub comments are an append-only phase ledger. Supersede prior handoffs by linking from a new comment, not silently overwriting old evidence. Never publish secrets, protected content or enormous raw logs; link appropriately accessible artifacts instead.
+
+If posting or verifying the comment fails: report `HANDOFF NOT PUBLISHED — BLOCKED` and do not advance a gated phase. A temporary local draft is permitted for recovery, but **is not a completed handoff**. Repository files/commits remain authoritative for implemented behavior and test artifacts; issue comments are coordination evidence, not language-semantic authority.
 
 ---
 
