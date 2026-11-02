@@ -14,7 +14,7 @@ import tempfile
 
 import genia
 from genia import callable as callables
-from tests.unit.model_b_d2a_support import base_world, contributor, world
+from tests.unit.model_b_d2a_support import base_world, contributor
 
 
 @contextmanager
@@ -23,6 +23,7 @@ def target_shim():
     original = callables.GeniaOpenContributionUnit.__init__
 
     def diagnostic_init(self, *args, target=None, **kwargs):
+        """Run the real constructor, then store the inert `target`."""
         original(self, *args, **kwargs)
         self.target = target
 

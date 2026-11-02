@@ -68,6 +68,7 @@ def snapshot(root, module):
 
 
 def two_views(tmp_path):
+    """Build the shared fixture world plus one valid contributor unit `good` for f/1."""
     root, entry, module, group = base_world(tmp_path, F5)
     good = contributor(root, entry, tmp_path, "good", group, ["f(0) = 1"])
     return root, entry, module, group, good
@@ -92,6 +93,7 @@ def traced_build(fl, base, units, stop=None):
     old = sys.gettrace()
 
     def trace(frame, event, arg):
+        """Raise the injected fault on the `stop`-th executed builder source line."""
         if event == 'line' and frame.f_code.co_filename == fl.__file__:
             events.append((frame.f_code.co_name, frame.f_lineno))
             if len(events) == stop:
@@ -143,6 +145,7 @@ def test_d2a_07_sort_and_actual_view_constructor_faults_are_atomic_and_retryable
     previous = sys.getprofile()
 
     def profile(frame, event, function):
+        """Fault the first sort entered from the linking module, recording the hit."""
         if event == 'c_call' and frame.f_code.co_filename == fl.__file__:
             if function is builtins.sorted or getattr(function, '__name__', '') == 'sort':
                 sort_hits.append(True)
@@ -227,12 +230,14 @@ class CountingLock:
     """Bounded lock wrapper: reject same-thread re-entry before trying to acquire."""
 
     def __init__(self):
+        """Start unowned with zero recorded holds."""
         self._lock = threading.Lock()
         self.owner = None
         self.holds = 0
         self.max_depth = 0
 
     def __enter__(self):
+        """Acquire with a 2 s bound, rejecting same-thread re-entry; count the hold."""
         if self.owner == threading.get_ident():
             raise AssertionError('nested binding lock acquisition')
         if not self._lock.acquire(timeout=2):
@@ -243,6 +248,7 @@ class CountingLock:
         return self
 
     def __exit__(self, *exc):
+        """Release the lock and propagate any exception unchanged."""
         self.owner = None
         self._lock.release()
         return False
@@ -262,6 +268,7 @@ def bounded_process(action, timeout=12):
     receiving, sending = context.Pipe(duplex=False)
 
     def child():
+        """Run `action` in the forked child and report its traceback (or None) to the parent."""
         try:
             action()
         except BaseException:
@@ -301,6 +308,7 @@ def test_d2a_08_builder_takes_no_lock_and_publication_takes_exactly_one_hold(tmp
     monkeypatch.setattr(environments, '_BINDING_LOCK', counter)
 
     def forbidden(*args, **kwargs):
+        """Fail if the pure builder performs a lookup or rendering call."""
         raise AssertionError('pure builder called Env.get or renderer')
 
     with monkeypatch.context() as patch, no_runtime_calls():
@@ -324,6 +332,7 @@ def test_d2a_08_concurrent_publication_is_observed_before_and_after_each_write(t
     signatures = {id(view): observation(view) for view in candidates}
 
     def race():
+        """Run two barrier-started publishers while a reader observes each checked write."""
         start = threading.Barrier(3, timeout=2)
         messages = queue.Queue()
         errors = []
@@ -331,6 +340,7 @@ def test_d2a_08_concurrent_publication_is_observed_before_and_after_each_write(t
         observations = []
 
         def checked_write(env, name, value, *args, **kwargs):
+            """Wrap the real checked write, pausing for reader acknowledgement before and after it."""
             if env is root and name == 'v':
                 for phase in ('before', 'after'):
                     if phase == 'after':
@@ -342,6 +352,7 @@ def test_d2a_08_concurrent_publication_is_observed_before_and_after_each_write(t
                 original(env, name, value, *args, **kwargs)
 
         def writer(view):
+            """Publish `view` eight times after the start barrier, collecting any failure."""
             try:
                 start.wait()
                 for _ in range(8):
@@ -381,11 +392,13 @@ def test_d2a_08_module_load_overlaps_publication_and_both_finish(tmp_path):
     view = linking().link_view(frozen(module, group), [good])
 
     def race():
+        """Publish while a module initializer is blocked, then let both finish."""
         entered = threading.Event()
         published = threading.Event()
         errors = []
 
         def pause_load():
+            """Signal module initialization is running and wait for publication to complete."""
             entered.set()
             assert published.wait(3), 'publication blocked behind module initialization'
             assert root.get('v') is view and view(0) == 1
@@ -394,6 +407,7 @@ def test_d2a_08_module_load_overlaps_publication_and_both_finish(tmp_path):
         (tmp_path / 'late.genia').write_text('pause_load()\nlate(x)=x\n', encoding='utf-8')
 
         def load():
+            """Load the blocked module in a thread, collecting any failure."""
             try:
                 root.load_module('late', entry)
             except BaseException as error:

@@ -31,6 +31,7 @@ contributor's own closure/span/module id exactly as the evaluator creates them.
 from __future__ import annotations
 
 import importlib
+from contextlib import contextmanager
 
 import genia
 from genia.callable import GeniaOpenContributionUnit
@@ -89,9 +90,6 @@ def explicit_unit(module, key):
     return module.contributions[key]
 
 
-from contextlib import contextmanager
-
-
 @contextmanager
 def no_runtime_calls():
     """Reject actual lookup/renderer code entry, even through an imported alias."""
@@ -103,6 +101,7 @@ def no_runtime_calls():
     previous = sys.getprofile()
 
     def profile(frame, event, argument):
+        """Raise when a forbidden lookup/renderer code object is entered."""
         if event == 'call' and frame.f_code in forbidden:
             raise AssertionError('pure builder entered lookup or renderer')
 
