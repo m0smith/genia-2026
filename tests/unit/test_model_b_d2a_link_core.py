@@ -156,7 +156,7 @@ def test_d2a_03_guard_alpha_equivalence_and_free_name_distinction(tmp_path):
 def test_d2a_03_planning_runs_no_matcher_guard_body_or_callback(tmp_path):
     root, entry, base, group = base_world(tmp_path, F5)
     calls = []
-    root.set("probe", lambda *args: calls.append(args) or True)
+    root.set_host("probe", lambda *args: calls.append(args) or True, visibility="runtime-public")
     one = contributor(root, entry, tmp_path, "one", group, ["f(a) ? probe(a) = probe(a)"])
     two = contributor(root, entry, tmp_path, "two", group, ["f(b) ? probe(b) = probe(b)"])
     fl = linking()

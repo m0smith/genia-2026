@@ -90,7 +90,7 @@ def test_d2a_06_body_level_case_miss_is_a_body_error_not_a_dispatch_diagnostic(t
 def test_d2a_06_effectful_guard_runs_once_per_candidate_discovery(tmp_path):
     root, entry, module, group = base_world(tmp_path, "f(0, y) = \"base\"\n")
     hits = []
-    root.set("bump", lambda value: hits.append(value) or True)
+    root.set_host("bump", lambda value: hits.append(value) or True, visibility="runtime-public")
     unit = contributor(root, entry, tmp_path, "ext", group, ["f(a, b) ? bump(a) = \"ext\""])
     view = linking().link_view(frozen(module, group), [unit])
     assert view(1, 2) == "ext" and hits == [1]  # exactly one guard evaluation for the one candidate
