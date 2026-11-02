@@ -14,7 +14,7 @@ import genia
 from genia import callable as callables
 from genia.callable import OpenFunctionDuplicateSelectionError, OpenFunctionError
 from tests.unit.model_b_d2a_support import (
-    base_world, completion_for, contributor, explicit_unit, frozen, linking, world,
+    base_world, completion_for, contributor, explicit_unit, frozen, linking, world, no_runtime_calls,
 )
 
 F5 = "f(a1, a2, a3, a4, a5) = 0\n"
@@ -37,7 +37,7 @@ def test_d2a_01_direct_alias_replaced_slot_and_reexport_share_one_projection(tmp
     assert completion_for(base, group) is snapshot
 
 
-def test_d2a_01_direct_export_and_reexport_without_slot_replacement(tmp_path):
+def test_d2a_01_direct_export_without_slot_replacement(tmp_path):
     root, entry, base, group = base_world(tmp_path, "f(x) = x\n")
     snapshot = completion_for(base, group)
     assert snapshot is not None and snapshot.original is group
@@ -222,7 +222,7 @@ def test_d2a_05_every_with_order_gives_the_same_view_sorted_by_module_id(tmp_pat
         view = fl.link_view(frozen(base, group), list(order))
         assert isinstance(view.units, tuple)
         assert [unit.declaring_module_id for unit in view.units] == expected
-        seen.add(tuple(id(unit) for unit in view.units))
+        seen.add(tuple(unit.declaring_module_id for unit in view.units))
     assert len(seen) == 1
 
 
@@ -286,3 +286,221 @@ def test_d2a_09_public_use_over_explicit_bases_keeps_call_time_ambiguity(tmp_pat
     assert "open-function-clause-ambiguity: get/2 matched clauses in more than one unit ['e1', 'e2']" in str(
         caught.value
     )
+
+
+@pytest.mark.parametrize('fail_origin', [False, True], ids=['unfinished', 'failed-and-retried'])
+def test_d2a_01_unfinished_or_failed_origin_never_confers_authority(tmp_path, fail_origin):
+    root, entry = world(tmp_path, {'origin': 'f(x)=x\nretain(f)\n' + ('1/0\n' if fail_origin else ''),
+                                   'relay': 'a=escaped\n'})
+    seen = []
+
+    def retain(group):
+        """Export an escaped identity while its declaring module is still loading."""
+        root.set_host('escaped', group, visibility='runtime-public')
+        relay = root.load_module('relay', entry)
+        assert 'origin' not in root.loaded_modules
+        assert completion_for(relay, group) is None
+        seen.append((group, relay))
+
+    root.set_host('retain', retain, visibility='runtime-public')
+    if fail_origin:
+        with pytest.raises(ZeroDivisionError):
+            root.load_module('origin', entry)
+        assert 'origin' not in root.loaded_modules and 'origin' not in root.loading_modules
+        old, relay = seen[0]
+        assert completion_for(relay, old) is None
+        (tmp_path / 'origin.genia').write_text('f(x)=x+1\n', encoding='utf-8')
+        retry = root.load_module('origin', entry)
+        assert completion_for(retry, old) is None
+        assert completion_for(retry, retry.get_export('f')) is not None
+    else:
+        origin = root.load_module('origin', entry)
+        group, relay = seen[0]
+        assert completion_for(origin, group) is not None
+        # An unfinished re-export did not retroactively acquire a witness.
+        assert completion_for(relay, group) is None
+
+
+def test_d2a_02_ref_cell_and_runtime_literal_identity_survive_view_materialization(tmp_path):
+    from genia import ir
+    from genia.values import GeniaCell, GeniaRef
+
+    ref = GeniaRef(1)
+    cell = GeniaCell(ref)
+    payload = [ref, cell]
+    root = genia.make_global_env([])
+    root.set_host('shared', ref, visibility='runtime-public')
+    root.set_host('shared_cell', cell, visibility='runtime-public')
+
+    def literalize(group):
+        """Host-only literal fixture, installed before successful module completion."""
+        group.records[0].body = ir.IrLiteral(payload)
+
+    root.set_host('literalize', literalize, visibility='runtime-public')
+    try:
+        root, entry, module, group = base_world(tmp_path, 'f()=0\nliteralize(f)\n', root=root)
+        base = frozen(module, group)
+        assert base.clauses[0].closure is group.records[0].closure
+        assert base.clauses[0].closure.get('shared') is ref
+        assert base.clauses[0].closure.get('shared_cell') is cell
+        assert base.clauses[0].body.value is payload
+        view = linking().link_view(base, [])
+        root.publish_view('v', view)
+        result = genia.run_source('v()', root, filename=entry)
+        assert result is payload and result[0] is ref and result[1] is cell
+        ref.set(9)
+        assert genia.run_source('v()', root)[0].get() == 9
+        assert cell._state_ref.get() == 9
+    finally:
+        cell.stop()
+        cell._thread.join(timeout=2)
+        assert not cell._thread.is_alive()
+
+
+def test_d2a_02_later_slot_alias_and_help_metadata_do_not_rewrite_completion(tmp_path):
+    from genia.values import GeniaMap
+
+    root, entry, module, group = base_world(
+        tmp_path, '@doc "original"\nf(x)=17\na=f\n')
+    first = frozen(module, group)
+    p = first.projection
+    before = (tuple(p.binding_metadata.items()), p.projected_doc,
+              p.help_doc, tuple(p.help_metadata.items()))
+    closure = group.records[0].closure
+    closure.assign('f', 99)
+    closure.merge_binding_metadata('a', GeniaMap().put('doc', 'alias-after'))
+    closure.merge_binding_metadata('f', GeniaMap().put('doc', 'slot-after'))
+    group.metadata = group.metadata.put('doc', 'help-after')
+    group.docstring = 'inline-after'
+    second = frozen(module, group)
+    assert second.projection is p
+    assert (tuple(p.binding_metadata.items()), p.projected_doc,
+            p.help_doc, tuple(p.help_metadata.items())) == before
+    assert p.projected_doc == 'original'
+    assert linking().link_view(first, [])(3) == linking().link_view(second, [])(3) == 17
+    with pytest.raises((TypeError, AttributeError)):
+        p.binding_metadata._entries['doc'] = 'mutated'
+
+
+NESTED_KEYS = [
+    ('f(a) ? ((a) -> a)(1) > 0 = 1', 'f(b) ? ((b) -> b)(1) > 0 = 2', True),
+    ('f(a) ? ((p) -> p)(a) > 0 = 1', 'f(a) ? ((p) -> a)(a) > 0 = 2', False),
+    ('f(x) ? {local =: x; ((y) -> local + y)(1) > 0} = 1',
+     'f(a) ? {bound =: a; ((z) -> bound + z)(1) > 0} = 2', True),
+    ('f(x) ? {local =: x; ((y) -> outside + y)(1) > 0} = 1',
+     'f(a) ? {bound =: a; ((z) -> another + z)(1) > 0} = 2', False),
+]
+
+
+@pytest.mark.parametrize('left,right,duplicate', NESTED_KEYS)
+def test_d2a_03_nested_guard_lambda_shadowing_and_free_names(tmp_path, left, right, duplicate):
+    root, entry, module, group = base_world(tmp_path, F5)
+    units = [contributor(root, entry, tmp_path, name, group, [source])
+             for name, source in [('alpha', left), ('beta', right)]]
+    if duplicate:
+        with pytest.raises(callables.OpenFunctionCrossUnitDuplicateClauseError):
+            linking().plan_link(frozen(module, group), units)
+    else:
+        assert len(linking().plan_link(frozen(module, group), units)) == 2
+
+
+def test_d2a_03_build_never_calls_matcher_guard_body_get_or_renderer(tmp_path, monkeypatch):
+    from genia import builtins as genia_builtins
+    from genia.environment import Env
+
+    effects = []
+    root = genia.make_global_env([])
+    root.set_host('probe', lambda value: effects.append(value) or True, visibility='runtime-public')
+    root, entry, module, group = base_world(
+        tmp_path, 'pattern Watch(v)=probe(v)\nf(Watch(v)) ? probe(v) = probe(v)\n', root=root)
+    unit = contributor(root, entry, tmp_path, 'ext', group, ['f(a,b)=probe(a)'])
+    base = frozen(module, group)
+
+    def forbidden(*args, **kwargs):
+        """Any runtime lookup/rendering during pure link construction is a test failure."""
+        raise AssertionError('link builder invoked lookup or renderer')
+
+    with monkeypatch.context() as patch, no_runtime_calls():
+        patch.setattr(Env, 'get', forbidden)
+        patch.setattr(genia_builtins, 'format_display', forbidden)
+        patch.setattr(genia_builtins, 'format_debug', forbidden)
+        linking().plan_link(base, [unit])
+        linking().link_view(base, [unit])
+    assert effects == []
+
+
+def test_d2a_04_varargs_base_fixed_contributor_reverses_shape_payload_and_spans(tmp_path):
+    root, entry, module, group = base_world(tmp_path, 'f(0,..r)=0\n')
+    unit = contributor(root, entry, tmp_path, 'ext', group, ['f(1)=1'])
+    with pytest.raises(callables.OpenFunctionShapeConflictError) as caught:
+        linking().plan_link(frozen(module, group), [unit])
+    error = caught.value
+    assert error.interface_key == ('base', 'f')
+    assert (error.first_shape, error.second_shape) == (('varargs', 1), ('fixed', 1))
+    assert error.first_span == group.records[0].span
+    assert error.second_span == unit.clauses[0].span
+    assert str(error) == (
+        "open-function-shape-conflict: f: varargs/1+ in unit base[base] (at base:1) conflicts with "
+        "fixed/1 in unit 'ext' (at ext:2); a fixed-arity clause conflicts with a varargs clause "
+        "of another unit whose minimum arity is not greater")
+
+
+def test_d2a_05_import_order_and_selection_order_have_same_dispatch_and_conflicts(tmp_path):
+    observations = []
+    for number, order in enumerate(itertools.permutations(['alpha', 'beta', 'zeta'])):
+        directory = tmp_path / str(number)
+        root, entry, module, group = base_world(directory, F5)
+        # Preload modules in each permutation before harvesting their units.
+        for name, source in [('alpha','f(0)=10'), ('beta','f(1)=20'), ('zeta','f(x)=30')]:
+            (directory / (name + '.genia')).write_text('import iface\nextend iface.' + source + '\n')
+        for name in order:
+            root.load_module(name, entry)
+        units = [callables.GeniaOpenContributionUnit(group.owner, name,
+                  list(root.loaded_modules[name].contributions[('iface','f')].clauses), target=group)
+                 for name in reversed(order)]
+        view = linking().link_view(frozen(module, group), [u for u in units if u.declaring_module_id != 'zeta'])
+        assert view(0) == 10 and view(1) == 20
+        observations.append(tuple(u.declaring_module_id for u in view.units))
+        # alpha/beta are distinct, so add a genuine equal-key partner for zeta.
+        twin = contributor(root, entry, directory, 'twin', group, ['f(y)=99'])
+        with pytest.raises(callables.OpenFunctionCrossUnitDuplicateClauseError) as caught:
+            linking().link_view(frozen(module, group), units + [twin])
+        observations.append(str(caught.value))
+    assert len(set(observations[::2])) == len(set(observations[1::2])) == 1
+
+
+def test_d2a_05_first_pair_precedes_later_duplicate_and_equal_key_precedes_shape(tmp_path):
+    # base/alpha shape conflict precedes a later alpha/beta duplicate.
+    root, entry, module, group = base_world(tmp_path, 'f(0)=0\n')
+    alpha = contributor(root, entry, tmp_path, 'alpha', group, ['f(1,..r)=1'])
+    beta = contributor(root, entry, tmp_path, 'beta', group, ['f(1,..s)=2'])
+    for order in ([beta,alpha], [alpha,beta]):
+        with pytest.raises(callables.OpenFunctionShapeConflictError) as caught:
+            linking().link_view(frozen(module, group), order)
+        assert (caught.value.first_unit, caught.value.second_unit) == ('base','alpha')
+        assert caught.value.first_span == group.records[0].span
+        assert caught.value.second_span == alpha.clauses[0].span
+    # Equal keys in a pair are diagnosed before a conflicting later record.
+    root, entry, module, group = base_world(tmp_path / 'equal', 'f(x)=x\n')
+    unit = contributor(root, entry, tmp_path / 'equal', 'ext', group, ['f(y)=1','f(z,..r)=2'])
+    with pytest.raises(callables.OpenFunctionCrossUnitDuplicateClauseError) as caught:
+        linking().link_view(frozen(module, group), [unit])
+    assert caught.value.first_span == group.records[0].span
+    assert caught.value.duplicate_span == unit.clauses[0].span
+
+
+def test_d2a_02_later_contribution_list_and_store_changes_do_not_retroactively_change_view(tmp_path):
+    root, entry, module, group = base_world(tmp_path, F5)
+    unit = contributor(root, entry, tmp_path, 'ext', group, ['f(0)=1'])
+    later = contributor(root, entry, tmp_path, 'later', group, ['f(1)=2'])
+    view = linking().link_view(frozen(module, group), [unit])
+    root.publish_view('v', view)
+    assert genia.run_source('v(0)', root, filename=entry) == 1
+    unit.clauses.extend(later.clauses)
+    root.ordinary_contributions[id(group)] = later  # host-only store fixture; evaluator stays inert
+    assert genia.run_source('v(0)', root, filename=entry) == 1
+    with pytest.raises(callables.OpenFunctionNoMatchingCaseError):
+        genia.run_source('v(1)', root, filename=entry)
+    newer = linking().link_view(frozen(module, group), [later])
+    root.publish_view('newer', newer)
+    assert genia.run_source('newer(1)', root, filename=entry) == 2

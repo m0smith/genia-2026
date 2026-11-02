@@ -2,11 +2,11 @@
 
 PYTHON REFERENCE HOST ONLY. TEST-ONLY private protocol bound by these tests
 (design: docs/design/pre-r29-model-b-d2-linking-design.md sections 2-3, 5, 9.1).
-The design names the D2a seams but not their signatures; this file freezes the
+The design names the D2a seams but not their signatures; this file supplies test adapters for the
 smallest signatures the RED oracles use. Equivalent private layouts may adapt
 the accessors below with independent review; they must not weaken any oracle.
 
-Private seams under test (all absent today, so tests fail by design):
+Private seams under test (adapter layouts may change with independent review):
   genia.ordinary_completion.completion_for(module_value, value) -> projection | None
   genia.function_linking.FrozenOrdinaryBase.from_projection(projection)
       attributes: group, interface_key, name, module_id, clauses (tuple of
@@ -49,17 +49,17 @@ def completion_for(module_value, value):
     return importlib.import_module("genia.ordinary_completion").completion_for(module_value, value)
 
 
-def world(tmp_path, files=None):
+def world(tmp_path, files=None, root=None):
     """Write fixtures and return (root env, entry label); the loader is the real one."""
     tmp_path.mkdir(parents=True, exist_ok=True)
     for name, source in {"iface": IFACE_SOURCE, **(files or {})}.items():
         (tmp_path / (name + ".genia")).write_text(source, encoding="utf-8")
-    return genia.make_global_env([]), str(tmp_path / "entry.genia")
+    return root if root is not None else genia.make_global_env([]), str(tmp_path / "entry.genia")
 
 
-def base_world(tmp_path, base_source, extra=None):
+def base_world(tmp_path, base_source, extra=None, root=None):
     """Load module `base` and return (root, entry, module, group G exported as `f`)."""
-    root, entry = world(tmp_path, {"base": base_source, **(extra or {})})
+    root, entry = world(tmp_path, {"base": base_source, **(extra or {})}, root=root)
     module = root.load_module("base", entry)
     return root, entry, module, module.get_export("f")
 
@@ -87,3 +87,27 @@ def contributor(root, entry, tmp_path, name, group, clauses):
 def explicit_unit(module, key):
     """Return a loaded module's genuine explicit-open contribution unit for `key`."""
     return module.contributions[key]
+
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def no_runtime_calls():
+    """Reject actual lookup/renderer code entry, even through an imported alias."""
+    import sys
+    from genia.environment import Env
+    from genia.builtins import format_display, format_debug
+
+    forbidden = {Env.get.__code__, format_display.__code__, format_debug.__code__}
+    previous = sys.getprofile()
+
+    def profile(frame, event, argument):
+        if event == 'call' and frame.f_code in forbidden:
+            raise AssertionError('pure builder entered lookup or renderer')
+
+    try:
+        sys.setprofile(profile)
+        yield
+    finally:
+        sys.setprofile(previous)

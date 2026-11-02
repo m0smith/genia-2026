@@ -1,0 +1,406 @@
+{
+  "phase": "D2a RED revision 2; not implementation acceptance",
+  "parent_commit": "cff05d06410014622ff2557fd642dfa8c2eac3f6",
+  "baseline": "cc262127c11071f0722f5487e6dcf75452382b75",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "pytest": "9.1.1",
+  "dependency_mode": "existing uv environment, --no-sync; uv.lock absent; no dependency changes",
+  "test_source_blobs": {
+    "tests/unit/test_model_b_d2a_link_publish.py": "7aee66144307f668d8b3598fea01c765564f9f27",
+    "tests/unit/model_b_d2a_support.py": "e78ae3cad1d807e8d4c5c80ad809f8e66c661b74",
+    "tests/unit/test_model_b_d2a_link_dispatch.py": "024d5761d457d907890d24498afc942407daa581",
+    "tests/unit/test_model_b_d2a_link_core.py": "ec91ba8b1aa56a407f7bc14af19924dbcb9be5fb",
+    "tests/unit/model_b_d2a_diagnostic.py": "5f1f3f4607a7653462bedcd1980c8a44bf585273"
+  },
+  "runs": [
+    {
+      "selection": "core-lookup",
+      "FAIL": 10
+    },
+    {
+      "selection": "core-keys",
+      "FAIL": 12
+    },
+    {
+      "selection": "core-order",
+      "FAIL": 6,
+      "PASS": 1
+    },
+    {
+      "selection": "dispatch",
+      "FAIL": 17
+    },
+    {
+      "selection": "publish",
+      "FAIL": 11,
+      "PASS": 1
+    }
+  ],
+  "total": 58,
+  "passed": 2,
+  "failed": 56,
+  "baseline_preservation": {
+    "passed": 223,
+    "failed": 0
+  },
+  "final_P1_E_check": {
+    "passed": 18,
+    "failed": 0
+  },
+  "shim_assisted_dispatch": {
+    "failed": 17,
+    "classification": "diagnostic only; missing genia.function_linking"
+  },
+  "unexecuted": "All downstream assertions past absent completion/linking/publication seams, including fault traces and races. No implementation stub supplied.",
+  "cases": [
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_01_direct_export_without_slot_replacement",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.ordinary_completion' has no attribute 'completion_for'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_01_direct_alias_replaced_slot_and_reexport_share_one_projection",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.ordinary_completion' has no attribute 'completion_for'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_02_frozen_base_copies_clauses_keys_and_provenance",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.ordinary_completion' has no attribute 'completion_for'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_01_no_authority_for_non_ordinary_or_uncompleted_values",
+      "result": "FAIL",
+      "immediate_failure": "ModuleNotFoundError: No module named 'genia.function_linking'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_02_later_changes_do_not_alter_the_frozen_base",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.ordinary_completion' has no attribute 'completion_for'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_01_unfinished_or_failed_origin_never_confers_authority[unfinished]",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.ordinary_completion' has no attribute 'completion_for'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_01_unfinished_or_failed_origin_never_confers_authority[failed-and-retried]",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.ordinary_completion' has no attribute 'completion_for'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_02_ref_cell_and_runtime_literal_identity_survive_view_materialization",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.ordinary_completion' has no attribute 'completion_for'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_02_later_contribution_list_and_store_changes_do_not_retroactively_change_view",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-lookup",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_02_later_slot_alias_and_help_metadata_do_not_rewrite_completion",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.ordinary_completion' has no attribute 'completion_for'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_contributor_vs_contributor_and_literal_distinctions",
+      "result": "FAIL",
+      "immediate_failure": "ModuleNotFoundError: No module named 'genia.function_linking'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_alpha_equivalent_base_vs_contributor_is_cross_unit_duplicate",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_guard_alpha_equivalence_and_free_name_distinction",
+      "result": "FAIL",
+      "immediate_failure": "ModuleNotFoundError: No module named 'genia.function_linking'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_planning_runs_no_matcher_guard_body_or_callback",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_04_fixed_vs_varargs_with_disjoint_patterns_is_rejected",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_04_accepted_shape_combinations",
+      "result": "FAIL",
+      "immediate_failure": "ModuleNotFoundError: No module named 'genia.function_linking'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_nested_guard_lambda_shadowing_and_free_names[f(a) ? ((p) -> p)(a) > 0 = 1-f(a) ? ((p) -> a)(a) > 0 = 2-False]",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_nested_guard_lambda_shadowing_and_free_names[f(a) ? ((a) -> a)(1) > 0 = 1-f(b) ? ((b) -> b)(1) > 0 = 2-True]",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_nested_guard_lambda_shadowing_and_free_names[f(x) ? {local =: x; ((y) -> local + y)(1) > 0} = 1-f(a) ? {bound =: a; ((z) -> bound + z)(1) > 0} = 2-True]",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_nested_guard_lambda_shadowing_and_free_names[f(x) ? {local =: x; ((y) -> outside + y)(1) > 0} = 1-f(a) ? {bound =: a; ((z) -> another + z)(1) > 0} = 2-False]",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_03_build_never_calls_matcher_guard_body_get_or_renderer",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-keys",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_04_varargs_base_fixed_contributor_reverses_shape_payload_and_spans",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-order",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_05_conflict_report_is_independent_of_with_order",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-order",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_05_every_with_order_gives_the_same_view_sorted_by_module_id",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-order",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_05_duplicate_selection_is_raised_before_link_validation",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-order",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_09_explicit_base_gains_cross_unit_validation_in_the_private_validator",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: module 'genia.callable' has no attribute 'OpenFunctionCrossUnitDuplicateClauseError'"
+    },
+    {
+      "selection": "core-order",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_05_import_order_and_selection_order_have_same_dispatch_and_conflicts",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "core-order",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_09_public_use_over_explicit_bases_keeps_call_time_ambiguity",
+      "result": "PASS",
+      "immediate_failure": null
+    },
+    {
+      "selection": "core-order",
+      "nodeid": "tests/unit/test_model_b_d2a_link_core.py::test_d2a_05_first_pair_precedes_later_duplicate_and_equal_key_precedes_shape",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_identifier_header_base_with_open_clause_contributions",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_pattern_header_base_and_no_matching_case",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_identifier_header_base_makes_a_matching_specialization_ambiguous",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_fixed_arity_wins_over_varargs_and_varargs_minima_are_ambiguous",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_body_level_case_miss_is_a_body_error_not_a_dispatch_diagnostic",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_effectful_guard_runs_once_per_candidate_discovery",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_header_frame_capture_keeps_each_clause_in_its_own_module_scope",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_option_awareness_uses_the_union_over_the_stratum",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_none_argument_reaches_an_aware_contribution_only",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_self_tail_recursion_through_a_published_view_is_constant_stack",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_ordinary_identifier_header_self_tco_through_published_view",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_matcher_err_is_the_exact_call_value_without_guard_body_or_fallthrough",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_ambiguity_runs_each_guard_once_and_no_bodies",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_ordinary_identifier_headers_mutually_recurse_through_two_views",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_fixed_miss_never_falls_back_to_same_unit_varargs",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "dispatch",
+      "nodeid": "tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_identifier_header_stops_its_unit_before_later_pattern_guards",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_07_sort_and_actual_view_constructor_faults_are_atomic_and_retryable",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_07_every_executed_resolution_and_scan_line_is_atomic_and_retryable",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_07_semantic_resolution_and_scan_errors_leave_all_state_unchanged",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_07_immutable_name_collision_raises_through_the_checked_writer",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_08_builder_takes_no_lock_and_publication_takes_exactly_one_hold",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_08_concurrent_publication_is_observed_before_and_after_each_write",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_07_runtime_owned_name_routes_to_the_runtime_scope_and_pruned_name_fails",
+      "result": "FAIL",
+      "immediate_failure": "ModuleNotFoundError: No module named 'genia.function_linking'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_08_module_load_overlaps_publication_and_both_finish",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_10_inert_private_fields_exist_and_stay_empty_without_activation",
+      "result": "FAIL",
+      "immediate_failure": "AttributeError: 'Env' object has no attribute 'ordinary_contributions'. Did you mean: 'open_contributions'?"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_10_no_export_equality_or_reflection_exposes_private_machinery",
+      "result": "FAIL",
+      "immediate_failure": "KeyError: '_ordinary_contributions'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_10_private_tables_are_absent_from_source_access_reflection_and_equality",
+      "result": "FAIL",
+      "immediate_failure": "TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'"
+    },
+    {
+      "selection": "publish",
+      "nodeid": "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_10_ordinary_targets_are_still_rejected_from_source",
+      "result": "PASS",
+      "immediate_failure": null
+    }
+  ]
+}
