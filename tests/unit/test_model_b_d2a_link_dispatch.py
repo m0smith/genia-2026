@@ -103,7 +103,7 @@ def test_d2a_06_option_awareness_uses_the_union_over_the_stratum(tmp_path):
     _, aware, _ = view_of(tmp_path / "n", "f(0) = 0\n", ("ext", ["f(none(m)) = 1"]))
     assert handles_none(aware, 1) and not handles_some(aware, 1)
     _, some_aware, _ = view_of(tmp_path / "s", "f(0) = 0\n", ("ext", ["f(some(v)) = 1"]))
-    assert handles_some(some_aware, 1) and not handles_none(some_aware, 1)
+    assert handles_some(some_aware, 1) and handles_none(some_aware, 1)
     _, ident, _ = view_of(tmp_path / "i", "f(x) = x\n", ("ext", ["f(a, b) = 1"]))
     assert not handles_none(ident, 1)  # identifier-header record uses _record_handles_none
     _, case_aware, _ = view_of(tmp_path / "c", "f(x) = (none(m)) -> 1 | (v) -> v\n", ("ext", ["f(a, b) = 1"]))
@@ -196,10 +196,25 @@ def test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata(tmp_pat
     assert genia.run_source('v(some(7))', root) == 17
     absent = genia.run_source('none("absent")', root)
     root.set_host('absent', absent, visibility='runtime-public')
-    assert genia.run_source('v(absent)', root) is absent
-    assert not callables._callable_explicitly_handles_none(view, 1)
+    # R20 contract 5.2: a selected some pattern also admits none to dispatch.
+    # No selected unary clause matches it, so this is a dispatch miss, not propagation.
+    with pytest.raises(OpenFunctionNoMatchingCaseError) as caught:
+        genia.run_source('v(absent)', root)
+    assert str(caught.value) == 'No matching case for function f/1 with arguments [none("absent")]'
+    assert callables._callable_explicitly_handles_none(view, 1)
     assert callables._callable_explicitly_handles_none(view, 2)
     assert genia.run_source('v(absent, 9)', root) == 9
+
+    # Isolate the other-arity negative: there must be no unary some/none pattern.
+    excluded_root, excluded, _ = view_of(
+        tmp_path / 'excluded', 'f(0) = 0\n',
+        ('ext', ['f(1) = 1', 'f(none(m), y) = y']))
+    excluded_root.publish_view('v', excluded)
+    excluded_root.set_host('absent', absent, visibility='runtime-public')
+    assert not callables._callable_explicitly_handles_none(excluded, 1)
+    assert genia.run_source('v(absent)', excluded_root) is absent
+    assert callables._callable_explicitly_handles_none(excluded, 2)
+    assert genia.run_source('v(absent, 9)', excluded_root) == 9
 
 
 def test_d2a_06_ambiguity_runs_each_guard_once_and_no_bodies(tmp_path):

@@ -1,0 +1,17 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_________ test_d2a_06_option_awareness_uses_the_union_over_the_stratum _________
+tests/unit/test_model_b_d2a_link_dispatch.py:104: in test_d2a_06_option_awareness_uses_the_union_over_the_stratum
+    assert handles_none(aware, 1) and not handles_some(aware, 1)
+E   assert (False)
+E    +  where False = <function pytest_configure.<locals>.mutated at 0x7f8ef896b420>(<open function f (linked)>, 1)
+_____ test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata _____
+tests/unit/test_model_b_d2a_link_dispatch.py:214: in test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata
+    assert not callables._callable_explicitly_handles_none(excluded, 1)
+E   assert not True
+E    +  where True = <function pytest_configure.<locals>.mutated at 0x7f8ef896b420>(<open function f (linked)>, 1)
+E    +    where <function pytest_configure.<locals>.mutated at 0x7f8ef896b420> = callables._callable_explicitly_handles_none
+=========================== short test summary info ============================
+FAILED tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_option_awareness_uses_the_union_over_the_stratum
+FAILED tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata
+2 failed, 15 deselected in 0.05s
