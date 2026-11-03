@@ -25,7 +25,7 @@
         },
         {
           "path": "main.genia",
-          "source": "import relay\nimport ext\nuse g from relay.h with ext\ng(0)\n"
+          "source": "import relay\nimport ext\nuse h from relay with ext\nh(0)\n"
         }
       ]
     }

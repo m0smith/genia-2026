@@ -136,7 +136,7 @@
       "reason": "Cross-module open-function contribution/selection is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["shared specs using eval.input.modules", "multi_file_eval requires-gated shared specs"],
+      "affected_tests": ["shared specs using eval.input.modules", "multi_file_eval requires-gated shared specs", "error-r20-use-dotted-from-not-rename"],
       "removal_condition": "Remove when genia-cpp declares multi_file_eval supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -303,6 +303,7 @@
         "model-b-link-overlap-ambiguity-distinct-keys",
         "model-b-link-ownership-declaration",
         "model-b-link-positive-extend-use",
+        "model-b-link-projected-doc-not-binding-meta",
         "model-b-link-shape-conflict-disjoint",
         "model-b-link-shape-same-unit-ok",
         "model-b-link-some-admits-none",

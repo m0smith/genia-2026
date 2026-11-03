@@ -28,7 +28,7 @@
   },
   "expected": {
     "stdout": "",
-    "stderr": "Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to function f/2 owned by module 'base'\n",
+    "stderr": "Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to function 'f' owned by module 'base'\n",
     "exit_code": 1
   },
   "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."

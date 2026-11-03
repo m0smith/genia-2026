@@ -1,0 +1,454 @@
+{
+  "cases": [
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-builtin]",
+      "original_red": "pass",
+      "original_partial": "pass",
+      "revised_red": "pass",
+      "revised_partial": "pass",
+      "classification": "passing existing-behavior control"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-lambda]",
+      "original_red": "pass",
+      "original_partial": "pass",
+      "revised_red": "pass",
+      "revised_partial": "pass",
+      "classification": "passing existing-behavior control"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-nonfunction]",
+      "original_red": "pass",
+      "original_partial": "pass",
+      "revised_red": "pass",
+      "revised_partial": "pass",
+      "classification": "passing existing-behavior control"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-contributor-duplicate-key]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-explicit-shape-conflict]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-local-lambda-alias]",
+      "original_red": "pass",
+      "original_partial": "pass",
+      "revised_red": "pass",
+      "revised_partial": "pass",
+      "classification": "passing existing-behavior control"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-non-export]",
+      "original_red": "pass",
+      "original_partial": "pass",
+      "revised_red": "pass",
+      "revised_partial": "pass",
+      "classification": "passing existing-behavior control"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-ownership-declaration]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "pass",
+      "revised_partial": "pass",
+      "classification": "passing existing-behavior control"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-some-admits-none]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-unselected-contribution]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-view-not-target]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-alias-and-reexport]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-b1-slot-replaced]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-consumer-midinit]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-contributor-closure]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "pass",
+      "revised_partial": "pass",
+      "classification": "passing existing-behavior control"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-import-inert]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-key-true-vs-one]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-later-view-same-snapshot]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-meta-doc-channels]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-order-independence]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-outcome-awareness]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-positive-extend-use]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-shape-same-unit-ok]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_public_atomic_checked_writer_failure_and_retry",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_public_failed_selection_preserves_previous_view",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_public_view_nonretroactive_after_more_contributions",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[doc]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[meta]",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[help]",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_public_self_tco_uses_published_view",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_public_publication_overlaps_real_module_load",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_public_use_cannot_replace_immutable_name",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_escaped_failed_origin_has_no_public_extension_authority",
+      "original_red": "pass",
+      "original_partial": "pass",
+      "revised_red": "pass",
+      "revised_partial": "pass",
+      "classification": "passing existing-behavior control"
+    },
+    {
+      "name": "test_public_use_holds_writer_lock_once",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_two_public_use_writers_are_observed_during_publication",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_public_views_keep_completed_base_after_live_group_mutation",
+      "original_red": "fail",
+      "original_partial": "fail",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_frozen_help_preserves_original_span_start[annotation-start-after-prefix]",
+      "original_red": "new guard",
+      "original_partial": "new guard",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_frozen_help_preserves_original_span_start[unannotated-head]",
+      "original_red": "new guard",
+      "original_partial": "new guard",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_public_use_preserves_literal_dotted_module_alias",
+      "original_red": "new guard",
+      "original_partial": "new guard",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_ordinary_group_accepts_explicit_extend_target_d2b",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    },
+    {
+      "name": "test_two_contributions_with_equal_key_are_rejected_at_selection",
+      "original_red": "fail",
+      "original_partial": "pass",
+      "revised_red": "fail",
+      "revised_partial": "pass",
+      "classification": "genuine RED at existing activation/reflection/validation seam"
+    }
+  ],
+  "remaining_partial_failures": [],
+  "unverified": "Full GREEN acceptance/regression/conformance/review gates have not been run by this TEST-ONLY task"
+}

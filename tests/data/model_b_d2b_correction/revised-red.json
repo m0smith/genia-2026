@@ -1,0 +1,824 @@
+{
+  "label": "revised-red",
+  "source_head": "b25b8f8c1904dc683f6634c4ef8c5f108d4f3eca",
+  "python": "Python 3.12.14",
+  "runs": [
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/revised-red-0.xml",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-authority-builtin]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-authority-lambda]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-authority-nonfunction]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-contributor-duplicate-key]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-explicit-shape-conflict]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-local-lambda-alias]"
+      ],
+      "returncode": 1,
+      "raw_log": "...FFFFFF.                                                               [100%]\n=================================== FAILURES ===================================\n_________ test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity] _________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-clause-ambiguity: f/1 matched clauses in more than one unit ['base', 'ext']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n________ test_d2b_shared_oracle[model-b-link-contributor-duplicate-key] ________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa... duplicate at other:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n________ test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key] _________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa...1, duplicate at ext:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n_____ test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases] _____\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-duplicate-selection: contribution 'ext' is already selected for ('base', 'f')\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n_________ test_d2b_shared_oracle[model-b-link-explicit-shape-conflict] _________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=1, actual=0)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='', actual='<open function f (linked)>\\n')\nE     Use -v to get more diff\n________ test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names] ________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa...1, duplicate at ext:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n=========================== short test summary info ============================\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-contributor-duplicate-key]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-explicit-shape-conflict]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names]\n6 failed, 4 passed in 2.40s\n",
+      "cases": [
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-authority-builtin]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-authority-lambda]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-authority-nonfunction]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-clause-ambiguity: f/1 matched clauses in more than one unit ['base', 'ext']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-contributor-duplicate-key]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa... duplicate at other:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa...1, duplicate at ext:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-duplicate-selection: contribution 'ext' is already selected for ('base', 'f')\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-explicit-shape-conflict]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=1, actual=0)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='', actual='<open function f (linked)>\\n')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa...1, duplicate at ext:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-local-lambda-alias]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/revised-red-1.xml",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-non-export]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-ownership-declaration]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-some-admits-none]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-unselected-contribution]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-view-not-target]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-alias-and-reexport]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-b1-slot-replaced]"
+      ],
+      "returncode": 1,
+      "raw_log": ".F.FFFFFFF                                                               [100%]\n=================================== FAILURES ===================================\n_____ test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys] _____\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-clause-ambiguity: f/1 matched clauses in more than one unit ['ext', 'other']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n_________ test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint] _________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-shape-conflict: f: fixed/1 in unit base[base] (at bas...m arity is not greater\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n____________ test_d2b_shared_oracle[model-b-link-some-admits-none] _____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected='Error: No matching case for function f/1 with arguments [none(\"absent\")]\\n', actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n_________ test_d2b_shared_oracle[model-b-link-unselected-contribution] _________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected='Error: No matching case for function f/1 with arguments [1]\\n', actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n________ test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity] _________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-varargs-ambiguity: f/2 matches more than one varargs ...ted by ['base', 'ext']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n_____________ test_d2b_shared_oracle[model-b-link-view-not-target] _____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-target-not-open: 'consumer.f' is not an open function interface\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n___________ test_d2b_shared_oracle[model-b-link-alias-and-reexport] ____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\nE     Use -v to get more diff\n____________ test_d2b_shared_oracle[model-b-link-b1-slot-replaced] _____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 3, 99]\\n', actual='')\nE     Use -v to get more diff\n=========================== short test summary info ============================\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-some-admits-none]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-unselected-contribution]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-view-not-target]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-alias-and-reexport]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-b1-slot-replaced]\n8 failed, 2 passed in 2.15s\n",
+      "cases": [
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-non-export]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-clause-ambiguity: f/1 matched clauses in more than one unit ['ext', 'other']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-ownership-declaration]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-shape-conflict: f: fixed/1 in unit base[base] (at bas...m arity is not greater\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-some-admits-none]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected='Error: No matching case for function f/1 with arguments [none(\"absent\")]\\n', actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-unselected-contribution]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected='Error: No matching case for function f/1 with arguments [1]\\n', actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-varargs-ambiguity: f/2 matches more than one varargs ...ted by ['base', 'ext']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-view-not-target]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-target-not-open: 'consumer.f' is not an open function interface\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-alias-and-reexport]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-b1-slot-replaced]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 3, 99]\\n', actual='')\n  Use -v to get more diff"
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/revised-red-2.xml",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-consumer-midinit]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-contributor-closure]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-import-inert]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-key-true-vs-one]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-later-view-same-snapshot]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-meta-doc-channels]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-order-independence]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-outcome-awareness]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-positive-extend-use]"
+      ],
+      "returncode": 1,
+      "raw_log": "FF.FFFFFFF                                                               [100%]\n=================================== FAILURES ===================================\n____________ test_d2b_shared_oracle[model-b-link-consumer-midinit] _____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\nE     Use -v to get more diff\n___________ test_d2b_shared_oracle[model-b-link-contributor-closure] ___________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[13, 100]\\n', actual='')\nE     Use -v to get more diff\n______________ test_d2b_shared_oracle[model-b-link-import-inert] _______________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='1\\n', actual='')\nE     Use -v to get more diff\n_____________ test_d2b_shared_oracle[model-b-link-key-true-vs-one] _____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 8]\\n', actual='')\nE     Use -v to get more diff\n________ test_d2b_shared_oracle[model-b-link-later-view-same-snapshot] _________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 7]\\n', actual='')\nE     Use -v to get more diff\n____________ test_d2b_shared_oracle[model-b-link-meta-doc-channels] ____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='')\nE     Use -v to get more diff\n___________ test_d2b_shared_oracle[model-b-link-order-independence] ____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 7, 8]\\n', actual='')\nE     Use -v to get more diff\n____________ test_d2b_shared_oracle[model-b-link-outcome-awareness] ____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='17\\n', actual='')\nE     Use -v to get more diff\n___________ test_d2b_shared_oracle[model-b-link-positive-extend-use] ___________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[3, 3, 7]\\n', actual='')\nE     Use -v to get more diff\n=========================== short test summary info ============================\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-consumer-midinit]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-contributor-closure]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-import-inert]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-key-true-vs-one]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-later-view-same-snapshot]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-meta-doc-channels]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-order-independence]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-outcome-awareness]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-positive-extend-use]\n9 failed, 1 passed in 2.41s\n",
+      "cases": [
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-consumer-midinit]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-contributor-closure]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[13, 100]\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-import-inert]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='1\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-key-true-vs-one]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 8]\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-later-view-same-snapshot]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 7]\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-meta-doc-channels]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-order-independence]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 7, 8]\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-outcome-awareness]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='17\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-positive-extend-use]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[3, 3, 7]\\n', actual='')\n  Use -v to get more diff"
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/revised-red-3.xml",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-shape-same-unit-ok]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity]"
+      ],
+      "returncode": 1,
+      "raw_log": "FFFFFF                                                                   [100%]\n=================================== FAILURES ===================================\n___________ test_d2b_shared_oracle[model-b-link-shape-same-unit-ok] ____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[1, 2, 3]\\n', actual='')\nE     Use -v to get more diff\n__________ test_d2b_shared_oracle[model-b-link-view-alias-no-overlay] __________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='')\nE     Use -v to get more diff\n________ test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected] ________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='<open contribution <entry> -> f>\\n', actual='')\nE     Use -v to get more diff\n______ test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged] _______\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...interface\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-incompatible-contribution: expected a contribution ta...base', 'f'), got 'ext'\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\nE     Use -v to get more diff\n___ test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection] ___\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='<open contribution <entry> -> f>\\n', actual='')\nE     Use -v to get more diff\n__ test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity] ___\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...db_ext2']\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: get has an identical dis...\", actual=\"Error: open-function-clause-ambiguity: get/3 matched clauses in more than one unit ['db_ext', 'db_ext2']\\n\")\nE     Use -v to get more diff\n=========================== short test summary info ============================\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-shape-same-unit-ok]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity]\n6 failed in 1.65s\n",
+      "cases": [
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-shape-same-unit-ok]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[1, 2, 3]\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='<open contribution <entry> -> f>\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-incompatible-contribution: expected a contribution ta...base', 'f'), got 'ext'\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='<open contribution <entry> -> f>\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...db_ext2']\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: get has an identical dis...\", actual=\"Error: open-function-clause-ambiguity: get/3 matched clauses in more than one unit ['db_ext', 'db_ext2']\\n\")\n  Use -v to get more diff"
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/revised-red-4.xml",
+        "tests/unit/test_model_b_d2b_public.py"
+      ],
+      "returncode": 1,
+      "raw_log": "FFFFFFFFF.FFFFFF                                                         [100%]\n=================================== FAILURES ===================================\n_____________ test_public_atomic_checked_writer_failure_and_retry ______________\ntests/unit/test_model_b_d2b_public.py:21: in test_public_atomic_checked_writer_failure_and_retry\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n_____________ test_public_failed_selection_preserves_previous_view _____________\ntests/unit/test_model_b_d2b_public.py:42: in test_public_failed_selection_preserves_previous_view\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n___________ test_public_view_nonretroactive_after_more_contributions ___________\ntests/unit/test_model_b_d2b_public.py:53: in test_public_view_nonretroactive_after_more_contributions\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n___ test_frozen_three_channel_reflection_even_before_public_activation[doc] ____\ntests/unit/test_model_b_d2b_public.py:73: in test_frozen_three_channel_reflection_even_before_public_activation\n    assert genia.run_source('doc(\"g\")', root) == \"canonical\"\nE   AssertionError: assert 'overlay' == 'canonical'\nE     \nE     - canonical\nE     + overlay\n___ test_frozen_three_channel_reflection_even_before_public_activation[meta] ___\ntests/unit/test_model_b_d2b_public.py:75: in test_frozen_three_channel_reflection_even_before_public_activation\n    meta = genia.run_source('meta(\"g\")', root)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1418: in _eval_impl\n    return self.eval(node.expr)\n           ^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1474: in _eval_impl\n    return self.eval_call(node, tail_position=False)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1001: in eval_call\n    return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1300: in invoke_callable\n    return _invoke_callable(\nsrc/genia/callable.py:1775: in invoke_callable\n    return _normalize_absence(fn(*args))\n                              ^^^^^^^^^\nsrc/genia/builtins.py:3588: in bound\n    return in_scope(lookup_env, *args)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/builtins.py:3561: in _meta_in_scope\n    return (target.base if isinstance(target, GeniaLinkedOpenFunction) else target).metadata\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'\n___ test_frozen_three_channel_reflection_even_before_public_activation[help] ___\ntests/unit/test_model_b_d2b_public.py:78: in test_frozen_three_channel_reflection_even_before_public_activation\n    genia.run_source(\"help(g)\", root)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1418: in _eval_impl\n    return self.eval(node.expr)\n           ^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1474: in _eval_impl\n    return self.eval_call(node, tail_position=False)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1001: in eval_call\n    return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1300: in invoke_callable\n    return _invoke_callable(\nsrc/genia/callable.py:1775: in invoke_callable\n    return _normalize_absence(fn(*args))\n                              ^^^^^^^^^\nsrc/genia/builtins.py:3588: in bound\n    return in_scope(lookup_env, *args)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/builtins.py:3468: in _help_in_scope\n    _emit_help(_describe_open_function(target))\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/builtins.py:3288: in _describe_open_function\n    interface_doc = _metadata_doc(open_fn.metadata)\n                                  ^^^^^^^^^^^^^^^^\nE   AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'\n___________________ test_public_self_tco_uses_published_view ___________________\ntests/unit/test_model_b_d2b_public.py:92: in test_public_self_tco_uses_published_view\n    genia.run_source(\"import base\\nimport ext\\nuse f from base with ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n______________ test_public_publication_overlaps_real_module_load _______________\ntests/unit/test_model_b_d2b_public.py:101: in test_public_publication_overlaps_real_module_load\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n________________ test_public_use_cannot_replace_immutable_name _________________\ntests/unit/test_model_b_d2b_public.py:139: in test_public_use_cannot_replace_immutable_name\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n____________________ test_public_use_holds_writer_lock_once ____________________\ntests/unit/test_model_b_d2b_public.py:168: in test_public_use_holds_writer_lock_once\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n_________ test_two_public_use_writers_are_observed_during_publication __________\ntests/unit/test_model_b_d2b_public.py:181: in test_two_public_use_writers_are_observed_during_publication\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n_______ test_public_views_keep_completed_base_after_live_group_mutation ________\ntests/unit/test_model_b_d2b_public.py:247: in test_public_views_keep_completed_base_after_live_group_mutation\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n_ test_frozen_help_preserves_original_span_start[annotation-start-after-prefix] _\ntests/unit/test_model_b_d2b_public.py:271: in test_frozen_help_preserves_original_span_start\n    genia.run_source(\"help(v)\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1418: in _eval_impl\n    return self.eval(node.expr)\n           ^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1474: in _eval_impl\n    return self.eval_call(node, tail_position=False)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1001: in eval_call\n    return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1300: in invoke_callable\n    return _invoke_callable(\nsrc/genia/callable.py:1775: in invoke_callable\n    return _normalize_absence(fn(*args))\n                              ^^^^^^^^^\nsrc/genia/builtins.py:3588: in bound\n    return in_scope(lookup_env, *args)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/builtins.py:3468: in _help_in_scope\n    _emit_help(_describe_open_function(target))\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/builtins.py:3288: in _describe_open_function\n    interface_doc = _metadata_doc(open_fn.metadata)\n                                  ^^^^^^^^^^^^^^^^\nE   AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'\n_______ test_frozen_help_preserves_original_span_start[unannotated-head] _______\ntests/unit/test_model_b_d2b_public.py:271: in test_frozen_help_preserves_original_span_start\n    genia.run_source(\"help(v)\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1418: in _eval_impl\n    return self.eval(node.expr)\n           ^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1474: in _eval_impl\n    return self.eval_call(node, tail_position=False)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1001: in eval_call\n    return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1300: in invoke_callable\n    return _invoke_callable(\nsrc/genia/callable.py:1775: in invoke_callable\n    return _normalize_absence(fn(*args))\n                              ^^^^^^^^^\nsrc/genia/builtins.py:3588: in bound\n    return in_scope(lookup_env, *args)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/builtins.py:3468: in _help_in_scope\n    _emit_help(_describe_open_function(target))\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/builtins.py:3288: in _describe_open_function\n    interface_doc = _metadata_doc(open_fn.metadata)\n                                  ^^^^^^^^^^^^^^^^\nE   AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'\n____________ test_public_use_preserves_literal_dotted_module_alias _____________\ntests/unit/test_model_b_d2b_public.py:279: in test_public_use_preserves_literal_dotted_module_alias\n    root, entry, module, group = public_world(tmp_path)\n                                 ^^^^^^^^^^^^^^^^^^^^^^\ntests/unit/test_model_b_d2b_public.py:15: in public_world\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1563: in _eval_impl\n    module_value = self.env.load_module(node.module_name, requester)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n=========================== short test summary info ============================\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_atomic_checked_writer_failure_and_retry\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_failed_selection_preserves_previous_view\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_view_nonretroactive_after_more_contributions\nFAILED tests/unit/test_model_b_d2b_public.py::test_frozen_three_channel_reflection_even_before_public_activation[doc]\nFAILED tests/unit/test_model_b_d2b_public.py::test_frozen_three_channel_reflection_even_before_public_activation[meta]\nFAILED tests/unit/test_model_b_d2b_public.py::test_frozen_three_channel_reflection_even_before_public_activation[help]\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_self_tco_uses_published_view\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_publication_overlaps_real_module_load\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_use_cannot_replace_immutable_name\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_use_holds_writer_lock_once\nFAILED tests/unit/test_model_b_d2b_public.py::test_two_public_use_writers_are_observed_during_publication\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_views_keep_completed_base_after_live_group_mutation\nFAILED tests/unit/test_model_b_d2b_public.py::test_frozen_help_preserves_original_span_start[annotation-start-after-prefix]\nFAILED tests/unit/test_model_b_d2b_public.py::test_frozen_help_preserves_original_span_start[unannotated-head]\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_use_preserves_literal_dotted_module_alias\n15 failed, 1 passed in 1.52s\n",
+      "cases": [
+        {
+          "name": "test_public_atomic_checked_writer_failure_and_retry",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_public_failed_selection_preserves_previous_view",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_public_view_nonretroactive_after_more_contributions",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_frozen_three_channel_reflection_even_before_public_activation[doc]",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "AssertionError: assert 'overlay' == 'canonical'\n  \n  - canonical\n  + overlay"
+        },
+        {
+          "name": "test_frozen_three_channel_reflection_even_before_public_activation[meta]",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'"
+        },
+        {
+          "name": "test_frozen_three_channel_reflection_even_before_public_activation[help]",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'"
+        },
+        {
+          "name": "test_public_self_tco_uses_published_view",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_public_publication_overlaps_real_module_load",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_public_use_cannot_replace_immutable_name",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_escaped_failed_origin_has_no_public_extension_authority",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_public_use_holds_writer_lock_once",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_two_public_use_writers_are_observed_during_publication",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_public_views_keep_completed_base_after_live_group_mutation",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_frozen_help_preserves_original_span_start[annotation-start-after-prefix]",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'"
+        },
+        {
+          "name": "test_frozen_help_preserves_original_span_start[unannotated-head]",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'"
+        },
+        {
+          "name": "test_public_use_preserves_literal_dotted_module_alias",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/revised-red-5.xml",
+        "tests/unit/test_model_b_d2a_link_core.py::test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b",
+        "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b",
+        "tests/unit/test_model_b_slice_c_ownership.py::test_ordinary_group_accepts_explicit_extend_target_d2b",
+        "tests/unit/test_r20_open_functions_cross_module.py::test_two_contributions_with_equal_key_are_rejected_at_selection"
+      ],
+      "returncode": 1,
+      "raw_log": "FFFF                                                                     [100%]\n=================================== FAILURES ===================================\n_ test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b _\ntests/unit/test_model_b_d2a_link_core.py:284: in test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b\n    with pytest.raises(callables.OpenFunctionCrossUnitDuplicateClauseError) as caught:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   Failed: DID NOT RAISE OpenFunctionCrossUnitDuplicateClauseError\n_______ test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b ________\ntests/unit/test_model_b_d2a_link_publish.py:438: in test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b\n    assert root.load_module(\"ext\", entry)._ordinary_contributions\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:847: in load_module\n    runtime.run_source(\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1605: in _eval_impl\n    raise OpenFunctionTargetNotOpenError(f\"{node.target_module_alias}.{node.target_name}\")\nE   genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface\n____________ test_ordinary_group_accepts_explicit_extend_target_d2b ____________\ntests/unit/test_model_b_slice_c_ownership.py:89: in test_ordinary_group_accepts_explicit_extend_target_d2b\n    assert completed.returncode == 0\nE   assert 1 == 0\nE    +  where 1 = CompletedProcess(args=['/workspace/work/slice-c-venv/bin/python', '-c', 'from genia.interpreter import _main; raise Sy..., returncode=1, stdout='', stderr=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\").returncode\n_______ test_two_contributions_with_equal_key_are_rejected_at_selection ________\ntests/unit/test_r20_open_functions_cross_module.py:126: in test_two_contributions_with_equal_key_are_rejected_at_selection\n    with pytest.raises(OpenFunctionCrossUnitDuplicateClauseError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   Failed: DID NOT RAISE OpenFunctionCrossUnitDuplicateClauseError\n=========================== short test summary info ============================\nFAILED tests/unit/test_model_b_d2a_link_core.py::test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b\nFAILED tests/unit/test_model_b_d2a_link_publish.py::test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b\nFAILED tests/unit/test_model_b_slice_c_ownership.py::test_ordinary_group_accepts_explicit_extend_target_d2b\nFAILED tests/unit/test_r20_open_functions_cross_module.py::test_two_contributions_with_equal_key_are_rejected_at_selection\n4 failed in 0.49s\n",
+      "cases": [
+        {
+          "name": "test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b",
+          "class": "tests.unit.test_model_b_d2a_link_core",
+          "status": "fail",
+          "failure": "Failed: DID NOT RAISE OpenFunctionCrossUnitDuplicateClauseError"
+        },
+        {
+          "name": "test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b",
+          "class": "tests.unit.test_model_b_d2a_link_publish",
+          "status": "fail",
+          "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+        },
+        {
+          "name": "test_ordinary_group_accepts_explicit_extend_target_d2b",
+          "class": "tests.unit.test_model_b_slice_c_ownership",
+          "status": "fail",
+          "failure": "assert 1 == 0\n +  where 1 = CompletedProcess(args=['/workspace/work/slice-c-venv/bin/python', '-c', 'from genia.interpreter import _main; raise Sy..., returncode=1, stdout='', stderr=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\").returncode"
+        },
+        {
+          "name": "test_two_contributions_with_equal_key_are_rejected_at_selection",
+          "class": "tests.unit.test_r20_open_functions_cross_module",
+          "status": "fail",
+          "failure": "Failed: DID NOT RAISE OpenFunctionCrossUnitDuplicateClauseError"
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-builtin]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-lambda]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-nonfunction]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-clause-ambiguity: f/1 matched clauses in more than one unit ['base', 'ext']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-contributor-duplicate-key]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa... duplicate at other:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa...1, duplicate at ext:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-duplicate-selection: contribution 'ext' is already selected for ('base', 'f')\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-explicit-shape-conflict]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=1, actual=0)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='', actual='<open function f (linked)>\\n')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: f has an identical dispa...1, duplicate at ext:2)\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-local-lambda-alias]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-non-export]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-clause-ambiguity: f/1 matched clauses in more than one unit ['ext', 'other']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-ownership-declaration]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-shape-conflict: f: fixed/1 in unit base[base] (at bas...m arity is not greater\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-some-admits-none]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected='Error: No matching case for function f/1 with arguments [none(\"absent\")]\\n', actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-unselected-contribution]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected='Error: No matching case for function f/1 with arguments [1]\\n', actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-varargs-ambiguity: f/2 matches more than one varargs ...ted by ['base', 'ext']\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-view-not-target]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-target-not-open: 'consumer.f' is not an open function interface\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-alias-and-reexport]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-b1-slot-replaced]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 3, 99]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-consumer-midinit]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-contributor-closure]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[13, 100]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-import-inert]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='1\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-key-true-vs-one]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 8]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-later-view-same-snapshot]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 7]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-meta-doc-channels]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-order-independence]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 7, 8]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-outcome-awareness]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='17\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-positive-extend-use]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[3, 3, 7]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-shape-same-unit-ok]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[1, 2, 3]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='<open contribution <entry> -> f>\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...interface\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-incompatible-contribution: expected a contribution ta...base', 'f'), got 'ext'\\n\", actual=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='<open contribution <entry> -> f>\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...db_ext2']\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-cross-unit-duplicate-clause: get has an identical dis...\", actual=\"Error: open-function-clause-ambiguity: get/3 matched clauses in more than one unit ['db_ext', 'db_ext2']\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_public_atomic_checked_writer_failure_and_retry",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_public_failed_selection_preserves_previous_view",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_public_view_nonretroactive_after_more_contributions",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[doc]",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "AssertionError: assert 'overlay' == 'canonical'\n  \n  - canonical\n  + overlay"
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[meta]",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'"
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[help]",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'"
+    },
+    {
+      "name": "test_public_self_tco_uses_published_view",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_public_publication_overlaps_real_module_load",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_public_use_cannot_replace_immutable_name",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_escaped_failed_origin_has_no_public_extension_authority",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_public_use_holds_writer_lock_once",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_two_public_use_writers_are_observed_during_publication",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_public_views_keep_completed_base_after_live_group_mutation",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_frozen_help_preserves_original_span_start[annotation-start-after-prefix]",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'"
+    },
+    {
+      "name": "test_frozen_help_preserves_original_span_start[unannotated-head]",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "AttributeError: 'FrozenOrdinaryBase' object has no attribute 'metadata'"
+    },
+    {
+      "name": "test_public_use_preserves_literal_dotted_module_alias",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b",
+      "class": "tests.unit.test_model_b_d2a_link_core",
+      "status": "fail",
+      "failure": "Failed: DID NOT RAISE OpenFunctionCrossUnitDuplicateClauseError"
+    },
+    {
+      "name": "test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b",
+      "class": "tests.unit.test_model_b_d2a_link_publish",
+      "status": "fail",
+      "failure": "genia.callable.OpenFunctionTargetNotOpenError: open-function-target-not-open: 'base.f' is not an open function interface"
+    },
+    {
+      "name": "test_ordinary_group_accepts_explicit_extend_target_d2b",
+      "class": "tests.unit.test_model_b_slice_c_ownership",
+      "status": "fail",
+      "failure": "assert 1 == 0\n +  where 1 = CompletedProcess(args=['/workspace/work/slice-c-venv/bin/python', '-c', 'from genia.interpreter import _main; raise Sy..., returncode=1, stdout='', stderr=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\").returncode"
+    },
+    {
+      "name": "test_two_contributions_with_equal_key_are_rejected_at_selection",
+      "class": "tests.unit.test_r20_open_functions_cross_module",
+      "status": "fail",
+      "failure": "Failed: DID NOT RAISE OpenFunctionCrossUnitDuplicateClauseError"
+    }
+  ],
+  "counts": {
+    "pass": 8,
+    "fail": 48,
+    "error": 0,
+    "skip": 0
+  }
+}

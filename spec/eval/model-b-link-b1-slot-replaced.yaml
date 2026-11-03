@@ -21,7 +21,7 @@
         },
         {
           "path": "main.genia",
-          "source": "import base\nimport ext\nuse g from base.a with ext\n[g(0),g(1,2),base.f]\n"
+          "source": "import base\nimport ext\nuse a from base with ext\n[a(0),a(1,2),base.f]\n"
         }
       ]
     }

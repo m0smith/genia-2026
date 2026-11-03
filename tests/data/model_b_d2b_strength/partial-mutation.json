@@ -1,0 +1,108 @@
+{
+  "source_head": "1bbc63e4ef5d3a461542f6849d35aed33bfe9e17",
+  "implementation": "partial",
+  "r16_api": "load_spec / execute_spec / compare_spec; same interpreter subprocess",
+  "mutant_M7": "\nfrom dataclasses import replace\nfrom genia.evaluator import Evaluator\nfrom genia.ir import IrOpenUse\noriginal_eval = Evaluator._eval_impl\ndef fallback(self, node):\n    if isinstance(node, IrOpenUse) and \".\" in node.target_module_alias:\n        try:\n            self.env.get(node.target_module_alias)\n        except NameError:\n            module_alias, target_name = node.target_module_alias.rsplit(\".\", 1)\n            node = replace(node, target_module_alias=module_alias, target_name=target_name)\n    return original_eval(self, node)\nEvaluator._eval_impl = fallback\n",
+  "mutant_M2": "\nfrom genia.ordinary_completion import _Projection\noriginal_get = _Projection.__getattribute__\ndef wrong_channel(self, name):\n    if name == \"projected_doc\":\n        return original_get(self, \"binding_metadata\").get(\"doc\", None)\n    return original_get(self, name)\n_Projection.__getattribute__ = wrong_channel\n",
+  "records": [
+    {
+      "case": "error-r20-use-dotted-from-not-rename",
+      "mode": "control",
+      "actual": {
+        "stdout": "",
+        "stderr": "Error: Undefined name: base.f\n",
+        "exit_code": 1,
+        "ir": null,
+        "parse": null
+      },
+      "comparison_failures": [],
+      "launch": [
+        {
+          "mode": "control",
+          "in_memory_only": true,
+          "timeout": 10
+        }
+      ]
+    },
+    {
+      "case": "error-r20-use-dotted-from-not-rename",
+      "mode": "M7",
+      "actual": {
+        "stdout": "[1, 2]\n",
+        "stderr": "",
+        "exit_code": 0,
+        "ir": null,
+        "parse": null
+      },
+      "comparison_failures": [
+        {
+          "field": "stdout",
+          "expected": "",
+          "actual": "[1, 2]\n"
+        },
+        {
+          "field": "stderr",
+          "expected": "Error: Undefined name: base.f\n",
+          "actual": ""
+        },
+        {
+          "field": "exit_code",
+          "expected": 1,
+          "actual": 0
+        }
+      ],
+      "launch": [
+        {
+          "mode": "M7",
+          "in_memory_only": true,
+          "timeout": 10
+        }
+      ]
+    },
+    {
+      "case": "model-b-link-projected-doc-not-binding-meta",
+      "mode": "control",
+      "actual": {
+        "stdout": "[\"G-inline\", false]\n",
+        "stderr": "",
+        "exit_code": 0,
+        "ir": null,
+        "parse": null
+      },
+      "comparison_failures": [],
+      "launch": [
+        {
+          "mode": "control",
+          "in_memory_only": true,
+          "timeout": 10
+        }
+      ]
+    },
+    {
+      "case": "model-b-link-projected-doc-not-binding-meta",
+      "mode": "M2",
+      "actual": {
+        "stdout": "[none(\"missing-doc\", {name: \"a\"}), false]\n",
+        "stderr": "",
+        "exit_code": 0,
+        "ir": null,
+        "parse": null
+      },
+      "comparison_failures": [
+        {
+          "field": "stdout",
+          "expected": "[\"G-inline\", false]\n",
+          "actual": "[none(\"missing-doc\", {name: \"a\"}), false]\n"
+        }
+      ],
+      "launch": [
+        {
+          "mode": "M2",
+          "in_memory_only": true,
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "notes": "Mutants injected only in child process memory; no source file is edited. M2 on RED not run because activation masks doc routing."
+}
