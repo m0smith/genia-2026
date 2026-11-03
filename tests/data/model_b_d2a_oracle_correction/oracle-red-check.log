@@ -1,0 +1,27 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_________ test_d2a_06_option_awareness_uses_the_union_over_the_stratum _________
+tests/unit/test_model_b_d2a_link_dispatch.py:101: in test_d2a_06_option_awareness_uses_the_union_over_the_stratum
+    _, plain, _ = view_of(tmp_path, "f(0) = 0\n", ("ext", ["f(1) = 1"]))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_model_b_d2a_link_dispatch.py:23: in view_of
+    units = [contributor(root, entry, tmp_path, name, group, clauses) for name, clauses in contributions]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/model_b_d2a_support.py:84: in contributor
+    return GeniaOpenContributionUnit(group.owner, name, list(harvested.clauses), target=group)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'
+_____ test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata _____
+tests/unit/test_model_b_d2a_link_dispatch.py:193: in test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata
+    root, view, _ = view_of(tmp_path, 'f(0) = 0\n',
+tests/unit/test_model_b_d2a_link_dispatch.py:23: in view_of
+    units = [contributor(root, entry, tmp_path, name, group, clauses) for name, clauses in contributions]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/model_b_d2a_support.py:84: in contributor
+    return GeniaOpenContributionUnit(group.owner, name, list(harvested.clauses), target=group)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: GeniaOpenContributionUnit.__init__() got an unexpected keyword argument 'target'
+=========================== short test summary info ============================
+FAILED tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_option_awareness_uses_the_union_over_the_stratum
+FAILED tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata
+2 failed, 15 deselected in 0.08s

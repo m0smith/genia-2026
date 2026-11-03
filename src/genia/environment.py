@@ -181,6 +181,8 @@ class Env:
         # R20 contract 4.2: this module's contribution units, keyed by target
         # interface key. A table, not bindings, so units are never exports.
         self.open_contributions: dict[tuple[str, str], Any] = {}
+        # Private exact-G store; evaluator activation belongs to D2b.
+        self.ordinary_contributions: dict[int, Any] = {}
 
     def scope_bound(self, target: Any, build: Any) -> Any:
         """Return the callable `build(self)` bound to this scope, cached per `target`.
@@ -507,6 +509,21 @@ class Env:
             return
         with _BINDING_LOCK:
             self._write_binding(name, value, assignable, metadata, preserve_metadata)
+
+    def publish_view(self, name: str, view: Any) -> None:
+        """Publish a fully built private view through one locked checked write.
+
+        Route runtime-owned names before the lock; reject pruned/immutable names
+        without mutation. Construction and validation are the caller's pure work.
+        No lookup, rendering, callback or nested locking occurs inside the hold.
+        """
+        home = self._entry_route(name)
+        if home is not self:
+            home.publish_view(name, view)
+            self._record_entry_declaration(name)
+            return
+        with _BINDING_LOCK:
+            self._write_binding(name, view, True, None, False)
 
     def _write_binding(
         self, name: str, value: Any, assignable: bool, metadata: GeniaMap | None, preserve_metadata: bool,
@@ -839,6 +856,7 @@ class Env:
                 module_value = ModuleValue(
                     module_name, exports, key, dict(module_env.open_contributions),
                     _ordinary_completions=completions,
+                    _ordinary_contributions=tuple(module_env.ordinary_contributions.values()),
                 )
                 root.loaded_modules[module_name] = module_value
             return module_value

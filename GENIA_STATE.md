@@ -746,7 +746,7 @@ Successful module completion privately captures detached ordinary clauses/proven
 the original local-slot metadata/doc (G-inline fallback), and independent G help.
 Exact-callable witnesses preserve re-exports; incomplete origins confer none.
 Capture/cache publication synchronizes with writers; live calls stay unchanged.
-This adds no public snapshot API. Linking and closed publication remain unimplemented.
+D2a link machinery is unreachable from source; linking and closed publication remain unimplemented.
 Unfinished `=:` keeps REPL input incomplete; completed submissions end closed groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch

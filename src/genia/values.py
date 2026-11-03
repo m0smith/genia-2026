@@ -470,6 +470,8 @@ class ModuleValue:
     contributions: dict[Any, Any] = field(default_factory=dict, compare=False, repr=False)
     # D1 private completion witnesses; never exports, equality or reflection.
     _ordinary_completions: tuple = field(default=(), compare=False, repr=False)
+    # Private, strongly target-owning units; never exports or reflection.
+    _ordinary_contributions: tuple = field(default=(), compare=False, repr=False)
 
     def get_export(self, export_name: str) -> Any:
         if export_name not in self.exports:

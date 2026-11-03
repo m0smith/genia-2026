@@ -940,6 +940,8 @@ def _first_unit_match(
         from .evaluator import Evaluator
     for record in records:
         evaluator = Evaluator(record.closure, debug_hooks, debug_mode)
+        if isinstance(record, GeniaFunction) and record.pattern is None:
+            return record, {}
         match_env = evaluator.match_lambda_pattern(record.pattern, args)
         if match_env is None:
             continue
@@ -1037,6 +1039,8 @@ def _dispatch_open(interface_key: tuple[str, str], participating_units: list[tup
         raise OpenFunctionClauseAmbiguityError(interface_key, n, provenances)
 
     _, _unit_key, (record, bindings) = candidates[0]
+    if isinstance(record, GeniaFunction) and record.pattern is None:
+        return TailCall(record, args)
     return _invoke_open_clause(record, bindings)
 
 
@@ -1049,6 +1053,7 @@ class GeniaOpenContributionUnit:
     target_interface_key: tuple[str, str]
     declaring_module_id: str
     clauses: list[OpenClauseRecord] = field(default_factory=list)
+    target: object | None = field(default=None, compare=False, repr=False)
 
     def __post_init__(self) -> None:
         """Validate same-unit duplicate keys at construction; no body execution.
@@ -1104,7 +1109,7 @@ class GeniaOpenFunction:
 
 @dataclass
 class GeniaLinkedOpenFunction:
-    """R20 immutable linked view: one base GeniaOpenFunction plus an
+    """Linked view: an explicit interface or private frozen ordinary base plus an
     explicitly selected, order-irrelevant tuple of contribution units
     (contract §4.2, §4.3).
 
@@ -1114,7 +1119,7 @@ class GeniaLinkedOpenFunction:
     Do not mutate its base, units or referenced clause records afterward.
     """
 
-    base: GeniaOpenFunction
+    base: Any  # Explicit interface or private FrozenOrdinaryBase (avoids import cycle).
     units: tuple[GeniaOpenContributionUnit, ...] = ()
 
     @property
@@ -1467,6 +1472,7 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: Optional
         return False
     if isinstance(fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
         return any(
+            _record_handles_none(record) if isinstance(record, GeniaFunction) else
             pattern_explicitly_handles_none(record.pattern)
             or pattern_explicitly_handles_some(record.pattern)
             or _callable_case_explicitly_handles_none(record.body)
@@ -1522,6 +1528,7 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: Optional
         return False
     if isinstance(fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
         return any(
+            _record_handles_some(record) if isinstance(record, GeniaFunction) else
             pattern_explicitly_handles_some(record.pattern)
             or _callable_case_explicitly_handles_some(record.body)
             or _body_delegates_to_option_aware(record.body, record.closure)
@@ -1766,3 +1773,38 @@ def invoke_callable(
     if tail_position:
         return TailCall(fn, tuple(args))
     return _normalize_absence(fn(*args))
+
+
+class OpenFunctionCrossUnitDuplicateClauseError(OpenFunctionError):
+    """Two participating units have an equal cached key; no view was published."""
+
+    def __init__(self, interface_key, first_unit, second_unit, shape, first_span,
+                 duplicate_span, first_module, second_module, first_label, second_label):
+        """Retain normalized provenance and render the frozen D2 duplicate diagnostic."""
+        self.interface_key = interface_key
+        self.first_unit, self.second_unit = first_unit, second_unit
+        self.shape, self.first_span, self.duplicate_span = shape, first_span, duplicate_span
+        super().__init__(
+            f"open-function-cross-unit-duplicate-clause: {interface_key[1]} has an identical dispatch key in units "
+            f"{first_label} and {second_label} shape={shape!r} "
+            f"(first at {_format_open_span(first_span, first_module)}, "
+            f"duplicate at {_format_open_span(duplicate_span, second_module)})")
+
+
+class OpenFunctionShapeConflictError(OpenFunctionError):
+    """A cross-unit fixed shape overlaps a varargs minimum; no view was published."""
+
+    def __init__(self, interface_key, first_unit, second_unit, first_shape, second_shape,
+                 first_span, second_span, first_module, second_module, first_label, second_label):
+        """Retain canonical pair/shape/span payloads and the frozen D2 diagnostic."""
+        self.interface_key = interface_key
+        self.first_unit, self.second_unit = first_unit, second_unit
+        self.first_shape, self.second_shape = first_shape, second_shape
+        self.first_span, self.second_span = first_span, second_span
+        descriptions = [f"fixed/{n}" if kind == 'fixed' else f"varargs/{n}+"
+                        for kind, n in (first_shape, second_shape)]
+        super().__init__(
+            f"open-function-shape-conflict: {interface_key[1]}: {descriptions[0]} in unit {first_label} "
+            f"(at {_format_open_span(first_span, first_module)}) conflicts with {descriptions[1]} "
+            f"in unit {second_label} (at {_format_open_span(second_span, second_module)}); "
+            "a fixed-arity clause conflicts with a varargs clause of another unit whose minimum arity is not greater")

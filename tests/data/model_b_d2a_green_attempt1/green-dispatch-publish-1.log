@@ -1,0 +1,54 @@
+.......F.....F...............                                            [100%]
+=================================== FAILURES ===================================
+_________ test_d2a_06_option_awareness_uses_the_union_over_the_stratum _________
+tests/unit/test_model_b_d2a_link_dispatch.py:106: in test_d2a_06_option_awareness_uses_the_union_over_the_stratum
+    assert handles_some(some_aware, 1) and not handles_none(some_aware, 1)
+E   assert (True and not True)
+E    +  where True = <function _callable_explicitly_handles_some at 0x7ffbb329efc0>(<open function f (linked)>, 1)
+E    +  and   True = <function _callable_explicitly_handles_none at 0x7ffbb329ef20>(<open function f (linked)>, 1)
+_____ test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata _____
+tests/unit/test_model_b_d2a_link_dispatch.py:199: in test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata
+    assert genia.run_source('v(absent)', root) is absent
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/genia/interpreter.py:224: in run_source
+    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/genia/evaluator.py:689: in eval_program
+    result = self.eval(node)
+             ^^^^^^^^^^^^^^^
+src/genia/evaluator.py:1394: in eval
+    result = self._eval_impl(node)
+             ^^^^^^^^^^^^^^^^^^^^^
+src/genia/evaluator.py:1418: in _eval_impl
+    return self.eval(node.expr)
+           ^^^^^^^^^^^^^^^^^^^^
+src/genia/evaluator.py:1394: in eval
+    result = self._eval_impl(node)
+             ^^^^^^^^^^^^^^^^^^^^^
+src/genia/evaluator.py:1474: in _eval_impl
+    return self.eval_call(node, tail_position=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/genia/evaluator.py:1001: in eval_call
+    return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/genia/evaluator.py:1300: in invoke_callable
+    return _invoke_callable(
+src/genia/callable.py:1775: in invoke_callable
+    return _normalize_absence(fn(*args))
+                              ^^^^^^^^^
+src/genia/callable.py:1147: in __call__
+    return eval_with_tco(self, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+src/genia/callable.py:668: in eval_with_tco
+    result = current_fn._dispatch_once(current_args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/genia/callable.py:1138: in _dispatch_once
+    return _dispatch_open(self.interface_key, participating, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/genia/callable.py:1036: in _dispatch_open
+    raise OpenFunctionNoMatchingCaseError(interface_key, n, args)
+E   genia.callable.OpenFunctionNoMatchingCaseError: No matching case for function f/1 with arguments [none("absent")]
+=========================== short test summary info ============================
+FAILED tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_option_awareness_uses_the_union_over_the_stratum
+FAILED tests/unit/test_model_b_d2a_link_dispatch.py::test_d2a_06_some_invocation_and_awareness_exclude_other_arity_strata
+2 failed, 27 passed in 2.51s
