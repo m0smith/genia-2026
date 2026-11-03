@@ -3267,6 +3267,23 @@ def make_global_env(
             lines.extend(metadata_lines)
         return "\n".join(lines)
 
+    def _describe_ordinary_view(target: "GeniaLinkedOpenFunction") -> str:
+        """Render frozen help-channel facts and canonical clause provenance, without paths."""
+        from genia.callable import _format_open_span
+
+        base = target.base
+        projection = base.projection
+        lines = [f"{base.name} (linked ordinary function view)", ""]
+        lines.append(render_markdown_docstring(projection.help_doc)
+                     if projection.help_doc is not None else "No documentation available.")
+        lines.extend(_metadata_summary_lines(projection.help_metadata))
+        for label, module_id, records in [("base", base.module_id, base.clauses),
+                *(("contribution", unit.declaring_module_id, unit.clauses) for unit in target.units)]:
+            lines.extend(["", f"{label} ({module_id}):"])
+            for ordinal, record in enumerate(records, start=1):
+                lines.append(f"  {ordinal}. {_format_open_span(record.span, record.closure.module_identity())}")
+        return "\n".join(lines)
+
     def _describe_open_function(target: "GeniaOpenFunction | GeniaLinkedOpenFunction") -> str:
         """R20 help/introspection (contract §7.3): interface name, callable
         shapes, effective documentation, declaration location, and every
@@ -3274,6 +3291,9 @@ def make_global_env(
         first, then contribution units ordered by declaring module identity,
         clauses within each unit by lexical ordinal. No host object address
         or provider-specific representation is exposed."""
+        from genia.function_linking import FrozenOrdinaryBase
+        if isinstance(target, GeniaLinkedOpenFunction) and isinstance(target.base, FrozenOrdinaryBase):
+            return _describe_ordinary_view(target)
         if isinstance(target, GeniaLinkedOpenFunction):
             open_fn = target.base
             units = target.units
@@ -3509,6 +3529,11 @@ def make_global_env(
                 lookup_env.get(name)
             else:
                 return make_none("missing-doc", GeniaMap().put("name", name))
+        from genia.function_linking import FrozenOrdinaryBase
+        target = lookup_env.get(name)
+        if isinstance(target, GeniaLinkedOpenFunction) and isinstance(target.base, FrozenOrdinaryBase):
+            projected = target.base.projection.projected_doc
+            return projected if projected is not None else make_none("missing-doc", GeniaMap().put("name", name))
         metadata = lookup_env.get_metadata(name)
         doc_text = _metadata_doc(metadata)
         if doc_text is not None:
@@ -3556,6 +3581,9 @@ def make_global_env(
             else:
                 return make_none("missing-meta", GeniaMap().put("name", name))
         target = lookup_env.get(name)
+        from genia.function_linking import FrozenOrdinaryBase
+        if isinstance(target, GeniaLinkedOpenFunction) and isinstance(target.base, FrozenOrdinaryBase):
+            return target.base.projection.binding_metadata
         if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
             # R20 contract 7.2.1: interface metadata is owned by the interface.
             return (target.base if isinstance(target, GeniaLinkedOpenFunction) else target).metadata
