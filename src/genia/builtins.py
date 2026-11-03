@@ -3513,8 +3513,9 @@ def make_global_env(
     def _doc_in_scope(lookup_env: Env, *args: Any) -> Any:
         """Resolve documentation in the supplied lexical Env, including autoload.
 
-        Binding metadata precedes legacy docstrings; open interfaces own their
-        docs. Missing documentation returns the existing Outcome; invalid
+        Ordinary views use frozen projected doc before alias metadata. Otherwise
+        binding metadata precedes legacy docs; explicit interfaces own their docs.
+        Missing documentation returns the existing Outcome; invalid
         argument count or non-string names raise TypeError.
         """
         if len(args) != 1:
@@ -3557,7 +3558,9 @@ def make_global_env(
 
         Precedence is `@doc` binding metadata, then a function group's legacy
         docstring; an R20 open interface or linked view reports the interface's
-        own `@doc` (a view reports its base's). Raises TypeError for a wrong
+        own `@doc` (an explicit view reports its base's). Ordinary views instead
+        return their frozen projected-doc channel, ignoring alias overlays.
+        Raises TypeError for a wrong
         argument count or a non-string name. Autoloads a prelude name once.
         """
         return _doc_in_scope(env, *args)
@@ -3565,7 +3568,8 @@ def make_global_env(
     def _meta_in_scope(lookup_env: Env, *args: Any) -> Any:
         """Resolve metadata in the supplied lexical Env, including autoload.
 
-        Open views retain interface-owned metadata. Missing names return the
+        Ordinary views return frozen defining-slot metadata, ignoring alias
+        overlays; explicit views retain interface-owned metadata. Missing names return the
         existing Outcome; invalid argument count or names raise TypeError.
         """
         if len(args) != 1:
@@ -3593,8 +3597,9 @@ def make_global_env(
         """`meta(name)`: the metadata map attached to the bound name, or `none("missing-meta")`.
 
         An R20 open interface or linked view returns the interface's own
-        metadata map (a view returns its base's); other names return their
-        binding metadata. Raises TypeError for a wrong argument count or a
+        metadata map (an explicit view returns its base's); ordinary views return
+        their frozen defining-slot channel. Other names return their binding
+        metadata. Raises TypeError for a wrong argument count or a
         non-string name. Autoloads a prelude name once.
         """
         return _meta_in_scope(env, *args)

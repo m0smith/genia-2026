@@ -746,7 +746,7 @@ Successful module completion privately captures detached ordinary clauses/proven
 the original local-slot metadata/doc (G-inline fallback), and independent G help.
 Exact-callable witnesses preserve re-exports; incomplete origins confer none.
 Capture/cache publication synchronizes with writers; live calls stay unchanged.
-D2a link machinery is unreachable from source; linking and closed publication remain unimplemented.
+Python explicitly links completed ordinary interfaces (section 4.7); closed publication remains unimplemented.
 Unfinished `=:` keeps REPL input incomplete; completed submissions end closed groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch
@@ -1055,25 +1055,18 @@ Core IR).
     `open gcd(a, b) = (a, 0) -> a | (a, b) -> gcd(b, a % b)`.
     Header names are not bindings; a free reference to one the arm's pattern
     does not bind is rejected as `open-function-header-capture` (contract §3.3).
-- **Dispatch algorithm** (contract §5): given `n` arguments, if any
-  participating clause has a fixed shape of arity `n`, only fixed clauses of
-  arity `n` participate; otherwise every eligible varargs clause (minimum
-  arity ≤ `n`) participates, and more than one distinct eligible minimum is a
-  deterministic `open-function-varargs-ambiguity` failure (the largest
-  minimum is never chosen). Within each participating unit (the base, or one
-  selected contribution), clauses are tested in lexical order and at most one
-  becomes that unit's candidate. If exactly one unit supplies a candidate it
-  runs; more than one candidate is a deterministic `open-function-clause-
-  ambiguity` failure — no specificity ranking exists and
-  selection/import order never breaks a tie. Fixed-over-varargs precedence,
-  first-match order, guards, named patterns, and automatic Outcome/`none`
-  propagation are preserved by reusing `match_lambda_pattern` unchanged.
+- **Dispatch algorithm** (contract §5): fixed arity beats eligible varargs;
+  distinct varargs minima raise `open-function-varargs-ambiguity`. Within each
+  selected unit, the first pattern/guard match supplies its sole candidate.
+  More than one candidate raises `open-function-clause-ambiguity`; no specificity
+  ranking or selection/import-order tiebreak. Shared `match_lambda_pattern`
+  preserves guards, named patterns and Outcome/`none` propagation.
 - **Duplicate clauses.** Two clauses in the same unit with the same
   structural, alpha-normalized, span-free dispatch key are
   `open-function-duplicate-clause`, detected once when the unit is built
-  never deferred to call time. The same dispatch key in two different units
-  is not a build-time duplicate; if both match one call, the across-unit
-  ambiguity rule applies. Automatic `none`/`some` propagation for a call is
+  never deferred to call time. At selection, equal keys across units raise
+  `open-function-cross-unit-duplicate-clause`; cross-unit fixed n/varargs minimum
+  m<=n raises `open-function-shape-conflict`, even for never-called views. Automatic `none`/`some` propagation for a call is
   decided over the selected shape stratum's clauses in all selected units
   (contract §5.2).
 - **Explicit cross-module contribution.**
@@ -1092,31 +1085,21 @@ Core IR).
   - Ordinary `import` alone never selects a contribution; the base interface
     and other modules' linked views are unaffected. `use` over an
     ordinary function replaces it undiagnosed (contract §4.2).
-  - Interface/contribution identity is the pair (canonical cached module
-    name, exported name), the identity `Env.load_module` caches modules under. Import alias, file path, and host object address
-    are never part of this identity, so two aliases of the same cached
-    module are one interface/contribution, duplicate selection through two
-    such aliases is a deterministic `open-function-duplicate-selection`
-    failure, and reordering unrelated imports or the `with` list cannot
-    change a successful dispatch result.
+  - Explicit-interface/contribution identity uses canonical cached module and
+    exported name, never alias/path/host address. Duplicate selection through
+    aliases raises `open-function-duplicate-selection`; import/selection order
+    does not break dispatch ties. Ordinary authority instead requires exact G.
   - Selecting a module with no matching contribution unit, or a closed
     function/non-function, is `open-function-incompatible-contribution`.
   - Declaration, import, and `use` perform no lifecycle activation, resource
     acquisition, IO, or clause-body execution.
-- **Tail calls** (contract §5.1). A tail call out of a selected clause — to any
-  open interface, linked view, or ordinary function — is an ordinary tail call
-  (section 8): self and mutual recursion run in constant stack via the shared
-  `eval_with_tco` trampoline. The C++ host has no tail-call optimization and
-  reports the `r20-*-tail-call` shared specs unsupported.
-- **Provenance and introspection.** `help(interface-or-linked-view)` lists
-  the interface name, its declaration span, effective documentation (or "No
-  documentation available."), and every participating unit's clauses in
-  deterministic order — the base unit first (labelled by its declaring
-  module identity), then contribution units by theirs, clauses by lexical ordinal. `doc(name)`
-  returns the declaration's `@doc` (missing without one: a string after `=` is
-  the clause body). Contribution clauses cannot supply, replace, or erase
-  interface-level documentation. No host object or Python representation is
-  exposed.
+- **Tail calls** (contract §5.1) use shared `eval_with_tco` for self/mutual
+  recursion across selected clauses, interfaces, views and ordinary functions.
+  C++ has no TCO and reports deep `r20-*-tail-call` cases unsupported.
+- **Provenance and introspection.** `help` lists name, span, effective docs,
+  base first, canonical contributor modules, then lexical clauses. `doc(name)`
+  uses the declaration's `@doc`; a post-`=` string is a clause body. Contributors
+  cannot replace interface docs; no host object representation is exposed.
 - **Interface metadata** (contract §7.2.1). `@doc` and `@meta`, at most one
   each, on the `open` declaration are the interface's immutable metadata,
   reported by `doc`/`meta`/`help` for it and any linked view. Other
@@ -1131,6 +1114,22 @@ Core IR).
   `No matching function` (with available shapes) / `No matching case`
   families. Spans name the entry source label or imported module identity,
   never a path; wording is host-local (contract §8).
+- **Ordinary linked views (D2; Python reference host).** Python supports explicit
+  `use f from base with ext` over completed exported ordinary interfaces. Witnesses
+  identify exact original G across aliases/re-exports and defining-slot replacement;
+  incomplete/failed origins, lambda/builtin values and views confer no authority.
+  Contributions retain closures and remain inert until selected. Store updates and
+  module capture share the binding lock. Views freeze syntax and B1 metadata, not closures/runtime handles; later
+  clause/metadata changes and selections are non-retroactive. Resolution and pure
+  canonical validation precede one checked write; failure preserves prior state
+  and supports retry, including immutable-name rejection. No rename-on-use;
+  dotted module aliases remain literal bindings. Ordinary-view `doc` uses projected
+  doc, `meta` defining-slot metadata, `help` independent G help plus module/span
+  provenance (annotation-inclusive start). Alias annotations cannot overlay them;
+  explicit-R20 reflection precedence stays unchanged. Calls retain stratum
+  Outcome awareness/TCO, without group-only prelude-name awareness or Flow-fusion
+  special cases. Shared view dispatch does not pass debug hooks/internal_access
+  into pattern-header bodies; identifier records keep their hooks. Closed publication is unimplemented.
 - **Core IR.** Three new portable node types —
   `IrOpenFuncDef(name, clauses, docstring, annotations)`,
   `IrOpenContribution(target_module_alias, target_name, clauses)`, and

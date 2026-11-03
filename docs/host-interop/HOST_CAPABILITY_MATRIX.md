@@ -119,8 +119,10 @@ this source revision alone is not evidence of a passing workflow.
 Python D1 completion captures private detached ordinary clauses/provenance and
 three independent B1 metadata observations before atomic cache publication.
 Re-exports reuse exact original completion associations; escaped values without
-one remain normal exports. No public linking/introspection surface or capability
-is added. C++ gaps below are unchanged; private Python tests do not prove parity.
+one remain normal exports. Python D2 source `extend`/`use` selects frozen ordinary
+views via existing capabilities, with cross-unit validation and checked publication.
+Ordinary doc/meta/help use independent frozen channels; explicit-R20 reflection
+stays unchanged. C++ gaps remain; private Python tests do not prove parity.
 
 Python parses and lowers `=:` declarations, atomic closed groups and ordinary
 pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
@@ -163,5 +165,5 @@ Owner: m0smith integration owner and C++ implementer, tracked in
 The boundary is removed only after the bounded C++ parser/lowering implementation
 passes the affected shared cases at a current contract revision. Until then, no
 C++ conformance or parity for these new carriers is claimed. C++ does not implement
-default-open dispatch. Cross-module linking of ordinary functions and closed
-publication are not implemented on any host.
+default-open dispatch or ordinary cross-module linking; Python implements explicit
+ordinary linking. Closed publication remains unimplemented on all hosts.

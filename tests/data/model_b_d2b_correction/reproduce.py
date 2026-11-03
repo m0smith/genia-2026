@@ -1,3 +1,5 @@
+"""Reproduce bounded D2b selections and retain raw results without replacing RED history."""
+
 import os
 import sys
 import subprocess

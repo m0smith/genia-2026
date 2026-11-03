@@ -17,9 +17,12 @@ aliases share, a call selects the fixed or sole varargs shape and then the first
 matching clause, equal pattern/guard keys are duplicates, and declaring through
 an alias or imported binding is rejected with `function-declaration-not-owner`.
 Atomic closed-function clause groups (`f(...) =: body`) are accepted and
-lowered, but their evaluation fails with `model-b-not-implemented`; cross-module
-linking changes and closed publication remain unimplemented. Explicit R20 `open`
-retains its existing execution behavior. C++ supports guards inside ordinary grouped bodies (with header capture) and
+lowered, but their evaluation fails with `model-b-not-implemented`;
+closed publication remains unimplemented. Python supports explicit ordinary-base
+`extend`/`use` through completed-module witnesses; selection freezes clauses and
+metadata and validates cross-unit keys/shapes. Explicit R20 views share that
+validation and canonical contributor order; their reflection precedence is unchanged.
+C++ supports guards inside ordinary grouped bodies (with header capture) and
 local explicit-R20 clauses (whose grouped headers remain nonbinding), with
 guard-sensitive duplicate keys. It does not
 support ordinary pattern/guard headers, default-open functions or `=:`.
@@ -34,7 +37,10 @@ See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
 Python module completion privately snapshots ordinary clauses/provenance and the
 three B1 metadata channels. It preserves live callable and reflection behavior;
 re-exports reuse only exact original completion witnesses. This introduces no
-REPL command, public snapshot API, ordinary linking or closed publication.
+REPL command or public snapshot API. Explicit `use f from base with ext` selects
+frozen ordinary-base views; later selections/rebindings do not alter earlier views.
+It binds the exported name without renaming; dotted import aliases stay literal.
+Closed publication remains unimplemented.
 
 Run the REPL:
 

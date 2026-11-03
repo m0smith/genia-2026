@@ -25,8 +25,9 @@ clauses execute with shared evidence. Closed groups only parse/lower and reject
 execution. Successful Python module completion privately snapshots ordinary
 clauses/provenance and B1's separate defining-slot map/doc and callable help.
 Re-exports reuse only exact original completion witnesses. This does not freeze
-live callable values or expose a snapshot API. Ordinary cross-module linking and
-closed publication remain unimplemented; C++ support is not claimed.
+live callable values or expose a snapshot API. Python explicit `extend`/`use`
+selects frozen ordinary views, validating cross-unit keys/shapes before checked
+publication; no rename-on-use. Closed publication and C++ support remain unimplemented.
 
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new

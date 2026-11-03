@@ -181,7 +181,7 @@ class Env:
         # R20 contract 4.2: this module's contribution units, keyed by target
         # interface key. A table, not bindings, so units are never exports.
         self.open_contributions: dict[tuple[str, str], Any] = {}
-        # Private exact-G store; evaluator activation belongs to D2b.
+        # Exact-G contribution replacements synchronize with module capture below.
         self.ordinary_contributions: dict[int, Any] = {}
 
     def scope_bound(self, target: Any, build: Any) -> Any:
@@ -529,7 +529,7 @@ class Env:
             return unit
 
     def publish_view(self, name: str, view: Any) -> None:
-        """Publish a fully built private view through one locked checked write.
+        """Publish a fully built linked view through one locked checked write.
 
         Route runtime-owned names before the lock; reject pruned/immutable names
         without mutation. Construction and validation are the caller's pure work.

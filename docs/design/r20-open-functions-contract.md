@@ -267,11 +267,17 @@ regardless of body text, metadata, binder spelling, or source form (grouped
 versus repeated). Duplicate detection happens when the unit is built, before
 the interface can be called. It is not deferred until values happen to match.
 
-The same dispatch key in different units is not reported as a declaration-time
-duplicate because separately authored guards/patterns can be intentionally
-disjoint only at runtime; if both match one call, the across-unit ambiguity rule
-applies. This avoids pretending that arbitrary guard overlap is statically
-decidable.
+Historical R20 rule: the same dispatch key in different units was not reported
+as a declaration-time duplicate; if both matched one call, cross-unit ambiguity
+applied. D2's approved selection-time validation supersedes that rule for linked
+views (explicit-open as well as ordinary bases): equal keys across units raise
+`open-function-cross-unit-duplicate-clause` at `use`, before publication. A fixed
+arity n in one unit conflicts with varargs minimum m<=n in another, raising
+`open-function-shape-conflict` even if patterns appear disjoint or no call occurs.
+Same-unit rules remain; distinct overlapping keys still raise call-time ambiguity.
+Contributor validation and dispatch order are canonical by module identity, not
+`with` order. See the D2 design sections5/6/8 for approved error order and
+compatibility deltas; this is not arbitrary static guard-overlap analysis.
 
 ## 7. Provenance, metadata, and help
 

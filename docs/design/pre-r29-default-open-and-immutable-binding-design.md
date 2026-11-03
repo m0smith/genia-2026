@@ -1,6 +1,6 @@
 # Pre-R29 default-open functions and immutable bindings: portable design
 
-Status: **DESIGN REVISED AFTER INDEPENDENT REVISE — CONDITIONAL GO ONLY; implementation status:** the Python reference host implements Slices A–C (carriers, `=:`, ordinary default-open execution; see `GENIA_STATE.md`); closed functions and cross-module linking are not implemented. Issue [#1250](https://github.com/m0smith/genia-2026/issues/1250).
+Status: **DESIGN REVISED AFTER INDEPENDENT REVISE — CONDITIONAL GO ONLY; implementation status:** the Python reference host implements Slices A–D2 (carriers, `=:`, ordinary default-open execution; see `GENIA_STATE.md`); explicit ordinary linking is implemented on the candidate; closed publication remains unimplemented. Issue [#1250](https://github.com/m0smith/genia-2026/issues/1250).
 Scope: portable design gate only. This document is enduring architecture, not
 execution evidence or a replacement language contract. No runtime, shared test,
 capability claim, or implemented-truth change accompanies it.
@@ -311,7 +311,8 @@ original completed snapshot; do not recapture their alias binding metadata.
 distinguishes original callable identity from completion-time metadata in its
 original lexical slot when the defining name is replaced. PR #1305 accepted the
 clarification; #1250 comment6550211564 records independently reviewed GO to D1
-design only. Snapshots/linking remain unimplemented. The bounded
+design only. D1 snapshots and D2 explicit linking are now implemented on the
+Python candidate; final GREEN acceptance remains separate. The bounded
 [D1 completion design](pre-r29-model-b-d1-completion-design.md) specifies private
 ownership and capture, not a new binding-generation policy or linking activation.
 
