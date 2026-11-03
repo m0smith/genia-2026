@@ -25,7 +25,7 @@
         },
         {
           "path": "main.genia",
-          "source": "import base\nimport other\nimport ext\nuse first from base.f with other,ext\nuse second from base.f with ext,other\n[first(0),first(1),second(0),second(1)]\n"
+          "source": "import base\nimport other\nimport ext\nuse f from base with other,ext\nx0=f(0)\nx1=f(1)\nuse f from base with ext,other\n[x0,x1,f(0),f(1)]\n"
         }
       ]
     }

@@ -22,7 +22,7 @@
         },
         {
           "path": "main.genia",
-          "source": "import base\nimport ext\nuse f from base with ext\n@doc \"overlay\"\ng=f\n[doc(\"g\"),meta(\"g\")/doc]\n"
+          "source": "import base\nimport ext\nuse f from base with ext\n@doc \"overlay\"\ng=f\n[doc(\"g\"),map_get(meta(\"g\"), \"doc\")]\n"
         }
       ]
     }

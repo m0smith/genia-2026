@@ -25,7 +25,7 @@
         },
         {
           "path": "main.genia",
-          "source": "import base\nimport ext\nuse f from base with ext\nimport consumer\nuse g from consumer.f with ext\n"
+          "source": "import base\nimport ext\nuse f from base with ext\nimport consumer\nuse f from consumer with ext\n"
         }
       ]
     }
