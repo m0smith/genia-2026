@@ -318,3 +318,14 @@ and verified 7,136 passed / 60 skipped across both full-regression partitions.
 Public frozen-runner preparation may resume after review/merge; immutable image
 and independent custody/trial gates remain unverified. Original lock provenance
 and all benchmark NO-GO boundaries are unchanged.
+
+## Follow-up: public frozen-runner design gate (2026-11-03)
+
+After merged #1295, [public runner preparation](issue-1285-public-frozen-runner.md)
+reverified the original lock/source identity and recorded candidate base-manifest
+and downloaded backend-wheel hashes. No image or project installation was executed.
+The approved original source remains distinct from the later #1295 merge baseline.
+Frozen-runner acceptance is NO-GO pending build design acceptance, complete pins,
+actual image/reaping/resource verification and independent Claude Code review
+(currently unavailable). The new record includes draft direct BENJAMIN instructions;
+historical fresh-install and regression results above remain unchanged.
