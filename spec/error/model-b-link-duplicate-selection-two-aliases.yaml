@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-duplicate-selection-two-aliases",
+  "category": "error",
+  "description": "D2b RED #1250: duplicate-selection-two-aliases",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x,y)=0\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(0)=7\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext as one\nimport ext as two\nuse f from base with one,two\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: open-function-duplicate-selection: contribution 'ext' is already selected for ('base', 'f')\n",
+    "exit_code": 1
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

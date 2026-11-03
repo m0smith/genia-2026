@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-unselected-contribution",
+  "category": "error",
+  "description": "D2b RED #1250: unselected-contribution",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(0)=1\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(1)=2\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nbase.f(1)\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: No matching case for function f/1 with arguments [1]\n",
+    "exit_code": 1
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

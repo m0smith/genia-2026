@@ -1,0 +1,39 @@
+{
+  "name": "model-b-link-overlap-ambiguity-distinct-keys",
+  "category": "error",
+  "description": "D2b RED #1250: overlap-ambiguity-distinct-keys",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x,y)=0\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(0)=7\n"
+        },
+        {
+          "path": "other.genia",
+          "source": "import base\nextend base.f(x)=8\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\nimport other\nuse f from base with ext,other\nf(0)\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: open-function-clause-ambiguity: f/1 matched clauses in more than one unit ['ext', 'other']\n",
+    "exit_code": 1
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

@@ -28,6 +28,7 @@ from genia.callable import (
     OpenFunctionDuplicateSelectionError,
     OpenFunctionIncompatibleContributionError,
     OpenFunctionClauseAmbiguityError,
+    OpenFunctionCrossUnitDuplicateClauseError,
 )
 from genia.interpreter import run_source
 
@@ -120,15 +121,15 @@ def test_duplicate_selection_through_two_aliases_of_one_cached_module_is_rejecte
         )
 
 
-def test_two_contributions_with_overlapping_dispatch_key_are_ambiguous_not_prioritized(tmp_path):
+def test_two_contributions_with_equal_key_are_rejected_at_selection(tmp_path):
     _base_and_contribs(tmp_path)
-    with pytest.raises(OpenFunctionClauseAmbiguityError):
+    with pytest.raises(OpenFunctionCrossUnitDuplicateClauseError):
         _run(
             tmp_path,
             "main",
             "import base\nimport db_ext\nimport db_ext2\n\n"
             "use get from base with db_ext, db_ext2\n\n"
-            'get("db", 1, "k2")\n',
+            "0\n",
         )
 
 

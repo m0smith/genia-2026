@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-ownership-declaration",
+  "category": "error",
+  "description": "D2b RED #1250: ownership-declaration",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x)=x\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(0,1)=7\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\ng=base.f\ng(a,b)=0\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to function f/2 owned by module 'base'\n",
+    "exit_code": 1
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

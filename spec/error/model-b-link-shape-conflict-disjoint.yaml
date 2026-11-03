@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-shape-conflict-disjoint",
+  "category": "error",
+  "description": "D2b RED #1250: shape-conflict-disjoint",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(0)=0\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(1,..r)=1\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\n\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: open-function-shape-conflict: f: fixed/1 in unit base[base] (at base:1) conflicts with varargs/1+ in unit 'ext' (at ext:2); a fixed-arity clause conflicts with a varargs clause of another unit whose minimum arity is not greater\n",
+    "exit_code": 1
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

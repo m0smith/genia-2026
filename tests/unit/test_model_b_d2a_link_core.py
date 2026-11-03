@@ -278,12 +278,12 @@ def test_d2a_09_explicit_base_gains_cross_unit_validation_in_the_private_validat
     assert ok.base is ebase and ok("mem", "x") == 1
 
 
-def test_d2a_09_public_use_over_explicit_bases_keeps_call_time_ambiguity(tmp_path):
+def test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b(tmp_path):
     root, entry = world(tmp_path, EXPLICIT_FILES)
-    program = "import ebase\nimport e1\nimport e2\nuse get from ebase with e1, e2\nget(\"db\", 1)"
-    with pytest.raises(callables.OpenFunctionClauseAmbiguityError) as caught:
+    program = "import ebase\nimport e1\nimport e2\nuse get from ebase with e1, e2\n0"
+    with pytest.raises(callables.OpenFunctionCrossUnitDuplicateClauseError) as caught:
         genia.run_source(program, root, filename=entry)
-    assert "open-function-clause-ambiguity: get/2 matched clauses in more than one unit ['e1', 'e2']" in str(
+    assert "open-function-cross-unit-duplicate-clause: get has an identical dispatch key" in str(
         caught.value
     )
 

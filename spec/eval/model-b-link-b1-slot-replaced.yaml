@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-b1-slot-replaced",
+  "category": "eval",
+  "description": "D2b RED #1250: b1-slot-replaced",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x,y)=x+y\na=f\nf=99\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.a(0)=7\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse g from base.a with ext\n[g(0),g(1,2),base.f]\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "[7, 3, 99]\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

@@ -1,36 +1,42 @@
-name: error-r20-cross-module-overlapping-unit-ambiguity
-category: error
-description: R20 portable cross-module diagnostic — matching clauses from different selected units are ambiguous
-input:
-  modules:
-    entry: main.genia
-    files:
-      - path: base.genia
-        source: |
-          open get("mem", store, key) = "mem:" + key
-      - path: db_ext.genia
-        source: |
-          import base
-          extend base.get("db", db, key) = "db:" + key
-      - path: cache_ext.genia
-        source: |
-          import base
-          extend base.get("cache", c, key) = "cache:" + key
-      - path: db_ext2.genia
-        source: |
-          import base
-          extend base.get("db", db, key) = "db2:" + key
-      - path: main.genia
-        source: |
-          import base
-          import db_ext
-          import db_ext2
-          use get from base with db_ext, db_ext2
-          get("db", 1, "k")
-expected:
-  stdout: ''
-  stderr: "Error: open-function-clause-ambiguity: get/3 matched clauses in more than one unit ['db_ext', 'db_ext2']\n"
-  exit_code: 1
-requires:
-  - open_functions
-  - multi_file_eval
+{
+  "name": "error-r20-cross-module-overlapping-unit-ambiguity",
+  "category": "error",
+  "description": "R20 portable cross-module diagnostic \u2014 matching clauses from different selected units are ambiguous",
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "open get(\"mem\", store, key) = \"mem:\" + key\n"
+        },
+        {
+          "path": "db_ext.genia",
+          "source": "import base\nextend base.get(\"db\", db, key) = \"db:\" + key\n"
+        },
+        {
+          "path": "cache_ext.genia",
+          "source": "import base\nextend base.get(\"cache\", c, key) = \"cache:\" + key\n"
+        },
+        {
+          "path": "db_ext2.genia",
+          "source": "import base\nextend base.get(\"db\", db, key) = \"db2:\" + key\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport db_ext\nimport db_ext2\nuse get from base with db_ext, db_ext2\nget(\"db\", 1, \"k\")\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: open-function-cross-unit-duplicate-clause: get has an identical dispatch key in units 'db_ext' and 'db_ext2' shape=('fixed', 3) (first at db_ext:2, duplicate at db_ext2:2)\n",
+    "exit_code": 1
+  },
+  "requires": [
+    "open_functions",
+    "multi_file_eval"
+  ],
+  "notes": "Approved transition: D2 design \u00a78 \u03941/\u03942, maintainer comment 6561255519 and D2b RED authorization. Original full spec/oracle retained in tests/data/model_b_d2b_red/historical_oracles.json. Not implemented yet."
+}

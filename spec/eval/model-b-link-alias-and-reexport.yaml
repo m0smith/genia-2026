@@ -1,0 +1,39 @@
+{
+  "name": "model-b-link-alias-and-reexport",
+  "category": "eval",
+  "description": "D2b RED #1250: alias-and-reexport",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x,y)=x+y\na=f\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.a(0)=7\n"
+        },
+        {
+          "path": "relay.genia",
+          "source": "import base\nh=base.a\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import relay\nimport ext\nuse g from relay.h with ext\ng(0)\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "7\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

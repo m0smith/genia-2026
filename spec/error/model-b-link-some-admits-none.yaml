@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-some-admits-none",
+  "category": "error",
+  "description": "D2b RED #1250: some-admits-none",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(0)=0\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(some(v))=v+10\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\nf(none(\"absent\"))\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: No matching case for function f/1 with arguments [none(\"absent\")]\n",
+    "exit_code": 1
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

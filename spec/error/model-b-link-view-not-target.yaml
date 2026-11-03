@@ -1,0 +1,39 @@
+{
+  "name": "model-b-link-view-not-target",
+  "category": "error",
+  "description": "D2b RED #1250: view-not-target",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x,y)=0\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(0)=7\n"
+        },
+        {
+          "path": "consumer.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\nimport consumer\nuse g from consumer.f with ext\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: open-function-target-not-open: 'consumer.f' is not an open function interface\n",
+    "exit_code": 1
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}
