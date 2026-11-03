@@ -275,8 +275,8 @@ views (explicit-open as well as ordinary bases): equal keys across units raise
 arity n in one unit conflicts with varargs minimum m<=n in another, raising
 `open-function-shape-conflict` even if patterns appear disjoint or no call occurs.
 Same-unit rules remain; distinct overlapping keys still raise call-time ambiguity.
-Contributor validation and dispatch order are canonical by module identity, not
-`with` order. See the D2 design sections5/6/8 for approved error order and
+Selected-unit order and link-validation diagnostics use canonical module identity,
+not `with` order; guard/matcher effect order is not guaranteed. See the D2 design sections5/6/8 for approved error order and
 compatibility deltas; this is not arbitrary static guard-overlap analysis.
 
 ## 7. Provenance, metadata, and help
