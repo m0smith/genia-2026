@@ -282,3 +282,26 @@ def test_public_use_preserves_literal_dotted_module_alias(tmp_path):
     view = root.get("f")
     assert view.base.group is group
     assert view(0) == 7 and view(1, 2) == 3
+
+
+def test_public_use_does_not_treat_dotted_from_as_rename(tmp_path):
+    """R1: shared R16 rejection plus Python-local proof of no published alias slot."""
+    from pathlib import Path
+
+    from tools.spec_runner.comparator import compare_spec
+    from tools.spec_runner.executor import execute_spec
+    from tools.spec_runner.loader import load_spec
+
+    path = (
+        Path(__file__).resolve().parents[2] / "spec/error/error-r20-use-dotted-from-not-rename.yaml"
+    )
+    spec = load_spec(path)
+    assert compare_spec(spec, execute_spec(spec)) == []
+    for name, source in spec.module_files:
+        (tmp_path / name).write_text(source, encoding="utf-8")
+    root, entry = genia.make_global_env([]), str(tmp_path / "main.genia")
+    genia.run_source("import base\nimport ext", root, filename=entry)
+    with pytest.raises(NameError, match=r"^Undefined name: base\.f$"):
+        genia.run_source("use walk from base.f with ext", root, filename=entry)
+    with pytest.raises(NameError):
+        root.get("walk")
