@@ -27,7 +27,6 @@ from genia.callable import (
     OpenFunctionDuplicateClauseError,
     OpenFunctionDuplicateSelectionError,
     OpenFunctionIncompatibleContributionError,
-    OpenFunctionClauseAmbiguityError,
     OpenFunctionCrossUnitDuplicateClauseError,
 )
 from genia.interpreter import run_source
