@@ -1,4 +1,25 @@
-# D2b TEST ONLY — RED candidate, independent Claude Code review pending
+# D2b TEST ONLY — original RED archive and authorized oracle correction
+
+The original accepted RED is `b25b8f8c1904dc683f6634c4ef8c5f108d4f3eca`.
+Its failure logs, `results.json`, `historical_oracles.json` and C++ evidence remain
+unchanged. Their counts describe the original tests, not the corrected inventory.
+The independent RED acceptance was subsequently narrowed by
+[Claude reconciliation6609143905](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6609143905):
+47 observed failures did not certify assertions masked behind early rejection.
+[Maintainer6609232173](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6609232173)
+authorized exactly seven test/evidence corrections, without production changes.
+
+Current correction evidence, inventory and old/new expectations:
+[`../model_b_d2b_correction/README.md`](../model_b_d2b_correction/README.md).
+Corrected tests are NOT independently accepted yet. A fresh Claude Code review
+of the correction SHA is required before GREEN resumes. No shipped D2b or parity
+claim is made. The following is the retained original phase narrative with this
+correction notice taking precedence; its original bytes are also archived in
+`../model_b_d2b_correction/original_test_and_specs.json`.
+
+---
+
+# Historical original RED narrative (superseded where corrected)
 
 Baseline c377b971b42682207d194aefb0e5182650d4ac10 (merged #1312).
 Accepted D2 design: docs/design/pre-r29-model-b-d2-linking-design.md.
@@ -127,8 +148,8 @@ and real execution at GREEN, not a claim of verified downstream correctness now.
 
 Draft fixture defects found and corrected separately: varargs error wording used
 `from units` instead of existing `contributed by`; three metadata source fixtures
-used unsupported `.doc` suffix after a call (corrected to existing `/doc` named
-access); two transitioned success specs initially forgot the existing final
+used unsupported `.doc` suffix after a call; the attempted `/doc` correction
+was also invalid (division, not map access). The authorized revision uses `map_get`; two transitioned success specs initially forgot the existing final
 contribution display. Parse-only checks and explicit-open analog exposed those
 issues without implementing D2b. No production failure is reclassified as a pass.
 Initial and final failures remain retained; repeated final selections reflect

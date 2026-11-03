@@ -27,7 +27,7 @@
     }
   },
   "expected": {
-    "stdout": "[7, 8, 9]\n",
+    "stdout": "[7, 8, 8]\n",
     "stderr": "",
     "exit_code": 0
   },

@@ -78,19 +78,20 @@ def test_frozen_three_channel_reflection_even_before_public_activation(tmp_path,
         genia.run_source("help(g)", root)
         output = capsys.readouterr().out
         assert "f (linked ordinary function view)" in output
-        assert "inline" in output and "alias-category" in output and "base:2" in output
+        assert "inline" in output and "alias-category" in output and "  1. base:1" in output
+        assert "base:2" not in output
         assert str(tmp_path) not in output and "overlay" not in output
 
 
 def test_public_self_tco_uses_published_view(tmp_path):
     """Source-selected view recurses through its defining closure without host stack growth."""
     root, entry, module, group = base_world(
-        tmp_path, "f(n,acc)=(0,a)->a | (k,a)->walk(n-1,acc+1)\n"
+        tmp_path, "f(n,acc)=(0,a)->a | (k,a)->walk(k - 1, a + 1)\nwalk=f\n"
     )
     (tmp_path / "ext.genia").write_text("import base\nextend base.f()=0\n")
-    genia.run_source("import base\nimport ext\nuse walk from base.f with ext", root, filename=entry)
-    group.records[0].closure.publish_view("walk", root.get("walk"))
-    assert genia.run_source("walk(60000,0)", root, filename=entry) == 60000
+    genia.run_source("import base\nimport ext\nuse f from base with ext", root, filename=entry)
+    group.records[0].closure.publish_view("walk", root.get("f"))
+    assert genia.run_source("f(60000,0)", root, filename=entry) == 60000
 
 
 def test_public_publication_overlaps_real_module_load(tmp_path):
@@ -136,11 +137,11 @@ def test_public_publication_overlaps_real_module_load(tmp_path):
 def test_public_use_cannot_replace_immutable_name(tmp_path):
     """Immutable-name precheck wins without replacing state or running a view."""
     root, entry, module, group = public_world(tmp_path)
-    genia.run_source("pinned =: 99", root, filename=entry)
+    genia.run_source("f =: 99", root, filename=entry)
     before = snapshot(root, module)
     with pytest.raises(ImmutableBindingError):
-        genia.run_source("use pinned from base.f with ext", root, filename=entry)
-    assert root.get("pinned") == 99 and snapshot(root, module) == before
+        genia.run_source("use f from base with ext", root, filename=entry)
+    assert root.get("f") == 99 and snapshot(root, module) == before
 
 
 def test_escaped_failed_origin_has_no_public_extension_authority(tmp_path):
@@ -179,7 +180,7 @@ def test_two_public_use_writers_are_observed_during_publication(tmp_path):
 
     root, entry, module, group = public_world(tmp_path)
     (tmp_path / "extra.genia").write_text("import base\nextend base.f(1)=8\n")
-    genia.run_source("import extra\nuse v from base.f with ext", root, filename=entry)
+    genia.run_source("import extra\nuse f from base with ext", root, filename=entry)
 
     def race():
         """Synchronize two source writers and acknowledge every complete candidate."""
@@ -190,7 +191,7 @@ def test_two_public_use_writers_are_observed_during_publication(tmp_path):
 
         def observe(env, name, value, *args, **kwargs):
             """Pause before and after the real checked write, under its actual lock."""
-            if env is root and name == "v":
+            if env is root and name == "f":
                 for phase in ("before", "after"):
                     if phase == "after":
                         original(env, name, value, *args, **kwargs)
@@ -205,7 +206,7 @@ def test_two_public_use_writers_are_observed_during_publication(tmp_path):
             try:
                 barrier.wait()
                 for _ in range(4):
-                    genia.run_source("use v from base.f with " + unit, root, filename=entry)
+                    genia.run_source("use f from base with " + unit, root, filename=entry)
             except BaseException as error:
                 errors.append(error)
 
@@ -220,7 +221,7 @@ def test_two_public_use_writers_are_observed_during_publication(tmp_path):
             for _ in range(16):
                 ack = messages.get(timeout=3)
                 try:
-                    current = root.get("v")
+                    current = root.get("f")
                     assert isinstance(current, callables.GeniaLinkedOpenFunction)
                     assert current.base.group is group
                     selected = [u.declaring_module_id for u in current.units]
@@ -246,7 +247,38 @@ def test_public_views_keep_completed_base_after_live_group_mutation(tmp_path):
     root, entry, module, group = public_world(tmp_path)
     genia.run_source("use f from base with ext", root, filename=entry)
     assert genia.run_source("f(1,2)", root, filename=entry) == 3
+    old = root.get("f")
     group.records[0].body = IrLiteral(999)
     assert group(1, 2) == 999
-    genia.run_source("use g from base.f with ext", root, filename=entry)
-    assert genia.run_source("[f(1,2),g(1,2)]", root, filename=entry) == [3, 3]
+    genia.run_source("use f from base with ext", root, filename=entry)
+    new = root.get("f")
+    assert old is not new
+    assert [old(1, 2), new(1, 2)] == [3, 3]
+
+
+@pytest.mark.parametrize(
+    ("source", "present", "absent"),
+    [
+        ('x=1\n@doc "canonical"\nf(x)=x\n', "  1. base:2", "base:3"),
+        ("x=1\nf(x)=x\n", "  1. base:2", "base:1"),
+    ],
+    ids=["annotation-start-after-prefix", "unannotated-head"],
+)
+def test_frozen_help_preserves_original_span_start(tmp_path, capsys, source, present, absent):
+    """Discriminate annotation-inclusive D1 spans from shifted/head-only rendering."""
+    root, entry, module, group = base_world(tmp_path, source)
+    root.publish_view("v", linking().link_view(frozen(module, group), []))
+    genia.run_source("help(v)", root, filename=entry)
+    output = capsys.readouterr().out
+    assert present in output and absent not in output
+    assert str(tmp_path) not in output
+
+
+def test_public_use_preserves_literal_dotted_module_alias(tmp_path):
+    """A dotted import alias remains one Env name, never a rename-on-use expression."""
+    root, entry, module, group = public_world(tmp_path)
+    genia.run_source("import base as a.b\nuse f from a.b with ext", root, filename=entry)
+    assert root.get("a.b") is module
+    view = root.get("f")
+    assert view.base.group is group
+    assert view(0) == 7 and view(1, 2) == 3
