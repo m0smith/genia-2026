@@ -1,0 +1,37 @@
+{
+  "base": "69ac60aa5a769fb267558e8b8dbe91995aecfc04",
+  "red_production": "b25b8f8c1904dc683f6634c4ef8c5f108d4f3eca (source identical to69ac and c377b971)",
+  "partial_production": "1bbc63e4ef5d3a461542f6849d35aed33bfe9e17",
+  "counts": {
+    "original56_red": {
+      "pass": 8,
+      "fail": 48
+    },
+    "final58_red": {
+      "pass": 9,
+      "fail": 49,
+      "error": 0,
+      "skip": 0
+    },
+    "final58_partial": {
+      "pass": 58,
+      "fail": 0,
+      "error": 0,
+      "skip": 0
+    }
+  },
+  "new_guard_nodeids": [
+    "test_d2b_shared_oracle[model-b-link-projected-doc-not-binding-meta]",
+    "test_public_use_does_not_treat_dotted_from_as_rename"
+  ],
+  "old56_outcomes": "identical on both implementations",
+  "old_host_definitions": "all existing ASTs identical; one additive host-local R1 twin",
+  "original_archives": "byte-identical",
+  "test_sha256": {
+    "spec/error/error-r20-use-dotted-from-not-rename.yaml": "85efef7751b71b2dd8a596da94358b09cc0ea5f145d81998cb4e415ad98b6f2b",
+    "spec/eval/model-b-link-projected-doc-not-binding-meta.yaml": "aeacb65a6b6dd259e3ff22469b8234f9f8782644816abfc33145333ed1698d37",
+    "spec/known_host_gaps.json": "478fb154ee166803422c10eccbd99e733bcdcf3d4cd23cb449203629cc9fe2b3",
+    "tests/unit/test_model_b_d2b_public.py": "e0a5645df4c27b5bdd3bc90c3e5bbf1b875c42bf163129b7587a8ebe7479c547"
+  },
+  "test_count_note": "R1 host-local publication check also executes its portable shared spec through R16. R2 is discovered by existing D2b shared-case harness. No third logical guard."
+}

@@ -1,0 +1,7 @@
+{
+  "initial_gap_edit": "Scratch insertion assumed a multiline affected_tests list; assertion stopped before writing gap file. Corrected to existing inline formatting. No fixture/source semantics changed.",
+  "preservation_initial": "Initial helper compared old corrected-partial overlay on the same1bbc production; final preservation rerun uses new strength-partial overlay and is authoritative. Both observations retained.",
+  "initial57": "Diagnostic run before host-local R1 binding-slot twin; superseded only as inventory by final58, preserved raw results.",
+  "threshold": "Each invocation --maxfail=19; maximum15 expected RED failures. Mutant comparator mismatches are expected kills, not actual implementation defects.",
+  "initial_mutation_helper_lint": "One E702 semicolon-layout finding, fixed by ruff format; final lint PASS. AST identical to executed scratch helper."
+}
