@@ -1,0 +1,116 @@
+[
+  {
+    "label": "red",
+    "command": [
+      "uv",
+      "run",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--maxfail=19",
+      "--tb=short",
+      "tests/unit/test_model_b_d1_completion.py",
+      "tests/unit/test_model_b_d1_preparation_failures.py",
+      "tests/unit/test_model_b_slice_c_keys.py",
+      "tests/unit/test_model_b_d2a_link_core.py",
+      "tests/unit/test_model_b_d2a_link_dispatch.py",
+      "tests/unit/test_model_b_d2a_link_publish.py",
+      "-k",
+      "not d2b"
+    ],
+    "returncode": 0,
+    "raw_log": "........................................................................ [ 58%]\n....................................................                     [100%]\n124 passed, 2 deselected in 4.87s\n"
+  },
+  {
+    "label": "red",
+    "command": [
+      "uv",
+      "run",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--maxfail=19",
+      "--tb=short",
+      "tests/unit/test_r20_open_functions_cross_module.py",
+      "-k",
+      "not test_two_contributions_with_equal_key_are_rejected_at_selection"
+    ],
+    "returncode": 0,
+    "raw_log": "...........                                                              [100%]\n11 passed, 1 deselected in 0.11s\n"
+  },
+  {
+    "label": "red",
+    "command": [
+      "uv",
+      "run",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--maxfail=19",
+      "--tb=short",
+      "tests/spec/test_model_b_slice_c_red.py",
+      "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_requirements_and_owned_cpp_gap",
+      "-k",
+      "not test_slice_c_shared_case"
+    ],
+    "returncode": 0,
+    "raw_log": ".......                                                                  [100%]\n7 passed, 143 deselected in 0.75s\n"
+  },
+  {
+    "label": "partial",
+    "command": [
+      "uv",
+      "run",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--maxfail=19",
+      "--tb=short",
+      "tests/unit/test_model_b_d1_completion.py",
+      "tests/unit/test_model_b_d1_preparation_failures.py",
+      "tests/unit/test_model_b_slice_c_keys.py",
+      "tests/unit/test_model_b_d2a_link_core.py",
+      "tests/unit/test_model_b_d2a_link_dispatch.py",
+      "tests/unit/test_model_b_d2a_link_publish.py",
+      "-k",
+      "not d2b"
+    ],
+    "returncode": 0,
+    "raw_log": "........................................................................ [ 58%]\n....................................................                     [100%]\n124 passed, 2 deselected in 4.70s\n"
+  },
+  {
+    "label": "partial",
+    "command": [
+      "uv",
+      "run",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--maxfail=19",
+      "--tb=short",
+      "tests/unit/test_r20_open_functions_cross_module.py",
+      "-k",
+      "not test_two_contributions_with_equal_key_are_rejected_at_selection"
+    ],
+    "returncode": 0,
+    "raw_log": "...........                                                              [100%]\n11 passed, 1 deselected in 0.13s\n"
+  },
+  {
+    "label": "partial",
+    "command": [
+      "uv",
+      "run",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--maxfail=19",
+      "--tb=short",
+      "tests/spec/test_model_b_slice_c_red.py",
+      "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_requirements_and_owned_cpp_gap",
+      "-k",
+      "not test_slice_c_shared_case"
+    ],
+    "returncode": 0,
+    "raw_log": ".......                                                                  [100%]\n7 passed, 143 deselected in 0.83s\n"
+  }
+]

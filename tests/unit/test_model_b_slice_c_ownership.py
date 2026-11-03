@@ -82,12 +82,12 @@ def test_python_callable_is_not_mistaken_for_an_owned_function_group_today():
         env.define_function(dataclasses.replace(clause, name="p", params=["x", "y"]))
 
 
-def test_ordinary_group_is_not_an_extend_or_use_target_today(tmp_path):
+def test_ordinary_group_accepts_explicit_extend_target_d2b(tmp_path):
     (tmp_path / "base.genia").write_text("f(x) = x\n", encoding="utf-8")
     (tmp_path / "main.genia").write_text("import base\nextend base.f(0) = 1\n", encoding="utf-8")
     completed = cli("main.genia", cwd=tmp_path)
-    assert completed.returncode == 1
-    assert "open-function-target-not-open" in completed.stderr
+    assert completed.returncode == 0
+    assert completed.stderr == ""
 
 
 # --- HL-14: immutable-owned names cannot be extended by any writer --------------------------

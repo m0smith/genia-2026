@@ -1,0 +1,788 @@
+{
+  "label": "before-partial",
+  "source_head": "1bbc63e4ef5d3a461542f6849d35aed33bfe9e17",
+  "python": "Python 3.12.14",
+  "runs": [
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/before-partial-0.xml",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-authority-builtin]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-authority-lambda]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-authority-nonfunction]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-contributor-duplicate-key]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-explicit-shape-conflict]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-local-lambda-alias]"
+      ],
+      "returncode": 0,
+      "raw_log": "..........                                                               [100%]\n10 passed in 2.42s\n",
+      "cases": [
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-authority-builtin]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-authority-lambda]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-authority-nonfunction]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-contributor-duplicate-key]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-explicit-shape-conflict]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-local-lambda-alias]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/before-partial-1.xml",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-non-export]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-ownership-declaration]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-some-admits-none]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-unselected-contribution]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-view-not-target]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-alias-and-reexport]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-b1-slot-replaced]"
+      ],
+      "returncode": 1,
+      "raw_log": "..F....FFF                                                               [100%]\n=================================== FAILURES ===================================\n__________ test_d2b_shared_oracle[model-b-link-ownership-declaration] __________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...le 'base'\\n\")] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to f...ctual=\"Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to function 'f' owned by module 'base'\\n\")\nE     Use -v to get more diff\n_____________ test_d2b_shared_oracle[model-b-link-view-not-target] _____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...onsumer.f\\n')] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-target-not-open: 'consumer.f' is not an open function interface\\n\", actual='Error: Undefined name: consumer.f\\n')\nE     Use -v to get more diff\n___________ test_d2b_shared_oracle[model-b-link-alias-and-reexport] ____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\nE     Use -v to get more diff\n____________ test_d2b_shared_oracle[model-b-link-b1-slot-replaced] _____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 3, 99]\\n', actual='')\nE     Use -v to get more diff\n=========================== short test summary info ============================\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-ownership-declaration]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-view-not-target]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-alias-and-reexport]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-b1-slot-replaced]\n4 failed, 6 passed in 2.14s\n",
+      "cases": [
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-non-export]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-ownership-declaration]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...le 'base'\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to f...ctual=\"Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to function 'f' owned by module 'base'\\n\")\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-some-admits-none]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-unselected-contribution]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-view-not-target]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...onsumer.f\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-target-not-open: 'consumer.f' is not an open function interface\\n\", actual='Error: Undefined name: consumer.f\\n')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-alias-and-reexport]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-b1-slot-replaced]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 3, 99]\\n', actual='')\n  Use -v to get more diff"
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/before-partial-2.xml",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-consumer-midinit]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-contributor-closure]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-import-inert]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-key-true-vs-one]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-later-view-same-snapshot]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-meta-doc-channels]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-order-independence]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-outcome-awareness]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-positive-extend-use]"
+      ],
+      "returncode": 1,
+      "raw_log": "..F.F.FF..                                                               [100%]\n=================================== FAILURES ===================================\n____ test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged] _____\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...ction\"})]\\n')] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stdout', expected='[\"interface\", \"interface\"]\\n', actual='[\"interface\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\nE     Use -v to get more diff\n_____________ test_d2b_shared_oracle[model-b-link-key-true-vs-one] _____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...[7, 8, 8]\\n')] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stdout', expected='[7, 8, 9]\\n', actual='[7, 8, 8]\\n')\nE     Use -v to get more diff\n____________ test_d2b_shared_oracle[model-b-link-meta-doc-channels] ____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...ction\"})]\\n')] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='[\"canonical\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\nE     Use -v to get more diff\n___________ test_d2b_shared_oracle[model-b-link-order-independence] ____________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   AssertionError: assert [ComparisonFa...=0, actual=1)] == []\nE     \nE     Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 7, 8]\\n', actual='')\nE     Use -v to get more diff\n=========================== short test summary info ============================\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-key-true-vs-one]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-meta-doc-channels]\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-order-independence]\n4 failed, 6 passed in 2.14s\n",
+      "cases": [
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-consumer-midinit]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-contributor-closure]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...ction\"})]\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stdout', expected='[\"interface\", \"interface\"]\\n', actual='[\"interface\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-import-inert]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-key-true-vs-one]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...[7, 8, 8]\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stdout', expected='[7, 8, 9]\\n', actual='[7, 8, 8]\\n')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-later-view-same-snapshot]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-meta-doc-channels]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...ction\"})]\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='[\"canonical\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-order-independence]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 7, 8]\\n', actual='')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-outcome-awareness]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-positive-extend-use]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/before-partial-3.xml",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-shape-same-unit-ok]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection]",
+        "tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity]"
+      ],
+      "returncode": 1,
+      "raw_log": ".F....                                                                   [100%]\n=================================== FAILURES ===================================\n__________ test_d2b_shared_oracle[model-b-link-view-alias-no-overlay] __________\ntests/spec/test_model_b_d2b_red.py:29: in test_d2b_shared_oracle\n    assert compare_spec(spec, execute_spec(spec)) == []\nE   assert [ComparisonFa...ction\"})]\\n')] == []\nE     \nE     Left contains one more item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='[\"canonical\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\nE     Use -v to get more diff\n=========================== short test summary info ============================\nFAILED tests/spec/test_model_b_d2b_red.py::test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]\n1 failed, 5 passed in 1.49s\n",
+      "cases": [
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-shape-same-unit-ok]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "fail",
+          "failure": "assert [ComparisonFa...ction\"})]\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='[\"canonical\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\n  Use -v to get more diff"
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity]",
+          "class": "tests.spec.test_model_b_d2b_red",
+          "status": "pass",
+          "failure": null
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/before-partial-4.xml",
+        "tests/unit/test_model_b_d2b_public.py"
+      ],
+      "returncode": 1,
+      "raw_log": ".....FF....FF                                                            [100%]\n=================================== FAILURES ===================================\n___ test_frozen_three_channel_reflection_even_before_public_activation[help] ___\ntests/unit/test_model_b_d2b_public.py:81: in test_frozen_three_channel_reflection_even_before_public_activation\n    assert \"inline\" in output and \"alias-category\" in output and \"base:2\" in output\nE   AssertionError: assert ('inline' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n' and 'alias-category' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n' and 'base:2' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n')\n___________________ test_public_self_tco_uses_published_view ___________________\ntests/unit/test_model_b_d2b_public.py:91: in test_public_self_tco_uses_published_view\n    genia.run_source(\"import base\\nimport ext\\nuse walk from base.f with ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1622: in _eval_impl\n    base_module = self.env.get(node.target_module_alias)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:487: in get\n    raise NameError(f\"Undefined name: {name}\")\nE   NameError: Undefined name: base.f\n_________ test_two_public_use_writers_are_observed_during_publication __________\ntests/unit/test_model_b_d2b_public.py:182: in test_two_public_use_writers_are_observed_during_publication\n    genia.run_source(\"import extra\\nuse v from base.f with ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1622: in _eval_impl\n    base_module = self.env.get(node.target_module_alias)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:487: in get\n    raise NameError(f\"Undefined name: {name}\")\nE   NameError: Undefined name: base.f\n_______ test_public_views_keep_completed_base_after_live_group_mutation ________\ntests/unit/test_model_b_d2b_public.py:251: in test_public_views_keep_completed_base_after_live_group_mutation\n    genia.run_source(\"use g from base.f with ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1622: in _eval_impl\n    base_module = self.env.get(node.target_module_alias)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:487: in get\n    raise NameError(f\"Undefined name: {name}\")\nE   NameError: Undefined name: base.f\n=========================== short test summary info ============================\nFAILED tests/unit/test_model_b_d2b_public.py::test_frozen_three_channel_reflection_even_before_public_activation[help]\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_self_tco_uses_published_view\nFAILED tests/unit/test_model_b_d2b_public.py::test_two_public_use_writers_are_observed_during_publication\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_views_keep_completed_base_after_live_group_mutation\n4 failed, 9 passed in 0.41s\n",
+      "cases": [
+        {
+          "name": "test_public_atomic_checked_writer_failure_and_retry",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_public_failed_selection_preserves_previous_view",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_public_view_nonretroactive_after_more_contributions",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_frozen_three_channel_reflection_even_before_public_activation[doc]",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_frozen_three_channel_reflection_even_before_public_activation[meta]",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_frozen_three_channel_reflection_even_before_public_activation[help]",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "AssertionError: assert ('inline' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n' and 'alias-category' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n' and 'base:2' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n')"
+        },
+        {
+          "name": "test_public_self_tco_uses_published_view",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "NameError: Undefined name: base.f"
+        },
+        {
+          "name": "test_public_publication_overlaps_real_module_load",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_public_use_cannot_replace_immutable_name",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_escaped_failed_origin_has_no_public_extension_authority",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_public_use_holds_writer_lock_once",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_two_public_use_writers_are_observed_during_publication",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "NameError: Undefined name: base.f"
+        },
+        {
+          "name": "test_public_views_keep_completed_base_after_live_group_mutation",
+          "class": "tests.unit.test_model_b_d2b_public",
+          "status": "fail",
+          "failure": "NameError: Undefined name: base.f"
+        }
+      ]
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "--maxfail=19",
+        "--tb=short",
+        "--junitxml=/workspace/work/d2b-correction-runs/before-partial-5.xml",
+        "tests/unit/test_model_b_d2a_link_core.py::test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b",
+        "tests/unit/test_model_b_d2a_link_publish.py::test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b",
+        "tests/unit/test_model_b_slice_c_ownership.py::test_ordinary_group_accepts_explicit_extend_target_d2b",
+        "tests/unit/test_r20_open_functions_cross_module.py::test_two_contributions_with_equal_key_are_rejected_at_selection"
+      ],
+      "returncode": 0,
+      "raw_log": "....                                                                     [100%]\n4 passed in 0.41s\n",
+      "cases": [
+        {
+          "name": "test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b",
+          "class": "tests.unit.test_model_b_d2a_link_core",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b",
+          "class": "tests.unit.test_model_b_d2a_link_publish",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_ordinary_group_accepts_explicit_extend_target_d2b",
+          "class": "tests.unit.test_model_b_slice_c_ownership",
+          "status": "pass",
+          "failure": null
+        },
+        {
+          "name": "test_two_contributions_with_equal_key_are_rejected_at_selection",
+          "class": "tests.unit.test_r20_open_functions_cross_module",
+          "status": "pass",
+          "failure": null
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-builtin]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-lambda]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-authority-nonfunction]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-catchall-base-ambiguity]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-contributor-duplicate-key]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-cross-unit-duplicate-key]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-duplicate-selection-two-aliases]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-explicit-shape-conflict]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-key-shadow-and-free-names]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-local-lambda-alias]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-non-export]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-overlap-ambiguity-distinct-keys]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-ownership-declaration]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...le 'base'\\n\")] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to f...ctual=\"Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to function 'f' owned by module 'base'\\n\")\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-shape-conflict-disjoint]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-some-admits-none]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-unselected-contribution]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-varargs-minima-ambiguity]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-view-not-target]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...onsumer.f\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stderr', expected=\"Error: open-function-target-not-open: 'consumer.f' is not an open function interface\\n\", actual='Error: Undefined name: consumer.f\\n')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-alias-and-reexport]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='7\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-b1-slot-replaced]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 3, 99]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-consumer-midinit]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-contributor-closure]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-explicit-view-metadata-unchanged]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...ction\"})]\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stdout', expected='[\"interface\", \"interface\"]\\n', actual='[\"interface\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-import-inert]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-key-true-vs-one]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...[7, 8, 8]\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stdout', expected='[7, 8, 9]\\n', actual='[7, 8, 8]\\n')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-later-view-same-snapshot]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-meta-doc-channels]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...ction\"})]\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='[\"canonical\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-order-independence]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "AssertionError: assert [ComparisonFa...=0, actual=1)] == []\n  \n  Left contains 3 more items, first extra item: ComparisonFailure(field='stdout', expected='[7, 8, 7, 8]\\n', actual='')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-outcome-awareness]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-positive-extend-use]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-shape-same-unit-ok]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-link-view-alias-no-overlay]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "fail",
+      "failure": "assert [ComparisonFa...ction\"})]\\n')] == []\n  \n  Left contains one more item: ComparisonFailure(field='stdout', expected='[\"canonical\", \"canonical\"]\\n', actual='[\"canonical\", none(\"type-error\", {source: \"/\", left: \"map\", right: \"function\"})]\\n')\n  Use -v to get more diff"
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-c-own-extend-ordinary-rejected]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-c-own-use-ordinary-base-unchanged]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[model-b-d1-preserve-ordinary-extension-rejection]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2b_shared_oracle[error-r20-cross-module-overlapping-unit-ambiguity]",
+      "class": "tests.spec.test_model_b_d2b_red",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_public_atomic_checked_writer_failure_and_retry",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_public_failed_selection_preserves_previous_view",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_public_view_nonretroactive_after_more_contributions",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[doc]",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[meta]",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_frozen_three_channel_reflection_even_before_public_activation[help]",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "AssertionError: assert ('inline' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n' and 'alias-category' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n' and 'base:2' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n')"
+    },
+    {
+      "name": "test_public_self_tco_uses_published_view",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "NameError: Undefined name: base.f"
+    },
+    {
+      "name": "test_public_publication_overlaps_real_module_load",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_public_use_cannot_replace_immutable_name",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_escaped_failed_origin_has_no_public_extension_authority",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_public_use_holds_writer_lock_once",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_two_public_use_writers_are_observed_during_publication",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "NameError: Undefined name: base.f"
+    },
+    {
+      "name": "test_public_views_keep_completed_base_after_live_group_mutation",
+      "class": "tests.unit.test_model_b_d2b_public",
+      "status": "fail",
+      "failure": "NameError: Undefined name: base.f"
+    },
+    {
+      "name": "test_d2a_09_public_use_over_explicit_bases_rejects_equal_keys_at_selection_d2b",
+      "class": "tests.unit.test_model_b_d2a_link_core",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b",
+      "class": "tests.unit.test_model_b_d2a_link_publish",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_ordinary_group_accepts_explicit_extend_target_d2b",
+      "class": "tests.unit.test_model_b_slice_c_ownership",
+      "status": "pass",
+      "failure": null
+    },
+    {
+      "name": "test_two_contributions_with_equal_key_are_rejected_at_selection",
+      "class": "tests.unit.test_r20_open_functions_cross_module",
+      "status": "pass",
+      "failure": null
+    }
+  ],
+  "counts": {
+    "pass": 40,
+    "fail": 13,
+    "error": 0,
+    "skip": 0
+  }
+}

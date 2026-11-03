@@ -190,8 +190,8 @@ Implemented today:
 Not implemented today:
 
 - universal execution of every portable node on every host
-- Model B closed-function execution and ordinary-function cross-module linking
-  (the carriers below are not execution claims)
+- Model B closed-function execution (ordinary linking uses existing carriers
+  on Python; this does not imply C++ or universal serialized-IR execution)
 
 ## Model B declaration carriers (Partial)
 

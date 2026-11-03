@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-outcome-awareness",
+  "category": "eval",
+  "description": "D2b RED #1250: outcome-awareness",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(0)=0\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(some(v))=v+10\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\nf(some(7))\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "17\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

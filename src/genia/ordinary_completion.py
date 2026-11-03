@@ -170,7 +170,7 @@ def completion_for(module_value: Any, value: Any) -> _Projection | None:
     """Find an exact exported completion witness, without names/equality/user code.
 
     Re-exports retain the origin projection; unfinished or failed origins and
-    non-ordinary values have no witness. This lookup grants no source activation.
+    non-ordinary values have no witness. Source selection requires this exact authority.
     """
     for group, projection in module_value._ordinary_completions:
         if group is value:

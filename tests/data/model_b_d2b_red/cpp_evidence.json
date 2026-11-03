@@ -1,0 +1,211 @@
+{
+  "source_pin": "fef41e58dcd3b80aaedcac98c92943fcfbfd1945",
+  "capabilities": {
+    "capabilities": {
+      "allowlisted_host_interop": "unsupported",
+      "ast_lowering": "supported",
+      "bytes_utf8": "supported",
+      "cell_primitives": "supported",
+      "cli_command_mode": "supported",
+      "cli_file_mode": "supported",
+      "cli_pipe_mode": "supported",
+      "configuration_dotenv_snapshot": "unsupported",
+      "configuration_environment_snapshot": "unsupported",
+      "core_ir_eval": "partial",
+      "debugger_stdio": "unsupported",
+      "doc_help": "unsupported",
+      "embedding_deterministic_fixture": "unsupported",
+      "execution_process": "unsupported",
+      "flow_phase_1": "supported",
+      "http_outbound_transport": "unsupported",
+      "http_server": "unsupported",
+      "indexing_deterministic_fixture": "unsupported",
+      "json_compat": "unsupported",
+      "json_strict": "supported",
+      "model_deterministic_fixture": "unsupported",
+      "model_gemini_rest": "unsupported",
+      "multi_file_eval": "unsupported",
+      "open_functions": "supported",
+      "parser": "supported",
+      "prelude_autoload": "partial",
+      "process_primitives": "supported",
+      "refs": "supported",
+      "repl": "supported",
+      "reranking_deterministic_fixture": "unsupported",
+      "resource_io": "unsupported",
+      "retrieval_deterministic_fixture": "unsupported",
+      "shared_spec_runner": "partial",
+      "shell_stage": "unsupported"
+    },
+    "contract_revision": "6402e668ae85a1e7efe94b3ac3d51f233b730ca4",
+    "operations": [
+      "parse",
+      "lower",
+      "eval",
+      "cli"
+    ],
+    "protocol_version": "1"
+  },
+  "cases": [
+    {
+      "case": "model-b-link-authority-builtin",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-authority-lambda",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-authority-nonfunction",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-catchall-base-ambiguity",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-contributor-duplicate-key",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-cross-unit-duplicate-key",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-duplicate-selection-two-aliases",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-explicit-shape-conflict",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-key-shadow-and-free-names",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-local-lambda-alias",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-non-export",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-overlap-ambiguity-distinct-keys",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-ownership-declaration",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-shape-conflict-disjoint",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-some-admits-none",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-unselected-contribution",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-varargs-minima-ambiguity",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-view-not-target",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-alias-and-reexport",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-b1-slot-replaced",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-consumer-midinit",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-contributor-closure",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-explicit-view-metadata-unchanged",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions', 'doc_help']"
+    },
+    {
+      "case": "model-b-link-import-inert",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-key-true-vs-one",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-later-view-same-snapshot",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-meta-doc-channels",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions', 'doc_help']"
+    },
+    {
+      "case": "model-b-link-order-independence",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-outcome-awareness",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-positive-extend-use",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-shape-same-unit-ok",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions']"
+    },
+    {
+      "case": "model-b-link-view-alias-no-overlay",
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions', 'doc_help']"
+    }
+  ]
+}

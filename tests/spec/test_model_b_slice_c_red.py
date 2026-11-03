@@ -54,8 +54,6 @@ SLICE_C_GUARD_IDS = (
     "model-b-c-own-immutable-alias-live",
     "model-b-c-own-explicit-open-alias-unchanged",
     "model-b-c-own-import-inert",
-    "model-b-c-own-extend-ordinary-rejected",
-    "model-b-c-own-use-ordinary-base-unchanged",
     "model-b-c-own-entry-prelude-name",
     "model-b-c-d8-legacy-identical-header-dup",
     "model-b-c-d8-grouped-decl-one-key",
@@ -93,6 +91,8 @@ SLICE_C_GUARD_IDS = (
 # Frozen Model B future-behavior inventory: every id requires
 # ``default_open_functions`` (Option B, R7-D1) and fails until GREEN.
 SLICE_C_GATED_IDS = (
+    "model-b-c-own-use-ordinary-base-unchanged",
+    "model-b-c-own-extend-ordinary-rejected",
     "model-b-c-open-pattern-after-plain",
     "model-b-c-open-noncontiguous-pattern",
     "model-b-c-pat-literal-base-case",
@@ -272,8 +272,8 @@ SLICE_C_REQUIRES = {
     "model-b-c-own-imported-alias-rejected": ("default_open_functions", "multi_file_eval"),
     "model-b-c-own-explicit-open-alias-unchanged": ("open_functions",),
     "model-b-c-own-import-inert": ("multi_file_eval",),
-    "model-b-c-own-extend-ordinary-rejected": ("multi_file_eval", "open_functions"),
-    "model-b-c-own-use-ordinary-base-unchanged": ("multi_file_eval", "open_functions"),
+    "model-b-c-own-extend-ordinary-rejected": ("multi_file_eval", "open_functions", "default_open_functions"),
+    "model-b-c-own-use-ordinary-base-unchanged": ("multi_file_eval", "open_functions", "default_open_functions"),
     "model-b-c-own-two-modules-independent": ("default_open_functions", "multi_file_eval"),
     "model-b-c-own-entry-prelude-name": (),
     "model-b-c-d8-forward-collision": ("default_open_functions",),
@@ -351,12 +351,12 @@ _SLICE_C = {s.name: s for s in _SPECS if s.name.startswith(PREFIX)}
 
 
 def test_case_inventory_counts_are_frozen() -> None:
-    assert len(SLICE_C_GUARD_IDS) == 55
-    assert len(SLICE_C_GATED_IDS) == 82
+    assert len(SLICE_C_GUARD_IDS) == 53
+    assert len(SLICE_C_GATED_IDS) == 84
     assert len(SLICE_C_RED_CASE_IDS) == 137
     assert len(set(SLICE_C_RED_CASE_IDS)) == 137
     assert len(SLICE_C_G1_IDS) == 6
-    assert len(SLICE_C_ALL_GATED_IDS) == 88
+    assert len(SLICE_C_ALL_GATED_IDS) == 90
     assert len(SLICE_C_CASE_IDS) == 143
     assert len(set(SLICE_C_CASE_IDS)) == 143
     assert not set(SLICE_C_G1_IDS) & set(SLICE_C_RED_CASE_IDS)
@@ -385,7 +385,7 @@ def test_exact_requires_per_case() -> None:
 def test_only_future_cases_require_the_new_capability() -> None:
     gated = {n for n, s in _SLICE_C.items() if CAPABILITY in s.requires}
     assert gated == set(SLICE_C_ALL_GATED_IDS)
-    assert len(gated) == 88
+    assert len(gated) == 90
     for name in SLICE_C_GUARD_IDS:
         assert CAPABILITY not in _SLICE_C[name].requires, name
     # Option B: the P5 varargs-minima ambiguity is gated like every future case.
@@ -398,7 +398,7 @@ def test_known_host_gap_lists_exactly_the_gated_ids() -> None:
     assert len(entry) == 1
     assert entry[0]["affected_host"] == "cpp"
     assert entry[0]["tracking_issue"] == "m0smith/genia-2026#1269"
-    assert sorted(entry[0]["affected_tests"]) == sorted(SLICE_C_ALL_GATED_IDS)
+    assert sorted(n for n in entry[0]["affected_tests"] if n.startswith(PREFIX)) == sorted(SLICE_C_ALL_GATED_IDS)
 
 
 def test_harness_contains_no_skip_xfail_slow_or_loopback_classification() -> None:

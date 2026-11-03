@@ -1,0 +1,40 @@
+{
+  "phase": "D2b implementation iteration 2",
+  "verdict": "BLOCKED semantic reconciliation; not GREEN",
+  "accepted_red": "b25b8f8c1904dc683f6634c4ef8c5f108d4f3eca",
+  "command": "UV_CACHE_DIR=/workspace/.cache/uv UV_PROJECT_ENVIRONMENT=/workspace/work/slice-c-venv uv run --no-sync pytest -q --maxfail=19 --tb=short tests/unit/test_model_b_d2b_public.py",
+  "result": {
+    "passed": 9,
+    "failed": 4
+  },
+  "python": "3.12.14",
+  "raw_log": ".....FF....FF                                                            [100%]\n=================================== FAILURES ===================================\n___ test_frozen_three_channel_reflection_even_before_public_activation[help] ___\ntests/unit/test_model_b_d2b_public.py:81: in test_frozen_three_channel_reflection_even_before_public_activation\n    assert \"inline\" in output and \"alias-category\" in output and \"base:2\" in output\nE   AssertionError: assert ('inline' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n' and 'alias-category' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n' and 'base:2' in 'f (linked ordinary function view)\\n\\ninline\\nCategory: alias-category\\n\\nbase (base):\\n  1. base:1\\n')\n___________________ test_public_self_tco_uses_published_view ___________________\ntests/unit/test_model_b_d2b_public.py:91: in test_public_self_tco_uses_published_view\n    genia.run_source(\"import base\\nimport ext\\nuse walk from base.f with ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1622: in _eval_impl\n    base_module = self.env.get(node.target_module_alias)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:487: in get\n    raise NameError(f\"Undefined name: {name}\")\nE   NameError: Undefined name: base.f\n_________ test_two_public_use_writers_are_observed_during_publication __________\ntests/unit/test_model_b_d2b_public.py:182: in test_two_public_use_writers_are_observed_during_publication\n    genia.run_source(\"import extra\\nuse v from base.f with ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1622: in _eval_impl\n    base_module = self.env.get(node.target_module_alias)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:487: in get\n    raise NameError(f\"Undefined name: {name}\")\nE   NameError: Undefined name: base.f\n_______ test_public_views_keep_completed_base_after_live_group_mutation ________\ntests/unit/test_model_b_d2b_public.py:251: in test_public_views_keep_completed_base_after_live_group_mutation\n    genia.run_source(\"use g from base.f with ext\", root, filename=entry)\nsrc/genia/interpreter.py:224: in run_source\n    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:689: in eval_program\n    result = self.eval(node)\n             ^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1394: in eval\n    result = self._eval_impl(node)\n             ^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/evaluator.py:1622: in _eval_impl\n    base_module = self.env.get(node.target_module_alias)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/genia/environment.py:487: in get\n    raise NameError(f\"Undefined name: {name}\")\nE   NameError: Undefined name: base.f\n=========================== short test summary info ============================\nFAILED tests/unit/test_model_b_d2b_public.py::test_frozen_three_channel_reflection_even_before_public_activation[help]\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_self_tco_uses_published_view\nFAILED tests/unit/test_model_b_d2b_public.py::test_two_public_use_writers_are_observed_during_publication\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_views_keep_completed_base_after_live_group_mutation\n4 failed, 9 passed in 0.39s\n",
+  "probe_evidence": {
+    "current_source": "/workspace/work/d2b-green/src/genia/__init__.py",
+    "live_frozen_and_projection_span": {
+      "line": 1,
+      "column": 1,
+      "end_line": 2,
+      "end_column": 15
+    },
+    "help_oracle_requires": "base:2",
+    "qualified_use_parser": {
+      "source": "use walk from base.f with ext",
+      "target_module_alias": "base.f",
+      "target_name": "walk"
+    }
+  },
+  "excluded_probe_attempts": [
+    "ImportError from unused tokenize import before probe ran; scratch environment editable install was outside current worktree",
+    "AttributeError from incorrect SourceSpan.start_line accessor; corrected to SourceSpan.line with PYTHONPATH=src:."
+  ],
+  "unrun_gates": [
+    "remaining accepted RED selections",
+    "D2a/R20 preservation",
+    "full non-loopback and loopback partitions",
+    "shared R16 Python/C++",
+    "lint and maintained-code documentation",
+    "documentation/MCP synchronization",
+    "independent Claude Code review"
+  ]
+}

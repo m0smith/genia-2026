@@ -1,0 +1,80 @@
+{
+  "module_fixture_count": 120,
+  "fixture_parse_lower": "pass",
+  "cpp_binary_source": "1f33886606fc94dadab679ed56182a15ca503a4b",
+  "cpp_sha256": "8f8c6fd62d699b5b413ed8752eb433a3d4af73788142968f1ca87ba2a5d45d98",
+  "cpp_capabilities": {
+    "capabilities": {
+      "allowlisted_host_interop": "unsupported",
+      "ast_lowering": "supported",
+      "bytes_utf8": "supported",
+      "cell_primitives": "supported",
+      "cli_command_mode": "supported",
+      "cli_file_mode": "supported",
+      "cli_pipe_mode": "supported",
+      "configuration_dotenv_snapshot": "unsupported",
+      "configuration_environment_snapshot": "unsupported",
+      "core_ir_eval": "partial",
+      "debugger_stdio": "unsupported",
+      "doc_help": "unsupported",
+      "embedding_deterministic_fixture": "unsupported",
+      "execution_process": "unsupported",
+      "flow_phase_1": "supported",
+      "http_outbound_transport": "unsupported",
+      "http_server": "unsupported",
+      "indexing_deterministic_fixture": "unsupported",
+      "json_compat": "unsupported",
+      "json_strict": "supported",
+      "model_deterministic_fixture": "unsupported",
+      "model_gemini_rest": "unsupported",
+      "multi_file_eval": "unsupported",
+      "open_functions": "supported",
+      "parser": "supported",
+      "prelude_autoload": "partial",
+      "process_primitives": "supported",
+      "refs": "supported",
+      "repl": "supported",
+      "reranking_deterministic_fixture": "unsupported",
+      "resource_io": "unsupported",
+      "retrieval_deterministic_fixture": "unsupported",
+      "shared_spec_runner": "partial",
+      "shell_stage": "unsupported"
+    },
+    "contract_revision": "6402e668ae85a1e7efe94b3ac3d51f233b730ca4",
+    "operations": [
+      "parse",
+      "lower",
+      "eval",
+      "cli"
+    ],
+    "protocol_version": "1"
+  },
+  "new_cpp_cases": [
+    {
+      "case": "error-r20-use-dotted-from-not-rename",
+      "requires": [
+        "multi_file_eval",
+        "open_functions"
+      ],
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval']"
+    },
+    {
+      "case": "model-b-link-projected-doc-not-binding-meta",
+      "requires": [
+        "multi_file_eval",
+        "open_functions",
+        "default_open_functions",
+        "doc_help"
+      ],
+      "kind": "unsupported",
+      "reason": "host does not declare required capabilities as supported: ['multi_file_eval', 'default_open_functions', 'doc_help']"
+    }
+  ],
+  "cpp_counts": {
+    "unsupported": 2,
+    "pass": 0,
+    "failure_classes": 0
+  },
+  "applicability": "R1 missing multi_file_eval; R2 missing default_open_functions/multi_file_eval/doc_help. Capability-gated before body execution; not language parity."
+}

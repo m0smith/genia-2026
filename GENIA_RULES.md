@@ -17,9 +17,9 @@ aliases share, a call selects the fixed or sole varargs shape and then the first
 matching clause, equal pattern/guard keys are duplicates, and declaring through
 an alias or imported binding is rejected with `function-declaration-not-owner`.
 Atomic closed-function clause groups (`f(...) =: body`) are accepted and
-lowered, but their evaluation fails with `model-b-not-implemented`; cross-module
-linking changes and closed publication remain unimplemented. Explicit R20 `open`
-retains its existing execution behavior. C++ supports guards inside ordinary grouped bodies (with header capture) and
+lowered, but their evaluation fails with `model-b-not-implemented`; closed publication remains unimplemented. Python
+supports explicit completed ordinary-base `extend`/`use`. Explicit R20 views
+share cross-unit validation and canonical ordering; reflection stays unchanged. C++ supports guards inside ordinary grouped bodies (with header capture) and
 local explicit-R20 clauses (whose grouped headers remain nonbinding), with
 guard-sensitive duplicate keys. It does not
 support ordinary pattern/guard headers, default-open functions or `=:`.
@@ -33,7 +33,8 @@ Python D1 module completion owns private detached ordinary clause/provenance
 snapshots. B1 captures the original local-slot metadata/doc with the original
 callable's inline fallback, separately from its shared help. Exact original
 completion witnesses support re-export reuse; owner text alone confers none.
-These are internal facts, not public linking or closed-function support.
+D1 snapshots stay private; D2 explicitly selects ordinary linked views from
+these witnesses. Closed-function publication remains unimplemented.
 
 ## 1) Expression vs case grammar separation
 
@@ -471,7 +472,7 @@ Required constraints:
   explicit, non-empty `with` list — there is no implicit or wildcard
   contribution selection, and the linked view always binds under the
   interface's own exported name (no renaming on `use`).
-- Interface/contribution identity is the pair (canonical cached module
+- Explicit-R20 interface/contribution identity is the pair (canonical cached module
   identity, exported name) recovered from `Env.module_identity()`/module
   cache keys — never an import alias, filesystem path, or Python object
   address. Two aliases of one cached module are one identity for both
@@ -533,13 +534,14 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   syntax is data, only active unquotes are references, lambda parameters in a guard are
   alpha-normalized. Two identifier headers keep `Duplicate function definition: f/N`; any other
   duplicate is `open-function-duplicate-clause`. Fixed `f(a)` and varargs `f(a, ..r)` are distinct
-  shapes.
+  shapes within a unit; cross-unit fixed/varargs conflicts are rejected at selection.
 - Ownership: a declaration whose name resolves in the current scope to a group declared by another
   binding or module fails with `function-declaration-not-owner` before annotations run and installs
   nothing; the diagnostic names only the declared name, the owning name and, for a foreign owner, the
   canonical module identity. Declaration over a lambda, builtin, immutable or explicit-open target
-  keeps its existing diagnostic. `extend`/`use` on an ordinary function stays
-  `open-function-target-not-open`.
+  keeps its existing diagnostic. Exported ordinary functions with original-module
+  completion witnesses support explicit `extend`/`use`; local/uncompleted/failed
+  origins, lambdas, builtins and views remain ineligible.
 - Metadata: binding annotations, inline documentation and effective help stay separate channels. The
   clause is installed before its annotations run; a failing annotation keeps the clause and the prior
   metadata, earlier annotation effects persist, later annotations do not run. A conflicting inline
@@ -562,8 +564,31 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   comparisons in `tests/unit/test_model_b_slice_c_optimizer_equivalence.py`, not a general proof.
 - Implementation: `GeniaFunctionGroup` holds ordered records, the arity table is a derived index, an
   `(module identity, defining name)` owner identifies the declaring binding, and
-  `src/genia/structural_key.py` is the one pure key walker. Closed `=:` functions, cross-module
-  linking of ordinary functions and application lifecycle are not implemented.
+  `src/genia/structural_key.py` is the one pure key walker. Closed `=:` functions and application lifecycle are not implemented.
+
+### Ordinary linked views (D2; Python reference host)
+
+- `extend alias.name(...)` requires an exported ordinary G with an exact original
+  completion witness; aliases/re-exports and replaced defining slots preserve G.
+  Units accumulate under the binding lock shared with module completion capture;
+  failures leave the prior unit intact. Clauses retain contributor closures.
+- `use f from base with ext` binds the exported name f, never a renamed name.
+  A dotted module alias is one literal binding, not a split-qualified target.
+  Imports do not select contributions. Views freeze base/selected records and
+  the completed B1 metadata projection; later additions and views are non-retroactive.
+- Both ordinary and explicit-R20 views validate canonical unit pairs before one
+  checked publication: equal keys give `open-function-cross-unit-duplicate-clause`;
+  cross-unit fixed n vs varargs minimum m<=n gives `open-function-shape-conflict`.
+  This rejects even never-called conflicts. Same-unit mixing and distinct varargs
+  minima retain their dispatch rules. Distinct overlapping keys still produce
+  call-time ambiguity. Errors preserve prior bindings/tables and permit valid retry.
+- Ordinary view `doc(name)` uses projected doc, `meta(name)` defining-slot metadata,
+  and `help(value)` independent G help plus canonical module/annotation-inclusive
+  provenance. Alias annotations cannot overlay them. Explicit-R20 reflection
+  precedence is unchanged. View calls share matcher Outcome/stratum awareness and
+  TCO; group-only prelude-name awareness and Flow-fusion special cases do not apply.
+  Shared view dispatch does not pass debug hooks/internal_access into pattern-header
+  bodies; identifier-header records retain their own hooks. Closed publication is not implemented.
 
 ## 8.6) R21 numeric source classification invariants (Experimental)
 

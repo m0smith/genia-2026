@@ -1,0 +1,36 @@
+{
+  "name": "model-b-link-view-alias-no-overlay",
+  "category": "eval",
+  "description": "D2b RED #1250: view-alias-no-overlay",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions",
+    "doc_help"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "@doc \"canonical\"\nf(x)=x\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(x,y)=1\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\n@doc \"overlay\"\ng=f\n[doc(\"g\"),map_get(meta(\"g\"), \"doc\")]\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "[\"canonical\", \"canonical\"]\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

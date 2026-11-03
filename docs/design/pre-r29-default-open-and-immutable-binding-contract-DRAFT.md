@@ -1,12 +1,12 @@
 # #1249 — Default-open function interfaces and immutable bindings: proposed semantic contract
 
-**Status: MAINTAINER-APPROVED SEMANTIC CONTRACT (2026-10-16) — PARTIALLY IMPLEMENTED (Python reference host: immutable bindings and ordinary default-open execution; closed functions and cross-module linking are not implemented).** Maintainer explicitly approved the consolidated Model B semantics in conversation on 2026-10-16. Independent Codex focused semantic review of revision `5060d52` returned **PASS** (no new blocker in that focused diff). The subsequent consolidation was checked for preservation of the reviewed semantic decisions; neither the focused PASS nor approval constitutes implementation or host parity evidence. `GENIA_STATE.md` remains the source of truth for what Genia currently implements.
+**Status: MAINTAINER-APPROVED SEMANTIC CONTRACT (2026-10-16) — PARTIALLY IMPLEMENTED (Python reference host: immutable bindings and ordinary default-open execution; Python explicit ordinary linking is implemented on the candidate; closed publication is not implemented).** Maintainer explicitly approved the consolidated Model B semantics in conversation on 2026-10-16. Independent Codex focused semantic review of revision `5060d52` returned **PASS** (no new blocker in that focused diff). The subsequent consolidation was checked for preservation of the reviewed semantic decisions; neither the focused PASS nor approval constitutes implementation or host parity evidence. `GENIA_STATE.md` remains the source of truth for what Genia currently implements.
 
 **B1 approval update:** §5.4 was accepted through maintainer merge of PR #1305
 at `24f26efabdd26011374a84accedef986717d9a31`, following focused independent
 contract review. The separate #1250 D1 readiness reassessment (comment6550211564)
 recorded GO to bounded design. Python D1 now implements private completion
-capture; ordinary linking and closed publication remain unimplemented.
+capture and explicit ordinary linking; closed publication remains unimplemented.
 
 **Scope:** New default function openness, additive cross-module contribution coherence, `=:` immutable lexical bindings, `f(...)=:` closed function definitions, compatibility and portability boundaries. Applies prospectively after #1250/#1251 implementation, tests, documentation synchronization, and audit. Existing R20 behavior is unchanged until then.
 

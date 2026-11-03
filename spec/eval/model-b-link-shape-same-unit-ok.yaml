@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-shape-same-unit-ok",
+  "category": "eval",
+  "description": "D2b RED #1250: shape-same-unit-ok",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(0)=1\nf(x,..r)=2\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f()=3\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\n[f(0),f(1,2),f()]\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "[1, 2, 3]\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}
