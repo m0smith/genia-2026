@@ -329,3 +329,15 @@ Frozen-runner acceptance is NO-GO pending build design acceptance, complete pins
 actual image/reaping/resource verification and independent Claude Code review
 (currently unavailable). The new record includes draft direct BENJAMIN instructions;
 historical fresh-install and regression results above remain unchanged.
+
+## Follow-up: A1–A8 revision and public pin acquisition (2026-11-04)
+
+The original proposal received Claude Code PASS-WITH-REVISIONS on #1285; the
+maintainer then authorized design amendments and pin acquisition only. The
+[revised design](issue-1285-public-frozen-runner.md) now links exact candidate
+pins, an offline recipe, acceptance/E0–E3 requirements and explicit gaps.
+Fifty lock wheel variants, seven backend wheels, uv/BuildKit and base blobs were
+byte-hashed; 43 third-party wheels are target-selected (including colorama from
+mkdocs-material). Immutable Debian snapshot access/Git/Tini closure and fresh
+Claude delta review remain blocked/pending. BENJAMIN execution rights remain
+unverified; no image construction or new regression/replay result is claimed.

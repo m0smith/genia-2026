@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-04T15:37:26.509669+00:00",
+  "scope": "public acquisition/static/hook checks only; no image construction",
+  "prior_proposal": "aebcd4cb65946d42a14315407b2e8ea616948c3c",
+  "uv_export": {
+    "argv": [
+      "/workspace/work/issue-1285-pins/tools/uv",
+      "--no-config",
+      "export",
+      "--frozen",
+      "--offline",
+      "--no-python-downloads",
+      "--all-groups",
+      "--no-emit-project",
+      "--no-header",
+      "--no-annotate",
+      "--format",
+      "requirements.txt"
+    ],
+    "cwd": "disposable approved source export",
+    "exit_code": 0,
+    "stdout_sha256": "a48ed7d27962e5a47b838c5311871f3a7682a95b19839093f3bf18980c498a85",
+    "stdout_bytes": 73183,
+    "stderr": "",
+    "lock_unchanged": true,
+    "source_archive_sha256": "5416717445a9cb2e916a543cca9751626508870ef958187890734be05483c4de"
+  },
+  "backend_hook": {
+    "argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-I",
+      "-S",
+      "-c",
+      "import sys,json; sys.path.insert(0,sys.argv[1]); import hatchling.build; print(json.dumps(hatchling.build.get_requires_for_build_editable({})))",
+      "/workspace/work/issue-1285-pins/backend-hook-libraries"
+    ],
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "cwd": "disposable approved source",
+    "exit_code": 0,
+    "stdout": "[\"editables~=0.3\"]\n",
+    "stderr": "",
+    "source_unchanged": true,
+    "lock_sha256": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+    "scope": "editable requirements hook only; no build/install; host 3.12.14, not official-image execution",
+    "requires": [
+      "editables~=0.3"
+    ]
+  },
+  "runtime_selection": {
+    "variants_hashed": 50,
+    "active_variants": 43,
+    "active_metadata_dependency_gaps": [],
+    "wheel_source": "URLs/sha256/sizes exactly in original BENJAMIN.lock",
+    "candidate_selection": "explicit CPython 3.12/Linux amd64 PEP-425 ranks, then lexical filename; resulting choices frozen in pins.json"
+  },
+  "network_failures_preserved": [
+    {
+      "url": "https://snapshot.debian.org/archive/debian/20261021T000000Z/dists/trixie/Release",
+      "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+      "phase": "immutable snapshot metadata acquisition"
+    },
+    {
+      "url": "https://api.github.com/repos/moby/buildkit/releases/tags/v0.24.0",
+      "error": "URLError: Tunnel connection failed: 403 Forbidden",
+      "disposition": "used documented allowed github.com release download endpoint; no policy/proxy bypass"
+    }
+  ],
+  "base_blob_byte_checks": [
+    {
+      "mediaType": "application/vnd.oci.image.config.v1+json",
+      "digest": "sha256:a33c10a97f11005523814c6eee013986119fe41f3122f444518117536675c8e1",
+      "size": 5664,
+      "url": "https://registry-1.docker.io/v2/library/python/blobs/sha256:a33c10a97f11005523814c6eee013986119fe41f3122f444518117536675c8e1",
+      "bytes_verified": true
+    },
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "digest": "sha256:f2be67225471500c788ce88c597eb5ea8336e912ad1ca4815650e0281afe2034",
+      "size": 29843579,
+      "url": "https://registry-1.docker.io/v2/library/python/blobs/sha256:f2be67225471500c788ce88c597eb5ea8336e912ad1ca4815650e0281afe2034",
+      "bytes_verified": true,
+      "dpkg_status_sha256": "548cf1d05f34915231b42a7899bc1733ad5e82e72ee535e0517824db685fe9ec"
+    },
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "digest": "sha256:be6443c06d3c9914acdca3ffb368adad23d4f282b55e71e730878ad3e3c3f75c",
+      "size": 1291257,
+      "url": "https://registry-1.docker.io/v2/library/python/blobs/sha256:be6443c06d3c9914acdca3ffb368adad23d4f282b55e71e730878ad3e3c3f75c",
+      "bytes_verified": true,
+      "dpkg_status_sha256": "71e7b7277aa311e7ab25405d34fd5e73aa191bdf64ed6f5dbbfd0c71c95e0a08"
+    },
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "digest": "sha256:b524bb3aba7394d85233f3a0a742b8f1b56179e8f61492f73d42a1ff118623b7",
+      "size": 12121436,
+      "url": "https://registry-1.docker.io/v2/library/python/blobs/sha256:b524bb3aba7394d85233f3a0a742b8f1b56179e8f61492f73d42a1ff118623b7",
+      "bytes_verified": true,
+      "dpkg_status_sha256": "028b05b3205406a50bb33363471ee952f01e9beb9b8e0a7c02e8f9c2d70aced5"
+    },
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "digest": "sha256:5c397e4307db7bd392eff1d36de88b04da2a137a4b906b7e0e4657bada560645",
+      "size": 249,
+      "url": "https://registry-1.docker.io/v2/library/python/blobs/sha256:5c397e4307db7bd392eff1d36de88b04da2a137a4b906b7e0e4657bada560645",
+      "bytes_verified": true
+    }
+  ],
+  "buildkit_version_checks": {
+    "buildctl": {
+      "exit_code": 0,
+      "stdout": "buildctl github.com/moby/buildkit v0.24.0 b772c318368090fb2ffc9c0fed92e0a35bf82389\n",
+      "stderr": ""
+    },
+    "buildkitd": {
+      "exit_code": 0,
+      "stdout": "buildkitd github.com/moby/buildkit v0.24.0 b772c318368090fb2ffc9c0fed92e0a35bf82389\n",
+      "stderr": ""
+    }
+  },
+  "source_unchanged_after_hook": true,
+  "authority_fingerprints": {
+    "AGENTS.md": {
+      "sha256": "3760c62337eaa208b4310279e14a076ff69292c597d1a4d76be6125ef488b516",
+      "bytes": 42996,
+      "git_blob": "e913e9d093f5913a4797173f56524c80380b815c"
+    },
+    "GENIA_STATE.md": {
+      "sha256": "2eaff3f2e51d4528b3033a28376b73acfee37cada688aca4de5c74b64dd11945",
+      "bytes": 330726,
+      "git_blob": "37caaa75c736d7d9633ff7bf1e8fd0e9d10978db"
+    },
+    "GENIA_RULES.md": {
+      "sha256": "e9fcd45ca6c2bc3aa36c68e2fa9fe117dce40a643c4dcaca1faa2e838e64b8fe",
+      "bytes": 142251,
+      "git_blob": "99ad9a2592824821b44c4cb2cc9ee13e0b0e0738"
+    },
+    "GENIA_REPL_README.md": {
+      "sha256": "b2867174839174dcb289d26b6886414ff6f59b400e790d11e20bcb2b820331b5",
+      "bytes": 74025,
+      "git_blob": "603bb36ba33821c286204baa6323c93a295baa07"
+    },
+    "README.md": {
+      "sha256": "ed56a7616091865e65b8eedab64c1936439b72602eca78d079da82de760b17ff",
+      "bytes": 121165,
+      "git_blob": "6b338b850575d7a8cbedeeeb33abd09cb5ac6c45"
+    },
+    "pyproject.toml": {
+      "sha256": "cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc",
+      "bytes": 1261,
+      "git_blob": "ecdc7c009fe1ada11d9ae1e43ca796677913fceb"
+    },
+    ".gitignore": {
+      "sha256": "fd55e1aa99e36f00ed01a4fe7c5bc7933d834b80dc82b1ac3d491b7b7bb8cfd2",
+      "bytes": 1277,
+      "git_blob": "c2d93b65ac136c1f1b030ef003884d11f3ce1cbd"
+    }
+  },
+  "not_executed": [
+    "image construction/assembly/daemon pull/run/export",
+    "project dependency installation",
+    "Genia editable build",
+    "project regression",
+    "BENJAMIN access",
+    "private benchmark work",
+    "paid provisioning/API/storage",
+    "CI dispatch"
+  ],
+  "claude_delta_review": "PENDING / no callable Claude Code route supplied",
+  "static_validation": {
+    "verdict": "PASS",
+    "checks": [
+      "original Git/lock/pyproject hashes and unchanged authority documents",
+      "50 exact wheel URL/size/hash matches to original lock and downloaded bytes",
+      "43 target-selected graph entries equal frozen uv export, including colorama",
+      "seven backend wheel hashes and editables hook constraint",
+      "base config/four layer and BuildKit archive hashes",
+      "requirements-file hashes and exact local-wheel paths",
+      "JSON parsing, relative links, embedded bash -n, A1\u2013A8 coverage and STOP flags",
+      "uv extracted binary SHA256"
+    ],
+    "commands": [
+      {
+        "argv": [
+          "python",
+          "tools/validate_llm_instructions.py"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "python",
+          "tools/gen_mcp_language_profile.py",
+          "--check"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "scope": "preparation/static checks only; no image/project install/regression acceptance"
+  },
+  "latest_supported_network_observation": {
+    "observations_current": true,
+    "network_policy_state": "enforced",
+    "spec_revision": "1",
+    "snapshot_host_allowed": false,
+    "user_intent_to_enable_received": true,
+    "intent_is_not_verified_access": true
+  }
+}
