@@ -1,0 +1,34 @@
+{
+  "status": "Implemented host candidate; independent Claude maintainability/security/behavior review PENDING",
+  "red_commit": "de1f455823e18f049a87cccbc2934bcb0bc20e11",
+  "files": {
+    "frontend/build_frontend.py": {
+      "sha256": "1c9d8fc895bde24d49298b3f34c302e23c5540f9aaf7001344c0ad6a9f5d03c7",
+      "bytes": 13774
+    },
+    "frontend/offline_install.py": {
+      "sha256": "be2bc92f4c9e1cd992f0e7ca03fb9142fd6700b716c8c82bafc5b4b41a8208c2",
+      "bytes": 31072
+    },
+    "frontend/verify_frontend.py": {
+      "sha256": "3c8c6ba1d8c6d577fab50af75ba3a3378da870db70654758c80b4b798f5ce94d",
+      "bytes": 15765
+    },
+    "frontend/expected-modes.json": {
+      "sha256": "ee54a2afe36150e60049c78460300db102f5c6a5c8d4fde2e38b126972fe5875",
+      "bytes": 2464353
+    },
+    "frontend/installer-files.json": {
+      "sha256": "18dfada99a37c395575bc129dad49f3caefbb0ecffc27b724f1f918d2e8caad4",
+      "bytes": 3189
+    },
+    "frontend_tests/offline_guard.py": {
+      "sha256": "116a844155fb12d090a6b8474fcaeb43d76ca51301320a3d5fa37e802b30e4e0",
+      "bytes": 2390
+    },
+    "frontend_tests/test_offline_install.py": {
+      "sha256": "69622262c9dc7ecd51cff5b1b854e55950812cbfe20835b500bf37286d403411",
+      "bytes": 17353
+    }
+  }
+}

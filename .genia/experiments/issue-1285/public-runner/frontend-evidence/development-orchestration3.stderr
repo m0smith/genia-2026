@@ -1,0 +1,6 @@
+Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /workspace/work/issue-1285-frontend/orchestration3/genia/build-venv
+Activate with: source /workspace/work/issue-1285-frontend/orchestration3/genia/build-venv/bin/activate
+Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /workspace/work/issue-1285-frontend/orchestration3/genia/venv
+Activate with: source /workspace/work/issue-1285-frontend/orchestration3/genia/venv/bin/activate

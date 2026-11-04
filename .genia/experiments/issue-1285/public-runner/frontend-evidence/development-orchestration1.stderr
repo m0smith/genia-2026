@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/build_frontend.py", line 184, in <module>
+    main()
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/build_frontend.py", line 176, in main
+    result = build(args)
+             ^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/build_frontend.py", line 105, in build
+    runtime_plan = frontend.prepare(runtime, deployment)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 279, in prepare
+    wheels = tuple(sorted((validate_wheel(row) for row in rows),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 279, in <genexpr>
+    wheels = tuple(sorted((validate_wheel(row) for row in rows),
+                           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 207, in validate_wheel
+    scripts = entrypoints(payload.get(dist_info + '/entry_points.txt', b''))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 236, in entrypoints
+    require(bool(re.fullmatch(r'[\w.]+\s*:\s*[\w.]+', value)), 'unsupported entrypoint target')
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 41, in require
+    raise ValueError(message)
+ValueError: unsupported entrypoint target

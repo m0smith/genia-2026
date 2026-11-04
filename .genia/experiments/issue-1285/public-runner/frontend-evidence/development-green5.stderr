@@ -1,0 +1,110 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+test_all_47_pins_and_15_executable_members_match_plan (test_offline_install.FrontendContract.test_all_47_pins_and_15_executable_members_match_plan) ... ok
+test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes (test_offline_install.FrontendContract.test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes) ... ok
+test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent (test_offline_install.FrontendContract.test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent) ... ok
+test_collisions_file_parents_scripts_and_scaffold_rejected (test_offline_install.FrontendContract.test_collisions_file_parents_scripts_and_scaffold_rejected) ... ok
+test_data_scheme_bad_tag_and_generated_metadata_rejected (test_offline_install.FrontendContract.test_data_scheme_bad_tag_and_generated_metadata_rejected) ... ok
+test_different_input_timestamps_and_reversed_wheel_order_are_equal (test_offline_install.FrontendContract.test_different_input_timestamps_and_reversed_wheel_order_are_equal) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-pdbrcnxj/venv
+Activate with: source /tmp/genia-frontend-pdbrcnxj/venv/bin/activate
+ERROR
+test_duplicate_regular_and_directory_entries_rejected (test_offline_install.FrontendContract.test_duplicate_regular_and_directory_entries_rejected) ... ok
+test_existing_prefix_and_symlink_parent_rejected (test_offline_install.FrontendContract.test_existing_prefix_and_symlink_parent_rejected) ... ok
+test_explicit_posix_prefix_ignores_default_scheme (test_offline_install.FrontendContract.test_explicit_posix_prefix_ignores_default_scheme) ... ok
+test_installed_record_corruption_and_unowned_file_are_detected (test_offline_install.FrontendContract.test_installed_record_corruption_and_unowned_file_are_detected) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-buet0ny8/venv
+Activate with: source /tmp/genia-frontend-buet0ny8/venv/bin/activate
+ERROR
+test_live_editable_metadata_exact_bytes_and_no_reinstall (test_offline_install.FrontendContract.test_live_editable_metadata_exact_bytes_and_no_reinstall) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-hhrdn_63/venv
+Activate with: source /tmp/genia-frontend-hhrdn_63/venv/bin/activate
+ERROR
+test_modes_wrappers_data_scripts_symlinks_and_record_validation (test_offline_install.FrontendContract.test_modes_wrappers_data_scripts_symlinks_and_record_validation) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-jh9yr3lu/venv
+Activate with: source /tmp/genia-frontend-jh9yr3lu/venv/bin/activate
+ERROR
+test_record_bidirectional_coverage_duplicate_and_digest_controls (test_offline_install.FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls) ... ok
+test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing (test_offline_install.FrontendContract.test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-0p2htzzt/venv
+Activate with: source /tmp/genia-frontend-0p2htzzt/venv/bin/activate
+ERROR
+test_umask_changed_after_plan_is_rejected_before_scaffold (test_offline_install.FrontendContract.test_umask_changed_after_plan_is_rejected_before_scaffold) ... ok
+test_umask_override_fails_before_writes (test_offline_install.FrontendContract.test_umask_override_fails_before_writes) ... ok
+test_unsafe_members_rejected_before_any_output (test_offline_install.FrontendContract.test_unsafe_members_rejected_before_any_output) ... ok
+
+======================================================================
+ERROR: test_different_input_timestamps_and_reversed_wheel_order_are_equal (test_offline_install.FrontendContract.test_different_input_timestamps_and_reversed_wheel_order_are_equal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 309, in test_different_input_timestamps_and_reversed_wheel_order_are_equal
+    plan = self.install(list(reversed(rows)))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 103, in install
+    self.api.install(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 621, in install
+    require(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 56, in require
+    raise ValueError(message)
+ValueError: unexpected/missing output directory
+
+======================================================================
+ERROR: test_installed_record_corruption_and_unowned_file_are_detected (test_offline_install.FrontendContract.test_installed_record_corruption_and_unowned_file_are_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 390, in test_installed_record_corruption_and_unowned_file_are_detected
+    self.install([make_wheel(self.root)])
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 103, in install
+    self.api.install(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 621, in install
+    require(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 56, in require
+    raise ValueError(message)
+ValueError: unexpected/missing output directory
+
+======================================================================
+ERROR: test_live_editable_metadata_exact_bytes_and_no_reinstall (test_offline_install.FrontendContract.test_live_editable_metadata_exact_bytes_and_no_reinstall)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 283, in test_live_editable_metadata_exact_bytes_and_no_reinstall
+    self.install([row], editable_source=source)
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 103, in install
+    self.api.install(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 621, in install
+    require(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 56, in require
+    raise ValueError(message)
+ValueError: unexpected/missing output directory
+
+======================================================================
+ERROR: test_modes_wrappers_data_scripts_symlinks_and_record_validation (test_offline_install.FrontendContract.test_modes_wrappers_data_scripts_symlinks_and_record_validation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 247, in test_modes_wrappers_data_scripts_symlinks_and_record_validation
+    self.install([make_wheel(self.root, files=files)])
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 103, in install
+    self.api.install(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 621, in install
+    require(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 56, in require
+    raise ValueError(message)
+ValueError: unexpected/missing output directory
+
+======================================================================
+ERROR: test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing (test_offline_install.FrontendContract.test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 117, in test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing
+    self.install([row])
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 103, in install
+    self.api.install(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 621, in install
+    require(
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 56, in require
+    raise ValueError(message)
+ValueError: unexpected/missing output directory
+
+----------------------------------------------------------------------
+Ran 17 tests in 3.672s
+
+FAILED (errors=5)

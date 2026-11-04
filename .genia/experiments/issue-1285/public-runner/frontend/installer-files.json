@@ -1,0 +1,94 @@
+{
+  "installer/__init__.py": {
+    "sha256": "2d31b768ed73d8eebad2905a7cbf61a039a2ec57d5a81a47dc6e5e32d1da4294",
+    "bytes": 136
+  },
+  "installer/__main__.py": {
+    "sha256": "95a87bbfb415ac0bd9de95683caaf59f280ba0701de6f9be7e909e134e32d1bf",
+    "bytes": 3008
+  },
+  "installer/_core.py": {
+    "sha256": "e7cc47b6a93f3427abbf7ce79942796cb892a14f644bb0140789af340d2698a8",
+    "bytes": 4657
+  },
+  "installer/destinations.py": {
+    "sha256": "92f40168439218e03a3802c6d27ab7caac4100a8b4e12a7ddc87cf59977e8558",
+    "bytes": 10148
+  },
+  "installer/exceptions.py": {
+    "sha256": "630c75d5da3447e70500b8a6731a6d93fae183b4756c36f8b010ae11b94d94be",
+    "bytes": 248
+  },
+  "installer/py.typed": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "installer/records.py": {
+    "sha256": "1ed1699cdeae48ea03b094e892b29037b96458e360567f9324f18550870ac07c",
+    "bytes": 6908
+  },
+  "installer/scripts.py": {
+    "sha256": "0be3309184ca75d9303c9e8e015b83fd45ebf37618625e83c19b730fe76eb2f6",
+    "bytes": 5249
+  },
+  "installer/sources.py": {
+    "sha256": "58bd0eb774f40936a1937c77cf8e29c1bd5902122354f31d5b05e248811e227e",
+    "bytes": 11519
+  },
+  "installer/utils.py": {
+    "sha256": "63cc404833b3262c1f753398b95b6e887ca255883d67825d55961a9dbf4d617b",
+    "bytes": 7728
+  },
+  "installer/_scripts/__init__.py": {
+    "sha256": "222fa4998cbf4d2db71c35dfdd0530de947234ca4c66ca75c322f5d38875625f",
+    "bytes": 81
+  },
+  "installer/_scripts/t32.exe": {
+    "sha256": "cbc62edf26a8eb366b10b606222b319219d02ce00ebe98977edf3f63d23cbf25",
+    "bytes": 92672
+  },
+  "installer/_scripts/t64-arm.exe": {
+    "sha256": "f1618387a688f162408e7811350a72269076d52bf6d0f09860548d5b57d677ac",
+    "bytes": 180736
+  },
+  "installer/_scripts/t64.exe": {
+    "sha256": "aadd4ca4a3b634ba94f2dd650f54f47eb7c59b9cf01e6de6cfba4bbe627690c2",
+    "bytes": 102912
+  },
+  "installer/_scripts/t_arm.exe": {
+    "sha256": "62aee48069f0715f96da0dbe35eab7868d5cb149f62133141ab0e126d62b9cfe",
+    "bytes": 86016
+  },
+  "installer/_scripts/w32.exe": {
+    "sha256": "7fdf04b6aff5822160210c6b121fac38078ef2a56d5aaa436c6c5d52e709ea9c",
+    "bytes": 89088
+  },
+  "installer/_scripts/w64-arm.exe": {
+    "sha256": "43f1ddcd5bbdcf161d6816b79b4889e7f75d2ce12ab4f7bcc77d16003a17cdaf",
+    "bytes": 166400
+  },
+  "installer/_scripts/w64.exe": {
+    "sha256": "e87b3e5a7d2f5c11c0e9077be8895a96a617aab37cd0308fa5da1e210ccf466b",
+    "bytes": 99840
+  },
+  "installer/_scripts/w_arm.exe": {
+    "sha256": "091feafac1542754885b1b2bc57bf8a66e89351e6aa2c05ebf053fd7b66a2aba",
+    "bytes": 83968
+  },
+  "installer-0.7.0.dist-info/LICENSE": {
+    "sha256": "37b8b9f2569892fa54406383d431169dbb2115980d78b7efba6eeae5664c484f",
+    "bytes": 1057
+  },
+  "installer-0.7.0.dist-info/WHEEL": {
+    "sha256": "ad282afc9a4717d7c7475971e77ab083fd7ed8bca9644fea99cb976d552af78f",
+    "bytes": 81
+  },
+  "installer-0.7.0.dist-info/METADATA": {
+    "sha256": "6f101e9a79475b3f341347b9a2d02cfbae5312c6c03fe30bd5f4db5dc6772a93",
+    "bytes": 936
+  },
+  "installer-0.7.0.dist-info/RECORD": {
+    "sha256": "5b512bd1b5a837a0a718f4e55390e2462d97b2b091f5ad1089b8b810f118291f",
+    "bytes": 1844
+  }
+}

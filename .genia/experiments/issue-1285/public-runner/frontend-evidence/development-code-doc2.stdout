@@ -1,0 +1,7 @@
+New or changed documentation gap: .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py::binding::FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls.duplicate:130
+New or changed documentation gap: .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py::binding::FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls.phantom:133
+New or changed documentation gap: .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py::binding::FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls.remove:127
+New or changed documentation gap: .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py::binding::FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls.self_hash:142
+New or changed documentation gap: .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py::binding::FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls.size:139
+New or changed documentation gap: .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py::binding::FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls.tamper:136
+10211 records; 2793 legacy gaps; 1 classified exclusions; 6 errors

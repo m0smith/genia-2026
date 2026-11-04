@@ -1,0 +1,42 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+test_all_47_pins_and_15_executable_members_match_plan (test_offline_install.FrontendContract.test_all_47_pins_and_15_executable_members_match_plan) ... ok
+test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes (test_offline_install.FrontendContract.test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes) ... ok
+test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent (test_offline_install.FrontendContract.test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent) ... ok
+test_collisions_file_parents_scripts_and_scaffold_rejected (test_offline_install.FrontendContract.test_collisions_file_parents_scripts_and_scaffold_rejected) ... ok
+test_data_scheme_bad_tag_and_generated_metadata_rejected (test_offline_install.FrontendContract.test_data_scheme_bad_tag_and_generated_metadata_rejected) ... ok
+test_different_input_timestamps_and_reversed_wheel_order_are_equal (test_offline_install.FrontendContract.test_different_input_timestamps_and_reversed_wheel_order_are_equal) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-ozkogjej/venv
+Activate with: source /tmp/genia-frontend-ozkogjej/venv/bin/activate
+Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-ozkogjej/venv
+Activate with: source /tmp/genia-frontend-ozkogjej/venv/bin/activate
+ok
+test_duplicate_regular_and_directory_entries_rejected (test_offline_install.FrontendContract.test_duplicate_regular_and_directory_entries_rejected) ... ok
+test_existing_prefix_and_symlink_parent_rejected (test_offline_install.FrontendContract.test_existing_prefix_and_symlink_parent_rejected) ... ok
+test_explicit_posix_prefix_ignores_default_scheme (test_offline_install.FrontendContract.test_explicit_posix_prefix_ignores_default_scheme) ... ok
+test_installed_record_corruption_and_unowned_file_are_detected (test_offline_install.FrontendContract.test_installed_record_corruption_and_unowned_file_are_detected) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-ud6zgr1d/venv
+Activate with: source /tmp/genia-frontend-ud6zgr1d/venv/bin/activate
+ok
+test_live_editable_metadata_exact_bytes_and_no_reinstall (test_offline_install.FrontendContract.test_live_editable_metadata_exact_bytes_and_no_reinstall) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-reenq0rq/venv
+Activate with: source /tmp/genia-frontend-reenq0rq/venv/bin/activate
+ok
+test_modes_wrappers_data_scripts_symlinks_and_record_validation (test_offline_install.FrontendContract.test_modes_wrappers_data_scripts_symlinks_and_record_validation) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-fuaxr2eu/venv
+Activate with: source /tmp/genia-frontend-fuaxr2eu/venv/bin/activate
+ok
+test_record_bidirectional_coverage_duplicate_and_digest_controls (test_offline_install.FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls) ... ok
+test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing (test_offline_install.FrontendContract.test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-ej7nn6sj/venv
+Activate with: source /tmp/genia-frontend-ej7nn6sj/venv/bin/activate
+ok
+test_umask_changed_after_plan_is_rejected_before_scaffold (test_offline_install.FrontendContract.test_umask_changed_after_plan_is_rejected_before_scaffold) ... ok
+test_umask_override_fails_before_writes (test_offline_install.FrontendContract.test_umask_override_fails_before_writes) ... ok
+test_unsafe_members_rejected_before_any_output (test_offline_install.FrontendContract.test_unsafe_members_rejected_before_any_output) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 4.211s
+
+OK

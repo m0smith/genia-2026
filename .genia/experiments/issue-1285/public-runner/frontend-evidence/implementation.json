@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "phase": "Authorized public-only offline frontend implementation and focused host verification",
+  "recorded_at_utc": "2026-11-04T23:30:00Z",
+  "agent": "Codex; requested GPT-6 High",
+  "design_sha": "d591ecf535f189805fe97f0ffb5cb44ed7ea200e",
+  "red_sha": "de1f455823e18f049a87cccbc2934bcb0bc20e11",
+  "implementation_sha": "Containing source commit; exact SHA published in canonical #1285 handoff, no self-hash cycle",
+  "verdict": "PASS focused host/static checks; independent Claude maintainability/security/behavior review PENDING; NOT production-ready or build-authorized",
+  "authorizations": {
+    "review": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643785950",
+    "implementation": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644232395",
+    "RED_handoff": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644332896"
+  },
+  "host": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "executable_sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "uid": 1000,
+    "gid": 1000,
+    "machine": "x86_64",
+    "glibc": [
+      "glibc",
+      "2.41"
+    ],
+    "official_python3_12_15": false,
+    "UID10001_acceptance": false
+  },
+  "implementation": {
+    "bootstrap": "Stdlib-only complete archive/RECORD validation;23 exact installer files extracted files0444/directories0555; independently rehash whole tools root before import",
+    "inputs": "43 runtime,7 isolated backend,47 unique wheel identities; installer+uv wheel make49 exact artifacts; original source.tar/lock unchanged",
+    "installation_order": "Prevalidate entire batch first; runtime43 sorted by canonical name/version string/filename/hash; runtime RECORD+offline pip check; singleton editable Genia last; final44 check. Native per-wheel member/entrypoint/RECORD iteration untouched, no ordering adapter",
+    "permissions": "Require umask022, preserve15 ZIP-executable regular members (ruff included) and15 generated wrappers; exact scaffold/link/directory/file inventories; no post-install metadata normalization",
+    "directories": "Safe canonical zero-size genuine ZIP dirs0755 omitted from RECORD are non-payload and create no output; reject regular executable/symlink/malformed/duplicate dirs",
+    "prevalidation": "All original inputs and mode/path/collision plans before original output roots; generated editable entire44 plan before final venv scaffold. Input bytes snapshotted; no per-wheel verify/write loop. No transaction claim for write-phase failures",
+    "editable": "Hatchling1.32.4 isolated with original seven wheels; exact hook output; original source; no-newline deterministic PEP610 metadata; .pth live source; Genia not copied into site-packages",
+    "source_pins": {
+      "source_manifest_sha256": "cc914f4169e1ada4cd3cbb2cb2f8fbab21763528225f4fae0f49939a533ddebf",
+      "input_manifest_sha256": "325c7091969bb63a7f4bf9e2f3108cd72f7924975376165b9a3615c880900f14",
+      "input_files": 63,
+      "expected_modes_sha256": "ee54a2afe36150e60049c78460300db102f5c6a5c8d4fde2e38b126972fe5875"
+    },
+    "retention": "Retain complete63-entry runner-input closure plus its manifest, isolated build-venv, editable-wheel, read-only tools, source, deployment and copied uv; all corresponding input/output bytes/modes/links included in host A/B. Only declared tmp caches/receipts scratch"
+  },
+  "focused_tests": {
+    "command": "Pinned uv0.13.5 --no-config run --frozen --offline --no-sync --no-project --python <host> python -B -m unittest discover -v -s .genia/experiments/issue-1285/public-runner/frontend_tests",
+    "env": "GENIA_FRONTEND_INPUTS and GENIA_FRONTEND_UV select exact acquired pins; UV_CACHE_DIR is declared task scratch",
+    "result": "17 tests PASS, 3.991s",
+    "logs": "development-green7.stderr",
+    "RED": "14 expected missing-module errors at test-only SHA; read-only-cache setup failure separately retained",
+    "negative_cli": "cli-negative.json:7 controls all failed with zero installation destination roots, including genuine corrupt/unsafe/colliding last watchdog wheel; negative fixture copies deliberately update only scratch pin/manifest hashes to reach inner checks"
+  },
+  "AB": {
+    "command": "python -I -S -B frontend/verify_frontend.py --work <fresh>/ab4 --pins <candidate>/pins.json --inputs <verified49 wheels> --source-archive <approved tar> --lock <original lock> --uv <pinned binary> --python <host>",
+    "result": {
+      "changed_paths": [],
+      "strict_equal": true,
+      "includes": "all files/directories/symlinks, bytes/hash/size/mode/uid/gid/link targets in source/builder/editable/deployment/tools and complete retained runner-input tree; timestamps excluded",
+      "independent_workers_or_OCI": false
+    },
+    "paths_per_case": [
+      21071,
+      21071
+    ],
+    "input_files_all_distinct_ctime_mtime": 63,
+    "deployment_paths_exact_expected_mode_match": 18138,
+    "final_inventory_count": 44,
+    "builder_inventory_count": 7,
+    "runtime_phase_count": 43,
+    "installed_RECORD_rows_each": 17780,
+    "all15_console_wrappers_each": true,
+    "compiled_extensions_each": 10,
+    "watchdog": "Linux ctypes/inotify platform backend import; honestly classified as Python platform code",
+    "ruff": "pinned ELF executed",
+    "live_edit_and_new_module_each": true,
+    "source_and_lock_restored_unchanged": true,
+    "unwanted_bytecode": 0,
+    "editable_wheel_sha256_each": "edb9c3e00135bf3c6ebd336d345aa2dd46535dc63772d6876c3905062ee7a94e",
+    "editable_hash_scope": "Fixed host source path only; not a new official-target artifact pin",
+    "manifest": {
+      "file": "manifests.json.xz",
+      "sha256": "cf22126041640a1f926424e9e17739cab52818d8aac459e3fb5f82109ef3c333",
+      "decoded_sha256": "e0fbc3d174c29ac4f366d99432d643ae4565f7e66f1e00da57afa596d0867f18",
+      "bytes": 864540
+    },
+    "file": "ab4-results.json",
+    "mode_manifest": "expected-deployment-modes.json.xz"
+  },
+  "offline_and_uv": {
+    "guard": "Verification-only stdlib ctypes seccomp adds socket/connect denial inherited across exec, with actual AF_INET socket EPERM negative control. No proxy/routing changes. No resolver or downloader in frontend; uv acquisition disabled explicitly. Not general security sandbox or packet trace",
+    "strace": "Blocked by host ptrace policy before install; retained in ab1-development-results.json.xz, not bypassed",
+    "uv": "Actual selected venv proved; explicit --frozen --offline --no-sync plus host-verified UV_NO_SYNC/UV_FROZEN hardening; distinct launcher --no-project unchanged",
+    "read_only": "Explicit mode-protected host diagnostic, write creation denied; uv bytes/modes/lock/source unchanged, exact modes restored. NOT read-only mount or UID10001 proof"
+  },
+  "checks": {
+    "baseline": "d591ecf535f189805fe97f0ffb5cb44ed7ea200e",
+    "checks": [
+      {
+        "name": "preserved source",
+        "result": "PASS",
+        "detail": "Structural equality against design SHA, including all settled artifact hashes"
+      },
+      {
+        "name": "preserved target",
+        "result": "PASS",
+        "detail": "Structural equality against design SHA, including all settled artifact hashes"
+      },
+      {
+        "name": "preserved base",
+        "result": "PASS",
+        "detail": "Structural equality against design SHA, including all settled artifact hashes"
+      },
+      {
+        "name": "preserved uv",
+        "result": "PASS",
+        "detail": "Structural equality against design SHA, including all settled artifact hashes"
+      },
+      {
+        "name": "preserved builder",
+        "result": "PASS",
+        "detail": "Structural equality against design SHA, including all settled artifact hashes"
+      },
+      {
+        "name": "preserved runtime_wheels",
+        "result": "PASS",
+        "detail": "Structural equality against design SHA, including all settled artifact hashes"
+      },
+      {
+        "name": "preserved backend_wheels",
+        "result": "PASS",
+        "detail": "Structural equality against design SHA, including all settled artifact hashes"
+      },
+      {
+        "name": "preserved runtime_selection",
+        "result": "PASS",
+        "detail": "Structural equality against design SHA, including all settled artifact hashes"
+      },
+      {
+        "name": "Debian closure/provenance preserved",
+        "result": "PASS",
+        "detail": "Only mandatory stale active BENJAMIN gate removed; signed closure still incomplete"
+      },
+      {
+        "name": "unchanged runtime.requirements.txt",
+        "result": "PASS",
+        "detail": "Exact bytes unchanged"
+      },
+      {
+        "name": "unchanged backend.requirements.txt",
+        "result": "PASS",
+        "detail": "Exact bytes unchanged"
+      },
+      {
+        "name": "unchanged expected-inventory.json",
+        "result": "PASS",
+        "detail": "Exact bytes unchanged"
+      },
+      {
+        "name": "unchanged offline-source-policy.json",
+        "result": "PASS",
+        "detail": "Exact bytes unchanged"
+      },
+      {
+        "name": "original source/lock",
+        "result": "PASS",
+        "detail": "Original284838-byte lock retained; source archive separately hash verified during both builds"
+      },
+      {
+        "name": "all frontend source pins",
+        "result": "PASS",
+        "detail": "Seven code/test/tool/mode inputs exactly hash/size pinned"
+      },
+      {
+        "name": "source manifest pin",
+        "result": "PASS",
+        "detail": "Manifest aggregate matches pins.json"
+      },
+      {
+        "name": "Python parse",
+        "result": "PASS",
+        "detail": "All five maintained frontend/test sources parse; no compileall/bytecode generation"
+      },
+      {
+        "name": "no frontend bytecode",
+        "result": "PASS",
+        "detail": "No unwanted local bytecode"
+      },
+      {
+        "name": "final input manifest",
+        "result": "PASS",
+        "detail": "Exact manifest used by final A/B matches candidate;63 hashed entries"
+      },
+      {
+        "name": "retained staged hashes",
+        "result": "PASS",
+        "detail": "All63 entries hash verified, no original artifact pins changed"
+      },
+      {
+        "name": "repo sources match verified stage",
+        "result": "PASS",
+        "detail": "Executed exact final source/tool/mode/test bytes, not a helper approximation"
+      },
+      {
+        "name": "pins match verified stage",
+        "result": "PASS",
+        "detail": "Final stage uses candidate pins"
+      },
+      {
+        "name": "A/B full equality",
+        "result": "PASS",
+        "detail": "21071 paths per side including retained inputs, all files/directories/links byte/mode/uid/gid/target equality"
+      },
+      {
+        "name": "all input timestamps varied",
+        "result": "PASS",
+        "detail": "All63 hashed inputs have different ctimes and mtimes"
+      },
+      {
+        "name": "15 wrappers and exact44",
+        "result": "PASS",
+        "detail": "Both cases: wrapper/native/RECORD/live-source/offline/read-only-mode uv checks passed"
+      },
+      {
+        "name": "runtime43 phase proof",
+        "result": "PASS",
+        "detail": "Runtime43 pip check and RECORD validation precede editable installation"
+      },
+      {
+        "name": "complete manifest integrity",
+        "result": "PASS",
+        "detail": "Lossless full inventories retained"
+      },
+      {
+        "name": "seven real CLI negative controls",
+        "result": "PASS",
+        "detail": "Wrong hash/missing file/RECORD/unsafe path/collision/umask/input manifest all failed with zero output roots"
+      },
+      {
+        "name": "unchanged AGENTS.md",
+        "result": "PASS",
+        "detail": "Latest fetched main authority unchanged; no semantic/MCP fact impact"
+      },
+      {
+        "name": "unchanged GENIA_STATE.md",
+        "result": "PASS",
+        "detail": "Latest fetched main authority unchanged; no semantic/MCP fact impact"
+      },
+      {
+        "name": "unchanged GENIA_RULES.md",
+        "result": "PASS",
+        "detail": "Latest fetched main authority unchanged; no semantic/MCP fact impact"
+      },
+      {
+        "name": "unchanged GENIA_REPL_README.md",
+        "result": "PASS",
+        "detail": "Latest fetched main authority unchanged; no semantic/MCP fact impact"
+      },
+      {
+        "name": "unchanged README.md",
+        "result": "PASS",
+        "detail": "Latest fetched main authority unchanged; no semantic/MCP fact impact"
+      },
+      {
+        "name": "strict OCI section unchanged",
+        "result": "PASS",
+        "detail": "No weakening of two independent manifest/config/layer/canonical archive equality"
+      },
+      {
+        "name": "links and shell syntax",
+        "result": "PASS",
+        "detail": "53 local links exist;4 bash fences parse; no construction command executed"
+      },
+      {
+        "name": "whitespace",
+        "result": "PASS",
+        "detail": "git diff --check PASS"
+      }
+    ],
+    "count": 36
+  },
+  "other_checks": {
+    "ruff": "All checks passed",
+    "code_documentation": "10214 records;2793 accepted legacy gaps;1 classified exclusion;0 errors; no new baseline exemptions",
+    "llm_instructions": "PASS",
+    "whitespace_branch": "PASS"
+  },
+  "retained_failures": [
+    "Original RED14 missing module and initial uv default read-only cache",
+    "Acquisition helper selected wrong uv member suffix; all49 bytes already verified, selector fixed",
+    "Initial scaffold allow-list omitted legitimate uv files/lib64",
+    "watchmedo extras suffix rejected then supported",
+    "Git archive0664/0775 recognized and projected through declared022 to tracked0644/0755; source bytes unchanged",
+    "Overstrict assumed empty include dir rejected; actual uv scaffold has no empty include; corrected expected directory set",
+    "Initial docs check lacked tree-sitter in host interpreter; rerun under pinned venv; six test-helper doc gaps fixed",
+    "Ruff12 style/unused-binding findings fixed",
+    "ptrace syscall tracing unavailable; restrictive seccomp guard independently proved and used",
+    "Evidence-only mode audit initially omitted root key, then corrected; no installation/mode changed"
+  ],
+  "remaining_gates": {
+    "G1": "Signed immutable Debian Release/index/every-deb OS/Git/Tini closure and87-base compatibility; supported snapshot access pending, prior403 retained",
+    "G3": "No approved $0 Linux/amd64 venue qualified by actual build/run/export/cgroup/worker/storage/reaping/offline receipts; BENJAMIN offline, not required",
+    "G2_G5": "Actual target exec/write inventories, official3.12.15/UID10001/read-only mounts/resource controls/full original-source regression/reaping and two independent equal OCI builds pending",
+    "independent_review": "Claude exact code/tests/source pins/modes/host evidence maintainability/security/behavior review requested; not obtained or self-approved"
+  },
+  "unchanged": "Original source/lock;50 runtime and7 backend wheel records;uv;base;BuildKit;requirements;source policy;strict two-independent OCI manifest/config/layer/canonical archive equality;Genia authority/semantics/MCP/CI/R29",
+  "not_performed": [
+    "image construction/run/export",
+    "production runner acceptance",
+    "private fixtures/oracle/candidates/benchmarks/trials",
+    "paid infrastructure or CI dispatch",
+    "proxy/network-policy bypass",
+    "merge or issue closure"
+  ],
+  "usage_review_time_savings": "not measured"
+}

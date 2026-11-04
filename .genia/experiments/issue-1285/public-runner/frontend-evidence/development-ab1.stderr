@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 217, in <module>
+    main()
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 212, in main
+    result=verify(args)
+           ^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 172, in verify
+    run(['strace','-f','-e','trace=network','-o',trace,args.python,'-I','-S','-B',code,
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 42, in run
+    frontend.require(result.returncode == 0, json.dumps(row))
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 41, in require
+    raise ValueError(message)
+ValueError: {"argv": ["strace", "-f", "-e", "trace=network", "-o", "/workspace/work/issue-1285-frontend/ab1/network-A.trace", "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python", "-I", "-S", "-B", "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/build_frontend.py", "--pins", "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/pins.json", "--inputs", "/workspace/work/issue-1285-frontend/ab1/stage/wheels", "--source-archive", "/workspace/work/issue-1285-frontend/ab1/stage/source.tar", "--lock", "/workspace/genia-2026/.genia/experiments/issue-1285/dependencies/BENJAMIN.lock", "--uv", "/workspace/work/issue-1285-frontend/uv", "--receipt", "/workspace/work/issue-1285-frontend/ab1/build-A.json", "--cache", "/workspace/work/issue-1285-frontend/ab1/cache-A", "--host-test", "--root", "/workspace/work/issue-1285-frontend/ab1/active", "--python", "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python"], "exit_code": 1, "stdout": "", "stderr": "strace: test_ptrace_get_syscall_info: PTRACE_TRACEME: Operation not permitted\nstrace: ptrace(PTRACE_TRACEME, ...): Operation not permitted\nstrace: PTRACE_SETOPTIONS: Operation not permitted\nstrace: cleanup: waitpid(-1, __WALL): No child processes\n"}

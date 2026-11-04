@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/build_frontend.py", line 184, in <module>
+    main()
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/build_frontend.py", line 176, in main
+    result = build(args)
+             ^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/build_frontend.py", line 109, in build
+    source_files = validated_source(args.source_archive, args.lock, pins)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/build_frontend.py", line 51, in validated_source
+    frontend.require(item.mode in (0o644, 0o755), 'unexpected tracked source mode')
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 41, in require
+    raise ValueError(message)
+ValueError: unexpected tracked source mode

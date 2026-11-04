@@ -1,0 +1,1 @@
+Initial evidence-only mode audit omitted the venv root because its prefix matcher required a trailing slash. Assertion difference was solely dot/root; corrected to include root explicitly. No install or mode was changed.

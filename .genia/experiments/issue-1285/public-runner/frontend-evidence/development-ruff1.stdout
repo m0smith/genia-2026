@@ -1,0 +1,132 @@
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend/offline_install.py:524:31
+    |
+522 |             relative = path.relative_to(prefix).as_posix()
+523 |             require(relative not in seen and relative not in owners, 'duplicate installed ownership')
+524 |             seen.add(relative); owners[relative] = str(record)
+    |                               ^
+525 |             if path == record:
+526 |                 require((digest,size) == ('',''), 'bad installed RECORD self-row')
+    |
+
+F841 Local variable `pins` is assigned to but never used
+   --> .genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py:155:5
+    |
+153 |     (work/'verification-owned').touch()
+154 |     active, stage = work/'active', work/'stage'
+155 |     pins = json.loads(args.pins.read_text())
+    |     ^^^^
+156 |     expected = json.loads(args.pins.with_name('expected-inventory.json').read_text())['phases']['final_both_candidates']
+157 |     manifest, results = {}, {'scope':'HOST ONLY, no target3.12.15/UID10001/OCI proof','host':sys.version,
+    |
+help: Remove assignment to unused variable `pins`
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:189:32
+    |
+187 |         with self.assertRaises(ValueError):
+188 |             self.api.prepare([row], self.prefix)
+189 |         link = self.root/'link'; link.symlink_to(self.root, target_is_directory=True)
+    |                                ^
+190 |         with self.assertRaises(ValueError):
+191 |             self.api.prepare([row], link/'destination')
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:229:36
+    |
+228 |     def test_live_editable_metadata_exact_bytes_and_no_reinstall(self):
+229 |         source = self.root/'source'; (source/'src/alpha').mkdir(parents=True)
+    |                                    ^
+230 |         (source/'src/alpha/__init__.py').write_text('value=41\n')
+231 |         row = make_wheel(self.root, name='genia', files={'_editable.pth': (str(source/'src').encode()+b'\n', 0o100644)})
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:248:50
+    |
+246 |         shutil.rmtree(self.prefix)
+247 |         for row in rows:
+248 |             data = Path(row['path']).read_bytes(); Path(row['path']).unlink(); Path(row['path']).write_bytes(data)
+    |                                                  ^
+249 |             os.utime(row['path'], (1000000000,1000000000))
+250 |         # Tools were validated once; no need to replace their read-only extraction.
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:248:78
+    |
+246 |         shutil.rmtree(self.prefix)
+247 |         for row in rows:
+248 |             data = Path(row['path']).read_bytes(); Path(row['path']).unlink(); Path(row['path']).write_bytes(data)
+    |                                                                              ^
+249 |             os.utime(row['path'], (1000000000,1000000000))
+250 |         # Tools were validated once; no need to replace their read-only extraction.
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:256:56
+    |
+255 |     def test_all_47_pins_and_15_executable_members_match_plan(self):
+256 |         pins=json.loads((HERE/'pins.json').read_text()); inputs=Path(os.environ['GENIA_FRONTEND_INPUTS'])
+    |                                                        ^
+257 |         runtime=[{**r,'path':str(inputs/r['filename'])} for r in pins['runtime_wheels'] if r['target_selected']]
+258 |         backend=[{**r,'path':str(inputs/r['filename'])} for r in pins['backend_wheels']]
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:271:56
+    |
+270 |     def test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent(self):
+271 |         pins=json.loads((HERE/'pins.json').read_text()); inputs=Path(os.environ['GENIA_FRONTEND_INPUTS'])
+    |                                                        ^
+272 |         row={**pins['installer'],'path':str(inputs/pins['installer']['filename']),'sha256':'0'*64}
+273 |         tools=self.root/'bad-tools'
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:278:45
+    |
+276 | …     self.assertFalse(tools.exists())
+277 | …     tools=self.tools()
+278 | …     target=tools/'installer/__init__.py';target.chmod(0o644);target.write_text('raise RuntimeError("tampered")\n');target.chmod(0o4…
+    |                                           ^
+279 | …     plan=self.api.prepare([make_wheel(self.root)],self.prefix)
+280 | …     with self.assertRaises(ValueError):
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:278:65
+    |
+276 | …     self.assertFalse(tools.exists())
+277 | …     tools=self.tools()
+278 | …     target=tools/'installer/__init__.py';target.chmod(0o644);target.write_text('raise RuntimeError("tampered")\n');target.chmod(0o4…
+    |                                                               ^
+279 | …     plan=self.api.prepare([make_wheel(self.root)],self.prefix)
+280 | …     with self.assertRaises(ValueError):
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:278:119
+    |
+276 | …     self.assertFalse(tools.exists())
+277 | …     tools=self.tools()
+278 | …     target=tools/'installer/__init__.py';target.chmod(0o644);target.write_text('raise RuntimeError("tampered")\n');target.chmod(0o4…
+    |                                                                                                                     ^
+279 | …     plan=self.api.prepare([make_wheel(self.root)],self.prefix)
+280 | …     with self.assertRaises(ValueError):
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> .genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py:296:37
+    |
+294 |         self.install([make_wheel(self.root)])
+295 |         module=self.prefix/'lib/python3.12/site-packages/alpha/__init__.py'
+296 |         original=module.read_bytes();module.write_bytes(b'bad')
+    |                                     ^
+297 |         with self.assertRaises(ValueError):
+298 |             self.api.verify_records(self.prefix)
+    |
+
+Found 12 errors.
+No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).

@@ -1,0 +1,6 @@
+{
+  "changed_paths": [],
+  "strict_equal": true,
+  "includes": "all files/directories/symlinks, bytes/hash/size/mode/uid/gid/link targets in source/builder/editable/deployment/tools and complete retained runner-input tree; timestamps excluded",
+  "independent_workers_or_OCI": false
+}

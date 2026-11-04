@@ -1,0 +1,58 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+test_all_47_pins_and_15_executable_members_match_plan (test_offline_install.FrontendContract.test_all_47_pins_and_15_executable_members_match_plan) ... ERROR
+test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes (test_offline_install.FrontendContract.test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes) ... ok
+test_collisions_file_parents_scripts_and_scaffold_rejected (test_offline_install.FrontendContract.test_collisions_file_parents_scripts_and_scaffold_rejected) ... ok
+test_data_scheme_bad_tag_and_generated_metadata_rejected (test_offline_install.FrontendContract.test_data_scheme_bad_tag_and_generated_metadata_rejected) ... ok
+test_different_input_timestamps_and_reversed_wheel_order_are_equal (test_offline_install.FrontendContract.test_different_input_timestamps_and_reversed_wheel_order_are_equal) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-gh6ih8jl/venv
+Activate with: source /tmp/genia-frontend-gh6ih8jl/venv/bin/activate
+Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-gh6ih8jl/venv
+Activate with: source /tmp/genia-frontend-gh6ih8jl/venv/bin/activate
+ok
+test_duplicate_regular_and_directory_entries_rejected (test_offline_install.FrontendContract.test_duplicate_regular_and_directory_entries_rejected) ... ok
+test_existing_prefix_and_symlink_parent_rejected (test_offline_install.FrontendContract.test_existing_prefix_and_symlink_parent_rejected) ... ok
+test_explicit_posix_prefix_ignores_default_scheme (test_offline_install.FrontendContract.test_explicit_posix_prefix_ignores_default_scheme) ... ok
+test_live_editable_metadata_exact_bytes_and_no_reinstall (test_offline_install.FrontendContract.test_live_editable_metadata_exact_bytes_and_no_reinstall) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-qk6_ejt9/venv
+Activate with: source /tmp/genia-frontend-qk6_ejt9/venv/bin/activate
+ok
+test_modes_wrappers_data_scripts_symlinks_and_record_validation (test_offline_install.FrontendContract.test_modes_wrappers_data_scripts_symlinks_and_record_validation) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-tm3nxiw5/venv
+Activate with: source /tmp/genia-frontend-tm3nxiw5/venv/bin/activate
+ok
+test_record_bidirectional_coverage_duplicate_and_digest_controls (test_offline_install.FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls) ... ok
+test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing (test_offline_install.FrontendContract.test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-sae_zfsw/venv
+Activate with: source /tmp/genia-frontend-sae_zfsw/venv/bin/activate
+ok
+test_umask_override_fails_before_writes (test_offline_install.FrontendContract.test_umask_override_fails_before_writes) ... ok
+test_unsafe_members_rejected_before_any_output (test_offline_install.FrontendContract.test_unsafe_members_rejected_before_any_output) ... ok
+
+======================================================================
+ERROR: test_all_47_pins_and_15_executable_members_match_plan (test_offline_install.FrontendContract.test_all_47_pins_and_15_executable_members_match_plan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 252, in test_all_47_pins_and_15_executable_members_match_plan
+    plan=self.api.prepare(runtime,self.prefix)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 279, in prepare
+    wheels = tuple(sorted((validate_wheel(row) for row in rows),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 279, in <genexpr>
+    wheels = tuple(sorted((validate_wheel(row) for row in rows),
+                           ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 207, in validate_wheel
+    scripts = entrypoints(payload.get(dist_info + '/entry_points.txt', b''))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 236, in entrypoints
+    require(bool(re.fullmatch(r'[\w.]+\s*:\s*[\w.]+', value)), 'unsupported entrypoint target')
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 41, in require
+    raise ValueError(message)
+ValueError: unsupported entrypoint target
+
+----------------------------------------------------------------------
+Ran 14 tests in 2.002s
+
+FAILED (errors=1)
