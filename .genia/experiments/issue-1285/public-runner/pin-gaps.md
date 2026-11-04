@@ -9,8 +9,9 @@ frozen or accepted. See [pins.json](pins.json) for exact acquired artifacts and
 | G1 | Immutable Debian snapshot `20261021T000000Z` metadata request failed: proxy tunnel HTTP 403. The active policy does not include `snapshot.debian.org`. No Release/index signature/hash, `.deb` list, Git package closure or Tini artifact is verified. Their fields are null/empty; `closure_complete=false`. | Environment operator enables the host through supported policy configuration; then Codex acquires and verifies the immutable Release/signature/Packages chain and every selected `.deb` (filename/version/architecture/size/SHA256). The user intends to enable it; intent is not observed access. Never substitute a moving apt index or invent package hashes. |
 | G2 | Static approved-source references identify Git, Python, uv, `/bin/sh`, unshare, ps and lsof; historical reaping evidence observes Python/uv. A complete BENJAMIN `execve` trace and writable-path trace do not exist here. Proposed new roots are Git, Tini, procps and lsof; 87 base installed-package entries (including util-linux/shell/coreutils) are inventoried from verified base bytes. | BENJAMIN operator captures full public verification exec/write inventories. Reconcile the package closure and declared writable set before acceptance. Static references are not a dynamic observed execution inventory. Unexpected required binaries/writes STOP; no silent extra tools/mounts. |
 | G3 | BENJAMIN is the maintainer-selected **proposed** venue; build/run/export/cgroup-inspection privileges and standalone BuildKit worker support remain unverified. Current-executor observations do not establish those rights. | Owner demonstrates permissions/cgroup access using public, bounded operations in a separately authorized phase. No present build authorization. |
-| G4 | Claude Track A review at `778bb1a4...` is PASS-WITH-REVISIONS; it independently confirms retained pins and identifies R1–R8. This correction is not yet independently reviewed. No callable Claude Code route is available here. | Request short Claude **text** delta review of this exact new SHA and R1–R8 evidence now. Later obtain the minimal OS-pin/venue delta review when G1/G3 evidence exists. Do not repeat settled wheel acquisition absent changes or substitute Codex self-review. |
+| G4 | Claude reviewed `00b95b62...` PASS-WITH-REVISIONS, confirmed R1–R8/pins and measured the ctime mechanism. This installation spike/four design corrections have not received independent delta review. No callable Claude Code route is available here. | Request narrow Claude Code delta review of this exact new SHA, helper and full installation evidence; then maintainer chooses metadata strategy. Later review OS/venue deltas when G1/G3 receipts exist. No Codex self-review substitutes for Claude. |
 | G5 | Seven backend wheels and the requirements-hook output are verified on host Python 3.12.14; official target is 3.12.15 with different compiler/linkage. No target install, editable build, control probe, regression, two-build OCI export or direct replay has run. | After complete pins, delta review and separate build authorization, rerun hook in target (exact expected output), prove offline installation/closure, then obtain the separately authorized acceptance evidence. These are future execution gates, not claimed acquisition results. |
+| Metadata strategy | **UNSELECTED.** Current uv recipe is predicted to fail strict two-build equality. Host proof: 94 wheel-stage and 88 editable-stage files differ from ctime-derived uv_cache and RECORD. PyPA installer 0.7.0 gives zero differences in its two full deployment-prefix comparisons, including PEP-660 Genia; host 3.12.14 only. | Independent delta review, then maintainer selects/rejects strategy and authorizes any production recipe/frontend change. Existing commands remain draft; no metadata rewriting/deletion/exclusions, no weakened equality. Official runtime, script/metadata/bootstrap behavior and full tests remain unproved. |
 
 ## Completed acquisition
 
@@ -59,10 +60,25 @@ project/official-target installation was performed. See
   charging, 512 MiB text/control budget arithmetic, and separately approved finite
   build/input/OCI storage quotas. Neither a 64 MiB tmpfs nor the log budget is an
   unlimited storage allowance.
-- A bounded host probe found `uv_cache.json` timestamp did not follow a wheel
-  mtime fixed to SOURCE_DATE_EPOCH. Fixed staging paths are not proof of stable
-  generated metadata. Keep this negative evidence and the target A/B metadata
-  policy in G5; no silent metadata deletion/rewriting is authorized.
+- The [new spike](metadata-strategy.md) confirms exact wheel/project ctime-derived
+  uv_cache timestamps, RECORD differences and editable uv_build.json. The separate
+  directories.src clock mapping remains unconfirmed. Keep historical evidence;
+  the unchanged recipe is predicted to fail, requiring a strategy decision before
+  build authorization. Fixed paths/mtime/exporter timestamp rewriting cannot fix
+  generated content bytes.
+
+## Newly completed TEST/DESIGN evidence, not target closure
+
+One experimental installer pin (0.7.0, no declared dependencies), identical-byte
+43-wheel installation and separately pinned seven-wheel Hatchling PEP-660 build
+were evaluated on host CPython 3.12.14. All four final identity/import/consistency/
+public smoke checks pass. Full venv file manifests, metadata, RECORD checks and
+negative/failure evidence are committed under installation-proof. The isolated
+builder is not deployment output and is not claimed byte-reproducible. Neither
+this evidence nor the expected inventory makes the official closure verified.
+Source-policy matchType is explicitly WILDCARD with a new configuration digest;
+semantic solver denial remains untested. Enforceable per-stream overflow handling
+is specified in the checklist but not implemented or exercised here. G1/G3 stay open.
 
 ## Review correction — preserve the lock, not an incorrect exclusion
 

@@ -1,0 +1,2942 @@
+{
+  "scope": "host scratch, no image or strategy adoption",
+  "host_python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "commands": [
+    {
+      "label": "uv-A-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: prefix\nActivate with: source prefix/bin/activate\n"
+    },
+    {
+      "label": "uv-A-wheels",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "--link-mode",
+        "copy",
+        "-r",
+        "/workspace/work/issue-1285-deterministic/run3/uv-A-wheels.requirements.txt"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nResolved 47 packages in 9ms\nPrepared 47 packages in 293ms\nInstalled 47 packages in 1.30s\n + babel==2.18.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/babel-2.18.0-py3-none-any.whl)\n + backrefs==8.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/backrefs-8.1-py312-none-any.whl)\n + certifi==2026.10.23 (from file:///workspace/work/issue-1285-deterministic/run3/stage/certifi-2026.10.23-py3-none-any.whl)\n + charset-normalizer==3.5.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + click==8.5.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/click-8.5.0-py3-none-any.whl)\n + colorama==0.4.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/colorama-0.4.6-py2.py3-none-any.whl)\n + coverage==7.17.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/coverage-7.17.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl)\n + editables==0.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/editables-0.6-py3-none-any.whl)\n + execnet==2.1.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/execnet-2.1.2-py3-none-any.whl)\n + ghp-import==2.1.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/ghp_import-2.1.0-py3-none-any.whl)\n + hatchling==1.32.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/hatchling-1.32.4-py3-none-any.whl)\n + idna==3.20 (from file:///workspace/work/issue-1285-deterministic/run3/stage/idna-3.20-py3-none-any.whl)\n + iniconfig==2.3.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/iniconfig-2.3.1-py3-none-any.whl)\n + jinja2==3.1.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/jinja2-3.1.6-py3-none-any.whl)\n + markdown==3.11.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/markdown-3.11.2-py3-none-any.whl)\n + markupsafe==3.0.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + mergedeep==1.3.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mergedeep-1.3.4-py3-none-any.whl)\n + mkdocs==1.6.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mkdocs-1.6.1-py3-none-any.whl)\n + mkdocs-get-deps==0.2.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mkdocs_get_deps-0.2.2-py3-none-any.whl)\n + mkdocs-material==9.8.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mkdocs_material-9.8.0-py3-none-any.whl)\n + mkdocs-material-extensions==1.3.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mkdocs_material_extensions-1.3.1-py3-none-any.whl)\n + packaging==26.3 (from file:///workspace/work/issue-1285-deterministic/run3/stage/packaging-26.3-py3-none-any.whl)\n + paginate==0.5.7 (from file:///workspace/work/issue-1285-deterministic/run3/stage/paginate-0.5.7-py2.py3-none-any.whl)\n + pathspec==1.1.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pathspec-1.1.1-py3-none-any.whl)\n + platformdirs==4.13.5 (from file:///workspace/work/issue-1285-deterministic/run3/stage/platformdirs-4.13.5-py3-none-any.whl)\n + pluggy==1.7.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pluggy-1.7.0-py3-none-any.whl)\n + pygments==2.21.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pygments-2.21.0-py3-none-any.whl)\n + pymdown-extensions==12.3 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pymdown_extensions-12.3-py3-none-any.whl)\n + pytest==9.1.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pytest-9.1.1-py3-none-any.whl)\n + pytest-cov==7.1.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pytest_cov-7.1.0-py3-none-any.whl)\n + pytest-xdist==3.8.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pytest_xdist-3.8.0-py3-none-any.whl)\n + python-dateutil==3.0.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/python_dateutil-3.0.0-py2.py3-none-any.whl)\n + pyyaml==6.0.3 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + pyyaml-env-tag==1.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pyyaml_env_tag-1.1-py3-none-any.whl)\n + requests==2.34.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/requests-2.34.2-py3-none-any.whl)\n + ruff==0.15.18 (from file:///workspace/work/issue-1285-deterministic/run3/stage/ruff-0.15.18-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl)\n + six==1.17.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/six-1.17.0-py2.py3-none-any.whl)\n + tomlkit==0.15.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tomlkit-0.15.2-py3-none-any.whl)\n + tree-sitter==0.25.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + tree-sitter-bash==0.25.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + tree-sitter-cpp==0.23.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter_cpp-0.23.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl)\n + tree-sitter-rust==0.24.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl)\n + tree-sitter-typescript==0.23.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl)\n + trove-classifiers==2026.9.21.13 (from file:///workspace/work/issue-1285-deterministic/run3/stage/trove_classifiers-2026.9.21.13-py3-none-any.whl)\n + tzdata==2026.5 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tzdata-2026.5-py2.py3-none-any.whl)\n + urllib3==2.8.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/urllib3-2.8.0-py3-none-any.whl)\n + watchdog==6.0.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl)\n"
+    },
+    {
+      "label": "uv-A-editable",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline",
+        "--no-index",
+        "--no-deps",
+        "--no-build-isolation",
+        "-e",
+        "/workspace/work/issue-1285-deterministic/run3/source"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nResolved 1 package in 0.78ms\n   Building genia @ file:///workspace/work/issue-1285-deterministic/run3/source\n      Built genia @ file:///workspace/work/issue-1285-deterministic/run3/source\nPrepared 1 package in 115ms\nInstalled 1 package in 0.92ms\n + genia==0.1.14 (from file:///workspace/work/issue-1285-deterministic/run3/source)\n"
+    },
+    {
+      "label": "uv-A-remove-backend",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "uninstall",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline",
+        "editables",
+        "hatchling",
+        "tomlkit",
+        "trove-classifiers"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nUninstalled 4 packages in 2ms\n - editables==0.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/editables-0.6-py3-none-any.whl)\n - hatchling==1.32.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/hatchling-1.32.4-py3-none-any.whl)\n - tomlkit==0.15.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tomlkit-0.15.2-py3-none-any.whl)\n - trove-classifiers==2026.9.21.13 (from file:///workspace/work/issue-1285-deterministic/run3/stage/trove_classifiers-2026.9.21.13-py3-none-any.whl)\n"
+    },
+    {
+      "label": "uv-A-pip-check",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nChecked 44 packages in 0.65ms\nAll installed packages are compatible\n"
+    },
+    {
+      "label": "uv-A-import",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import genia,importlib.metadata,json,sys,site; print(json.dumps({\"genia_file\":genia.__file__,\"sys_path\":sys.path,\"user_site\":site.ENABLE_USER_SITE,\"distributions\":sorted((d.metadata[\"Name\"].lower().replace(\"_\",\"-\"),d.version) for d in importlib.metadata.distributions())}))"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "{\"genia_file\": \"/workspace/work/issue-1285-deterministic/run3/source/src/genia/__init__.py\", \"sys_path\": [\"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip\", \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12\", \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload\", \"/workspace/work/issue-1285-deterministic/run3/prefix/lib/python3.12/site-packages\", \"/workspace/work/issue-1285-deterministic/run3/source/src\"], \"user_site\": false, \"distributions\": [[\"babel\", \"2.18.0\"], [\"backrefs\", \"8.1\"], [\"certifi\", \"2026.10.23\"], [\"charset-normalizer\", \"3.5.2\"], [\"click\", \"8.5.0\"], [\"colorama\", \"0.4.6\"], [\"coverage\", \"7.17.0\"], [\"execnet\", \"2.1.2\"], [\"genia\", \"0.1.14\"], [\"ghp-import\", \"2.1.0\"], [\"idna\", \"3.20\"], [\"iniconfig\", \"2.3.1\"], [\"jinja2\", \"3.1.6\"], [\"markdown\", \"3.11.2\"], [\"markupsafe\", \"3.0.4\"], [\"mergedeep\", \"1.3.4\"], [\"mkdocs\", \"1.6.1\"], [\"mkdocs-get-deps\", \"0.2.2\"], [\"mkdocs-material\", \"9.8.0\"], [\"mkdocs-material-extensions\", \"1.3.1\"], [\"packaging\", \"26.3\"], [\"paginate\", \"0.5.7\"], [\"pathspec\", \"1.1.1\"], [\"platformdirs\", \"4.13.5\"], [\"pluggy\", \"1.7.0\"], [\"pygments\", \"2.21.0\"], [\"pymdown-extensions\", \"12.3\"], [\"pytest\", \"9.1.1\"], [\"pytest-cov\", \"7.1.0\"], [\"pytest-xdist\", \"3.8.0\"], [\"python-dateutil\", \"3.0.0\"], [\"pyyaml\", \"6.0.3\"], [\"pyyaml-env-tag\", \"1.1\"], [\"requests\", \"2.34.2\"], [\"ruff\", \"0.15.18\"], [\"six\", \"1.17.0\"], [\"tree-sitter\", \"0.25.2\"], [\"tree-sitter-bash\", \"0.25.1\"], [\"tree-sitter-cpp\", \"0.23.4\"], [\"tree-sitter-rust\", \"0.24.2\"], [\"tree-sitter-typescript\", \"0.23.2\"], [\"tzdata\", \"2026.5\"], [\"urllib3\", \"2.8.0\"], [\"watchdog\", \"6.0.0\"]]}\n",
+      "stderr": ""
+    },
+    {
+      "label": "uv-A-cli",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-m",
+        "genia.interpreter",
+        "-c",
+        "1 + 1"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "2\n",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'genia.interpreter' found in sys.modules after import of package 'genia', but prior to execution of 'genia.interpreter'; this may result in unpredictable behaviour\n"
+    },
+    {
+      "label": "uv-A-public-demo",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-m",
+        "genia.interpreter",
+        "/workspace/work/issue-1285-deterministic/run3/source/examples/validated_pipeline_demo.genia"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "none(\"resource-not-found\", {uri: \"examples/data/validated_pipeline_demo.jsonl\", backend: \"fs\"})\n",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'genia.interpreter' found in sys.modules after import of package 'genia', but prior to execution of 'genia.interpreter'; this may result in unpredictable behaviour\n"
+    },
+    {
+      "label": "uv-B-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: prefix\nActivate with: source prefix/bin/activate\n"
+    },
+    {
+      "label": "uv-B-wheels",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "--link-mode",
+        "copy",
+        "-r",
+        "/workspace/work/issue-1285-deterministic/run3/uv-B-wheels.requirements.txt"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nResolved 47 packages in 7ms\nPrepared 47 packages in 1.41s\nInstalled 47 packages in 1.11s\n + babel==2.18.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/babel-2.18.0-py3-none-any.whl)\n + backrefs==8.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/backrefs-8.1-py312-none-any.whl)\n + certifi==2026.10.23 (from file:///workspace/work/issue-1285-deterministic/run3/stage/certifi-2026.10.23-py3-none-any.whl)\n + charset-normalizer==3.5.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + click==8.5.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/click-8.5.0-py3-none-any.whl)\n + colorama==0.4.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/colorama-0.4.6-py2.py3-none-any.whl)\n + coverage==7.17.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/coverage-7.17.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl)\n + editables==0.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/editables-0.6-py3-none-any.whl)\n + execnet==2.1.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/execnet-2.1.2-py3-none-any.whl)\n + ghp-import==2.1.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/ghp_import-2.1.0-py3-none-any.whl)\n + hatchling==1.32.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/hatchling-1.32.4-py3-none-any.whl)\n + idna==3.20 (from file:///workspace/work/issue-1285-deterministic/run3/stage/idna-3.20-py3-none-any.whl)\n + iniconfig==2.3.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/iniconfig-2.3.1-py3-none-any.whl)\n + jinja2==3.1.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/jinja2-3.1.6-py3-none-any.whl)\n + markdown==3.11.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/markdown-3.11.2-py3-none-any.whl)\n + markupsafe==3.0.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + mergedeep==1.3.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mergedeep-1.3.4-py3-none-any.whl)\n + mkdocs==1.6.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mkdocs-1.6.1-py3-none-any.whl)\n + mkdocs-get-deps==0.2.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mkdocs_get_deps-0.2.2-py3-none-any.whl)\n + mkdocs-material==9.8.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mkdocs_material-9.8.0-py3-none-any.whl)\n + mkdocs-material-extensions==1.3.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/mkdocs_material_extensions-1.3.1-py3-none-any.whl)\n + packaging==26.3 (from file:///workspace/work/issue-1285-deterministic/run3/stage/packaging-26.3-py3-none-any.whl)\n + paginate==0.5.7 (from file:///workspace/work/issue-1285-deterministic/run3/stage/paginate-0.5.7-py2.py3-none-any.whl)\n + pathspec==1.1.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pathspec-1.1.1-py3-none-any.whl)\n + platformdirs==4.13.5 (from file:///workspace/work/issue-1285-deterministic/run3/stage/platformdirs-4.13.5-py3-none-any.whl)\n + pluggy==1.7.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pluggy-1.7.0-py3-none-any.whl)\n + pygments==2.21.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pygments-2.21.0-py3-none-any.whl)\n + pymdown-extensions==12.3 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pymdown_extensions-12.3-py3-none-any.whl)\n + pytest==9.1.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pytest-9.1.1-py3-none-any.whl)\n + pytest-cov==7.1.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pytest_cov-7.1.0-py3-none-any.whl)\n + pytest-xdist==3.8.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pytest_xdist-3.8.0-py3-none-any.whl)\n + python-dateutil==3.0.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/python_dateutil-3.0.0-py2.py3-none-any.whl)\n + pyyaml==6.0.3 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + pyyaml-env-tag==1.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pyyaml_env_tag-1.1-py3-none-any.whl)\n + requests==2.34.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/requests-2.34.2-py3-none-any.whl)\n + ruff==0.15.18 (from file:///workspace/work/issue-1285-deterministic/run3/stage/ruff-0.15.18-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl)\n + six==1.17.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/six-1.17.0-py2.py3-none-any.whl)\n + tomlkit==0.15.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tomlkit-0.15.2-py3-none-any.whl)\n + tree-sitter==0.25.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + tree-sitter-bash==0.25.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)\n + tree-sitter-cpp==0.23.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter_cpp-0.23.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl)\n + tree-sitter-rust==0.24.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl)\n + tree-sitter-typescript==0.23.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl)\n + trove-classifiers==2026.9.21.13 (from file:///workspace/work/issue-1285-deterministic/run3/stage/trove_classifiers-2026.9.21.13-py3-none-any.whl)\n + tzdata==2026.5 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tzdata-2026.5-py2.py3-none-any.whl)\n + urllib3==2.8.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/urllib3-2.8.0-py3-none-any.whl)\n + watchdog==6.0.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl)\n"
+    },
+    {
+      "label": "uv-B-editable",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline",
+        "--no-index",
+        "--no-deps",
+        "--no-build-isolation",
+        "-e",
+        "/workspace/work/issue-1285-deterministic/run3/source"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nResolved 1 package in 0.86ms\n   Building genia @ file:///workspace/work/issue-1285-deterministic/run3/source\n      Built genia @ file:///workspace/work/issue-1285-deterministic/run3/source\nPrepared 1 package in 122ms\nInstalled 1 package in 0.93ms\n + genia==0.1.14 (from file:///workspace/work/issue-1285-deterministic/run3/source)\n"
+    },
+    {
+      "label": "uv-B-remove-backend",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "uninstall",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline",
+        "editables",
+        "hatchling",
+        "tomlkit",
+        "trove-classifiers"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nUninstalled 4 packages in 2ms\n - editables==0.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/editables-0.6-py3-none-any.whl)\n - hatchling==1.32.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/hatchling-1.32.4-py3-none-any.whl)\n - tomlkit==0.15.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tomlkit-0.15.2-py3-none-any.whl)\n - trove-classifiers==2026.9.21.13 (from file:///workspace/work/issue-1285-deterministic/run3/stage/trove_classifiers-2026.9.21.13-py3-none-any.whl)\n"
+    },
+    {
+      "label": "uv-B-pip-check",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nChecked 44 packages in 0.54ms\nAll installed packages are compatible\n"
+    },
+    {
+      "label": "uv-B-import",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import genia,importlib.metadata,json,sys,site; print(json.dumps({\"genia_file\":genia.__file__,\"sys_path\":sys.path,\"user_site\":site.ENABLE_USER_SITE,\"distributions\":sorted((d.metadata[\"Name\"].lower().replace(\"_\",\"-\"),d.version) for d in importlib.metadata.distributions())}))"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "{\"genia_file\": \"/workspace/work/issue-1285-deterministic/run3/source/src/genia/__init__.py\", \"sys_path\": [\"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip\", \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12\", \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload\", \"/workspace/work/issue-1285-deterministic/run3/prefix/lib/python3.12/site-packages\", \"/workspace/work/issue-1285-deterministic/run3/source/src\"], \"user_site\": false, \"distributions\": [[\"babel\", \"2.18.0\"], [\"backrefs\", \"8.1\"], [\"certifi\", \"2026.10.23\"], [\"charset-normalizer\", \"3.5.2\"], [\"click\", \"8.5.0\"], [\"colorama\", \"0.4.6\"], [\"coverage\", \"7.17.0\"], [\"execnet\", \"2.1.2\"], [\"genia\", \"0.1.14\"], [\"ghp-import\", \"2.1.0\"], [\"idna\", \"3.20\"], [\"iniconfig\", \"2.3.1\"], [\"jinja2\", \"3.1.6\"], [\"markdown\", \"3.11.2\"], [\"markupsafe\", \"3.0.4\"], [\"mergedeep\", \"1.3.4\"], [\"mkdocs\", \"1.6.1\"], [\"mkdocs-get-deps\", \"0.2.2\"], [\"mkdocs-material\", \"9.8.0\"], [\"mkdocs-material-extensions\", \"1.3.1\"], [\"packaging\", \"26.3\"], [\"paginate\", \"0.5.7\"], [\"pathspec\", \"1.1.1\"], [\"platformdirs\", \"4.13.5\"], [\"pluggy\", \"1.7.0\"], [\"pygments\", \"2.21.0\"], [\"pymdown-extensions\", \"12.3\"], [\"pytest\", \"9.1.1\"], [\"pytest-cov\", \"7.1.0\"], [\"pytest-xdist\", \"3.8.0\"], [\"python-dateutil\", \"3.0.0\"], [\"pyyaml\", \"6.0.3\"], [\"pyyaml-env-tag\", \"1.1\"], [\"requests\", \"2.34.2\"], [\"ruff\", \"0.15.18\"], [\"six\", \"1.17.0\"], [\"tree-sitter\", \"0.25.2\"], [\"tree-sitter-bash\", \"0.25.1\"], [\"tree-sitter-cpp\", \"0.23.4\"], [\"tree-sitter-rust\", \"0.24.2\"], [\"tree-sitter-typescript\", \"0.23.2\"], [\"tzdata\", \"2026.5\"], [\"urllib3\", \"2.8.0\"], [\"watchdog\", \"6.0.0\"]]}\n",
+      "stderr": ""
+    },
+    {
+      "label": "uv-B-cli",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-m",
+        "genia.interpreter",
+        "-c",
+        "1 + 1"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "2\n",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'genia.interpreter' found in sys.modules after import of package 'genia', but prior to execution of 'genia.interpreter'; this may result in unpredictable behaviour\n"
+    },
+    {
+      "label": "uv-B-public-demo",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-m",
+        "genia.interpreter",
+        "/workspace/work/issue-1285-deterministic/run3/source/examples/validated_pipeline_demo.genia"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "none(\"resource-not-found\", {uri: \"examples/data/validated_pipeline_demo.jsonl\", backend: \"fs\"})\n",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'genia.interpreter' found in sys.modules after import of package 'genia', but prior to execution of 'genia.interpreter'; this may result in unpredictable behaviour\n"
+    },
+    {
+      "label": "installer-A-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: prefix\nActivate with: source prefix/bin/activate\n"
+    },
+    {
+      "label": "installer-A-wheels",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-S",
+        "-B",
+        "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+        "--worker",
+        "/workspace/work/issue-1285-deterministic/run3/worker-config.json"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "{\"installer\": \"0.7.0\", \"wheels_installed\": 43}\n",
+      "stderr": ""
+    },
+    {
+      "label": "installer-A-builder-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-deterministic/run3/build-env"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: build-env\nActivate with: source build-env/bin/activate\n"
+    },
+    {
+      "label": "installer-A-backend",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/build-env/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "--link-mode",
+        "copy",
+        "-r",
+        "/workspace/work/issue-1285-deterministic/run3/installer-A-backend.requirements.txt"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: build-env\nResolved 7 packages in 1ms\nPrepared 7 packages in 4ms\nInstalled 7 packages in 7ms\n + editables==0.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/editables-0.6-py3-none-any.whl)\n + hatchling==1.32.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/hatchling-1.32.4-py3-none-any.whl)\n + packaging==26.3 (from file:///workspace/work/issue-1285-deterministic/run3/stage/packaging-26.3-py3-none-any.whl)\n + pathspec==1.1.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pathspec-1.1.1-py3-none-any.whl)\n + pluggy==1.7.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pluggy-1.7.0-py3-none-any.whl)\n + tomlkit==0.15.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tomlkit-0.15.2-py3-none-any.whl)\n + trove-classifiers==2026.9.21.13 (from file:///workspace/work/issue-1285-deterministic/run3/stage/trove_classifiers-2026.9.21.13-py3-none-any.whl)\n"
+    },
+    {
+      "label": "installer-A-build-editable-wheel",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/build-env/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import hatchling.build,json,sys; print(json.dumps({\"requires\":hatchling.build.get_requires_for_build_editable({}),\"wheel\":hatchling.build.build_editable(sys.argv[1])}))",
+        "/workspace/work/issue-1285-deterministic/run3/editable-wheel"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3/source",
+      "exit_code": 0,
+      "stdout": "{\"requires\": [\"editables~=0.3\"], \"wheel\": \"genia-0.1.14-py3-none-any.whl\"}\n",
+      "stderr": ""
+    },
+    {
+      "label": "installer-A-install-editable-wheel",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-S",
+        "-B",
+        "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+        "--worker",
+        "/workspace/work/issue-1285-deterministic/run3/worker-config.json"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "{\"installer\": \"0.7.0\", \"wheels_installed\": 1}\n",
+      "stderr": ""
+    },
+    {
+      "label": "installer-A-pip-check",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nChecked 44 packages in 24ms\nAll installed packages are compatible\n"
+    },
+    {
+      "label": "installer-A-import",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import genia,importlib.metadata,json,sys,site; print(json.dumps({\"genia_file\":genia.__file__,\"sys_path\":sys.path,\"user_site\":site.ENABLE_USER_SITE,\"distributions\":sorted((d.metadata[\"Name\"].lower().replace(\"_\",\"-\"),d.version) for d in importlib.metadata.distributions())}))"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "{\"genia_file\": \"/workspace/work/issue-1285-deterministic/run3/source/src/genia/__init__.py\", \"sys_path\": [\"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip\", \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12\", \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload\", \"/workspace/work/issue-1285-deterministic/run3/prefix/lib/python3.12/site-packages\", \"/workspace/work/issue-1285-deterministic/run3/source/src\"], \"user_site\": false, \"distributions\": [[\"babel\", \"2.18.0\"], [\"backrefs\", \"8.1\"], [\"certifi\", \"2026.10.23\"], [\"charset-normalizer\", \"3.5.2\"], [\"click\", \"8.5.0\"], [\"colorama\", \"0.4.6\"], [\"coverage\", \"7.17.0\"], [\"execnet\", \"2.1.2\"], [\"genia\", \"0.1.14\"], [\"ghp-import\", \"2.1.0\"], [\"idna\", \"3.20\"], [\"iniconfig\", \"2.3.1\"], [\"jinja2\", \"3.1.6\"], [\"markdown\", \"3.11.2\"], [\"markupsafe\", \"3.0.4\"], [\"mergedeep\", \"1.3.4\"], [\"mkdocs\", \"1.6.1\"], [\"mkdocs-get-deps\", \"0.2.2\"], [\"mkdocs-material\", \"9.8.0\"], [\"mkdocs-material-extensions\", \"1.3.1\"], [\"packaging\", \"26.3\"], [\"paginate\", \"0.5.7\"], [\"pathspec\", \"1.1.1\"], [\"platformdirs\", \"4.13.5\"], [\"pluggy\", \"1.7.0\"], [\"pygments\", \"2.21.0\"], [\"pymdown-extensions\", \"12.3\"], [\"pytest\", \"9.1.1\"], [\"pytest-cov\", \"7.1.0\"], [\"pytest-xdist\", \"3.8.0\"], [\"python-dateutil\", \"3.0.0\"], [\"pyyaml\", \"6.0.3\"], [\"pyyaml-env-tag\", \"1.1\"], [\"requests\", \"2.34.2\"], [\"ruff\", \"0.15.18\"], [\"six\", \"1.17.0\"], [\"tree-sitter\", \"0.25.2\"], [\"tree-sitter-bash\", \"0.25.1\"], [\"tree-sitter-cpp\", \"0.23.4\"], [\"tree-sitter-rust\", \"0.24.2\"], [\"tree-sitter-typescript\", \"0.23.2\"], [\"tzdata\", \"2026.5\"], [\"urllib3\", \"2.8.0\"], [\"watchdog\", \"6.0.0\"]]}\n",
+      "stderr": ""
+    },
+    {
+      "label": "installer-A-cli",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-m",
+        "genia.interpreter",
+        "-c",
+        "1 + 1"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "2\n",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'genia.interpreter' found in sys.modules after import of package 'genia', but prior to execution of 'genia.interpreter'; this may result in unpredictable behaviour\n"
+    },
+    {
+      "label": "installer-A-public-demo",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-m",
+        "genia.interpreter",
+        "/workspace/work/issue-1285-deterministic/run3/source/examples/validated_pipeline_demo.genia"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "none(\"resource-not-found\", {uri: \"examples/data/validated_pipeline_demo.jsonl\", backend: \"fs\"})\n",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'genia.interpreter' found in sys.modules after import of package 'genia', but prior to execution of 'genia.interpreter'; this may result in unpredictable behaviour\n"
+    },
+    {
+      "label": "installer-B-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: prefix\nActivate with: source prefix/bin/activate\n"
+    },
+    {
+      "label": "installer-B-wheels",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-S",
+        "-B",
+        "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+        "--worker",
+        "/workspace/work/issue-1285-deterministic/run3/worker-config.json"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "{\"installer\": \"0.7.0\", \"wheels_installed\": 43}\n",
+      "stderr": ""
+    },
+    {
+      "label": "installer-B-builder-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-deterministic/run3/build-env"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: build-env\nActivate with: source build-env/bin/activate\n"
+    },
+    {
+      "label": "installer-B-backend",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/build-env/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "--link-mode",
+        "copy",
+        "-r",
+        "/workspace/work/issue-1285-deterministic/run3/installer-B-backend.requirements.txt"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: build-env\nResolved 7 packages in 1ms\nPrepared 7 packages in 5ms\nInstalled 7 packages in 7ms\n + editables==0.6 (from file:///workspace/work/issue-1285-deterministic/run3/stage/editables-0.6-py3-none-any.whl)\n + hatchling==1.32.4 (from file:///workspace/work/issue-1285-deterministic/run3/stage/hatchling-1.32.4-py3-none-any.whl)\n + packaging==26.3 (from file:///workspace/work/issue-1285-deterministic/run3/stage/packaging-26.3-py3-none-any.whl)\n + pathspec==1.1.1 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pathspec-1.1.1-py3-none-any.whl)\n + pluggy==1.7.0 (from file:///workspace/work/issue-1285-deterministic/run3/stage/pluggy-1.7.0-py3-none-any.whl)\n + tomlkit==0.15.2 (from file:///workspace/work/issue-1285-deterministic/run3/stage/tomlkit-0.15.2-py3-none-any.whl)\n + trove-classifiers==2026.9.21.13 (from file:///workspace/work/issue-1285-deterministic/run3/stage/trove_classifiers-2026.9.21.13-py3-none-any.whl)\n"
+    },
+    {
+      "label": "installer-B-build-editable-wheel",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/build-env/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import hatchling.build,json,sys; print(json.dumps({\"requires\":hatchling.build.get_requires_for_build_editable({}),\"wheel\":hatchling.build.build_editable(sys.argv[1])}))",
+        "/workspace/work/issue-1285-deterministic/run3/editable-wheel"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3/source",
+      "exit_code": 0,
+      "stdout": "{\"requires\": [\"editables~=0.3\"], \"wheel\": \"genia-0.1.14-py3-none-any.whl\"}\n",
+      "stderr": ""
+    },
+    {
+      "label": "installer-B-install-editable-wheel",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-S",
+        "-B",
+        "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+        "--worker",
+        "/workspace/work/issue-1285-deterministic/run3/worker-config.json"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "{\"installer\": \"0.7.0\", \"wheels_installed\": 1}\n",
+      "stderr": ""
+    },
+    {
+      "label": "installer-B-pip-check",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "--offline"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: prefix\nChecked 44 packages in 24ms\nAll installed packages are compatible\n"
+    },
+    {
+      "label": "installer-B-import",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import genia,importlib.metadata,json,sys,site; print(json.dumps({\"genia_file\":genia.__file__,\"sys_path\":sys.path,\"user_site\":site.ENABLE_USER_SITE,\"distributions\":sorted((d.metadata[\"Name\"].lower().replace(\"_\",\"-\"),d.version) for d in importlib.metadata.distributions())}))"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "{\"genia_file\": \"/workspace/work/issue-1285-deterministic/run3/source/src/genia/__init__.py\", \"sys_path\": [\"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip\", \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12\", \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload\", \"/workspace/work/issue-1285-deterministic/run3/prefix/lib/python3.12/site-packages\", \"/workspace/work/issue-1285-deterministic/run3/source/src\"], \"user_site\": false, \"distributions\": [[\"babel\", \"2.18.0\"], [\"backrefs\", \"8.1\"], [\"certifi\", \"2026.10.23\"], [\"charset-normalizer\", \"3.5.2\"], [\"click\", \"8.5.0\"], [\"colorama\", \"0.4.6\"], [\"coverage\", \"7.17.0\"], [\"execnet\", \"2.1.2\"], [\"genia\", \"0.1.14\"], [\"ghp-import\", \"2.1.0\"], [\"idna\", \"3.20\"], [\"iniconfig\", \"2.3.1\"], [\"jinja2\", \"3.1.6\"], [\"markdown\", \"3.11.2\"], [\"markupsafe\", \"3.0.4\"], [\"mergedeep\", \"1.3.4\"], [\"mkdocs\", \"1.6.1\"], [\"mkdocs-get-deps\", \"0.2.2\"], [\"mkdocs-material\", \"9.8.0\"], [\"mkdocs-material-extensions\", \"1.3.1\"], [\"packaging\", \"26.3\"], [\"paginate\", \"0.5.7\"], [\"pathspec\", \"1.1.1\"], [\"platformdirs\", \"4.13.5\"], [\"pluggy\", \"1.7.0\"], [\"pygments\", \"2.21.0\"], [\"pymdown-extensions\", \"12.3\"], [\"pytest\", \"9.1.1\"], [\"pytest-cov\", \"7.1.0\"], [\"pytest-xdist\", \"3.8.0\"], [\"python-dateutil\", \"3.0.0\"], [\"pyyaml\", \"6.0.3\"], [\"pyyaml-env-tag\", \"1.1\"], [\"requests\", \"2.34.2\"], [\"ruff\", \"0.15.18\"], [\"six\", \"1.17.0\"], [\"tree-sitter\", \"0.25.2\"], [\"tree-sitter-bash\", \"0.25.1\"], [\"tree-sitter-cpp\", \"0.23.4\"], [\"tree-sitter-rust\", \"0.24.2\"], [\"tree-sitter-typescript\", \"0.23.2\"], [\"tzdata\", \"2026.5\"], [\"urllib3\", \"2.8.0\"], [\"watchdog\", \"6.0.0\"]]}\n",
+      "stderr": ""
+    },
+    {
+      "label": "installer-B-cli",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-m",
+        "genia.interpreter",
+        "-c",
+        "1 + 1"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "2\n",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'genia.interpreter' found in sys.modules after import of package 'genia', but prior to execution of 'genia.interpreter'; this may result in unpredictable behaviour\n"
+    },
+    {
+      "label": "installer-B-public-demo",
+      "argv": [
+        "/workspace/work/issue-1285-deterministic/run3/prefix/bin/python",
+        "-I",
+        "-B",
+        "-m",
+        "genia.interpreter",
+        "/workspace/work/issue-1285-deterministic/run3/source/examples/validated_pipeline_demo.genia"
+      ],
+      "cwd": "/workspace/work/issue-1285-deterministic/run3",
+      "exit_code": 0,
+      "stdout": "none(\"resource-not-found\", {uri: \"examples/data/validated_pipeline_demo.jsonl\", backend: \"fs\"})\n",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'genia.interpreter' found in sys.modules after import of package 'genia', but prior to execution of 'genia.interpreter'; this may result in unpredictable behaviour\n"
+    }
+  ],
+  "cases": {
+    "uv-A": {
+      "wheels": [
+        {
+          "name": "babel",
+          "version": "2.18.0",
+          "sha256": "e2b422b277c2b9a9630c1d7903c2a00d0830c409c59ac8cae9081c92f1aeba35",
+          "ctime_ns": 1793825411154184724,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "backrefs",
+          "version": "8.1",
+          "sha256": "b472c76082769f86a97ffccfd1f2599b2b706610c6154955664fffe67e909035",
+          "ctime_ns": 1793825411155898690,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.23",
+          "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+          "ctime_ns": 1793825411156046171,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.5.2",
+          "sha256": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649",
+          "ctime_ns": 1793825411156217617,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "click",
+          "version": "8.5.0",
+          "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
+          "ctime_ns": 1793825411156326781,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6",
+          "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+          "ctime_ns": 1793825411156376805,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "coverage",
+          "version": "7.17.0",
+          "sha256": "85932227e9dd38e62cd29c17fefdfecfb919eead6af1e3259522d03cf85de983",
+          "ctime_ns": 1793825411156536464,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "editables",
+          "version": "0.6",
+          "sha256": "d70e4698078a1d033e7786d9c64e5be070d058a67c21417024d38a58ac20aa43",
+          "ctime_ns": 1793825411156601792,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "execnet",
+          "version": "2.1.2",
+          "sha256": "67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec",
+          "ctime_ns": 1793825411156649133,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "ghp-import",
+          "version": "2.1.0",
+          "sha256": "8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619",
+          "ctime_ns": 1793825411156685067,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "hatchling",
+          "version": "1.32.4",
+          "sha256": "08ecf7548fb48205e7f213d70c71e67b8271b7242093dc3f1da578b42c734a2c",
+          "ctime_ns": 1793825411156775512,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "idna",
+          "version": "3.20",
+          "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+          "ctime_ns": 1793825411156845407,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.1",
+          "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
+          "ctime_ns": 1793825411156878737,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "jinja2",
+          "version": "3.1.6",
+          "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+          "ctime_ns": 1793825411156968722,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "markdown",
+          "version": "3.11.2",
+          "sha256": "f80390747a2a0ff2ba54da074ce4f862f72a6685f608cd2637b646a6d83993f5",
+          "ctime_ns": 1793825411157059517,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "markupsafe",
+          "version": "3.0.4",
+          "sha256": "8e124f974786f831d6043728e38296969d3579db8896fe004682f5758e613581",
+          "ctime_ns": 1793825411157105056,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mergedeep",
+          "version": "1.3.4",
+          "sha256": "70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307",
+          "ctime_ns": 1793825411157133879,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs",
+          "version": "1.6.1",
+          "sha256": "db91759624d1647f3f34aa0c3f327dd2601beae39a366d6e064c03468d35c20e",
+          "ctime_ns": 1793825411159657356,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-get-deps",
+          "version": "0.2.2",
+          "sha256": "e7878cbeac04860b8b5e0ca31d3abad3df9411a75a32cde82f8e44b6c16ff650",
+          "ctime_ns": 1793825411160034000,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-material",
+          "version": "9.8.0",
+          "sha256": "19304a7263c5700428227122b3b2699aa73f432c9de8816876adaec7d7293ce3",
+          "ctime_ns": 1793825411165735565,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-material-extensions",
+          "version": "1.3.1",
+          "sha256": "adff8b62700b25cb77b53358dad940f3ef973dd6db797907c49e3c2ef3ab4e31",
+          "ctime_ns": 1793825411166703403,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "packaging",
+          "version": "26.3",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+          "ctime_ns": 1793825411166811375,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "paginate",
+          "version": "0.5.7",
+          "sha256": "b885e2af73abcf01d9559fd5216b57ef722f8c42affbb63942377668e35c7591",
+          "ctime_ns": 1793825411166856352,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pathspec",
+          "version": "1.1.1",
+          "sha256": "a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189",
+          "ctime_ns": 1793825411166912777,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.13.5",
+          "sha256": "53d3ec4280b815c1e0b02edad7f9ee8fda1ba9c0865dd9c2e6e63849ce82fc1e",
+          "ctime_ns": 1793825411166959166,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pluggy",
+          "version": "1.7.0",
+          "sha256": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec",
+          "ctime_ns": 1793825411167001439,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pygments",
+          "version": "2.21.0",
+          "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+          "ctime_ns": 1793825411167642719,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pymdown-extensions",
+          "version": "12.3",
+          "sha256": "345493a8e3497e24382902903a1c43a28e34a52f2b7571a1c9641429b820ca74",
+          "ctime_ns": 1793825411167895257,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest",
+          "version": "9.1.1",
+          "sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c",
+          "ctime_ns": 1793825411168130299,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest-cov",
+          "version": "7.1.0",
+          "sha256": "a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678",
+          "ctime_ns": 1793825411168193654,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest-xdist",
+          "version": "3.8.0",
+          "sha256": "202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88",
+          "ctime_ns": 1793825411168245612,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "python-dateutil",
+          "version": "3.0.0",
+          "sha256": "3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd",
+          "ctime_ns": 1793825411168324109,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pyyaml",
+          "version": "6.0.3",
+          "sha256": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc",
+          "ctime_ns": 1793825411168769085,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pyyaml-env-tag",
+          "version": "1.1",
+          "sha256": "17109e1a528561e32f026364712fee1264bc2ea6715120891174ed1b980d2e04",
+          "ctime_ns": 1793825411168844618,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2",
+          "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+          "ctime_ns": 1793825411168911639,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "ruff",
+          "version": "0.15.18",
+          "sha256": "5f0480ce690cbb6c4db6e5d08f19fce98e10ba131a8b60c1bcdac42771e3ae2d",
+          "ctime_ns": 1793825411176825754,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "six",
+          "version": "1.17.0",
+          "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+          "ctime_ns": 1793825411178329265,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tomlkit",
+          "version": "0.15.2",
+          "sha256": "05562412163a3037b94497385fb7f9204c637bc605af7a48199e41cf2272f437",
+          "ctime_ns": 1793825411178410607,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter",
+          "version": "0.25.2",
+          "sha256": "b43a9e4c89d4d0839de27cd4d6902d33396de700e9ff4c5ab7631f277a85ead9",
+          "ctime_ns": 1793825411178776144,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-bash",
+          "version": "0.25.1",
+          "sha256": "3f484c4bb8796cde7a87ca351e6116f09653edac0eb3c6d238566359dd28b117",
+          "ctime_ns": 1793825411178960570,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-cpp",
+          "version": "0.23.4",
+          "sha256": "773d2cafc08bbc0f998687fa33f42f378c1a371cdb582870c4d13abb06092706",
+          "ctime_ns": 1793825411179157665,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-rust",
+          "version": "0.24.2",
+          "sha256": "e033c5a93b57c88e0a835880de39fc802909ff69f57aaff6000211c196ea5190",
+          "ctime_ns": 1793825411179288280,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-typescript",
+          "version": "0.23.2",
+          "sha256": "e96d36b85bcacdeb8ff5c2618d75593ef12ebaf1b4eace3477e2bdb2abb1752c",
+          "ctime_ns": 1793825411179494499,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "trove-classifiers",
+          "version": "2026.9.21.13",
+          "sha256": "8b1ff4f9c191b1040b71c37f1e445ab99732911e3cd91de52838453a854d7a17",
+          "ctime_ns": 1793825411179559436,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tzdata",
+          "version": "2026.5",
+          "sha256": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac",
+          "ctime_ns": 1793825411179774799,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0",
+          "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+          "ctime_ns": 1793825411179889891,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "watchdog",
+          "version": "6.0.0",
+          "sha256": "20ffe5b202af80ab4266dcd3e91aae72bf2da48c0d33bdb15c66658e685e94e2",
+          "ctime_ns": 1793825411179965003,
+          "mtime_ns": 1793034850000000000
+        }
+      ],
+      "source_pyproject_ctime_ns": 1793825410976220158,
+      "source_src_ctime_ns": 1793825411061075024,
+      "import_check": {
+        "genia_file": "/workspace/work/issue-1285-deterministic/run3/source/src/genia/__init__.py",
+        "sys_path": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/work/issue-1285-deterministic/run3/prefix/lib/python3.12/site-packages",
+          "/workspace/work/issue-1285-deterministic/run3/source/src"
+        ],
+        "user_site": false,
+        "distributions": [
+          [
+            "babel",
+            "2.18.0"
+          ],
+          [
+            "backrefs",
+            "8.1"
+          ],
+          [
+            "certifi",
+            "2026.10.23"
+          ],
+          [
+            "charset-normalizer",
+            "3.5.2"
+          ],
+          [
+            "click",
+            "8.5.0"
+          ],
+          [
+            "colorama",
+            "0.4.6"
+          ],
+          [
+            "coverage",
+            "7.17.0"
+          ],
+          [
+            "execnet",
+            "2.1.2"
+          ],
+          [
+            "genia",
+            "0.1.14"
+          ],
+          [
+            "ghp-import",
+            "2.1.0"
+          ],
+          [
+            "idna",
+            "3.20"
+          ],
+          [
+            "iniconfig",
+            "2.3.1"
+          ],
+          [
+            "jinja2",
+            "3.1.6"
+          ],
+          [
+            "markdown",
+            "3.11.2"
+          ],
+          [
+            "markupsafe",
+            "3.0.4"
+          ],
+          [
+            "mergedeep",
+            "1.3.4"
+          ],
+          [
+            "mkdocs",
+            "1.6.1"
+          ],
+          [
+            "mkdocs-get-deps",
+            "0.2.2"
+          ],
+          [
+            "mkdocs-material",
+            "9.8.0"
+          ],
+          [
+            "mkdocs-material-extensions",
+            "1.3.1"
+          ],
+          [
+            "packaging",
+            "26.3"
+          ],
+          [
+            "paginate",
+            "0.5.7"
+          ],
+          [
+            "pathspec",
+            "1.1.1"
+          ],
+          [
+            "platformdirs",
+            "4.13.5"
+          ],
+          [
+            "pluggy",
+            "1.7.0"
+          ],
+          [
+            "pygments",
+            "2.21.0"
+          ],
+          [
+            "pymdown-extensions",
+            "12.3"
+          ],
+          [
+            "pytest",
+            "9.1.1"
+          ],
+          [
+            "pytest-cov",
+            "7.1.0"
+          ],
+          [
+            "pytest-xdist",
+            "3.8.0"
+          ],
+          [
+            "python-dateutil",
+            "3.0.0"
+          ],
+          [
+            "pyyaml",
+            "6.0.3"
+          ],
+          [
+            "pyyaml-env-tag",
+            "1.1"
+          ],
+          [
+            "requests",
+            "2.34.2"
+          ],
+          [
+            "ruff",
+            "0.15.18"
+          ],
+          [
+            "six",
+            "1.17.0"
+          ],
+          [
+            "tree-sitter",
+            "0.25.2"
+          ],
+          [
+            "tree-sitter-bash",
+            "0.25.1"
+          ],
+          [
+            "tree-sitter-cpp",
+            "0.23.4"
+          ],
+          [
+            "tree-sitter-rust",
+            "0.24.2"
+          ],
+          [
+            "tree-sitter-typescript",
+            "0.23.2"
+          ],
+          [
+            "tzdata",
+            "2026.5"
+          ],
+          [
+            "urllib3",
+            "2.8.0"
+          ],
+          [
+            "watchdog",
+            "6.0.0"
+          ]
+        ]
+      }
+    },
+    "uv-B": {
+      "wheels": [
+        {
+          "name": "babel",
+          "version": "2.18.0",
+          "sha256": "e2b422b277c2b9a9630c1d7903c2a00d0830c409c59ac8cae9081c92f1aeba35",
+          "ctime_ns": 1793825417298158886,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "backrefs",
+          "version": "8.1",
+          "sha256": "b472c76082769f86a97ffccfd1f2599b2b706610c6154955664fffe67e909035",
+          "ctime_ns": 1793825417299264621,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.23",
+          "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+          "ctime_ns": 1793825417299389338,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.5.2",
+          "sha256": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649",
+          "ctime_ns": 1793825417299564230,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "click",
+          "version": "8.5.0",
+          "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
+          "ctime_ns": 1793825417299683939,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6",
+          "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+          "ctime_ns": 1793825417299734314,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "coverage",
+          "version": "7.17.0",
+          "sha256": "85932227e9dd38e62cd29c17fefdfecfb919eead6af1e3259522d03cf85de983",
+          "ctime_ns": 1793825417299911940,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "editables",
+          "version": "0.6",
+          "sha256": "d70e4698078a1d033e7786d9c64e5be070d058a67c21417024d38a58ac20aa43",
+          "ctime_ns": 1793825417299975906,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "execnet",
+          "version": "2.1.2",
+          "sha256": "67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec",
+          "ctime_ns": 1793825417300027874,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "ghp-import",
+          "version": "2.1.0",
+          "sha256": "8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619",
+          "ctime_ns": 1793825417300064659,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "hatchling",
+          "version": "1.32.4",
+          "sha256": "08ecf7548fb48205e7f213d70c71e67b8271b7242093dc3f1da578b42c734a2c",
+          "ctime_ns": 1793825417300137027,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "idna",
+          "version": "3.20",
+          "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+          "ctime_ns": 1793825417300203987,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.1",
+          "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
+          "ctime_ns": 1793825417300239911,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "jinja2",
+          "version": "3.1.6",
+          "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+          "ctime_ns": 1793825417300331999,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "markdown",
+          "version": "3.11.2",
+          "sha256": "f80390747a2a0ff2ba54da074ce4f862f72a6685f608cd2637b646a6d83993f5",
+          "ctime_ns": 1793825417300424197,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "markupsafe",
+          "version": "3.0.4",
+          "sha256": "8e124f974786f831d6043728e38296969d3579db8896fe004682f5758e613581",
+          "ctime_ns": 1793825417300471498,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mergedeep",
+          "version": "1.3.4",
+          "sha256": "70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307",
+          "ctime_ns": 1793825417300504086,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs",
+          "version": "1.6.1",
+          "sha256": "db91759624d1647f3f34aa0c3f327dd2601beae39a366d6e064c03468d35c20e",
+          "ctime_ns": 1793825417302532132,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-get-deps",
+          "version": "0.2.2",
+          "sha256": "e7878cbeac04860b8b5e0ca31d3abad3df9411a75a32cde82f8e44b6c16ff650",
+          "ctime_ns": 1793825417302841225,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-material",
+          "version": "9.8.0",
+          "sha256": "19304a7263c5700428227122b3b2699aa73f432c9de8816876adaec7d7293ce3",
+          "ctime_ns": 1793825417307610824,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-material-extensions",
+          "version": "1.3.1",
+          "sha256": "adff8b62700b25cb77b53358dad940f3ef973dd6db797907c49e3c2ef3ab4e31",
+          "ctime_ns": 1793825417308209761,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "packaging",
+          "version": "26.3",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+          "ctime_ns": 1793825417308305815,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "paginate",
+          "version": "0.5.7",
+          "sha256": "b885e2af73abcf01d9559fd5216b57ef722f8c42affbb63942377668e35c7591",
+          "ctime_ns": 1793825417308351313,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pathspec",
+          "version": "1.1.1",
+          "sha256": "a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189",
+          "ctime_ns": 1793825417308413726,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.13.5",
+          "sha256": "53d3ec4280b815c1e0b02edad7f9ee8fda1ba9c0865dd9c2e6e63849ce82fc1e",
+          "ctime_ns": 1793825417308461578,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pluggy",
+          "version": "1.7.0",
+          "sha256": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec",
+          "ctime_ns": 1793825417308503491,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pygments",
+          "version": "2.21.0",
+          "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+          "ctime_ns": 1793825417309177890,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pymdown-extensions",
+          "version": "12.3",
+          "sha256": "345493a8e3497e24382902903a1c43a28e34a52f2b7571a1c9641429b820ca74",
+          "ctime_ns": 1793825417309458951,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest",
+          "version": "9.1.1",
+          "sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c",
+          "ctime_ns": 1793825417309699891,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest-cov",
+          "version": "7.1.0",
+          "sha256": "a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678",
+          "ctime_ns": 1793825417309788404,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest-xdist",
+          "version": "3.8.0",
+          "sha256": "202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88",
+          "ctime_ns": 1793825417309842815,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "python-dateutil",
+          "version": "3.0.0",
+          "sha256": "3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd",
+          "ctime_ns": 1793825417309923436,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pyyaml",
+          "version": "6.0.3",
+          "sha256": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc",
+          "ctime_ns": 1793825417310362113,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pyyaml-env-tag",
+          "version": "1.1",
+          "sha256": "17109e1a528561e32f026364712fee1264bc2ea6715120891174ed1b980d2e04",
+          "ctime_ns": 1793825417310444907,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2",
+          "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+          "ctime_ns": 1793825417310507921,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "ruff",
+          "version": "0.15.18",
+          "sha256": "5f0480ce690cbb6c4db6e5d08f19fce98e10ba131a8b60c1bcdac42771e3ae2d",
+          "ctime_ns": 1793825417316293811,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "six",
+          "version": "1.17.0",
+          "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+          "ctime_ns": 1793825417316996252,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tomlkit",
+          "version": "0.15.2",
+          "sha256": "05562412163a3037b94497385fb7f9204c637bc605af7a48199e41cf2272f437",
+          "ctime_ns": 1793825417317070994,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter",
+          "version": "0.25.2",
+          "sha256": "b43a9e4c89d4d0839de27cd4d6902d33396de700e9ff4c5ab7631f277a85ead9",
+          "ctime_ns": 1793825417317452104,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-bash",
+          "version": "0.25.1",
+          "sha256": "3f484c4bb8796cde7a87ca351e6116f09653edac0eb3c6d238566359dd28b117",
+          "ctime_ns": 1793825417317643451,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-cpp",
+          "version": "0.23.4",
+          "sha256": "773d2cafc08bbc0f998687fa33f42f378c1a371cdb582870c4d13abb06092706",
+          "ctime_ns": 1793825417317870981,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-rust",
+          "version": "0.24.2",
+          "sha256": "e033c5a93b57c88e0a835880de39fc802909ff69f57aaff6000211c196ea5190",
+          "ctime_ns": 1793825417318007456,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-typescript",
+          "version": "0.23.2",
+          "sha256": "e96d36b85bcacdeb8ff5c2618d75593ef12ebaf1b4eace3477e2bdb2abb1752c",
+          "ctime_ns": 1793825417318217320,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "trove-classifiers",
+          "version": "2026.9.21.13",
+          "sha256": "8b1ff4f9c191b1040b71c37f1e445ab99732911e3cd91de52838453a854d7a17",
+          "ctime_ns": 1793825417318285872,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tzdata",
+          "version": "2026.5",
+          "sha256": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac",
+          "ctime_ns": 1793825417318489738,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0",
+          "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+          "ctime_ns": 1793825417318604900,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "watchdog",
+          "version": "6.0.0",
+          "sha256": "20ffe5b202af80ab4266dcd3e91aae72bf2da48c0d33bdb15c66658e685e94e2",
+          "ctime_ns": 1793825417318682246,
+          "mtime_ns": 1793034850000000000
+        }
+      ],
+      "source_pyproject_ctime_ns": 1793825417085260092,
+      "source_src_ctime_ns": 1793825417207612027,
+      "import_check": {
+        "genia_file": "/workspace/work/issue-1285-deterministic/run3/source/src/genia/__init__.py",
+        "sys_path": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/work/issue-1285-deterministic/run3/prefix/lib/python3.12/site-packages",
+          "/workspace/work/issue-1285-deterministic/run3/source/src"
+        ],
+        "user_site": false,
+        "distributions": [
+          [
+            "babel",
+            "2.18.0"
+          ],
+          [
+            "backrefs",
+            "8.1"
+          ],
+          [
+            "certifi",
+            "2026.10.23"
+          ],
+          [
+            "charset-normalizer",
+            "3.5.2"
+          ],
+          [
+            "click",
+            "8.5.0"
+          ],
+          [
+            "colorama",
+            "0.4.6"
+          ],
+          [
+            "coverage",
+            "7.17.0"
+          ],
+          [
+            "execnet",
+            "2.1.2"
+          ],
+          [
+            "genia",
+            "0.1.14"
+          ],
+          [
+            "ghp-import",
+            "2.1.0"
+          ],
+          [
+            "idna",
+            "3.20"
+          ],
+          [
+            "iniconfig",
+            "2.3.1"
+          ],
+          [
+            "jinja2",
+            "3.1.6"
+          ],
+          [
+            "markdown",
+            "3.11.2"
+          ],
+          [
+            "markupsafe",
+            "3.0.4"
+          ],
+          [
+            "mergedeep",
+            "1.3.4"
+          ],
+          [
+            "mkdocs",
+            "1.6.1"
+          ],
+          [
+            "mkdocs-get-deps",
+            "0.2.2"
+          ],
+          [
+            "mkdocs-material",
+            "9.8.0"
+          ],
+          [
+            "mkdocs-material-extensions",
+            "1.3.1"
+          ],
+          [
+            "packaging",
+            "26.3"
+          ],
+          [
+            "paginate",
+            "0.5.7"
+          ],
+          [
+            "pathspec",
+            "1.1.1"
+          ],
+          [
+            "platformdirs",
+            "4.13.5"
+          ],
+          [
+            "pluggy",
+            "1.7.0"
+          ],
+          [
+            "pygments",
+            "2.21.0"
+          ],
+          [
+            "pymdown-extensions",
+            "12.3"
+          ],
+          [
+            "pytest",
+            "9.1.1"
+          ],
+          [
+            "pytest-cov",
+            "7.1.0"
+          ],
+          [
+            "pytest-xdist",
+            "3.8.0"
+          ],
+          [
+            "python-dateutil",
+            "3.0.0"
+          ],
+          [
+            "pyyaml",
+            "6.0.3"
+          ],
+          [
+            "pyyaml-env-tag",
+            "1.1"
+          ],
+          [
+            "requests",
+            "2.34.2"
+          ],
+          [
+            "ruff",
+            "0.15.18"
+          ],
+          [
+            "six",
+            "1.17.0"
+          ],
+          [
+            "tree-sitter",
+            "0.25.2"
+          ],
+          [
+            "tree-sitter-bash",
+            "0.25.1"
+          ],
+          [
+            "tree-sitter-cpp",
+            "0.23.4"
+          ],
+          [
+            "tree-sitter-rust",
+            "0.24.2"
+          ],
+          [
+            "tree-sitter-typescript",
+            "0.23.2"
+          ],
+          [
+            "tzdata",
+            "2026.5"
+          ],
+          [
+            "urllib3",
+            "2.8.0"
+          ],
+          [
+            "watchdog",
+            "6.0.0"
+          ]
+        ]
+      }
+    },
+    "installer-A": {
+      "wheels": [
+        {
+          "name": "babel",
+          "version": "2.18.0",
+          "sha256": "e2b422b277c2b9a9630c1d7903c2a00d0830c409c59ac8cae9081c92f1aeba35",
+          "ctime_ns": 1793825428846631631,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "backrefs",
+          "version": "8.1",
+          "sha256": "b472c76082769f86a97ffccfd1f2599b2b706610c6154955664fffe67e909035",
+          "ctime_ns": 1793825428847576715,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.23",
+          "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+          "ctime_ns": 1793825428847701882,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.5.2",
+          "sha256": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649",
+          "ctime_ns": 1793825428847891126,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "click",
+          "version": "8.5.0",
+          "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
+          "ctime_ns": 1793825428848004335,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6",
+          "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+          "ctime_ns": 1793825428848057124,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "coverage",
+          "version": "7.17.0",
+          "sha256": "85932227e9dd38e62cd29c17fefdfecfb919eead6af1e3259522d03cf85de983",
+          "ctime_ns": 1793825428848219237,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "editables",
+          "version": "0.6",
+          "sha256": "d70e4698078a1d033e7786d9c64e5be070d058a67c21417024d38a58ac20aa43",
+          "ctime_ns": 1793825428848290513,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "execnet",
+          "version": "2.1.2",
+          "sha256": "67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec",
+          "ctime_ns": 1793825428848338886,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "ghp-import",
+          "version": "2.1.0",
+          "sha256": "8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619",
+          "ctime_ns": 1793825428848375300,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "hatchling",
+          "version": "1.32.4",
+          "sha256": "08ecf7548fb48205e7f213d70c71e67b8271b7242093dc3f1da578b42c734a2c",
+          "ctime_ns": 1793825428848447939,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "idna",
+          "version": "3.20",
+          "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+          "ctime_ns": 1793825428848512996,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.1",
+          "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
+          "ctime_ns": 1793825428848548449,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "jinja2",
+          "version": "3.1.6",
+          "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+          "ctime_ns": 1793825428848639496,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "markdown",
+          "version": "3.11.2",
+          "sha256": "f80390747a2a0ff2ba54da074ce4f862f72a6685f608cd2637b646a6d83993f5",
+          "ctime_ns": 1793825428848730101,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "markupsafe",
+          "version": "3.0.4",
+          "sha256": "8e124f974786f831d6043728e38296969d3579db8896fe004682f5758e613581",
+          "ctime_ns": 1793825428848793626,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mergedeep",
+          "version": "1.3.4",
+          "sha256": "70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307",
+          "ctime_ns": 1793825428848825554,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs",
+          "version": "1.6.1",
+          "sha256": "db91759624d1647f3f34aa0c3f327dd2601beae39a366d6e064c03468d35c20e",
+          "ctime_ns": 1793825428850774440,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-get-deps",
+          "version": "0.2.2",
+          "sha256": "e7878cbeac04860b8b5e0ca31d3abad3df9411a75a32cde82f8e44b6c16ff650",
+          "ctime_ns": 1793825428851027880,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-material",
+          "version": "9.8.0",
+          "sha256": "19304a7263c5700428227122b3b2699aa73f432c9de8816876adaec7d7293ce3",
+          "ctime_ns": 1793825428855586331,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-material-extensions",
+          "version": "1.3.1",
+          "sha256": "adff8b62700b25cb77b53358dad940f3ef973dd6db797907c49e3c2ef3ab4e31",
+          "ctime_ns": 1793825428856185357,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "packaging",
+          "version": "26.3",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+          "ctime_ns": 1793825428856280840,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "paginate",
+          "version": "0.5.7",
+          "sha256": "b885e2af73abcf01d9559fd5216b57ef722f8c42affbb63942377668e35c7591",
+          "ctime_ns": 1793825428856327330,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pathspec",
+          "version": "1.1.1",
+          "sha256": "a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189",
+          "ctime_ns": 1793825428856384535,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.13.5",
+          "sha256": "53d3ec4280b815c1e0b02edad7f9ee8fda1ba9c0865dd9c2e6e63849ce82fc1e",
+          "ctime_ns": 1793825428856433549,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pluggy",
+          "version": "1.7.0",
+          "sha256": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec",
+          "ctime_ns": 1793825428856476273,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pygments",
+          "version": "2.21.0",
+          "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+          "ctime_ns": 1793825428857154327,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pymdown-extensions",
+          "version": "12.3",
+          "sha256": "345493a8e3497e24382902903a1c43a28e34a52f2b7571a1c9641429b820ca74",
+          "ctime_ns": 1793825428857421237,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest",
+          "version": "9.1.1",
+          "sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c",
+          "ctime_ns": 1793825428857663640,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest-cov",
+          "version": "7.1.0",
+          "sha256": "a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678",
+          "ctime_ns": 1793825428857732172,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest-xdist",
+          "version": "3.8.0",
+          "sha256": "202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88",
+          "ctime_ns": 1793825428857801336,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "python-dateutil",
+          "version": "3.0.0",
+          "sha256": "3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd",
+          "ctime_ns": 1793825428857882697,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pyyaml",
+          "version": "6.0.3",
+          "sha256": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc",
+          "ctime_ns": 1793825428858321003,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pyyaml-env-tag",
+          "version": "1.1",
+          "sha256": "17109e1a528561e32f026364712fee1264bc2ea6715120891174ed1b980d2e04",
+          "ctime_ns": 1793825428858405630,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2",
+          "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+          "ctime_ns": 1793825428858468534,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "ruff",
+          "version": "0.15.18",
+          "sha256": "5f0480ce690cbb6c4db6e5d08f19fce98e10ba131a8b60c1bcdac42771e3ae2d",
+          "ctime_ns": 1793825428864361202,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "six",
+          "version": "1.17.0",
+          "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+          "ctime_ns": 1793825428865193978,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tomlkit",
+          "version": "0.15.2",
+          "sha256": "05562412163a3037b94497385fb7f9204c637bc605af7a48199e41cf2272f437",
+          "ctime_ns": 1793825428865271835,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter",
+          "version": "0.25.2",
+          "sha256": "b43a9e4c89d4d0839de27cd4d6902d33396de700e9ff4c5ab7631f277a85ead9",
+          "ctime_ns": 1793825428865635098,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-bash",
+          "version": "0.25.1",
+          "sha256": "3f484c4bb8796cde7a87ca351e6116f09653edac0eb3c6d238566359dd28b117",
+          "ctime_ns": 1793825428865841357,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-cpp",
+          "version": "0.23.4",
+          "sha256": "773d2cafc08bbc0f998687fa33f42f378c1a371cdb582870c4d13abb06092706",
+          "ctime_ns": 1793825428866043900,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-rust",
+          "version": "0.24.2",
+          "sha256": "e033c5a93b57c88e0a835880de39fc802909ff69f57aaff6000211c196ea5190",
+          "ctime_ns": 1793825428866178532,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-typescript",
+          "version": "0.23.2",
+          "sha256": "e96d36b85bcacdeb8ff5c2618d75593ef12ebaf1b4eace3477e2bdb2abb1752c",
+          "ctime_ns": 1793825428866387695,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "trove-classifiers",
+          "version": "2026.9.21.13",
+          "sha256": "8b1ff4f9c191b1040b71c37f1e445ab99732911e3cd91de52838453a854d7a17",
+          "ctime_ns": 1793825428866454154,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tzdata",
+          "version": "2026.5",
+          "sha256": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac",
+          "ctime_ns": 1793825428866653883,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0",
+          "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+          "ctime_ns": 1793825428866788645,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "watchdog",
+          "version": "6.0.0",
+          "sha256": "20ffe5b202af80ab4266dcd3e91aae72bf2da48c0d33bdb15c66658e685e94e2",
+          "ctime_ns": 1793825428866869215,
+          "mtime_ns": 1793034850000000000
+        }
+      ],
+      "source_pyproject_ctime_ns": 1793825428667326193,
+      "source_src_ctime_ns": 1793825428752542664,
+      "editable_wheel_sha256": "ef54b09725bd916eea52ea298d0cffdc7462cad9c0ce8297b4dea1dcb93c2526",
+      "installed_RECORD_entries_verified": 17780,
+      "import_check": {
+        "genia_file": "/workspace/work/issue-1285-deterministic/run3/source/src/genia/__init__.py",
+        "sys_path": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/work/issue-1285-deterministic/run3/prefix/lib/python3.12/site-packages",
+          "/workspace/work/issue-1285-deterministic/run3/source/src"
+        ],
+        "user_site": false,
+        "distributions": [
+          [
+            "babel",
+            "2.18.0"
+          ],
+          [
+            "backrefs",
+            "8.1"
+          ],
+          [
+            "certifi",
+            "2026.10.23"
+          ],
+          [
+            "charset-normalizer",
+            "3.5.2"
+          ],
+          [
+            "click",
+            "8.5.0"
+          ],
+          [
+            "colorama",
+            "0.4.6"
+          ],
+          [
+            "coverage",
+            "7.17.0"
+          ],
+          [
+            "execnet",
+            "2.1.2"
+          ],
+          [
+            "genia",
+            "0.1.14"
+          ],
+          [
+            "ghp-import",
+            "2.1.0"
+          ],
+          [
+            "idna",
+            "3.20"
+          ],
+          [
+            "iniconfig",
+            "2.3.1"
+          ],
+          [
+            "jinja2",
+            "3.1.6"
+          ],
+          [
+            "markdown",
+            "3.11.2"
+          ],
+          [
+            "markupsafe",
+            "3.0.4"
+          ],
+          [
+            "mergedeep",
+            "1.3.4"
+          ],
+          [
+            "mkdocs",
+            "1.6.1"
+          ],
+          [
+            "mkdocs-get-deps",
+            "0.2.2"
+          ],
+          [
+            "mkdocs-material",
+            "9.8.0"
+          ],
+          [
+            "mkdocs-material-extensions",
+            "1.3.1"
+          ],
+          [
+            "packaging",
+            "26.3"
+          ],
+          [
+            "paginate",
+            "0.5.7"
+          ],
+          [
+            "pathspec",
+            "1.1.1"
+          ],
+          [
+            "platformdirs",
+            "4.13.5"
+          ],
+          [
+            "pluggy",
+            "1.7.0"
+          ],
+          [
+            "pygments",
+            "2.21.0"
+          ],
+          [
+            "pymdown-extensions",
+            "12.3"
+          ],
+          [
+            "pytest",
+            "9.1.1"
+          ],
+          [
+            "pytest-cov",
+            "7.1.0"
+          ],
+          [
+            "pytest-xdist",
+            "3.8.0"
+          ],
+          [
+            "python-dateutil",
+            "3.0.0"
+          ],
+          [
+            "pyyaml",
+            "6.0.3"
+          ],
+          [
+            "pyyaml-env-tag",
+            "1.1"
+          ],
+          [
+            "requests",
+            "2.34.2"
+          ],
+          [
+            "ruff",
+            "0.15.18"
+          ],
+          [
+            "six",
+            "1.17.0"
+          ],
+          [
+            "tree-sitter",
+            "0.25.2"
+          ],
+          [
+            "tree-sitter-bash",
+            "0.25.1"
+          ],
+          [
+            "tree-sitter-cpp",
+            "0.23.4"
+          ],
+          [
+            "tree-sitter-rust",
+            "0.24.2"
+          ],
+          [
+            "tree-sitter-typescript",
+            "0.23.2"
+          ],
+          [
+            "tzdata",
+            "2026.5"
+          ],
+          [
+            "urllib3",
+            "2.8.0"
+          ],
+          [
+            "watchdog",
+            "6.0.0"
+          ]
+        ]
+      }
+    },
+    "installer-B": {
+      "wheels": [
+        {
+          "name": "babel",
+          "version": "2.18.0",
+          "sha256": "e2b422b277c2b9a9630c1d7903c2a00d0830c409c59ac8cae9081c92f1aeba35",
+          "ctime_ns": 1793825438093850599,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "backrefs",
+          "version": "8.1",
+          "sha256": "b472c76082769f86a97ffccfd1f2599b2b706610c6154955664fffe67e909035",
+          "ctime_ns": 1793825438095074120,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.23",
+          "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+          "ctime_ns": 1793825438095299907,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "charset-normalizer",
+          "version": "3.5.2",
+          "sha256": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649",
+          "ctime_ns": 1793825438095537763,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "click",
+          "version": "8.5.0",
+          "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
+          "ctime_ns": 1793825438095713817,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6",
+          "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+          "ctime_ns": 1793825438095838623,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "coverage",
+          "version": "7.17.0",
+          "sha256": "85932227e9dd38e62cd29c17fefdfecfb919eead6af1e3259522d03cf85de983",
+          "ctime_ns": 1793825438096059534,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "editables",
+          "version": "0.6",
+          "sha256": "d70e4698078a1d033e7786d9c64e5be070d058a67c21417024d38a58ac20aa43",
+          "ctime_ns": 1793825438096243699,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "execnet",
+          "version": "2.1.2",
+          "sha256": "67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec",
+          "ctime_ns": 1793825438096352382,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "ghp-import",
+          "version": "2.1.0",
+          "sha256": "8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619",
+          "ctime_ns": 1793825438096443058,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "hatchling",
+          "version": "1.32.4",
+          "sha256": "08ecf7548fb48205e7f213d70c71e67b8271b7242093dc3f1da578b42c734a2c",
+          "ctime_ns": 1793825438096629226,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "idna",
+          "version": "3.20",
+          "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+          "ctime_ns": 1793825438096789636,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "iniconfig",
+          "version": "2.3.1",
+          "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
+          "ctime_ns": 1793825438096881624,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "jinja2",
+          "version": "3.1.6",
+          "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+          "ctime_ns": 1793825438097025038,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "markdown",
+          "version": "3.11.2",
+          "sha256": "f80390747a2a0ff2ba54da074ce4f862f72a6685f608cd2637b646a6d83993f5",
+          "ctime_ns": 1793825438097169484,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "markupsafe",
+          "version": "3.0.4",
+          "sha256": "8e124f974786f831d6043728e38296969d3579db8896fe004682f5758e613581",
+          "ctime_ns": 1793825438097272188,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mergedeep",
+          "version": "1.3.4",
+          "sha256": "70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307",
+          "ctime_ns": 1793825438097387250,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs",
+          "version": "1.6.1",
+          "sha256": "db91759624d1647f3f34aa0c3f327dd2601beae39a366d6e064c03468d35c20e",
+          "ctime_ns": 1793825438099468433,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-get-deps",
+          "version": "0.2.2",
+          "sha256": "e7878cbeac04860b8b5e0ca31d3abad3df9411a75a32cde82f8e44b6c16ff650",
+          "ctime_ns": 1793825438099854481,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-material",
+          "version": "9.8.0",
+          "sha256": "19304a7263c5700428227122b3b2699aa73f432c9de8816876adaec7d7293ce3",
+          "ctime_ns": 1793825438104644196,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "mkdocs-material-extensions",
+          "version": "1.3.1",
+          "sha256": "adff8b62700b25cb77b53358dad940f3ef973dd6db797907c49e3c2ef3ab4e31",
+          "ctime_ns": 1793825438105445996,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "packaging",
+          "version": "26.3",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+          "ctime_ns": 1793825438105595529,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "paginate",
+          "version": "0.5.7",
+          "sha256": "b885e2af73abcf01d9559fd5216b57ef722f8c42affbb63942377668e35c7591",
+          "ctime_ns": 1793825438105693366,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pathspec",
+          "version": "1.1.1",
+          "sha256": "a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189",
+          "ctime_ns": 1793825438105819985,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.13.5",
+          "sha256": "53d3ec4280b815c1e0b02edad7f9ee8fda1ba9c0865dd9c2e6e63849ce82fc1e",
+          "ctime_ns": 1793825438105935568,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pluggy",
+          "version": "1.7.0",
+          "sha256": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec",
+          "ctime_ns": 1793825438106029949,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pygments",
+          "version": "2.21.0",
+          "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+          "ctime_ns": 1793825438106738108,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pymdown-extensions",
+          "version": "12.3",
+          "sha256": "345493a8e3497e24382902903a1c43a28e34a52f2b7571a1c9641429b820ca74",
+          "ctime_ns": 1793825438107061983,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest",
+          "version": "9.1.1",
+          "sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c",
+          "ctime_ns": 1793825438107351326,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest-cov",
+          "version": "7.1.0",
+          "sha256": "a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678",
+          "ctime_ns": 1793825438107469983,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pytest-xdist",
+          "version": "3.8.0",
+          "sha256": "202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88",
+          "ctime_ns": 1793825438107572967,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "python-dateutil",
+          "version": "3.0.0",
+          "sha256": "3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd",
+          "ctime_ns": 1793825438107703943,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pyyaml",
+          "version": "6.0.3",
+          "sha256": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc",
+          "ctime_ns": 1793825438108200566,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "pyyaml-env-tag",
+          "version": "1.1",
+          "sha256": "17109e1a528561e32f026364712fee1264bc2ea6715120891174ed1b980d2e04",
+          "ctime_ns": 1793825438108334296,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "requests",
+          "version": "2.34.2",
+          "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+          "ctime_ns": 1793825438108449058,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "ruff",
+          "version": "0.15.18",
+          "sha256": "5f0480ce690cbb6c4db6e5d08f19fce98e10ba131a8b60c1bcdac42771e3ae2d",
+          "ctime_ns": 1793825438114448482,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "six",
+          "version": "1.17.0",
+          "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+          "ctime_ns": 1793825438115328118,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tomlkit",
+          "version": "0.15.2",
+          "sha256": "05562412163a3037b94497385fb7f9204c637bc605af7a48199e41cf2272f437",
+          "ctime_ns": 1793825438115453025,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter",
+          "version": "0.25.2",
+          "sha256": "b43a9e4c89d4d0839de27cd4d6902d33396de700e9ff4c5ab7631f277a85ead9",
+          "ctime_ns": 1793825438115863459,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-bash",
+          "version": "0.25.1",
+          "sha256": "3f484c4bb8796cde7a87ca351e6116f09653edac0eb3c6d238566359dd28b117",
+          "ctime_ns": 1793825438116106963,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-cpp",
+          "version": "0.23.4",
+          "sha256": "773d2cafc08bbc0f998687fa33f42f378c1a371cdb582870c4d13abb06092706",
+          "ctime_ns": 1793825438116412330,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-rust",
+          "version": "0.24.2",
+          "sha256": "e033c5a93b57c88e0a835880de39fc802909ff69f57aaff6000211c196ea5190",
+          "ctime_ns": 1793825438116599430,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tree-sitter-typescript",
+          "version": "0.23.2",
+          "sha256": "e96d36b85bcacdeb8ff5c2618d75593ef12ebaf1b4eace3477e2bdb2abb1752c",
+          "ctime_ns": 1793825438116930765,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "trove-classifiers",
+          "version": "2026.9.21.13",
+          "sha256": "8b1ff4f9c191b1040b71c37f1e445ab99732911e3cd91de52838453a854d7a17",
+          "ctime_ns": 1793825438117052878,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "tzdata",
+          "version": "2026.5",
+          "sha256": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac",
+          "ctime_ns": 1793825438117304675,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "urllib3",
+          "version": "2.8.0",
+          "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+          "ctime_ns": 1793825438117670933,
+          "mtime_ns": 1793034850000000000
+        },
+        {
+          "name": "watchdog",
+          "version": "6.0.0",
+          "sha256": "20ffe5b202af80ab4266dcd3e91aae72bf2da48c0d33bdb15c66658e685e94e2",
+          "ctime_ns": 1793825438117836630,
+          "mtime_ns": 1793034850000000000
+        }
+      ],
+      "source_pyproject_ctime_ns": 1793825437910516653,
+      "source_src_ctime_ns": 1793825437999516431,
+      "editable_wheel_sha256": "ef54b09725bd916eea52ea298d0cffdc7462cad9c0ce8297b4dea1dcb93c2526",
+      "installed_RECORD_entries_verified": 17780,
+      "import_check": {
+        "genia_file": "/workspace/work/issue-1285-deterministic/run3/source/src/genia/__init__.py",
+        "sys_path": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload",
+          "/workspace/work/issue-1285-deterministic/run3/prefix/lib/python3.12/site-packages",
+          "/workspace/work/issue-1285-deterministic/run3/source/src"
+        ],
+        "user_site": false,
+        "distributions": [
+          [
+            "babel",
+            "2.18.0"
+          ],
+          [
+            "backrefs",
+            "8.1"
+          ],
+          [
+            "certifi",
+            "2026.10.23"
+          ],
+          [
+            "charset-normalizer",
+            "3.5.2"
+          ],
+          [
+            "click",
+            "8.5.0"
+          ],
+          [
+            "colorama",
+            "0.4.6"
+          ],
+          [
+            "coverage",
+            "7.17.0"
+          ],
+          [
+            "execnet",
+            "2.1.2"
+          ],
+          [
+            "genia",
+            "0.1.14"
+          ],
+          [
+            "ghp-import",
+            "2.1.0"
+          ],
+          [
+            "idna",
+            "3.20"
+          ],
+          [
+            "iniconfig",
+            "2.3.1"
+          ],
+          [
+            "jinja2",
+            "3.1.6"
+          ],
+          [
+            "markdown",
+            "3.11.2"
+          ],
+          [
+            "markupsafe",
+            "3.0.4"
+          ],
+          [
+            "mergedeep",
+            "1.3.4"
+          ],
+          [
+            "mkdocs",
+            "1.6.1"
+          ],
+          [
+            "mkdocs-get-deps",
+            "0.2.2"
+          ],
+          [
+            "mkdocs-material",
+            "9.8.0"
+          ],
+          [
+            "mkdocs-material-extensions",
+            "1.3.1"
+          ],
+          [
+            "packaging",
+            "26.3"
+          ],
+          [
+            "paginate",
+            "0.5.7"
+          ],
+          [
+            "pathspec",
+            "1.1.1"
+          ],
+          [
+            "platformdirs",
+            "4.13.5"
+          ],
+          [
+            "pluggy",
+            "1.7.0"
+          ],
+          [
+            "pygments",
+            "2.21.0"
+          ],
+          [
+            "pymdown-extensions",
+            "12.3"
+          ],
+          [
+            "pytest",
+            "9.1.1"
+          ],
+          [
+            "pytest-cov",
+            "7.1.0"
+          ],
+          [
+            "pytest-xdist",
+            "3.8.0"
+          ],
+          [
+            "python-dateutil",
+            "3.0.0"
+          ],
+          [
+            "pyyaml",
+            "6.0.3"
+          ],
+          [
+            "pyyaml-env-tag",
+            "1.1"
+          ],
+          [
+            "requests",
+            "2.34.2"
+          ],
+          [
+            "ruff",
+            "0.15.18"
+          ],
+          [
+            "six",
+            "1.17.0"
+          ],
+          [
+            "tree-sitter",
+            "0.25.2"
+          ],
+          [
+            "tree-sitter-bash",
+            "0.25.1"
+          ],
+          [
+            "tree-sitter-cpp",
+            "0.23.4"
+          ],
+          [
+            "tree-sitter-rust",
+            "0.24.2"
+          ],
+          [
+            "tree-sitter-typescript",
+            "0.23.2"
+          ],
+          [
+            "tzdata",
+            "2026.5"
+          ],
+          [
+            "urllib3",
+            "2.8.0"
+          ],
+          [
+            "watchdog",
+            "6.0.0"
+          ]
+        ]
+      }
+    }
+  },
+  "comparisons": {
+    "uv-wheels": {
+      "strict_equal": false,
+      "paths_a": 18042,
+      "paths_b": 18042,
+      "changed_paths": [
+        "lib/python3.12/site-packages/babel-2.18.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/babel-2.18.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/backrefs-8.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/backrefs-8.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/certifi-2026.10.23.dist-info/RECORD",
+        "lib/python3.12/site-packages/certifi-2026.10.23.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/click-8.5.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/click-8.5.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/colorama-0.4.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/colorama-0.4.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/coverage-7.17.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/coverage-7.17.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/editables-0.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/editables-0.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/execnet-2.1.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/execnet-2.1.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/ghp_import-2.1.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/ghp_import-2.1.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/hatchling-1.32.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/hatchling-1.32.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/idna-3.20.dist-info/RECORD",
+        "lib/python3.12/site-packages/idna-3.20.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/jinja2-3.1.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/jinja2-3.1.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/markdown-3.11.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/markdown-3.11.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/markupsafe-3.0.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/markupsafe-3.0.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mergedeep-1.3.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/mergedeep-1.3.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs-1.6.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs-1.6.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/packaging-26.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/packaging-26.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/paginate-0.5.7.dist-info/RECORD",
+        "lib/python3.12/site-packages/paginate-0.5.7.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pathspec-1.1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pathspec-1.1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/platformdirs-4.13.5.dist-info/RECORD",
+        "lib/python3.12/site-packages/platformdirs-4.13.5.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pluggy-1.7.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pluggy-1.7.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pygments-2.21.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pygments-2.21.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest-9.1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest-9.1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/requests-2.34.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/requests-2.34.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/ruff-0.15.18.dist-info/RECORD",
+        "lib/python3.12/site-packages/ruff-0.15.18.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/six-1.17.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/six-1.17.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tomlkit-0.15.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tomlkit-0.15.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/trove_classifiers-2026.9.21.13.dist-info/RECORD",
+        "lib/python3.12/site-packages/trove_classifiers-2026.9.21.13.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tzdata-2026.5.dist-info/RECORD",
+        "lib/python3.12/site-packages/tzdata-2026.5.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/urllib3-2.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/urllib3-2.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/watchdog-6.0.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/watchdog-6.0.0.dist-info/uv_cache.json"
+      ],
+      "change_categories": {
+        "RECORD": 47,
+        "INSTALLER": 0,
+        "direct_url.json": 0,
+        "uv_cache.json": 47,
+        "uv_build.json": 0
+      }
+    },
+    "uv-editable": {
+      "strict_equal": false,
+      "paths_a": 17930,
+      "paths_b": 17930,
+      "changed_paths": [
+        "lib/python3.12/site-packages/babel-2.18.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/babel-2.18.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/backrefs-8.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/backrefs-8.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/certifi-2026.10.23.dist-info/RECORD",
+        "lib/python3.12/site-packages/certifi-2026.10.23.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/click-8.5.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/click-8.5.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/colorama-0.4.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/colorama-0.4.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/coverage-7.17.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/coverage-7.17.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/execnet-2.1.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/execnet-2.1.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/genia-0.1.14.dist-info/RECORD",
+        "lib/python3.12/site-packages/genia-0.1.14.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/ghp_import-2.1.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/ghp_import-2.1.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/idna-3.20.dist-info/RECORD",
+        "lib/python3.12/site-packages/idna-3.20.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/jinja2-3.1.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/jinja2-3.1.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/markdown-3.11.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/markdown-3.11.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/markupsafe-3.0.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/markupsafe-3.0.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mergedeep-1.3.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/mergedeep-1.3.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs-1.6.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs-1.6.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/packaging-26.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/packaging-26.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/paginate-0.5.7.dist-info/RECORD",
+        "lib/python3.12/site-packages/paginate-0.5.7.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pathspec-1.1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pathspec-1.1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/platformdirs-4.13.5.dist-info/RECORD",
+        "lib/python3.12/site-packages/platformdirs-4.13.5.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pluggy-1.7.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pluggy-1.7.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pygments-2.21.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pygments-2.21.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest-9.1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest-9.1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/requests-2.34.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/requests-2.34.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/ruff-0.15.18.dist-info/RECORD",
+        "lib/python3.12/site-packages/ruff-0.15.18.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/six-1.17.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/six-1.17.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tzdata-2026.5.dist-info/RECORD",
+        "lib/python3.12/site-packages/tzdata-2026.5.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/urllib3-2.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/urllib3-2.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/watchdog-6.0.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/watchdog-6.0.0.dist-info/uv_cache.json"
+      ],
+      "change_categories": {
+        "RECORD": 44,
+        "INSTALLER": 0,
+        "direct_url.json": 0,
+        "uv_cache.json": 44,
+        "uv_build.json": 0
+      }
+    }
+  }
+}

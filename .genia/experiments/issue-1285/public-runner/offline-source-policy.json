@@ -1,8 +1,32 @@
 {
   "rules": [
-    {"action": "DENY", "selector": {"identifier": "docker-image://*"}},
-    {"action": "DENY", "selector": {"identifier": "http://*"}},
-    {"action": "DENY", "selector": {"identifier": "https://*"}},
-    {"action": "DENY", "selector": {"identifier": "git://*"}}
+    {
+      "action": "DENY",
+      "selector": {
+        "identifier": "docker-image://*",
+        "matchType": "WILDCARD"
+      }
+    },
+    {
+      "action": "DENY",
+      "selector": {
+        "identifier": "http://*",
+        "matchType": "WILDCARD"
+      }
+    },
+    {
+      "action": "DENY",
+      "selector": {
+        "identifier": "https://*",
+        "matchType": "WILDCARD"
+      }
+    },
+    {
+      "action": "DENY",
+      "selector": {
+        "identifier": "git://*",
+        "matchType": "WILDCARD"
+      }
+    }
   ]
 }

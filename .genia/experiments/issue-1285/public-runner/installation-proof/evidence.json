@@ -1,0 +1,490 @@
+{
+  "status": "TEST/DESIGN proof complete; strategy UNSELECTED; NO BUILD AUTHORIZATION",
+  "helper_commit": "4dac9cce368c9e00cafdb5fd25af0b334c32bc3a",
+  "helper_sha256": "9014300d66838beb7143b83151f5462b78e647ce18858a1b4bc5810de3d3009b",
+  "executed_helper": "installation_spike.py in helper_commit; run4 exit 0",
+  "conditions": {
+    "host_python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "host_python_path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12",
+    "host_python_sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "compiler": "clang -pthread",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "openssl": "OpenSSL 3.5.8 25 Aug 2026",
+    "sqlite": "3.53.1",
+    "zlib": "1.3.2",
+    "target_python": "official image CPython 3.12.15 NOT EXECUTED",
+    "prefix": "/workspace/work/issue-1285-deterministic/run4/prefix",
+    "source": "/workspace/work/issue-1285-deterministic/run4/source",
+    "source_date_epoch": 1793034850,
+    "mtime_fixed": true,
+    "all_47_staged_wheel_ctimes_distinct_in_each_pair": true,
+    "bytecode_files_in_all_eight_prefix_manifests": 0,
+    "network": "uv offline/no-index/no downloads; installer API operates on explicit local wheels, no resolver/network code path; no host packet trace claimed",
+    "commands_timeout_seconds": 90,
+    "scratch_preflight": {
+      "free_bytes": 7418220544,
+      "free_inodes": 513461
+    },
+    "logical_snapshot_cap_bytes": 1073741824,
+    "snapshot_path_cap": 200000,
+    "observed_snapshot_file_bytes": 890704873,
+    "observed_snapshot_paths": 143114,
+    "not_runner_resource_acceptance": true
+  },
+  "comparisons": {
+    "uv-wheels": {
+      "strict_equal": false,
+      "paths_a": 18042,
+      "paths_b": 18042,
+      "changed_paths": [
+        "lib/python3.12/site-packages/babel-2.18.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/babel-2.18.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/backrefs-8.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/backrefs-8.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/certifi-2026.10.23.dist-info/RECORD",
+        "lib/python3.12/site-packages/certifi-2026.10.23.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/click-8.5.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/click-8.5.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/colorama-0.4.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/colorama-0.4.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/coverage-7.17.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/coverage-7.17.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/editables-0.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/editables-0.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/execnet-2.1.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/execnet-2.1.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/ghp_import-2.1.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/ghp_import-2.1.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/hatchling-1.32.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/hatchling-1.32.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/idna-3.20.dist-info/RECORD",
+        "lib/python3.12/site-packages/idna-3.20.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/jinja2-3.1.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/jinja2-3.1.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/markdown-3.11.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/markdown-3.11.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/markupsafe-3.0.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/markupsafe-3.0.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mergedeep-1.3.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/mergedeep-1.3.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs-1.6.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs-1.6.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/packaging-26.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/packaging-26.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/paginate-0.5.7.dist-info/RECORD",
+        "lib/python3.12/site-packages/paginate-0.5.7.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pathspec-1.1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pathspec-1.1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/platformdirs-4.13.5.dist-info/RECORD",
+        "lib/python3.12/site-packages/platformdirs-4.13.5.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pluggy-1.7.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pluggy-1.7.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pygments-2.21.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pygments-2.21.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest-9.1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest-9.1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/requests-2.34.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/requests-2.34.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/ruff-0.15.18.dist-info/RECORD",
+        "lib/python3.12/site-packages/ruff-0.15.18.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/six-1.17.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/six-1.17.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tomlkit-0.15.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tomlkit-0.15.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/trove_classifiers-2026.9.21.13.dist-info/RECORD",
+        "lib/python3.12/site-packages/trove_classifiers-2026.9.21.13.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tzdata-2026.5.dist-info/RECORD",
+        "lib/python3.12/site-packages/tzdata-2026.5.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/urllib3-2.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/urllib3-2.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/watchdog-6.0.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/watchdog-6.0.0.dist-info/uv_cache.json"
+      ],
+      "change_categories": {
+        "RECORD": 47,
+        "INSTALLER": 0,
+        "direct_url.json": 0,
+        "uv_cache.json": 47,
+        "uv_build.json": 0
+      },
+      "changed_count": 94
+    },
+    "uv-editable": {
+      "strict_equal": false,
+      "paths_a": 17930,
+      "paths_b": 17930,
+      "changed_paths": [
+        "lib/python3.12/site-packages/babel-2.18.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/babel-2.18.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/backrefs-8.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/backrefs-8.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/certifi-2026.10.23.dist-info/RECORD",
+        "lib/python3.12/site-packages/certifi-2026.10.23.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/click-8.5.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/click-8.5.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/colorama-0.4.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/colorama-0.4.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/coverage-7.17.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/coverage-7.17.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/execnet-2.1.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/execnet-2.1.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/genia-0.1.14.dist-info/RECORD",
+        "lib/python3.12/site-packages/genia-0.1.14.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/ghp_import-2.1.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/ghp_import-2.1.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/idna-3.20.dist-info/RECORD",
+        "lib/python3.12/site-packages/idna-3.20.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/iniconfig-2.3.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/jinja2-3.1.6.dist-info/RECORD",
+        "lib/python3.12/site-packages/jinja2-3.1.6.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/markdown-3.11.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/markdown-3.11.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/markupsafe-3.0.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/markupsafe-3.0.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mergedeep-1.3.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/mergedeep-1.3.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs-1.6.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs-1.6.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/packaging-26.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/packaging-26.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/paginate-0.5.7.dist-info/RECORD",
+        "lib/python3.12/site-packages/paginate-0.5.7.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pathspec-1.1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pathspec-1.1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/platformdirs-4.13.5.dist-info/RECORD",
+        "lib/python3.12/site-packages/platformdirs-4.13.5.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pluggy-1.7.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pluggy-1.7.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pygments-2.21.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pygments-2.21.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest-9.1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest-9.1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/RECORD",
+        "lib/python3.12/site-packages/pyyaml-6.0.3.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/requests-2.34.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/requests-2.34.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/ruff-0.15.18.dist-info/RECORD",
+        "lib/python3.12/site-packages/ruff-0.15.18.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/six-1.17.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/six-1.17.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info/RECORD",
+        "lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/tzdata-2026.5.dist-info/RECORD",
+        "lib/python3.12/site-packages/tzdata-2026.5.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/urllib3-2.8.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/urllib3-2.8.0.dist-info/uv_cache.json",
+        "lib/python3.12/site-packages/watchdog-6.0.0.dist-info/RECORD",
+        "lib/python3.12/site-packages/watchdog-6.0.0.dist-info/uv_cache.json"
+      ],
+      "change_categories": {
+        "RECORD": 44,
+        "INSTALLER": 0,
+        "direct_url.json": 0,
+        "uv_cache.json": 44,
+        "uv_build.json": 0
+      },
+      "changed_count": 88
+    },
+    "installer-wheels": {
+      "strict_equal": true,
+      "paths_a": 17788,
+      "paths_b": 17788,
+      "changed_paths": [],
+      "change_categories": {
+        "RECORD": 0,
+        "INSTALLER": 0,
+        "direct_url.json": 0,
+        "uv_cache.json": 0,
+        "uv_build.json": 0
+      },
+      "changed_count": 0
+    },
+    "installer-editable": {
+      "strict_equal": true,
+      "paths_a": 17797,
+      "paths_b": 17797,
+      "changed_paths": [],
+      "change_categories": {
+        "RECORD": 0,
+        "INSTALLER": 0,
+        "direct_url.json": 0,
+        "uv_cache.json": 0,
+        "uv_build.json": 0
+      },
+      "changed_count": 0
+    }
+  },
+  "ctime_mechanism": {
+    "A": {
+      "wheel_ctime_exact_matches": 47,
+      "editable_pyproject_ctime_exact_match": true,
+      "directories_src_timestamp_ns": 1793825750226941853,
+      "sampled_source_src_ctime_ns": 1793825750330075149,
+      "directory_timestamp_equals_sampled_src_ctime": false
+    },
+    "B": {
+      "wheel_ctime_exact_matches": 47,
+      "editable_pyproject_ctime_exact_match": true,
+      "directories_src_timestamp_ns": 1793825764313948502,
+      "sampled_source_src_ctime_ns": 1793825764354074331,
+      "directory_timestamp_equals_sampled_src_ctime": false
+    }
+  },
+  "commands_passed": 36,
+  "exact_final_distribution_count": 44,
+  "installed_RECORD_entries_verified_per_alternative_final": 17780,
+  "alternative_editable_wheel_sha256": "f56b7a2224c370681de817b84d2e0233295fbf6a959b3b68cfe116c771fe3dda",
+  "alternative_editable_wheel_equal_across_pair": true,
+  "failure_history": [
+    {
+      "attempt": "run",
+      "outcome": "HARNESS FAIL after uv pairs: KeyError target_selected while selecting runtime rows from union (backend overlap rows lack that field). Fixed by exact name/version runtime membership; initial helper retained. Snapshot budget raised prospectively from 768 MiB/100000 paths to 1 GiB/200000 based on measured uv snapshots, before run2; these are scratch budgets, not runner acceptance limits."
+    },
+    {
+      "attempt": "run2",
+      "outcome": "PASS full pairs, before fresh-root/-O safety guards; exact executed helper and full manifests retained."
+    },
+    {
+      "attempt": "run3",
+      "outcome": "FAIL copying eighth evidence snapshot: ENOSPC from shared filesystem inode exhaustion. All 36 tool commands passed; only seven completed manifests persisted, so NOT a completed alternative comparison. Filesystem measured 524288/524288 inodes used, 2350604 KiB available; no byte-cap exhaustion. Retained results/manifests/full stderr; removed only generated scratch directory duplicates after preservation; added prospective 3 GiB/230000 free-inode guard."
+    },
+    {
+      "attempt": "postprocess-stat-assertion",
+      "outcome": "Initial analysis assertion that directories.src equals sampled src directory ctime failed. It does NOT equal that sampled stat. Preserved values and supplemental probe; no exact directory-clock mapping claimed. Wheel and pyproject ctime matches verified separately."
+    },
+    {
+      "attempt": "static-tool-cache",
+      "outcome": "Initial code-documentation --help without task-specific UV_CACHE_DIR exited 2: /home/agent/.cache/uv read-only. Repeated with task-specific cache; checker passed 0 errors. No package/runtime change."
+    },
+    {
+      "attempt": "run4",
+      "outcome": "PASS exact committed helper, all 36 commands, complete eight manifests and all four comparisons; no previous failure overwritten."
+    }
+  ],
+  "evidence_files": {
+    "run-results.json": {
+      "bytes": 88328,
+      "sha256": "3a44c5dcef277faa6c8c8f2ffecf73a0a4a57b91bf83102d36f06250414d7222",
+      "uncompressed_sha256": "3a44c5dcef277faa6c8c8f2ffecf73a0a4a57b91bf83102d36f06250414d7222",
+      "original_path": "/workspace/work/issue-1285-deterministic/run/results.json",
+      "original_sha256": "3a44c5dcef277faa6c8c8f2ffecf73a0a4a57b91bf83102d36f06250414d7222"
+    },
+    "run2-results.json": {
+      "bytes": 127570,
+      "sha256": "799847b21c2e908795e9278418b839a3da2aee671fd118c03eb0475d28acce89",
+      "uncompressed_sha256": "799847b21c2e908795e9278418b839a3da2aee671fd118c03eb0475d28acce89",
+      "original_path": "/workspace/work/issue-1285-deterministic/run2/results.json",
+      "original_sha256": "799847b21c2e908795e9278418b839a3da2aee671fd118c03eb0475d28acce89"
+    },
+    "run2-file-manifests.json.xz": {
+      "bytes": 1447008,
+      "sha256": "f33a433e27958732e68af37dae8407d143f22c28575b27c17d156e221ec9e732",
+      "uncompressed_sha256": "e639a4c9f9c62e12f8dcd2fb2b80b1670a084de0e4c7cd9a3b608a3f7e181fec",
+      "original_path": "/workspace/work/issue-1285-deterministic/run2/file-manifests.json.gz",
+      "original_sha256": "82377372d053fb6896c7cc73eb69acc920f8792d7245e40a262e2ebe71c28e6d"
+    },
+    "run3-results.json": {
+      "bytes": 126468,
+      "sha256": "836f4ac602923daa261dfa056d7fbc329466a2394154c61d0c247a619a60c47d",
+      "uncompressed_sha256": "836f4ac602923daa261dfa056d7fbc329466a2394154c61d0c247a619a60c47d",
+      "original_path": "/workspace/work/issue-1285-deterministic/run3/results.json",
+      "original_sha256": "836f4ac602923daa261dfa056d7fbc329466a2394154c61d0c247a619a60c47d"
+    },
+    "run3-file-manifests.json.xz": {
+      "bytes": 1445664,
+      "sha256": "bc2239ef842cfce99398f8c8a2355f8acf10fca5fb9cd7036a39c98b114d9e4b",
+      "uncompressed_sha256": "05cdaf0781b3a92069d884eb00cd0d097c9430521fe1b8fbf0a64e8e7c3cb48c",
+      "original_path": "/workspace/work/issue-1285-deterministic/run3/file-manifests.json.gz",
+      "original_sha256": "5284603a9f679ca810205d94322250c36cabe42a1da64df5b4b08afbe333e07e"
+    },
+    "run4-results.json": {
+      "bytes": 127652,
+      "sha256": "c781d3c9800d2444aa4a6c8fece4a081fbc17e48705b14dcf3847de386926491",
+      "uncompressed_sha256": "c781d3c9800d2444aa4a6c8fece4a081fbc17e48705b14dcf3847de386926491",
+      "original_path": "/workspace/work/issue-1285-deterministic/run4/results.json",
+      "original_sha256": "c781d3c9800d2444aa4a6c8fece4a081fbc17e48705b14dcf3847de386926491"
+    },
+    "run4-file-manifests.json.xz": {
+      "bytes": 1446908,
+      "sha256": "456d2d4b602c36702ae5e4b5387d314d5b5713d603ec7f66fda38a9d9f6ea427",
+      "uncompressed_sha256": "4c0d68bfe18fbd53d7f261904e442acd7ca24c0526ae8aace983af3940ec8cf5",
+      "original_path": "/workspace/work/issue-1285-deterministic/run4/file-manifests.json.gz",
+      "original_sha256": "d42ddc12eaa5a81d735c16172bad038d6a5668417adb83788fdc15927942106f"
+    },
+    "first.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "first.stderr": {
+      "bytes": 435,
+      "sha256": "b6a804449da9c020829921730d2f4b98a7e214512ab67f120af40b67a7d35411",
+      "uncompressed_sha256": "b6a804449da9c020829921730d2f4b98a7e214512ab67f120af40b67a7d35411"
+    },
+    "second.stdout": {
+      "bytes": 14926,
+      "sha256": "52c1f82777e161d715a4b78c16769cb72390c7ced387b4821335c378397e8361",
+      "uncompressed_sha256": "52c1f82777e161d715a4b78c16769cb72390c7ced387b4821335c378397e8361"
+    },
+    "second.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "third.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "third.stderr.xz": {
+      "bytes": 7488,
+      "sha256": "fc3bf4adca7d849b5ecd88b9c7e401a0b070815176481cf13fac2a4f2171966c",
+      "uncompressed_sha256": "bb043c2db57752d4dbc3535e8101f11ed5897feaf65cfadf08c05bb529e9b913"
+    },
+    "fourth.stdout": {
+      "bytes": 14926,
+      "sha256": "52c1f82777e161d715a4b78c16769cb72390c7ced387b4821335c378397e8361",
+      "uncompressed_sha256": "52c1f82777e161d715a4b78c16769cb72390c7ced387b4821335c378397e8361"
+    },
+    "fourth.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "initial-helper.py": {
+      "bytes": 17654,
+      "sha256": "436735ead0e4c6011dfce95c4119ae3f8d3cde502b36a1ea89493d3dba4e429e",
+      "uncompressed_sha256": "436735ead0e4c6011dfce95c4119ae3f8d3cde502b36a1ea89493d3dba4e429e",
+      "classification": "Immutable verbatim historical helper snapshot for retained failed/earlier attempts; not the current executable or a production runner."
+    },
+    "run2-executed-helper.py": {
+      "bytes": 17907,
+      "sha256": "7950c0a619334f91907efc7d51006c4597728d3eccd632a95db9ca7d0973268e",
+      "uncompressed_sha256": "7950c0a619334f91907efc7d51006c4597728d3eccd632a95db9ca7d0973268e",
+      "classification": "Immutable verbatim historical helper snapshot for retained failed/earlier attempts; not the current executable or a production runner."
+    },
+    "negative-controls.json": {
+      "bytes": 6909,
+      "sha256": "e5c26db62509f47e3ed462be06e82c334d12e1d5f7e6177e980c4708914d02c4",
+      "uncompressed_sha256": "e5c26db62509f47e3ed462be06e82c334d12e1d5f7e6177e980c4708914d02c4"
+    },
+    "directory-timestamp-probe.json": {
+      "bytes": 11226,
+      "sha256": "adda518f090ee51e57fd9ea29a0a01001e1333fa7d4c488b3decbe197ecb2038",
+      "uncompressed_sha256": "adda518f090ee51e57fd9ea29a0a01001e1333fa7d4c488b3decbe197ecb2038"
+    },
+    "supplementary-generated.json.xz": {
+      "bytes": 20600,
+      "sha256": "4d910e3d898d6df0f3abee15ef4469e35071f8704be8fc5c9cf1aca8689a902d",
+      "uncompressed_sha256": "cc9999a3a51c20fb2c4bce8db67c73572391db3efca381ecfb6ad839b644105d"
+    },
+    "cross-installer-differences.json": {
+      "bytes": 27844,
+      "sha256": "5510bc96a84c24360d8360d4dca1334e5936911efe41070dbd881746c0811280",
+      "uncompressed_sha256": "5510bc96a84c24360d8360d4dca1334e5936911efe41070dbd881746c0811280"
+    },
+    "console-smokes.json": {
+      "bytes": 1039,
+      "sha256": "4ec0f28042b5f61b225a59bf2be22c5d9894aa88ffba74df9f65798d91c11219",
+      "uncompressed_sha256": "4ec0f28042b5f61b225a59bf2be22c5d9894aa88ffba74df9f65798d91c11219"
+    },
+    "pypi-installer-0.7.0.json": {
+      "bytes": 3302,
+      "sha256": "9968c83031aa34127ee32b6313ae492c077947acccc6120d4ae4819ce6c3d6f1",
+      "uncompressed_sha256": "9968c83031aa34127ee32b6313ae492c077947acccc6120d4ae4819ce6c3d6f1"
+    },
+    "installer-acquisition-receipt.json": {
+      "bytes": 1340,
+      "sha256": "59211e9a2b2e4a037d5d6ccd03250765bf75af26e538b32ea3f19e802391b0c1",
+      "uncompressed_sha256": "59211e9a2b2e4a037d5d6ccd03250765bf75af26e538b32ea3f19e802391b0c1"
+    },
+    "validation.json": {
+      "bytes": 4440,
+      "sha256": "25fa64a7d175eeb4587636a8e53b69f445123688d68024be88ef321ff7885a89",
+      "uncompressed_sha256": "25fa64a7d175eeb4587636a8e53b69f445123688d68024be88ef321ff7885a89"
+    },
+    "validation-source-first.stderr": {
+      "bytes": 1049,
+      "sha256": "0cab615276439c4908f063ec5a4af0ff9a344d4ee2a59f75e4627b376494454f",
+      "uncompressed_sha256": "0cab615276439c4908f063ec5a4af0ff9a344d4ee2a59f75e4627b376494454f"
+    },
+    "tool-checks.json": {
+      "bytes": 1654,
+      "sha256": "aec0bacc03b1a159cfcdb61c3163cec11d74e26fe17e0360f828d71642d2ba36",
+      "uncompressed_sha256": "aec0bacc03b1a159cfcdb61c3163cec11d74e26fe17e0360f828d71642d2ba36"
+    }
+  },
+  "additional_console_smokes_passed": 3,
+  "cross_installer_summary": {
+    "only_uv": 133,
+    "only_installer": 0,
+    "changed_common": 104,
+    "common_metadata_changes": {
+      "INSTALLER": 44,
+      "RECORD": 44,
+      "Genia_direct_url_json": 1
+    },
+    "console_script_wrapper_changes": 15,
+    "only_uv_categories": ".lock, 43 third-party wheel direct_url.json, 44 uv_cache.json, 1 Genia uv_build.json, 44 REQUESTED markers",
+    "no_cross_installer_byte_equality_claim": true
+  }
+}

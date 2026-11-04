@@ -1,0 +1,642 @@
+{
+  "status": "Explicit EXPECTED installation inventory; official-target execution pending",
+  "derivation": "Select runtime_wheels where target_selected=true; union backend_wheels by exact name/version, require shared wheel SHA256 equality (packaging/pathspec/pluggy). Current uv pre-editable=47; final=runtime43+editable Genia, removing editables/hatchling/tomlkit/trove-classifiers. Alternative has runtime43 in final prefix before editable and separate backend7 environment. No target install claimed.",
+  "import_path_derivation": "For each verified wheel, take first path component of any .py/.so member outside .dist-info/.data, prefix with canonical target site-packages; these are expected filesystem import roots, not a claim each root is a public import name. Genia derives from approved src-layout and PEP660 .pth. Check actual __file__/distribution paths in target.",
+  "phases": {
+    "current_uv_pre_editable": [
+      "babel==2.18.0",
+      "backrefs==8.1",
+      "certifi==2026.10.23",
+      "charset-normalizer==3.5.2",
+      "click==8.5.0",
+      "colorama==0.4.6",
+      "coverage==7.17.0",
+      "editables==0.6",
+      "execnet==2.1.2",
+      "ghp-import==2.1.0",
+      "hatchling==1.32.4",
+      "idna==3.20",
+      "iniconfig==2.3.1",
+      "jinja2==3.1.6",
+      "markdown==3.11.2",
+      "markupsafe==3.0.4",
+      "mergedeep==1.3.4",
+      "mkdocs-get-deps==0.2.2",
+      "mkdocs-material-extensions==1.3.1",
+      "mkdocs-material==9.8.0",
+      "mkdocs==1.6.1",
+      "packaging==26.3",
+      "paginate==0.5.7",
+      "pathspec==1.1.1",
+      "platformdirs==4.13.5",
+      "pluggy==1.7.0",
+      "pygments==2.21.0",
+      "pymdown-extensions==12.3",
+      "pytest-cov==7.1.0",
+      "pytest-xdist==3.8.0",
+      "pytest==9.1.1",
+      "python-dateutil==3.0.0",
+      "pyyaml-env-tag==1.1",
+      "pyyaml==6.0.3",
+      "requests==2.34.2",
+      "ruff==0.15.18",
+      "six==1.17.0",
+      "tomlkit==0.15.2",
+      "tree-sitter-bash==0.25.1",
+      "tree-sitter-cpp==0.23.4",
+      "tree-sitter-rust==0.24.2",
+      "tree-sitter-typescript==0.23.2",
+      "tree-sitter==0.25.2",
+      "trove-classifiers==2026.9.21.13",
+      "tzdata==2026.5",
+      "urllib3==2.8.0",
+      "watchdog==6.0.0"
+    ],
+    "final_both_candidates": [
+      "babel==2.18.0",
+      "backrefs==8.1",
+      "certifi==2026.10.23",
+      "charset-normalizer==3.5.2",
+      "click==8.5.0",
+      "colorama==0.4.6",
+      "coverage==7.17.0",
+      "execnet==2.1.2",
+      "genia==0.1.14",
+      "ghp-import==2.1.0",
+      "idna==3.20",
+      "iniconfig==2.3.1",
+      "jinja2==3.1.6",
+      "markdown==3.11.2",
+      "markupsafe==3.0.4",
+      "mergedeep==1.3.4",
+      "mkdocs-get-deps==0.2.2",
+      "mkdocs-material-extensions==1.3.1",
+      "mkdocs-material==9.8.0",
+      "mkdocs==1.6.1",
+      "packaging==26.3",
+      "paginate==0.5.7",
+      "pathspec==1.1.1",
+      "platformdirs==4.13.5",
+      "pluggy==1.7.0",
+      "pygments==2.21.0",
+      "pymdown-extensions==12.3",
+      "pytest-cov==7.1.0",
+      "pytest-xdist==3.8.0",
+      "pytest==9.1.1",
+      "python-dateutil==3.0.0",
+      "pyyaml-env-tag==1.1",
+      "pyyaml==6.0.3",
+      "requests==2.34.2",
+      "ruff==0.15.18",
+      "six==1.17.0",
+      "tree-sitter-bash==0.25.1",
+      "tree-sitter-cpp==0.23.4",
+      "tree-sitter-rust==0.24.2",
+      "tree-sitter-typescript==0.23.2",
+      "tree-sitter==0.25.2",
+      "tzdata==2026.5",
+      "urllib3==2.8.0",
+      "watchdog==6.0.0"
+    ],
+    "alternative_runtime_only": [
+      "babel==2.18.0",
+      "backrefs==8.1",
+      "certifi==2026.10.23",
+      "charset-normalizer==3.5.2",
+      "click==8.5.0",
+      "colorama==0.4.6",
+      "coverage==7.17.0",
+      "execnet==2.1.2",
+      "ghp-import==2.1.0",
+      "idna==3.20",
+      "iniconfig==2.3.1",
+      "jinja2==3.1.6",
+      "markdown==3.11.2",
+      "markupsafe==3.0.4",
+      "mergedeep==1.3.4",
+      "mkdocs-get-deps==0.2.2",
+      "mkdocs-material-extensions==1.3.1",
+      "mkdocs-material==9.8.0",
+      "mkdocs==1.6.1",
+      "packaging==26.3",
+      "paginate==0.5.7",
+      "pathspec==1.1.1",
+      "platformdirs==4.13.5",
+      "pluggy==1.7.0",
+      "pygments==2.21.0",
+      "pymdown-extensions==12.3",
+      "pytest-cov==7.1.0",
+      "pytest-xdist==3.8.0",
+      "pytest==9.1.1",
+      "python-dateutil==3.0.0",
+      "pyyaml-env-tag==1.1",
+      "pyyaml==6.0.3",
+      "requests==2.34.2",
+      "ruff==0.15.18",
+      "six==1.17.0",
+      "tree-sitter-bash==0.25.1",
+      "tree-sitter-cpp==0.23.4",
+      "tree-sitter-rust==0.24.2",
+      "tree-sitter-typescript==0.23.2",
+      "tree-sitter==0.25.2",
+      "tzdata==2026.5",
+      "urllib3==2.8.0",
+      "watchdog==6.0.0"
+    ],
+    "alternative_separate_builder": [
+      "editables==0.6",
+      "hatchling==1.32.4",
+      "packaging==26.3",
+      "pathspec==1.1.1",
+      "pluggy==1.7.0",
+      "tomlkit==0.15.2",
+      "trove-classifiers==2026.9.21.13"
+    ]
+  },
+  "distributions": {
+    "babel==2.18.0": {
+      "name": "babel",
+      "version": "2.18.0",
+      "filename": "babel-2.18.0-py3-none-any.whl",
+      "sha256": "e2b422b277c2b9a9630c1d7903c2a00d0830c409c59ac8cae9081c92f1aeba35",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/babel-2.18.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/babel"
+      ]
+    },
+    "backrefs==8.1": {
+      "name": "backrefs",
+      "version": "8.1",
+      "filename": "backrefs-8.1-py312-none-any.whl",
+      "sha256": "b472c76082769f86a97ffccfd1f2599b2b706610c6154955664fffe67e909035",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/backrefs-8.1.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/backrefs"
+      ]
+    },
+    "certifi==2026.10.23": {
+      "name": "certifi",
+      "version": "2026.10.23",
+      "filename": "certifi-2026.10.23-py3-none-any.whl",
+      "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/certifi-2026.10.23.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/certifi"
+      ]
+    },
+    "charset-normalizer==3.5.2": {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "filename": "charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/charset_normalizer-3.5.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/charset_normalizer"
+      ]
+    },
+    "click==8.5.0": {
+      "name": "click",
+      "version": "8.5.0",
+      "filename": "click-8.5.0-py3-none-any.whl",
+      "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/click-8.5.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/click"
+      ]
+    },
+    "colorama==0.4.6": {
+      "name": "colorama",
+      "version": "0.4.6",
+      "filename": "colorama-0.4.6-py2.py3-none-any.whl",
+      "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/colorama-0.4.6.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/colorama"
+      ]
+    },
+    "coverage==7.17.0": {
+      "name": "coverage",
+      "version": "7.17.0",
+      "filename": "coverage-7.17.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+      "sha256": "85932227e9dd38e62cd29c17fefdfecfb919eead6af1e3259522d03cf85de983",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/coverage-7.17.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/coverage"
+      ]
+    },
+    "editables==0.6": {
+      "name": "editables",
+      "version": "0.6",
+      "filename": "editables-0.6-py3-none-any.whl",
+      "sha256": "d70e4698078a1d033e7786d9c64e5be070d058a67c21417024d38a58ac20aa43",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/editables-0.6.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/editables"
+      ]
+    },
+    "execnet==2.1.2": {
+      "name": "execnet",
+      "version": "2.1.2",
+      "filename": "execnet-2.1.2-py3-none-any.whl",
+      "sha256": "67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/execnet-2.1.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/execnet"
+      ]
+    },
+    "ghp-import==2.1.0": {
+      "name": "ghp-import",
+      "version": "2.1.0",
+      "filename": "ghp_import-2.1.0-py3-none-any.whl",
+      "sha256": "8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/ghp_import-2.1.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/ghp_import.py"
+      ]
+    },
+    "hatchling==1.32.4": {
+      "name": "hatchling",
+      "version": "1.32.4",
+      "filename": "hatchling-1.32.4-py3-none-any.whl",
+      "sha256": "08ecf7548fb48205e7f213d70c71e67b8271b7242093dc3f1da578b42c734a2c",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/hatchling-1.32.4.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/hatchling"
+      ]
+    },
+    "idna==3.20": {
+      "name": "idna",
+      "version": "3.20",
+      "filename": "idna-3.20-py3-none-any.whl",
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/idna-3.20.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/idna"
+      ]
+    },
+    "iniconfig==2.3.1": {
+      "name": "iniconfig",
+      "version": "2.3.1",
+      "filename": "iniconfig-2.3.1-py3-none-any.whl",
+      "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/iniconfig-2.3.1.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/iniconfig"
+      ]
+    },
+    "jinja2==3.1.6": {
+      "name": "jinja2",
+      "version": "3.1.6",
+      "filename": "jinja2-3.1.6-py3-none-any.whl",
+      "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/jinja2-3.1.6.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/jinja2"
+      ]
+    },
+    "markdown==3.11.2": {
+      "name": "markdown",
+      "version": "3.11.2",
+      "filename": "markdown-3.11.2-py3-none-any.whl",
+      "sha256": "f80390747a2a0ff2ba54da074ce4f862f72a6685f608cd2637b646a6d83993f5",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/markdown-3.11.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/markdown"
+      ]
+    },
+    "markupsafe==3.0.4": {
+      "name": "markupsafe",
+      "version": "3.0.4",
+      "filename": "markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "8e124f974786f831d6043728e38296969d3579db8896fe004682f5758e613581",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/markupsafe-3.0.4.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/markupsafe"
+      ]
+    },
+    "mergedeep==1.3.4": {
+      "name": "mergedeep",
+      "version": "1.3.4",
+      "filename": "mergedeep-1.3.4-py3-none-any.whl",
+      "sha256": "70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/mergedeep-1.3.4.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/mergedeep"
+      ]
+    },
+    "mkdocs==1.6.1": {
+      "name": "mkdocs",
+      "version": "1.6.1",
+      "filename": "mkdocs-1.6.1-py3-none-any.whl",
+      "sha256": "db91759624d1647f3f34aa0c3f327dd2601beae39a366d6e064c03468d35c20e",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/mkdocs-1.6.1.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/mkdocs"
+      ]
+    },
+    "mkdocs-get-deps==0.2.2": {
+      "name": "mkdocs-get-deps",
+      "version": "0.2.2",
+      "filename": "mkdocs_get_deps-0.2.2-py3-none-any.whl",
+      "sha256": "e7878cbeac04860b8b5e0ca31d3abad3df9411a75a32cde82f8e44b6c16ff650",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/mkdocs_get_deps-0.2.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/mkdocs_get_deps"
+      ]
+    },
+    "mkdocs-material==9.8.0": {
+      "name": "mkdocs-material",
+      "version": "9.8.0",
+      "filename": "mkdocs_material-9.8.0-py3-none-any.whl",
+      "sha256": "19304a7263c5700428227122b3b2699aa73f432c9de8816876adaec7d7293ce3",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/mkdocs_material-9.8.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/material"
+      ]
+    },
+    "mkdocs-material-extensions==1.3.1": {
+      "name": "mkdocs-material-extensions",
+      "version": "1.3.1",
+      "filename": "mkdocs_material_extensions-1.3.1-py3-none-any.whl",
+      "sha256": "adff8b62700b25cb77b53358dad940f3ef973dd6db797907c49e3c2ef3ab4e31",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/mkdocs_material_extensions-1.3.1.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/materialx"
+      ]
+    },
+    "packaging==26.3": {
+      "name": "packaging",
+      "version": "26.3",
+      "filename": "packaging-26.3-py3-none-any.whl",
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/packaging-26.3.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/packaging"
+      ]
+    },
+    "paginate==0.5.7": {
+      "name": "paginate",
+      "version": "0.5.7",
+      "filename": "paginate-0.5.7-py2.py3-none-any.whl",
+      "sha256": "b885e2af73abcf01d9559fd5216b57ef722f8c42affbb63942377668e35c7591",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/paginate-0.5.7.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/paginate"
+      ]
+    },
+    "pathspec==1.1.1": {
+      "name": "pathspec",
+      "version": "1.1.1",
+      "filename": "pathspec-1.1.1-py3-none-any.whl",
+      "sha256": "a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pathspec-1.1.1.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/pathspec"
+      ]
+    },
+    "platformdirs==4.13.5": {
+      "name": "platformdirs",
+      "version": "4.13.5",
+      "filename": "platformdirs-4.13.5-py3-none-any.whl",
+      "sha256": "53d3ec4280b815c1e0b02edad7f9ee8fda1ba9c0865dd9c2e6e63849ce82fc1e",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/platformdirs-4.13.5.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/platformdirs"
+      ]
+    },
+    "pluggy==1.7.0": {
+      "name": "pluggy",
+      "version": "1.7.0",
+      "filename": "pluggy-1.7.0-py3-none-any.whl",
+      "sha256": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pluggy-1.7.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/pluggy"
+      ]
+    },
+    "pygments==2.21.0": {
+      "name": "pygments",
+      "version": "2.21.0",
+      "filename": "pygments-2.21.0-py3-none-any.whl",
+      "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pygments-2.21.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/pygments"
+      ]
+    },
+    "pymdown-extensions==12.3": {
+      "name": "pymdown-extensions",
+      "version": "12.3",
+      "filename": "pymdown_extensions-12.3-py3-none-any.whl",
+      "sha256": "345493a8e3497e24382902903a1c43a28e34a52f2b7571a1c9641429b820ca74",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pymdown_extensions-12.3.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/pymdownx"
+      ]
+    },
+    "pytest==9.1.1": {
+      "name": "pytest",
+      "version": "9.1.1",
+      "filename": "pytest-9.1.1-py3-none-any.whl",
+      "sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pytest-9.1.1.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/_pytest",
+        "/opt/genia/venv/lib/python3.12/site-packages/py.py",
+        "/opt/genia/venv/lib/python3.12/site-packages/pytest"
+      ]
+    },
+    "pytest-cov==7.1.0": {
+      "name": "pytest-cov",
+      "version": "7.1.0",
+      "filename": "pytest_cov-7.1.0-py3-none-any.whl",
+      "sha256": "a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pytest_cov-7.1.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/pytest_cov"
+      ]
+    },
+    "pytest-xdist==3.8.0": {
+      "name": "pytest-xdist",
+      "version": "3.8.0",
+      "filename": "pytest_xdist-3.8.0-py3-none-any.whl",
+      "sha256": "202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pytest_xdist-3.8.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/xdist"
+      ]
+    },
+    "python-dateutil==3.0.0": {
+      "name": "python-dateutil",
+      "version": "3.0.0",
+      "filename": "python_dateutil-3.0.0-py2.py3-none-any.whl",
+      "sha256": "3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/python_dateutil-3.0.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/dateutil"
+      ]
+    },
+    "pyyaml==6.0.3": {
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "filename": "pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pyyaml-6.0.3.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/_yaml",
+        "/opt/genia/venv/lib/python3.12/site-packages/yaml"
+      ]
+    },
+    "pyyaml-env-tag==1.1": {
+      "name": "pyyaml-env-tag",
+      "version": "1.1",
+      "filename": "pyyaml_env_tag-1.1-py3-none-any.whl",
+      "sha256": "17109e1a528561e32f026364712fee1264bc2ea6715120891174ed1b980d2e04",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/pyyaml_env_tag-1.1.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/yaml_env_tag.py"
+      ]
+    },
+    "requests==2.34.2": {
+      "name": "requests",
+      "version": "2.34.2",
+      "filename": "requests-2.34.2-py3-none-any.whl",
+      "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/requests-2.34.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/requests"
+      ]
+    },
+    "ruff==0.15.18": {
+      "name": "ruff",
+      "version": "0.15.18",
+      "filename": "ruff-0.15.18-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "5f0480ce690cbb6c4db6e5d08f19fce98e10ba131a8b60c1bcdac42771e3ae2d",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/ruff-0.15.18.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/ruff"
+      ]
+    },
+    "six==1.17.0": {
+      "name": "six",
+      "version": "1.17.0",
+      "filename": "six-1.17.0-py2.py3-none-any.whl",
+      "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/six-1.17.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/six.py"
+      ]
+    },
+    "tomlkit==0.15.2": {
+      "name": "tomlkit",
+      "version": "0.15.2",
+      "filename": "tomlkit-0.15.2-py3-none-any.whl",
+      "sha256": "05562412163a3037b94497385fb7f9204c637bc605af7a48199e41cf2272f437",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/tomlkit-0.15.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/tomlkit"
+      ]
+    },
+    "tree-sitter==0.25.2": {
+      "name": "tree-sitter",
+      "version": "0.25.2",
+      "filename": "tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "b43a9e4c89d4d0839de27cd4d6902d33396de700e9ff4c5ab7631f277a85ead9",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter-0.25.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter"
+      ]
+    },
+    "tree-sitter-bash==0.25.1": {
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "filename": "tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "3f484c4bb8796cde7a87ca351e6116f09653edac0eb3c6d238566359dd28b117",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter_bash-0.25.1.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter_bash"
+      ]
+    },
+    "tree-sitter-cpp==0.23.4": {
+      "name": "tree-sitter-cpp",
+      "version": "0.23.4",
+      "filename": "tree_sitter_cpp-0.23.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "773d2cafc08bbc0f998687fa33f42f378c1a371cdb582870c4d13abb06092706",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter_cpp-0.23.4.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter_cpp"
+      ]
+    },
+    "tree-sitter-rust==0.24.2": {
+      "name": "tree-sitter-rust",
+      "version": "0.24.2",
+      "filename": "tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+      "sha256": "e033c5a93b57c88e0a835880de39fc802909ff69f57aaff6000211c196ea5190",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter_rust-0.24.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter_rust"
+      ]
+    },
+    "tree-sitter-typescript==0.23.2": {
+      "name": "tree-sitter-typescript",
+      "version": "0.23.2",
+      "filename": "tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "sha256": "e96d36b85bcacdeb8ff5c2618d75593ef12ebaf1b4eace3477e2bdb2abb1752c",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter_typescript-0.23.2.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/tree_sitter_typescript"
+      ]
+    },
+    "trove-classifiers==2026.9.21.13": {
+      "name": "trove-classifiers",
+      "version": "2026.9.21.13",
+      "filename": "trove_classifiers-2026.9.21.13-py3-none-any.whl",
+      "sha256": "8b1ff4f9c191b1040b71c37f1e445ab99732911e3cd91de52838453a854d7a17",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/trove_classifiers-2026.9.21.13.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/trove_classifiers"
+      ]
+    },
+    "tzdata==2026.5": {
+      "name": "tzdata",
+      "version": "2026.5",
+      "filename": "tzdata-2026.5-py2.py3-none-any.whl",
+      "sha256": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/tzdata-2026.5.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/tzdata"
+      ]
+    },
+    "urllib3==2.8.0": {
+      "name": "urllib3",
+      "version": "2.8.0",
+      "filename": "urllib3-2.8.0-py3-none-any.whl",
+      "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/urllib3-2.8.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/urllib3"
+      ]
+    },
+    "watchdog==6.0.0": {
+      "name": "watchdog",
+      "version": "6.0.0",
+      "filename": "watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl",
+      "sha256": "20ffe5b202af80ab4266dcd3e91aae72bf2da48c0d33bdb15c66658e685e94e2",
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/watchdog-6.0.0.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/venv/lib/python3.12/site-packages/watchdog"
+      ]
+    },
+    "genia==0.1.14": {
+      "name": "genia",
+      "version": "0.1.14",
+      "source_commit": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+      "editable": true,
+      "dist_info_path": "/opt/genia/venv/lib/python3.12/site-packages/genia-0.1.14.dist-info",
+      "expected_import_roots": [
+        "/opt/genia/source/src/genia"
+      ],
+      "artifact_sha256": "NOT PREPINNED: first-party PEP660 wheel is built at fixed approved path; two-build bytes must match, scratch hash is evidence only"
+    }
+  }
+}

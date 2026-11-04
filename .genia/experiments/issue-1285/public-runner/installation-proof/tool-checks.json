@@ -1,0 +1,34 @@
+{
+  "scope": "TEST/DESIGN; no full regression or independent review",
+  "commands": [
+    {
+      "argv": "UV_CACHE_DIR=<task-cache> uv run --frozen --offline --no-sync ruff check .genia/experiments/issue-1285/public-runner/installation_spike.py",
+      "exit_code": 0,
+      "stdout": "All checks passed!\n"
+    },
+    {
+      "argv": "UV_CACHE_DIR=<task-cache> uv run --frozen --offline --no-sync python -m tools.code_documentation --base-ref 00b95b62842f1907bf2174694b1e3de17ffeccbe --inventory <task-scratch>/final-code-documentation.json",
+      "exit_code": 0,
+      "stdout": "10157 records; 2793 legacy gaps; 1 classified exclusions; 0 errors\n"
+    },
+    {
+      "argv": "python -m py_compile .genia/experiments/issue-1285/public-runner/installation_spike.py",
+      "exit_code": 0
+    },
+    {
+      "argv": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "argv": "git fetch origin main",
+      "exit_code": 0,
+      "origin_main": "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5"
+    },
+    {
+      "argv": "zipfile inspection of all 43 selected runtime plus 7 backend selections and Genia editable wheel",
+      "exit_code": 0,
+      "result": "No archive dist-info contains INSTALLER/direct_url.json/uv_cache.json/uv_build.json; initial frontend metadata overwrites none of these archive members."
+    }
+  ],
+  "limitations": "Ruff covers active helper; code-documentation checker sees active helper and retained historical helper sources. Full regression deferred per authorized test/design scope. Static verifier initial SyntaxError and tar-mode derivation failure retained in validation.json and validation-source-first.stderr."
+}

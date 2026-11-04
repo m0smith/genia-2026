@@ -353,3 +353,15 @@ snapshot/base compatibility and worker/evidence/diagnostic gates. Original
 requirements, wheel/tool/base pins and BENJAMIN source/lock stay unchanged.
 Short text delta review is next; G1 OS pins and G3 venue rights remain open.
 No image or original-source regression/replay was performed.
+
+## Follow-up: deterministic installation TEST/DESIGN proof (2026-11-04)
+
+Claude reviewed the R1–R8 candidate and identified ctime-derived uv metadata as a
+predicted strict two-build failure. The maintainer authorized a public scratch
+spike only. The [new proof report](../experiments/issue-1285/public-runner/metadata-strategy.md)
+retains uv's negative byte comparisons and one pinned installer's byte-equal
+wheel/PEP-660 pairs, exact metadata/file evidence, failures and runtime mismatch.
+This is host CPython 3.12.14 evidence, not direct BENJAMIN or official-image replay.
+Original source/lock and existing pins are preserved; strategy remains unselected.
+Independent Claude delta review and a maintainer strategy decision are next.
+G1/G3 and all later build/acceptance gates remain open. No image was constructed.

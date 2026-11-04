@@ -1,0 +1,132 @@
+{
+  "scope": "Bounded static and pinned-tool checks, no full regression/image/benchmark or independent review",
+  "baseline": "00b95b62842f1907bf2174694b1e3de17ffeccbe",
+  "origin_main": "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5",
+  "checks": [
+    {
+      "check": "preserved_artifact_records",
+      "result": "PASS",
+      "details": [
+        "source",
+        "uv",
+        "base",
+        "target",
+        "runtime_selection",
+        "runtime_wheels",
+        "backend_wheels",
+        "backend",
+        "debian",
+        "venue",
+        "optional_tools",
+        "runtime_requirements_sha256",
+        "backend_requirements_sha256",
+        "builder.distribution"
+      ]
+    },
+    {
+      "check": "requirements_and_all_acquired_wheels",
+      "result": "PASS",
+      "details": {
+        "runtime_variants": 50,
+        "backend": 7,
+        "requirements_files": 2
+      }
+    },
+    {
+      "check": "uv_executable_and_candidate_archive",
+      "result": "PASS",
+      "details": {
+        "uv": "0.13.5",
+        "installer": "0.7.0",
+        "alternative_adopted": false
+      }
+    },
+    {
+      "check": "indexed_evidence_hashes_and_lossless_decode",
+      "result": "PASS",
+      "details": {
+        "files": 22,
+        "helper_commit": "4dac9cce368c9e00cafdb5fd25af0b334c32bc3a"
+      }
+    },
+    {
+      "check": "recomputed_pairs_from_complete_manifests",
+      "result": "PASS",
+      "details": {
+        "uv_wheels_changed": 94,
+        "uv_editable_changed": 88,
+        "installer_wheels_changed": 0,
+        "installer_editable_changed": 0,
+        "paths": 143114,
+        "identical_wheel_hashes_different_ctimes_fixed_mtimes": true
+      }
+    },
+    {
+      "check": "expected_distribution_inventory",
+      "result": "PASS",
+      "details": {
+        "pre_editable": 47,
+        "final": 44,
+        "alternative_prefix_pre_editable": 43,
+        "isolated_backend": 7,
+        "shared": [
+          "packaging",
+          "pathspec",
+          "pluggy"
+        ],
+        "entries": 48
+      }
+    },
+    {
+      "check": "explicit_source_policy_only",
+      "result": "PASS",
+      "details": {
+        "rules": 4,
+        "sha256": "4a1aa881eb8bac89e8c4a1d9b9cb1c7128d369391e62aded72432b3b0550b32b",
+        "solver_not_executed": true
+      }
+    },
+    {
+      "check": "approved_pair_and_last_export_after_timestamp_probe",
+      "result": "PASS",
+      "details": {
+        "source": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+        "tree": "a1a2730e6d8ff7051d88ae118212b28209067152",
+        "lock_sha256": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+        "lock_bytes": 284838,
+        "exported_files_links": 2458,
+        "extraction_mode_rule": "Python tarfile data filter, as in helper; Git tracked executable flags preserved. Archive permission masks are not Git file modes."
+      }
+    },
+    {
+      "check": "latest_authority_files_unchanged",
+      "result": "PASS",
+      "details": {
+        "AGENTS.md": "3760c62337eaa208b4310279e14a076ff69292c597d1a4d76be6125ef488b516",
+        "GENIA_STATE.md": "2eaff3f2e51d4528b3033a28376b73acfee37cada688aca4de5c74b64dd11945",
+        "GENIA_RULES.md": "e9fcd45ca6c2bc3aa36c68e2fa9fe117dce40a643c4dcaca1faa2e838e64b8fe",
+        "GENIA_REPL_README.md": "b2867174839174dcb289d26b6886414ff6f59b400e790d11e20bcb2b820331b5",
+        "README.md": "ed56a7616091865e65b8eedab64c1936439b72602eca78d079da82de760b17ff"
+      }
+    },
+    {
+      "check": "changed_markdown_relative_links",
+      "result": "PASS",
+      "details": {
+        "checked": 41
+      }
+    }
+  ],
+  "retained_static_failures": [
+    "Initial scratch verifier SyntaxError (extra parenthesis), corrected before execution.",
+    "Initial independent source verifier compared raw tar permission masks (0664/0775) to tarfile data-filter extraction (0644/0755), causing an assertion despite equal bytes. Corrected derivation explicitly uses the same documented data filter; no source or lock file was altered. Traceback retained in validation-source-first.stderr."
+  ],
+  "deferred": [
+    "independent Claude Code delta review",
+    "maintainer metadata strategy decision",
+    "G1 signed immutable OS closure and compatibility",
+    "G3 BENJAMIN rights, worker profile and storage quotas",
+    "G2 dynamic exec/write inventory",
+    "G5 official-runtime installation and strict two-build OCI plus controls/full-tests/direct per-node replay"
+  ]
+}

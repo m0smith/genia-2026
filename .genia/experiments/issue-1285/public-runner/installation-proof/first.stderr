@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py", line 310, in <module>
+    main(arguments)
+  File "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py", line 240, in main
+    'wheels': [r for r in staged if r['target_selected']]}
+                                    ~^^^^^^^^^^^^^^^^^^^
+KeyError: 'target_selected'

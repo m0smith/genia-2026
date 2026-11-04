@@ -1,0 +1,33 @@
+{
+  "url": "https://pypi.org/pypi/installer/0.7.0/json",
+  "response_sha256": "9968c83031aa34127ee32b6313ae492c077947acccc6120d4ae4819ce6c3d6f1",
+  "response_bytes": 3302,
+  "wheel_row": {
+    "comment_text": null,
+    "core-metadata": {
+      "sha256": "6f101e9a79475b3f341347b9a2d02cfbae5312c6c03fe30bd5f4db5dc6772a93"
+    },
+    "digests": {
+      "blake2b_256": "e5ca1172b6638d52f2d6caa2dd262ec4c811ba59eee96d54a7701930726bce18",
+      "md5": "33bf0ddf910e336c22972abb07b97f89",
+      "sha256": "05d1933f0a5ba7d8d6296bb6d5018e7c94fa473ceb10cf198a92ccea19c27b53"
+    },
+    "downloads": -1,
+    "filename": "installer-0.7.0-py3-none-any.whl",
+    "has_sig": false,
+    "md5_digest": "33bf0ddf910e336c22972abb07b97f89",
+    "packagetype": "bdist_wheel",
+    "python_version": "py3",
+    "requires_python": ">=3.7",
+    "size": 453838,
+    "upload_time": "2023-03-17T20:39:36",
+    "upload_time_iso_8601": "2023-03-17T20:39:36.219116Z",
+    "url": "https://files.pythonhosted.org/packages/e5/ca/1172b6638d52f2d6caa2dd262ec4c811ba59eee96d54a7701930726bce18/installer-0.7.0-py3-none-any.whl",
+    "yanked": false,
+    "yanked_reason": null
+  },
+  "requires_python": ">=3.7",
+  "requires_dist": null,
+  "archive_hash_and_size_match": true,
+  "scope": "Additional public metadata receipt; not independent publisher provenance or signature."
+}

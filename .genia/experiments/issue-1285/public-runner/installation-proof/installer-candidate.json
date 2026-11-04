@@ -1,0 +1,17 @@
+{
+  "name": "installer",
+  "version": "0.7.0",
+  "filename": "installer-0.7.0-py3-none-any.whl",
+  "url": "https://files.pythonhosted.org/packages/e5/ca/1172b6638d52f2d6caa2dd262ec4c811ba59eee96d54a7701930726bce18/installer-0.7.0-py3-none-any.whl",
+  "sha256": "05d1933f0a5ba7d8d6296bb6d5018e7c94fa473ceb10cf198a92ccea19c27b53",
+  "bytes": 453838,
+  "requires_python": ">=3.7",
+  "requires_dist": null,
+  "scope": "one experimental alternative, not adopted",
+  "provenance": "PyPI installer 0.7.0 release JSON SHA256/size cross-check and downloaded wheel; no independent publisher signature/attestation claimed",
+  "project_url": "https://github.com/pypa/installer",
+  "adopted": false,
+  "tool_runtime": "CPython >=3.7 stdlib; proof uses exact recorded host CPython 3.12.14. Official 3.12.15 validation pending.",
+  "bytecode_optimization_levels": [],
+  "frontend_metadata": "Initial INSTALLER=installer LF; first-party editable only initial PEP610 direct_url JSON. No metadata deletion/patching/normalization. Frontend helper itself needs review before adoption."
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "label": "genia-console",
+    "argv": [
+      "/workspace/work/issue-1285-deterministic/run4/prefix/bin/genia",
+      "-c",
+      "1 + 1"
+    ],
+    "exit_code": 0,
+    "stdout": "2\n",
+    "stderr": "",
+    "scope": "Alternative B console wrapper smoke only, not regression or benchmark."
+  },
+  {
+    "label": "pytest-console",
+    "argv": [
+      "/workspace/work/issue-1285-deterministic/run4/prefix/bin/pytest",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "pytest 9.1.1\n",
+    "stderr": "",
+    "scope": "Alternative B console wrapper smoke only, not regression or benchmark."
+  },
+  {
+    "label": "mkdocs-console",
+    "argv": [
+      "/workspace/work/issue-1285-deterministic/run4/prefix/bin/mkdocs",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "mkdocs, version 1.6.1 from /workspace/work/issue-1285-deterministic/run4/prefix/lib/python3.12/site-packages/mkdocs (Python 3.12)\n",
+    "stderr": "",
+    "scope": "Alternative B console wrapper smoke only, not regression or benchmark."
+  }
+]

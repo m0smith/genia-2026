@@ -1,7 +1,7 @@
 # #1285 — revised public runner design and pin acquisition (A1–A8)
 
 Date: 2026-11-04. **PUBLIC ONLY / DESIGN CANDIDATE / NOT BUILT, FROZEN OR ACCEPTED.**
-Agent: Codex; branch `issue-1285-recipe-r1-r8` (bounded design/recipe correction).
+Agent: Codex; branch `issue-1285-deterministic-install` (TEST/DESIGN-only spike).
 Tracking: [#1285](https://github.com/m0smith/genia-2026/issues/1285).
 Original proposal: `aebcd4cb65946d42a14315407b2e8ea616948c3c`.
 
@@ -18,24 +18,32 @@ then independently confirmed the retained pins/43-entry graph at
 `778bb1a4e9c24331915005c759b4a44780522b03`, returned PASS-WITH-REVISIONS and proved
 the uv flag defect. The [maintainer authorization](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6636833906)
 permits only R1–R8/low-severity design corrections and bounded pinned-tool checks.
-This revision preserves the verified artifacts; short independent **text** delta
-review is next, with OS-pin/venue delta review later when G1/G3 evidence exists.
+The R1–R8 revision preserved the verified artifacts. Claude's
+[subsequent independent review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6639484157)
+confirmed those corrections at `00b95b62842f1907bf2174694b1e3de17ffeccbe` and
+identified ctime-derived generated metadata as a predicted two-build failure.
+The [maintainer decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6641293474)
+authorizes the installation TEST/DESIGN spike and four design corrections below,
+**not** adoption of an installer, recipe change or image construction.
 
 **Current decision: BLOCKED for complete pin closure/build authorization.** All
 eight amendments are specified below and in the linked recipe/checklist. Public
 wheel/tool/base-byte acquisition passed, but immutable Debian metadata/Git/Tini
 closure is blocked by the current network policy. BENJAMIN execution access is
-unverified. No image was assembled, built, run or exported; no project dependency
-installation, Genia editable build or regression was performed in this phase.
-Only tiny public backend wheels were installed in disposable host environments
-for the authorized uv checks; those are not project/target installation evidence.
+unverified. No image was assembled, built, run or exported. The current spike
+installed exact public dependency wheels and built/installed only the approved
+first-party Genia editable project in host scratch. Official CPython 3.12.15,
+full regression and direct BENJAMIN replay remain unexecuted. **Metadata strategy
+is UNSELECTED.** The current uv recipe is predicted to fail strict byte equality;
+the one alternative passed host byte comparison only. See the
+[complete installation proof and recommendation](../experiments/issue-1285/public-runner/metadata-strategy.md).
 
 ## Scoped preflight
 
 1. Classification/owner: required infrastructure, release-independent public
    reproducibility for the Outcome-aware validated-pipeline experiment. Maintainer
    owns decisions. Scope is amended design, exact public pins/gaps, offline recipe,
-   static/acquisition checks and structured issue handoff. Excludes private data,
+   static/acquisition checks, authorized TEST/DESIGN installation proof and issue handoff. Excludes private data,
    oracle/candidate code, benchmark comparisons, runtime/semantic changes, R29 work, CI edits/
    dispatch, paid services, merge and issue closure.
 2. Sources: fetched main remains `0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5`.
@@ -45,17 +53,21 @@ for the authorized uv checks; those are not project/target installation evidence
    killer workflow, applicable run-change/preflight/LLM/token-efficient guidance,
    execution-realization, issue handoffs, original design, review and maintainer
    decisions. STATE remains final language authority, never these experiment pins.
-3. Maturity: N/A, design/data/process only. All controls/OCI behavior remain proposed.
+3. Maturity: N/A, test/design/data/process only. All controls/OCI behavior remain proposed.
 4. Portable/host boundary: no language, Core IR, Python or C++ implementation
    change. Linux amd64 acquisition targets only the Python reference-host experiment.
-5. Verification now: bounded pinned-uv matrix, listed host requirements-hook
+5. Historical R1–R8 verification: bounded pinned-uv matrix, listed host requirements-hook
    replay, path-metadata probe, retained pin/requirement equality, CLI help and
    JSON/shell/link/scope/authority checks. Earlier acquisition/graph/export proofs
    are retained with their original scope, not misrepresented as new executions.
    Full regression and build tests are later gates, not replaced by these checks.
+   Current authorized proof: one pinned alternative, two distinct-ctime scratch
+   installations per strategy, complete venv byte/mode/link comparison, PEP-660
+   Genia/import/identity/offline-consistency/public smoke checks, negative controls
+   and retained failed attempts. Target runtime mismatch is explicit.
 6. Examples: process-only recipe/checklist; no new Genia program or benchmark case.
 7. Complexity: one candidate manifest, two exact wheel requirement files, evidence,
-   recipe/gap inventory/checklist. No supervisor, alternate semantic runner or
+   recipe/gap inventory/checklist and isolated experimental helper. No production supervisor, alternate semantic runner or
    repository-wide dependency policy is introduced.
 8. Cross-file impact: this process record and public-runner artifact directory,
    plus forward-link maintenance in the historical replay record. STATE/RULES/
@@ -64,8 +76,9 @@ for the authorized uv checks; those are not project/target installation evidence
    Pin accuracy/provenance and honest unresolved gates are material risks.
 9. Philosophy: minimalism, explicit authority, semantics outside adapters,
    pattern-first preservation and validated-pipeline relevance: YES.
-10. Phases: authorized R1–R8 design/recipe correction + bounded tool checks → text
-    delta review; prior acquisition pins retained without redundant downloads.
+10. Phases: authorized TEST/DESIGN spike → separate helper and evidence/design
+    commits → independent Claude delta review → maintainer metadata-strategy
+    decision. Prior acquisition pins retained without redundant downloads.
     The earlier sequence was preflight/design amendment + acquisition → Claude delta
     review → STOP for separate build authorization. No runtime contract/RED/
     implementation phase is applicable now. Later executable build/control code
@@ -74,8 +87,9 @@ for the authorized uv checks; those are not project/target installation evidence
     execution infrastructure; existing specs/tests remain future evidence; no new
     capability vocabulary; no host-parity claim; no new host gaps/skips; synchronize
     experiment evidence only. Python/C++ semantic implementation effects: none.
-12. GO/BLOCKED: original provenance and completed acquisition checks PASS; complete
-    OS/pin closure and independent delta review BLOCKED. No build authority is
+12. GO/BLOCKED: bounded installation proof complete; original provenance and
+    acquisition checks retained. Complete OS/pin closure, venue evidence,
+    metadata-strategy decision and fresh independent delta review BLOCKED. No build authority is
     inferred from the previous review or the chosen venue.
 
 ## Immutable pair — preserved without overlays
@@ -300,7 +314,7 @@ differs; no patch-version-based equivalence. Without direct per-test data only
 E0–E1 can be claimed **when their own receipts pass**. This phase establishes
 pin identities/acquired bytes, not a new direct E1/E2/E3 or worker-custody result.
 
-## Evidence, delta review and next action
+## Historical R1–R8 evidence and handoff
 
 | Correction | Disposition / evidence boundary |
 |---|---|
@@ -335,14 +349,13 @@ supersedes only its metadata-only acquisition limit, not an execution gate.
 completed pins from STOP conditions. Static checks do not replace future offline
 installation, measured controls, two-build OCI or full original-source regression.
 
-Independent Claude Code **text** delta review must inspect this exact committed
+The prior handoff requested independent Claude Code **text** delta review of the
 R1–R8/low-severity diff, corrected CLI evidence, qualified hook inputs, preserved
-artifact identities, unresolved OS fields and gate language;
-record reviewer/session/model and exact reviewed SHA, ranked findings and verdict.
-No authenticated callable Claude route is available here. Publishing a review
-request/handoff is not obtaining PASS; no Codex self-review is substituted.
+artifact identities, unresolved OS fields and gate language, with
+reviewer/session/model, exact reviewed SHA, ranked findings and verdict.
+That review is now linked above; its PASS-WITH-REVISIONS does not review this spike.
 
-**Next action:** obtain the short independent Claude text delta review now.
+The historical next action was independent Claude text delta review.
 In parallel, complete supported snapshot access, verified OS/Tini/Git compatibility/
 closure and sanitized BENJAMIN rights receipts; a further minimal OS-pin/venue
 review is required once those exist. Owner
@@ -352,3 +365,47 @@ $0 incremental spending: existing workspace and public downloads only; no paid
 API/infrastructure/storage/billing change, image construction, CI dispatch,
 private benchmark/custody/equal-worker claims, merge, issue closure or R29 work.
 Token usage, invoice totals, review time and savings are not measured.
+
+## Current installation proof and four design corrections
+
+The [proof report](../experiments/issue-1285/public-runner/metadata-strategy.md)
+records the separately committed helper, exact commands, original-source/lock
+checks, full installed-file/metadata manifests and retained failures. At fixed
+paths/mtime/SOURCE_DATE_EPOCH, pinned uv 0.13.5 writes wheel/project **ctime** into
+uv_cache.json to ns precision; RECORD changes too. Editable uv_build.json is
+inventoried. Current uv draft is **predicted to fail** strict two-build equality,
+not just an untested risk. The varying directories.src field's exact clock mapping
+is not established by this spike. No metadata cleanup or byte exclusions follow.
+
+One hash-pinned pure Python candidate, PyPA installer 0.7.0, produced identical
+complete venv file bytes/modes/links in its wheel and PEP-660 editable A/B pairs.
+It uses the same 43 runtime wheel bytes plus a separate seven-wheel pinned
+Hatchling builder. Initial standard INSTALLER/PEP-610 metadata is explicit and
+reviewable. Source remains live through the installed editable .pth, without
+PYTHONPATH; original tracked bytes/modes/links and lock remain unchanged. Public
+import/consistency/CLI/demo checks pass; host 3.12.14 is not official-image 3.12.15.
+This is not target closure, OCI reproducibility, full-test parity or E1–E3 evidence.
+
+The [expected installation inventory](../experiments/issue-1285/public-runner/expected-inventory.json)
+enumerates name/version/wheel hashes and import roots for current uv's 47
+pre-editable and 44 final entries; pins.json records its digest. Alternative
+pre-editable deployment prefix is 43 with seven backend packages isolated.
+Source-policy selectors now explicitly use WILDCARD and their configuration hash
+is updated; BuildKit syntax/worker/snapshotter/semantic-denial gates and first-use
+provenance limitation remain. The checklist specifies nonblocking separate pipe
+counters enforcing 16777216 bytes per stream; first excess byte fails closed,
+triggers bounded Tini/watchdog cleanup, records overflow and preserves capped
+evidence. It is a proposed control requiring implementation and boundary probes;
+the 56/64/512 MiB budgets and strict E2 criteria are unchanged.
+
+**Next owner action:** obtain independent Claude Code narrow delta review of the
+exact helper/evidence/design SHA and four corrections, then explicitly choose or
+reject the candidate metadata strategy. Adoption and production recipe/frontend
+changes require a further maintainer decision; no build is authorized here.
+G1 signed immutable Debian/OS/Git/Tini closure and 87-base-package compatibility
+remain blocked by supported proxy policy. G3 BENJAMIN rights/worker/storage
+receipts remain unverified. Later target installation, controls, per-test direct
+receipts and two-build OCI comparison retain their separate gates. All authority
+language docs remain accurate without edits: this changes neither Python/C++
+runtime semantics nor any MCP language-profile fact. No private/benchmark/R29
+work, paid infrastructure, merge or issue closure was performed.

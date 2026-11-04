@@ -1,0 +1,94 @@
+[
+  {
+    "label": "nonempty-work-root",
+    "argv": [
+      "python",
+      "-B",
+      "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+      "--work",
+      "/workspace/work/issue-1285-deterministic/run2"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 324, in <module>\n    main(arguments)\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 151, in main\n    raise ValueError('Use a fresh empty work root; existing evidence is never overwritten')\nValueError: Use a fresh empty work root; existing evidence is never overwritten\n"
+  },
+  {
+    "label": "optimized-python",
+    "argv": [
+      "python",
+      "-O",
+      "-B",
+      "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+      "--help"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 311, in <module>\n    raise RuntimeError('This experimental assertion-based verifier requires Python without -O')\nRuntimeError: This experimental assertion-based verifier requires Python without -O\n"
+  },
+  {
+    "label": "wrong-hash",
+    "argv": [
+      "python",
+      "-I",
+      "-S",
+      "-B",
+      "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+      "--worker",
+      "/workspace/work/issue-1285-deterministic/wrong-hash.json"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 322, in <module>\n    wheel_worker(json.loads(arguments.worker.read_text()))\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 82, in wheel_worker\n    assert sha(archive.read_bytes()) == row['sha256']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+    "destination_absent": true
+  },
+  {
+    "label": "missing-wheel",
+    "argv": [
+      "python",
+      "-I",
+      "-S",
+      "-B",
+      "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+      "--worker",
+      "/workspace/work/issue-1285-deterministic/missing-wheel.json"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 322, in <module>\n    wheel_worker(json.loads(arguments.worker.read_text()))\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 82, in wheel_worker\n    assert sha(archive.read_bytes()) == row['sha256']\n               ^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/workspace/work/issue-1285-deterministic/missing.whl'\n",
+    "destination_absent": true
+  },
+  {
+    "label": "retained-invalid-wheel-filename-harness-failure",
+    "argv": [
+      "python",
+      "-I",
+      "-S",
+      "-B",
+      "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+      "--worker",
+      "/workspace/work/issue-1285-deterministic/record-control.json"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 322, in <module>\n    wheel_worker(json.loads(arguments.worker.read_text()))\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 88, in wheel_worker\n    with WheelFile.open(archive) as source:\n         ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"/workspace/work/issue-1285-deterministic/run4/installer-library/installer/sources.py\", line 163, in open\n    yield cls(f)\n          ^^^^^^\n  File \"/workspace/work/issue-1285-deterministic/run4/installer-library/installer/sources.py\", line 151, in __init__\n    parsed_name = parse_wheel_filename(basename)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/work/issue-1285-deterministic/run4/installer-library/installer/utils.py\", line 113, in parse_wheel_filename\n    raise ValueError(f\"Not a valid wheel filename: {filename}\")\nValueError: Not a valid wheel filename: record-mismatch-control.whl\n",
+    "destination_absent": true,
+    "scope": "Tampered scratch copy only. Not an approved pin. Outer expected hash deliberately computed for negative control to exercise independent RECORD validation. Initial control stopped at filename validation, before intended RECORD check; retained and corrected below."
+  },
+  {
+    "label": "archive-hash-correct-but-wheel-RECORD-mismatch",
+    "argv": [
+      "python",
+      "-I",
+      "-S",
+      "-B",
+      "/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py",
+      "--worker",
+      "/workspace/work/issue-1285-deterministic/record-control.json"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 322, in <module>\n    wheel_worker(json.loads(arguments.worker.read_text()))\n  File \"/workspace/genia-2026/.genia/experiments/issue-1285/public-runner/installation_spike.py\", line 89, in wheel_worker\n    source.validate_record(validate_contents=True)\n  File \"/workspace/work/issue-1285-deterministic/run4/installer-library/installer/sources.py\", line 289, in validate_record\n    raise _WheelFileValidationError(issues)\ninstaller.sources._WheelFileValidationError: [\"In /workspace/work/issue-1285-deterministic/negative-record/installer-0.7.0-py3-none-any.whl, hash / size of installer/__init__.py didn't match RECORD\"]\n",
+    "destination_absent": true,
+    "scope": "Tampered scratch copy, expected outer SHA256 deliberately recomputed to reach RECORD validation. Original pinned archive unchanged."
+  }
+]

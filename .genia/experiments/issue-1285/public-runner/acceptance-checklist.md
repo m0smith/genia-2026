@@ -15,6 +15,11 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   inference from the current executor's read-only daemon inspection.
 - [ ] Independent Claude Code **delta** review PASS on exact amended design/pin
   commit; prior PASS-WITH-REVISIONS is not this review.
+- [ ] Metadata strategy explicitly selected by maintainer **after** independent
+  delta review and **before** build authorization. The unchanged uv draft is
+  predicted to fail strict byte equality: wheel/project ctime enters uv_cache.json
+  and RECORD. [Host proof and one alternative](metadata-strategy.md) do not adopt
+  an installer, approve initial frontend metadata or establish target equality.
 - [ ] Maintainer separately authorizes bounded offline build, then acceptance
   runs. No private work, custody or independent-worker authorization follows.
 - [ ] Two independent build receipts, offline proof and OCI archive/index/
@@ -41,6 +46,11 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   backend-only residue or system/user site leakage. **Include colorama** from the
   unconditional mkdocs-material dependency; exclude exceptiongroup/tomli/
   typing-extensions and the four inactive version variants.
+- [ ] Recompute [expected inventory](expected-inventory.json) and its pins.json
+  hash from the unchanged selected wheel bytes; compare all 47 pre-editable and
+  44 final name/version/artifact/import-path entries. For a separately adopted
+  isolated-backend strategy, its pre-editable final prefix has 43 entries and
+  the builder has seven; do not apply the current uv 47-entry phase to that prefix.
 - [ ] R2 `uv --no-config pip check --python /opt/genia/venv/bin/python --offline`
   passes after wheel installation and after backend-only removal, alongside exact
   inventory equality. A nonzero result STOPs; no implicit dependency repair.
@@ -48,12 +58,13 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   executed there; [listed host hook inputs](hook-library-inputs.json) are preliminary
   evidence only, with library/source bytes unchanged in the bounded host replay.
 - [ ] Retained fixed `/opt/runner-input` paths and editable source path agree in
-  actual dist-info `direct_url.json`/`uv_cache.json`; hash and compare these files
+  actual dist-info `direct_url.json`/`uv_cache.json`/`uv_build.json`; hash and compare these files
   across A/B unchanged. Unexpected `/tmp`/external paths or differing bytes STOP;
   no post-hoc metadata rewriting.
-  Host probe with fixed wheel mtime still produced a different `uv_cache.json`
-  timestamp; target metadata stability/any policy revision is unresolved, not
-  inferred from fixed paths or exporter timestamp rewriting.
+  Host proof reproduces every staged wheel timestamp's ctime and editable
+  pyproject.toml ctime to ns; directories.src varies but its exact clock mapping
+  is not established here. Current recipe is expected to fail; strategy remains
+  unselected. No byte exclusions, deletion/patching or weaker equality are allowed.
 - [ ] Exactly one distinct uv executable on effective PATH, version 0.13.5 and
   SHA256 `8a70db72685b7138121bfcda71fa1a00cb709ed9f1fdc4ecf1dd871e8e167e52`;
   record outer and nested fixture resolution. No uv 0.12.23 fallback.
@@ -146,6 +157,8 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   never truncated PASS. After every command, copy to bounded durable storage,
   verify hashes/lengths and acknowledge before deleting its tmpfs files or starting
   the next. Failed copy/ack STOPs; do not accumulate all six commands in 64 MiB.
+- [ ] Implement and measure the per-stream mechanism below; configured tmpfs/log
+  sizes alone are not enforcement of the stdout/stderr limit.
 - [ ] The 512 MiB retained **text/test-control** budget is explicit: six command
   bundles at 56 MiB = 336 MiB; shared receipts 32 MiB; neutral/diagnostic controls
   64 MiB; one-container working Docker logs 32 MiB; headroom 48 MiB = 512 MiB.
@@ -156,6 +169,33 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   an open G5 prerequisite. Inspect public payload and sanitize local paths.
   No paid artifact service/registry or public Actions upload. Missing tmpfs/quota
   support is a STOP, not permission to use unbounded host disk.
+
+### Required stream supervisor — proposed, not implemented or tested here
+
+Use an external supervisor with separate nonblocking stdout/stderr pipes and a
+selector loop (not buffered communicate/capture_output). Each stream has a
+**16777216-byte** counter and capped artifact. Each read requests at most
+`min(65536, remaining+1)` bytes; persist at most remaining bytes. The first excess
+byte latches overflow and **command failure**, even if the command exits 0.
+Record the offending stream, observed bytes, retained bytes and truncated=true;
+never label a capped prefix as complete output. Exactly-at-limit is allowed only
+after actual EOF, successful exit and all other checks.
+
+On overflow request TERM through container PID 1/Tini, bound grace to 10 seconds,
+then KILL the container if needed using the existing external watchdog. Continue
+draining both pipes with constant bounded buffers during that finite cleanup,
+discard excess bytes and record that loss; never resume acceptance. Preserve
+raw exit/signal/overflow/watchdog receipts and bounded retained prefixes. Failed
+cleanup, missing supervisor receipt, cap-counter failure or evidence write error
+fails closed. Bound receipt/JUnit files and inode count separately under their
+24 MiB allocation; RLIMIT_FSIZE bounds regular writes only and is insufficient
+for pipe output. This leaves the existing 56/64/512 MiB budget unchanged.
+
+Before acceptance, neutral producers must prove cap-1, cap, cap+1 behavior on
+each stream and simultaneous saturation; include a producer that exits 0 after
+overflow and a TERM-resistant producer. Verify bounded peak memory/storage and
+cleanup, and that no overflow is reported PASS. These probes and supervisor code
+are later authorized implementation/verification work, not results of this spike.
 
 ## Six public verification commands and skip policy (A5)
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "R1-R8 design correction candidate; short independent text delta review pending; NOT build-ready",
+  "status": "Deterministic installation TEST/DESIGN candidate; metadata strategy UNSELECTED; independent delta review pending; NOT build-ready",
   "scope": "public-only pin acquisition and design; no image construction",
   "maintainer_decisions": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6634461919",
   "original_design_review": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6617856864",
@@ -807,7 +807,7 @@
       "request": "frontend.lint",
       "image_output_exporter": false,
       "policy_path": "offline-source-policy.json",
-      "policy_sha256": "fe7b1c8005ef0da0a8ebddf21c6dc0e3672db473bcc61760d40d878a2ee3e743",
+      "policy_sha256": "4a1aa881eb8bac89e8c4a1d9b9cb1c7128d369391e62aded72432b3b0550b32b",
       "static_json_is_not_semantic_denial_proof": true,
       "oci_rewrite_timestamp_requires_separate_export_verification": true
     }
@@ -1825,7 +1825,7 @@
   "runner_frozen_or_accepted": false,
   "runtime_requirements_sha256": "8ea8d2e9be33a7c51f2d78ae7bc76429dfb9c2fc00ebc0e56eef4bc1a64ed234",
   "backend_requirements_sha256": "d4505e1474280277a6578f306aacb2f08e03107fc748ba7d7311f70228707769",
-  "latest_preliminary_review": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6635654084",
+  "latest_preliminary_review": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6639484157",
   "recipe_correction_authorization": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6636833906",
   "recipe_integrity_requirements": {
     "compatible_install_flags": [
@@ -1844,8 +1844,26 @@
     "expected_final_distributions": 44,
     "staged_inputs_path": "/opt/runner-input",
     "retained_readonly_in_image": true,
-    "dist_info_path_metadata": "retain/hash direct_url.json and uv_cache.json; compare A/B; never rewrite to force equality",
+    "dist_info_path_metadata": "Retain all actual metadata including uv_build.json; compare all bytes across A/B; never rewrite/remove/ignore differences to force equality",
     "target_installer_metadata_reproducibility_verified": false,
-    "fixed_wheel_mtime_controlled_host_uv_cache_timestamp": false
+    "fixed_wheel_mtime_controlled_host_uv_cache_timestamp": false,
+    "current_uv_two_build_result": "PREDICTED FAIL in target: observed all47 wheel uv_cache.timestamp equals staged ctime to ns; Genia timestamp equals pyproject ctime. RECORD hashes also change. directories.src varies, exact clock mapping not established by this spike.",
+    "metadata_strategy": "UNSELECTED; independent delta review then maintainer strategy decision required BEFORE build authorization",
+    "expected_inventory": {
+      "path": "expected-inventory.json",
+      "sha256": "b74d9a6634f6d5d690bcc5bdfd47f13622edd3a0e576e71f982d7ec2011f3985"
+    }
+  },
+  "deterministic_spike_authorization": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6641293474",
+  "installation_spike": {
+    "scope": "host scratch only; not approved installation recipe or official-target proof",
+    "helper_commit": "4dac9cce368c9e00cafdb5fd25af0b334c32bc3a",
+    "evidence": "installation-proof/evidence.json",
+    "evidence_sha256": "daa38b63ba0484d89cf4f33f851748415cf58abe5decefc40ddc8068021c8d33",
+    "alternative_pin": "installation-proof/installer-candidate.json",
+    "alternative_pin_sha256": "a192fc957dd3c810d157acaf7714023f79e120cccfae824e2532612a6deda8da",
+    "alternative_adopted": false,
+    "strict_two_build_gate_unchanged": true,
+    "target_verified": false
   }
 }

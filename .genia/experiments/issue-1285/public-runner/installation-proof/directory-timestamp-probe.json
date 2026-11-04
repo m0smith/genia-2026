@@ -1,0 +1,373 @@
+{
+  "argv": [
+    "/workspace/work/issue-1285-pins/tools/uv",
+    "--no-config",
+    "pip",
+    "install",
+    "--python",
+    "/workspace/work/issue-1285-deterministic/run4/build-env/bin/python",
+    "--offline",
+    "--no-index",
+    "--no-deps",
+    "--no-build-isolation",
+    "-e",
+    "/workspace/work/issue-1285-deterministic/run4/source"
+  ],
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "Using Python 3.12.14 environment at: /workspace/work/issue-1285-deterministic/run4/build-env\nResolved 1 package in 0.72ms\n   Building genia @ file:///workspace/work/issue-1285-deterministic/run4/source\n      Built genia @ file:///workspace/work/issue-1285-deterministic/run4/source\nPrepared 1 package in 119ms\nInstalled 1 package in 1ms\n + genia==0.1.14 (from file:///workspace/work/issue-1285-deterministic/run4/source)\n",
+  "source_stat_before": {
+    "pyproject.toml": {
+      "ctime_ns": 1793825796027169700,
+      "mtime_ns": 1793034850000000000
+    },
+    "src": {
+      "ctime_ns": 1793825796151137801,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia": {
+      "ctime_ns": 1793825796151137801,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/utf8.py": {
+      "ctime_ns": 1793825796108628354,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/open_header_capture.py": {
+      "ctime_ns": 1793825796105671689,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/sheet.py": {
+      "ctime_ns": 1793825796106544686,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/interpreter.py": {
+      "ctime_ns": 1793825796104778382,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/docstrings.py": {
+      "ctime_ns": 1793825796103966657,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/http_transport.py": {
+      "ctime_ns": 1793825796104697080,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/lifecycle_scope.py": {
+      "ctime_ns": 1793825796105179262,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/test_kernel.py": {
+      "ctime_ns": 1793825796108564949,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/native_test_runner.py": {
+      "ctime_ns": 1793825796105467744,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/ast_nodes.py": {
+      "ctime_ns": 1793825796103415352,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/_format_engine.py": {
+      "ctime_ns": 1793825796103349013,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/environment.py": {
+      "ctime_ns": 1793825796104029581,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/native_test_lifecycle.py": {
+      "ctime_ns": 1793825796105402506,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/http_operation.py": {
+      "ctime_ns": 1793825796104634076,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/values.py": {
+      "ctime_ns": 1793825796108695645,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/model.py": {
+      "ctime_ns": 1793825796105312902,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/errors.py": {
+      "ctime_ns": 1793825796104168529,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/debug_protocol.py": {
+      "ctime_ns": 1793825796103903152,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/optimizer.py": {
+      "ctime_ns": 1793825796105735044,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/pattern_match.py": {
+      "ctime_ns": 1793825796105902084,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/server_route_binding.py": {
+      "ctime_ns": 1793825796106481151,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/http_annotation_binding.py": {
+      "ctime_ns": 1793825796104505914,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/process_transport.py": {
+      "ctime_ns": 1793825796106094312,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/process_capability.py": {
+      "ctime_ns": 1793825796105967642,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/server_config_binding.py": {
+      "ctime_ns": 1793825796106282043,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/http_client.py": {
+      "ctime_ns": 1793825796104569179,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/lifecycle_binding.py": {
+      "ctime_ns": 1793825796104979313,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/parser.py": {
+      "ctime_ns": 1793825796105824087,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/process_execution.py": {
+      "ctime_ns": 1793825796106030626,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std": {
+      "ctime_ns": 1793825796151137801,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/server_lifecycle.py": {
+      "ctime_ns": 1793825796106418337,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/gemini_rest.py": {
+      "ctime_ns": 1793825796104310051,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/numeric_runtime.py": {
+      "ctime_ns": 1793825796105533362,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/equality.py": {
+      "ctime_ns": 1793825796104101028,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/builtins.py": {
+      "ctime_ns": 1793825796103481561,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/host_builtin_docs.py": {
+      "ctime_ns": 1793825796104440526,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/callable.py": {
+      "ctime_ns": 1793825796103605446,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/server_cors_binding.py": {
+      "ctime_ns": 1793825796106353009,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/numeric_source.py": {
+      "ctime_ns": 1793825796105607233,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/lexer.py": {
+      "ctime_ns": 1793825796104915657,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/lifecycle_plan.py": {
+      "ctime_ns": 1793825796105043509,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/lowering.py": {
+      "ctime_ns": 1793825796105244850,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/test_cli.py": {
+      "ctime_ns": 1793825796108498520,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/cors_policy.py": {
+      "ctime_ns": 1793825796103771094,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/__init__.py": {
+      "ctime_ns": 1793825796103283715,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/ir.py": {
+      "ctime_ns": 1793825796104850580,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/retrieval.py": {
+      "ctime_ns": 1793825796106157466,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/debug_controller.py": {
+      "ctime_ns": 1793825796103838065,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/host_bridge.py": {
+      "ctime_ns": 1793825796104374698,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/evaluator.py": {
+      "ctime_ns": 1793825796104232134,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/lifecycle_runtime.py": {
+      "ctime_ns": 1793825796105115537,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/configuration.py": {
+      "ctime_ns": 1793825796103682341,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/__init__.py": {
+      "ctime_ns": 1793825796106670704,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude": {
+      "ctime_ns": 1793825796151137801,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/execution.genia": {
+      "ctime_ns": 1793825796107228760,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/map.genia": {
+      "ctime_ns": 1793825796107682098,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/ref.genia": {
+      "ctime_ns": 1793825796108028376,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/fn.genia": {
+      "ctime_ns": 1793825796107424753,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/option.genia": {
+      "ctime_ns": 1793825796107831011,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/cell.genia": {
+      "ctime_ns": 1793825796107032376,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/math.genia": {
+      "ctime_ns": 1793825796107762979,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/string.genia": {
+      "ctime_ns": 1793825796108225311,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/process.genia": {
+      "ctime_ns": 1793825796107899223,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/json.genia": {
+      "ctime_ns": 1793825796107553165,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/list.genia": {
+      "ctime_ns": 1793825796107617061,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/awk.genia": {
+      "ctime_ns": 1793825796106968139,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/resource.genia": {
+      "ctime_ns": 1793825796108093324,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/stream.genia": {
+      "ctime_ns": 1793825796108159402,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/validation.genia": {
+      "ctime_ns": 1793825796108363027,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/io.genia": {
+      "ctime_ns": 1793825796107488388,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/web.genia": {
+      "ctime_ns": 1793825796108432171,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/file.genia": {
+      "ctime_ns": 1793825796107291864,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/flow.genia": {
+      "ctime_ns": 1793825796107356130,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/actor.genia": {
+      "ctime_ns": 1793825796106901940,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/cli.genia": {
+      "ctime_ns": 1793825796107096782,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/eval.genia": {
+      "ctime_ns": 1793825796107164253,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/random.genia": {
+      "ctime_ns": 1793825796107963599,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/syntax.genia": {
+      "ctime_ns": 1793825796108292472,
+      "mtime_ns": 1793034850000000000
+    },
+    "src/genia/std/prelude/__init__.py": {
+      "ctime_ns": 1793825796106832056,
+      "mtime_ns": 1793034850000000000
+    }
+  },
+  "uv_cache_json": {
+    "timestamp": {
+      "secs_since_epoch": 1793825796,
+      "nanos_since_epoch": 27169700
+    },
+    "commit": null,
+    "tags": null,
+    "env": {},
+    "directories": {
+      "src": {
+        "secs_since_epoch": 1793825796,
+        "nanos_since_epoch": 103100110
+      }
+    }
+  },
+  "exact_matches": {
+    "timestamp": [
+      {
+        "path": "pyproject.toml",
+        "stat": "ctime_ns"
+      }
+    ],
+    "directories.src": []
+  }
+}

@@ -194,8 +194,20 @@ digests. This retention replaces the earlier ambiguous removal of acquisition
 inputs. A bounded host tomlkit-wheel probe inspected these files: fixing the
 wheel mtime to SOURCE_DATE_EPOCH did **not** fix the timestamp in `uv_cache.json`.
 That negative result is retained; fixed paths/mtimes are not determinism proof.
-Target metadata and any normalization policy remain unresolved acceptance/review
-gates. Do not silently remove/rewrite installer metadata to force a matching image.
+**Predicted failure / metadata strategy UNSELECTED:** the subsequent authorized
+[installation spike](metadata-strategy.md) reproduces ctime-derived uv_cache
+timestamps for all 47 staged wheels and the editable project's pyproject.toml;
+RECORD bytes change too. Editable uv_build.json must also be inventoried.
+Fixing paths/mtime/SOURCE_DATE_EPOCH does not fix these content bytes. This
+unchanged uv installation draft is expected to fail strict two-build equality.
+Independent delta review and a maintainer strategy decision are required **before
+build authorization**. A byte-equal host installer candidate is evidence only;
+the commands above are not silently replaced. No normalization policy, metadata
+deletion/rewriting, exclusion or weakened gate is authorized.
+
+The committed [expected inventory](expected-inventory.json) enumerates the exact
+47 pre-editable and 44 final identities, wheel hashes and derived import roots.
+Its digest is in pins.json. Compare actual names/versions/paths, not just counts.
 
 Final configuration: `USER 10001:10001`, working directory `/opt/genia/source`,
 PATH `/opt/genia/venv/bin:/usr/local/bin:/usr/bin:/bin`, and exec-form entrypoint
