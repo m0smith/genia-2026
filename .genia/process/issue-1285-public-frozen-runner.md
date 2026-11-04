@@ -164,8 +164,11 @@ Only the explicit, source-hash-verified first-party Genia PEP-660 operation uses
 `--no-build-isolation`; no third-party source build, implicit hook download or
 lock regeneration. Remove four transient backend-only packages; final inventory
 must exactly equal 43 selected distributions plus Genia, with no import-path leak.
-Use venv Python directly for public checks; unchanged nested uv is offline and
-hash/version/PATH-verified. This removes unverified `uv run --no-sync` assumptions.
+Keep repository checks under the pinned uv with explicit `run --frozen --offline
+--no-sync` and the exact installed venv selected. Prove its interpreter selection
+and absence of lock/environment writes during target acceptance; `--no-sync`
+alone is not treated as proof. Unchanged nested uv is offline and hash/version/
+PATH-verified. No bare/system pytest invocation is proposed.
 
 Read-only `uv export --frozen --offline` succeeded without lock mutation. Universal
 export is a cross-check, not permission to install inactive variants. A missing

@@ -161,8 +161,11 @@ PATH `/opt/genia/venv/bin:/usr/local/bin:/usr/bin:/bin`, and exec-form entrypoin
 venv remain read-only at run time. HOME/uv cache/pytest basetemp/pytest cache live
 under `/tmp`; no inherited Python/uv project selectors. `UV_OFFLINE=1` and
 `UV_PYTHON_DOWNLOADS=never` prevent nested uv acquisition. Final public commands
-use `/opt/genia/venv/bin/python` directly, bypassing any `uv run` lock ambiguity;
-the unchanged MCP fixture still invokes its configured pinned uv command.
+follow repository policy through pinned `uv --no-config run --frozen --offline
+--no-sync`, with `UV_PROJECT_ENVIRONMENT=/opt/genia/venv` and
+`UV_PYTHON=/opt/genia/venv/bin/python`. Prove actual interpreter selection and no
+lock/environment creation or writes in the target; do not infer that from
+`--no-sync` alone. The unchanged MCP fixture invokes its configured pinned uv.
 
 ## 4. Offline OCI construction and two-build rule (A4)
 

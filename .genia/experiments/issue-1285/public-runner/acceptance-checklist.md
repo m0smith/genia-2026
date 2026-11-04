@@ -118,8 +118,12 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
 ## Six public verification commands and skip policy (A5)
 
 Capture each command as its own argv/environment receipt, stdout, stderr, exit,
-monotonic duration and resource samples. Use exact venv Python directly; the
-original source and test assertions are unchanged. For both pytest partitions
+monotonic duration and resource samples. Prefix each argv below with
+`uv --no-config run --frozen --offline --no-sync`, setting
+`UV_PROJECT_ENVIRONMENT=/opt/genia/venv` and
+`UV_PYTHON=/opt/genia/venv/bin/python`. Experimentally verify the selected Python
+and absence of lock/environment writes; no bare/system pytest. The original
+source and test assertions are unchanged. For both pytest partitions
 use `-vv -rA --color=no`, `--junitxml=<separate file>`,
 `-o junit_family=xunit1`, declared cache/basetemp and two xdist workers. Preserve
 collection output, full node IDs (including parameters), collection/setup/call/
@@ -130,8 +134,8 @@ alone or aggregate pass/skip counts cannot uniquely establish node-ID equivalenc
 2. `python tools/gen_function_docs.py --check`
 3. `python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage`
 4. `python -m genia.interpreter examples/validated_pipeline_demo.genia`
-5. `python -m pytest -n auto -q -m 'not loopback'` plus evidence options above
-6. `python -m pytest -n auto -q -m loopback` plus evidence options above
+5. `pytest -n auto -q -m 'not loopback'` plus evidence options above
+6. `pytest -n auto -q -m loopback` plus evidence options above
 
 Run **both** partitions even if the first fails. Demo's known runpy warning stays
 recorded. A public demo/check is not benchmark correctness. The 7,136-pass #1295
