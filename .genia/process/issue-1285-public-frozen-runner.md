@@ -1,7 +1,7 @@
 # #1285 — revised public runner design and pin acquisition (A1–A8)
 
 Date: 2026-11-04. **PUBLIC ONLY / DESIGN CANDIDATE / NOT BUILT, FROZEN OR ACCEPTED.**
-Agent: Codex; branch `issue-1285-installer-strategy-design` (text-only design revision).
+Agent: Codex; branch `issue-1285-offline-frontend` (authorized frontend/host-only phase).
 Tracking: [#1285](https://github.com/m0smith/genia-2026/issues/1285).
 Original proposal: `aebcd4cb65946d42a14315407b2e8ea616948c3c`.
 
@@ -26,11 +26,12 @@ The [maintainer decision](https://github.com/m0smith/genia-2026/issues/1285#issu
 authorizes the installation TEST/DESIGN spike and four design corrections below,
 **not** adoption of an installer, recipe change or image construction.
 
-**Current decision: installer 0.7.0 SELECTED AS CANDIDATE; BLOCKED for production
-frontend implementation/build/acceptance.** [Independent Claude review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319)
+**Design-phase decision (historical): installer 0.7.0 SELECTED AS CANDIDATE;
+subsequent frontend implementation authority/status is recorded below.** [Independent Claude review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319)
 at starting `3fdb037a27dcc555bc5ada85dfe88fe18233f522` returned PASS-WITH-REVISIONS;
 [maintainer selection](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249) authorizes only this design/recipe revision.
-No new installation, build or runtime experiment occurs in this revision.
+The historical d591ecf5 revision ran no installation or image experiment.
+The later authorized host implementation follow-up below records new results.
 The historical host proof uses CPython 3.12.14 (Codex) / 3.12.3 (Claude), not the
 official 3.12.15 target. Full regression and independent two-build OCI remain open.
 [Current venue policy](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643155880) removes offline BENJAMIN as an active dependency;
@@ -44,17 +45,42 @@ reviewed hashed frontend source, deliberate initial metadata, mandatory project
 `uv --no-config run --frozen --offline --no-sync` and distinct launcher --no-project.
 The experimental helper remains historical, not production code. G1 signed
 immutable Debian OS/Git/Tini closure and venue-neutral G3 receipts remain blocking.
-Short independent Claude text delta review is the next action.
+That design delta review completed; the next gate is independent Claude
+maintainability/security/behavior review of the implemented candidate.
 [Revision evidence](../experiments/issue-1285/public-runner/installer-design-revision-evidence.json)
 records bounded static checks; no target tests were executed. No generated
 metadata normalization or weakening of two-build equality is approved.
+
+## Authorized frontend implementation follow-up
+
+The later [Claude design delta review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643785950)
+and [implementation authority](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644232395)
+permit RED → frontend implementation → focused host verification, not images.
+Implementation commit `150d9cb8da3d5e34aa86efa39ffa6b656fc28b8c` and
+[verified implementation/host handoff](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6645166659)
+follow RED commit `de1f455823e18f049a87cccbc2934bcb0bc20e11` and its
+[verified handoff](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644332896)
+precede code. [Implemented source pins](../experiments/issue-1285/public-runner/frontend/source-pins.json)
+and [evidence](../experiments/issue-1285/public-runner/frontend-evidence/implementation.json)
+record current status. Independent Claude maintainability/security/behavior review
+of exact code/tests is pending; no self-approval or production-readiness claim.
+
+M1 permits safe zero-size directory entries omitted from RECORD without output;
+M2 preserves all15 ZIP-executable members (ruff included), plus15 wrappers, in the
+expected mode inventory. Stdlib-first bootstrap is selected; no member-order
+adapter or generated metadata normalization. Builder/tools/editable wheel and
+complete input closure are explicitly retained and compared. Source/lock and all
+settled artifact pins remain unchanged. Host3.12.14/UID1000 does not establish
+official3.12.15/UID10001 or independent OCI equality. G1/G3 remain STOPs. No language
+or MCP profile fact changed; authority documents require no edits.
 
 ## Scoped preflight
 
 1. Classification/owner: required infrastructure, release-independent public
    reproducibility for the Outcome-aware validated-pipeline experiment. Maintainer
    owns decisions. Scope is amended design, exact public pins/gaps, offline recipe,
-   bounded static checks and issue handoff; prior authorized TEST/DESIGN installation proof is historical evidence only. Excludes private data,
+   bounded frontend RED/implementation, focused host A/B and negative controls,
+   source pins, documentation and issue handoffs; prior spikes remain historical. Excludes private data,
    oracle/candidate code, benchmark comparisons, runtime/semantic changes, R29 work, CI edits/
    dispatch, paid services, merge and issue closure.
 2. Sources: fetched main remains `0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5`.
@@ -87,21 +113,20 @@ metadata normalization or weakening of two-build equality is approved.
    Pin accuracy/provenance and honest unresolved gates are material risks.
 9. Philosophy: minimalism, explicit authority, semantics outside adapters,
    pattern-first preservation and validated-pipeline relevance: YES.
-10. Phases: completed historical TEST/DESIGN proof → independent Claude review
-    → maintainer candidate selection → current separate text-only DESIGN commit
-    → independent Claude short delta review → STOP before separate implementation/build authority. Prior acquisition pins retained without redundant downloads.
-    The earlier sequence was preflight/design amendment + acquisition → Claude delta
-    review → STOP for separate build authorization. No runtime contract/RED/
-    implementation phase is applicable now. Later executable build/control code
-    requires its own applicable tests/maintainability review/evidence audit.
+10. Phases: accepted design → independent Claude delta review → maintainer
+    RED/implementation authority → separate RED commit → frontend implementation
+    and focused host verification → current non-authoritative docs/handoffs.
+    Independent Claude maintainability/security/behavior review is pending.
+    No language contract/semantic RED phase is applicable; these are infrastructure
+    tests only. Stop before separate image/build/target acceptance authority.
 11. Seven portability fields: STATE authority unchanged; boundary is Linux public
     execution infrastructure; existing specs/tests remain future evidence; no new
     capability vocabulary; no host-parity claim; no new host gaps/skips; synchronize
     experiment evidence only. Python/C++ semantic implementation effects: none.
-12. GO/BLOCKED: candidate selection verified; text-only design/static publication
-    authorized. Original provenance/acquisition/proof retained. OS/pin closure,
-    approved venue qualification, production frontend source/review, fresh text
-    delta review and later build/acceptance remain BLOCKED. No build authority is
+12. GO/BLOCKED: candidate selection and later frontend implementation authority verified;
+    RED/implementation/focused host publication authorized. Original provenance
+    and artifacts retained. OS closure, venue qualification, independent source
+    review and later build/target/acceptance remain BLOCKED. No build authority is
     inferred from the previous review or the chosen venue.
 
 ## Immutable pair — preserved without overlays
@@ -210,7 +235,8 @@ order and explicit posix_prefix roots. umask 022 covers every scaffold/install/
 editable step. Full file/directory/link mode/ownership inventories must prove
 0644/0755 deployment access as UID 10001, distinct from root build identity.
 The original helper's implicit scheme/per-wheel checks/umask 077 are not adequate
-production evidence. No production frontend code is written in this revision.
+production evidence. The implemented host candidate is linked above; independent source review
+and official-target execution remain pending.
 
 The isolated builder contains exactly seven unchanged pinned wheels at
 /opt/genia/build-venv; target hook output must equal ["editables~=0.3"]. Only
@@ -374,10 +400,10 @@ That historical R1–R8 review is linked above. The later installer review cover
 3fdb037a; neither reviews this new text-only revision.
 
 The historical next action was independent Claude text delta review. That review
-and the candidate selection are now linked above. Current next action is narrow
-Claude review of the new text-only installer/venue delta against 3fdb037a.
+and the candidate selection are now linked above. Current next action is independent Claude review of the new implemented
+frontend/tests and complete source/mode/input closure.
 G1 supported snapshot access and signed closure, venue-neutral G3 qualification,
-production frontend source/tests/review and separate build/run authorization stay
+independent frontend source/test review and separate build/run authorization stay
 open. No image construction, CI dispatch, private benchmark/custody/equal-worker
 claim, paid infrastructure, merge, closure or R29 change. Token usage, review
 time and savings are not measured.
@@ -414,12 +440,12 @@ triggers bounded Tini/watchdog cleanup, records overflow and preserves capped
 evidence. It is a proposed control requiring implementation and boundary probes;
 the 56/64/512 MiB budgets and strict E2 criteria are unchanged.
 
-**Next action:** independent Claude Code short delta review of this separately
-identifiable design-only SHA against 3fdb037a: umask/modes, scheme/root assertions,
-complete validation before writes and collision/order policy, exact installer
-pin/provenance, builder/frontend inputs, inventories/live source, no-sync/launcher,
-official-target wrappers/compiled imports/RECORD/read-only/full-test/two-OCI gates
-and venue neutrality. Separate production code/build authorization remains required.
+**Next action:** independent Claude Code maintainability/security/behavior review
+of the exact implemented code/tests/source pins/modes/evidence, including M1/M2,
+complete prevalidation and zero-write controls, native member order, phase sorting,
+RECORD/direct-url bytes, live source, no-sync and retained intermediates. Return
+reviewer/session/model, exact SHA, ranked findings and verdict. This implementer
+does not self-approve. Separate build authority remains required.
 
 G1 signed immutable Debian/OS/Git/Tini closure and 87-base-package compatibility
 remain blocked by supported proxy policy. G3 approved $0 Linux/amd64 venue rights/worker/storage/control

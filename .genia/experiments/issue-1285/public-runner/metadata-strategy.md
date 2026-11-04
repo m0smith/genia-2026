@@ -1,13 +1,14 @@
 # Deterministic installer strategy — selected candidate and historical proof
 
-Status: **DESIGN ONLY; installer 0.7.0 SELECTED AS CANDIDATE; NOT IMPLEMENTED.**
+Status: **HOST IMPLEMENTED CANDIDATE; independent source review and official target pending.**
 Starting design/evidence SHA: `3fdb037a27dcc555bc5ada85dfe88fe18233f522`.
 [Independent Claude PASS-WITH-REVISIONS](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319) verified the host proof;
 [maintainer decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249) selects the candidate and authorizes text only.
 [Venue update](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643155880) removes BENJAMIN as an active execution prerequisite.
 The [revised frontend/recipe specification](offline-build-recipe.md) is the current
 design; the following spike evidence remains historical and unchanged in its files.
-No production installer/frontend, official-target result or image is accepted.
+The frontend is implemented and host-tested under later authority, but no
+production-ready frontend, official-target result or image is accepted.
 All approved source/lock/wheel/uv/base/BuildKit pins and strict two-build acceptance
 are preserved. Initial metadata is not silently normalized.
 
@@ -201,10 +202,9 @@ No installer-only paths or METADATA/WHEEL/entry_points.txt differences were obse
 The new recipe specifies these as initial outputs, not post-install cleanup.
 Zero bytecode remains required; precompilation requires separate review.
 
-**Next action:** independent Claude Code short text delta review of this exact new
-design SHA against `3fdb037a`, including venue neutrality, all retained pins and
-the requirements above. Return reviewer/session/model, SHA, ranked findings and
-verdict. No review is claimed here. Only after separate production frontend
+**Historical design next action:** the short text delta review of d591ecf5
+completed in Claude6643785950. The implemented source/test review is still pending;
+see the current implementation follow-up below. Only after separate production frontend
 implementation authority, reviewed hashed source, G1/G3 closure and separate build
 authority may official-target install/control/full-regression/two-build evidence
 be collected. Equal manifest/config/layers and canonical archive bytes remain
@@ -217,3 +217,19 @@ remains unverified; BENJAMIN is offline and not required. Historical BENJAMIN
 provenance is retained, without claiming per-test equivalence. G2 dynamic execution/write inventory and G5 target/
 resource/test/OCI acceptance remain open. No E1–E3, independent-worker or custody
 claim follows. $0 incremental spending is preserved.
+
+## Implemented frontend follow-up (host only)
+
+Under [implementation authority](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644232395),
+the separately committed RED tests precede the minimal stdlib-first/native-writer
+implementation. See [source pins](frontend/source-pins.json),
+[mode manifest](frontend/expected-modes.json), [input hashes](input-sha256.txt) and
+[new host evidence](frontend-evidence/implementation.json). Original experiment
+helpers/logs/manifests remain untouched. New proof uses exact no-newline PEP610
+metadata, preserves ZIP-executable regular members and native member order,
+handles safe zero-size ZIP dirs as non-payload, verifies mode overrides and all
+retained roots including inputs/builder/tools/generated wheel. UV_NO_SYNC and
+UV_FROZEN are host-tested hardening; explicit project flags remain mandatory.
+Independent Claude source/test maintainability/security/behavior review is the
+next gate; design review is not that review. G1/G3 and official-target/full-test/
+control/two-independent-OCI requirements remain unchanged and blocking.

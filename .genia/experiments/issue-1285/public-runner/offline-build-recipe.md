@@ -1,8 +1,13 @@
 # Offline public runner recipe — review draft, DO NOT BUILD
 
 This is a design artifact. The maintainer selected installer 0.7.0 and authorized this text-only revision,
-not production frontend implementation or image construction. [G1–G5](pin-gaps.md) and independent Claude delta review remain open.
-No command in the construction sections below was executed. Commands with unknown
+not image construction. Subsequent
+[authorization](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644232395)
+permits the frontend implementation and bounded host tests only; independent
+Claude source review remains pending. The host code is not production-ready. [G1–G5](pin-gaps.md) and independent Claude delta review remain open.
+No image-construction command below was executed.
+[Host frontend evidence](frontend-evidence/implementation.json) is separate from
+image, official-target and runner acceptance. Commands with unknown
 OS inputs deliberately cannot be completed; this is not a runnable accepted build.
 The [R1–R8 correction evidence](recipe-correction-evidence.json) tests only bounded
 host-side backend-wheel CLI behavior. It does not establish target installation.
@@ -48,24 +53,42 @@ Stage these fixed paths in a **new public-only context**:
 source/                    exact tracked approved-source export, no overlay
 source/uv.lock             exact original lock (ignored by original .gitignore)
 source/.git/               fresh public shallow metadata, canonicalized below
-runner-input/runtime/      exactly 43 selected wheels
-runner-input/backend/      exactly seven pinned backend wheels
+runner-input/wheels/       49 exact artifacts: runtime/backend union47 + installer + uv wheels
+runner-input/source.tar    original approved git archive, exact pinned SHA256
+runner-input/uv.lock       original BENJAMIN lock bytes, exact pinned SHA256
+runner-input/pins.json     reviewed source/artifact/selection manifest
 runner-input/debs/         complete reviewed .deb closure — CURRENTLY MISSING
 runner-input/uv            extracted, hash-verified uv 0.13.5 binary
-runner-input/installer/    exactly the pinned installer 0.7.0 wheel
-runner-input/frontend/    separately reviewed and hash-pinned source — MISSING
+runner-input/frontend/    implemented sources, expected modes and tool/source manifests
+runner-input/frontend_tests/ host verification sources, retained as explicit inputs
 runner-input/runtime.requirements.txt
 runner-input/backend.requirements.txt
 runner-input/input-sha256.txt
 ```
 
-The requirement files use explicit `/opt/runner-input/.../<filename>.whl` paths
-and a single allowed SHA256 for each artifact. Re-hash the lock and verify every
+The unchanged requirement files retain their historical `/opt/runner-input/
+runtime` and `backend` paths and single artifact hashes as frozen cross-check
+inputs. They are **not executed** by the new frontend or passed to uv install.
+The frontend consumes pins.json and the flat exact49-artifact wheelhouse; no
+path alias or requirement-file rewrite is introduced. Re-hash the lock and verify every
 tracked source blob against the approved tree before/after export, hook, install
 and context creation. Hash all recipe/config/requirement files as well as packages. Include the installer
 wheel, every frontend source file, entrypoint and source manifest in sorted
-`input-sha256.txt`. Frontend hashes are intentionally not invented in this design;
-missing reviewed source/hashes STOP any later implementation/build candidate.
+`input-sha256.txt`. [Source pins](frontend/source-pins.json) and [input-sha256.txt](input-sha256.txt)
+now name exact implemented source/mode/tool manifest hashes. The latter also
+includes pins.json, uv binary/wheel, every selected wheel, original source.tar/
+uv.lock and unchanged requirements. Its expected SHA256 is supplied separately
+by the reviewed caller; verify it and every source entry before executing Python.
+Missing independent source review still STOPs build authority. No signature or
+self-verification establishes its own trust.
+The checked-in63-entry input manifest is the **frontend/host closure**, not a
+complete image-context pin closure. Future reviewed G1 OS/deb and Dockerfile/Git/
+builder-config inputs must extend the image candidate's manifest and receive a
+new separately supplied expected hash. No missing OS/recipe hash is invented.
+The context `source/` above is an optional export cross-check/Git input, not a
+preinstalled output: never copy it to `/opt/genia/source` before the frontend.
+The CLI creates that source output from verified source.tar, then canonical Git/
+ownership construction occurs only in the later separately authorized image step.
 Never copy a live `.git`, venv, user config, credentials, caches or private data.
 
 Prepare a local OCI **base input layout** only after build authorization: its
@@ -106,12 +129,14 @@ must verify actual `.git` bytes and source paths; a description alone is not pro
 
 ## 3. Offline image operations and selected installer design (A3)
 
-**Text specification only.** [Maintainer selection](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249)
+**Implemented host candidate; target/independent source review pending.** [Maintainer selection](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249)
 adopts PyPA installer **0.7.0 as the candidate**, with a separately isolated,
 hash-pinned Hatchling PEP-660 builder. The experimental helper is retained evidence,
-not accepted production code. The frontend below does not exist yet. It needs
-separate implementation authority, focused tests, code review and pinned source
-before use. G1/G3 and separate build authorization remain blocking.
+not accepted production code. The stdlib validator/native writer is [offline_install.py](frontend/offline_install.py);
+[build_frontend.py](frontend/build_frontend.py) orchestrates the isolated builder
+and complete final batch. RED commit `de1f455823e18f049a87cccbc2934bcb0bc20e11`
+precedes implementation. Focused host tests and source pins exist; independent
+Claude maintainability/security/behavior review is still mandatory before build use. G1/G3 and separate build authorization remain blocking.
 
 Use a Dockerfile **without `# syntax=`**: builtin dockerfile.v0 is pinned by
 BuildKit 0.24.0. `FROM public-base` uses the local OCI binding in section 4.
@@ -154,10 +179,16 @@ export UV_CACHE_DIR=/tmp/uv-cache
 The reviewed frontend is invoked by `/usr/local/bin/python3.12 -I -S -B` at
 `/opt/runner-input/frontend/`; bootstrap only the hash/RECORD-validated installer
 wheel into `/opt/runner-tools/installer`, with that sole non-stdlib import root.
-Before tool extraction, the frontend must validate the complete original input
-set without destination writes: use stdlib archive/RECORD validation or load the
-verified installer library read-only from its wheel. Bootstrap extraction itself
-must follow the same validate-first path policy below. No ambient site-packages, PYTHONPATH, user config, plugins or network.
+The selected bootstrap is **stdlib-first only**: validate the exact installer
+archive and all original inputs without destination writes, then extract its
+23 verified files to the isolated tools root. Rehash that complete tree against
+installer-files.json before every code import. No read-only zipimport alternative. Bootstrap extraction itself
+must follow the same validate-first path policy below. No ambient site-packages, PYTHONPATH, user config, plugins or network acquisition.
+The CLI requires `-I -S -B` and explicit input-manifest/hash arguments; verifies
+the entire input tree before any output, and rejects selectors outside that tree.
+It verifies original tar/lock bytes, then projects Git archive0664/0775 entries
+through the declared umask022 to canonical tracked0644/0755. Source bytes and
+executable status stay unchanged; generated package metadata is never normalized.
 Record interpreter/library hashes under official 3.12.15; host proof is insufficient.
 
 For each prefix explicitly call `sysconfig.get_paths(scheme="posix_prefix", vars=...)`
@@ -171,13 +202,19 @@ Assert every dist-info under that prefix's exact site-packages root. Realpath an
 lexical containment checks must agree; scaffold interpreter symlinks to the pinned
 base are declared separately and never authorize wheel writes outside the prefix.
 
-Expected regular files are **0644**, executable wheel payloads/generated scripts
+Expected deployment regular files are **0644**, executable wheel payloads/generated scripts
 **0755**, and directories **0755**, with no group/world write or setuid/setgid/sticky
 payload bits. Enumerate executable paths from reviewed wheel attributes and script
 generation; reject unexpected permission bits/types. Symlink mode is recorded via
 lstat (Linux typically 0777), never chmod-followed; allow only reviewed scaffold
 links with exact targets. Inventory scaffold, all directories, regular files and
-links, modes, link targets and uid/gid. Assign final deployment/source ownership
+links, modes, link targets and uid/gid. The expected per-path
+[mode manifest](frontend/expected-modes.json) includes runtime/builder files,
+all ancestor directories, exact scaffold files/links and editable additions.
+It preserves all **15 ZIP-executable members** (ruff's data script is one), plus
+**15 generated console wrappers** including Genia. The non-binary executable
+Python members remain executable as shipped. Genuine zero-size type-directory
+ZIP entries use mode0755 for traversal; they are not executable regular payload. Assign final deployment/source ownership
 10001:10001 by the declared recipe before comparison; builder/tools remain build
 inputs owned by 0:0. Verify all deployed files are readable and executables and
 parent directories traversable as UID 10001. Read-only runtime is enforced by
@@ -197,7 +234,11 @@ resolver, index, sdist or dependency downloader. Compute the full plan first:
 2. Validate each entire ZIP and every member RECORD hash/size using
    `WheelFile.validate_record(validate_contents=True)` plus strict member/RECORD
    coverage checks. Reject missing or duplicate rows/members, extra unrecorded
-   payload, bad digests/sizes, malformed paths and unsupported signatures/types;
+   payload, bad digests/sizes, malformed paths and unsupported signatures/types.
+   **M1:** allow only canonical safe zero-size type-directory entries ending `/`,
+   mode0755, omitted from RECORD; these create no output by themselves. Reject
+   duplicate dirs, malformed/nonempty dirs and symlink/special/executable regular
+   entries disguised as directories. Only payload has bidirectional RECORD coverage;
    only the wheel format's explicit RECORD self-row hash/size exemption is allowed.
    Reject absolute paths, traversal/dot aliases, backslashes, NULs, symlink/device
    archive entries, malformed `.data` schemes, and any unapproved payload.
@@ -209,11 +250,13 @@ resolver, index, sdist or dependency downloader. Compute the full plan first:
    Shared package directories alone are allowed. Never overwrite a scaffold,
    another distribution's file or an unowned artifact. RECORD replacement is only
    the declared generation of that same distribution's installed RECORD.
-4. Sort wheels by normalized distribution name, version string, filename and
-   SHA256 in bytewise `LC_ALL=C` order; sort member/destination writes and generated
-   metadata/RECORD rows by canonical relative path. Assert actual order equals the
-   precomputed plan; installer ZIP iteration must use the reviewed ordering adapter,
-   not incidental acquisition/filesystem order. Hold inputs read-only and prevent
+4. Use fixed phases: the43 runtime wheels, then the singleton editable Genia.
+   Within each phase sort by normalized name/version string/filename/SHA256 in
+   bytewise `LC_ALL=C` order. Prevalidate the complete44 set before any venv writes;
+   verify runtime43 RECORDs and run offline pip check at the phase boundary. **Retain each pinned wheel's original
+   ZIP member/entrypoint/RECORD iteration order**, which is fixed by its bytes.
+   No member-level adapter or post-generation sorting/patching is used. Native
+   installer-generated output is checked against the complete destination plan. Hold inputs read-only and prevent
    concurrent destination mutation; recheck against replacement before writing.
 5. Only after the complete first pass succeeds may scaffold/install writes start.
    Emit bounded validation/plan receipts. Negative controls with a valid wheel
@@ -239,8 +282,9 @@ and require exactly `["editables~=0.3"]`, satisfied by pinned editables 0.6. The
 call `build_editable` into fixed `/opt/genia/editable-wheel`; no implicit build
 isolation downloads or additional hooks. Hash the approved source/lock before and
 after. The historical 190-file hook listing is preliminary evidence, not the
-production frontend source pin; separately review/hash every orchestration,
-validation, ordering, bootstrap and metadata-writing source file and its manifest.
+production frontend source pin; separately review every orchestration, validation, bootstrap and metadata-writing source.
+Their exact hashes are now in source-pins.json and input-sha256.txt; independent
+Claude review is pending. No third-party source build or dependency resolver exists.
 
 Before writing the editable destination, validate the **entire generated wheel**
 and RECORD, Genia 0.1.14 identity, source routing and full destination plan against
@@ -297,12 +341,46 @@ PATH `/opt/genia/venv/bin:/usr/local/bin:/usr/bin:/bin`, exec entrypoint
 HOME, uv/pytest caches and basetemp under `/tmp`. Public verification requires
 exact `uv --no-config run --frozen --offline --no-sync` with
 `UV_PROJECT_ENVIRONMENT=/opt/genia/venv`, `UV_PYTHON=/opt/genia/venv/bin/python`,
-`UV_OFFLINE=1`, `UV_PYTHON_DOWNLOADS=never`. Prove no venv/lock writes or automatic
+`UV_OFFLINE=1`, `UV_PYTHON_DOWNLOADS=never`. Host-tested defensive defaults also
+set `UV_NO_SYNC=1`, `UV_FROZEN=1`; normal project argv still carries the explicit
+flags, and launcher --no-project argv stays unchanged. No target behavior is
+inferred from environment names alone. Prove no venv/lock writes or automatic
 editable rebuild; omitting `--no-sync` previously attempted an offline rebuild
 and wrote `.lock`. Keep the unchanged configured MCP launcher **`--no-project`**
 behavior distinct: inspect its argv and do not replace it with project-run flags.
 All official-target wrappers/imports/RECORD/full tests/control/OCI checks in the
 [acceptance checklist](acceptance-checklist.md) remain pending.
+
+### Exact invocation and retained closure
+
+After a caller verifies the separately supplied expected hash of input-sha256.txt
+and its complete contents, the future authorized target invocation is:
+
+```bash
+umask 022
+/usr/local/bin/python3.12 -I -S -B /opt/runner-input/frontend/build_frontend.py \
+  --pins /opt/runner-input/pins.json --inputs /opt/runner-input/wheels \
+  --source-archive /opt/runner-input/source.tar --lock /opt/runner-input/uv.lock \
+  --uv /opt/runner-input/uv --input-manifest /opt/runner-input/input-sha256.txt \
+  --input-manifest-sha256 "$reviewed_input_manifest_sha256" \
+  --receipt /tmp/frontend-receipt.json --cache /tmp/uv-cache
+```
+
+The target guard requires official3.12.15 and fixed /opt paths. Host tests use
+explicit --host-test and a dedicated /workspace/work root, host interpreter and
+relocated input tree; they do not execute this official-target command.
+
+**Retention decision (L2):** retain `/opt/runner-input` including source tar,
+original lock, all49 wheels, uv binary, frontend/test sources/manifests and both
+requirements; `/opt/runner-tools/installer` (files0444, dirs0555); isolated
+`/opt/genia/build-venv`; the generated wheel in `/opt/genia/editable-wheel`;
+source and deployment venv; and the copied `/usr/local/bin/uv`. No backend/tool
+distribution enters deployment44. Input/build/tool bytes are public and readable
+by runtime UID10001. Full A/B comparisons include every retained byte/mode/link,
+including input files, scaffold, builder and editable output. Only declared /tmp
+caches/receipts are scratch; no opportunistic retained-file deletion is allowed.
+Future OS/Git canonicalization/ownership and image-layer work remain separately
+authorized construction, not performed by this frontend or host test.
 
 ## 4. Offline OCI construction and two-build rule (A4)
 

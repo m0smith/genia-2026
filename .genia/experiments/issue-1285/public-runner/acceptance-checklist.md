@@ -4,6 +4,17 @@ This checklist implements review amendments A5–A8 as **requirements**, not res
 It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-runner.md),
 [pins](pins.json), [gaps](pin-gaps.md), [offline recipe](offline-build-recipe.md).
 
+## Implemented host evidence, not target acceptance
+
+RED tests: `de1f455823e18f049a87cccbc2934bcb0bc20e11`;
+implementation `150d9cb8da3d5e34aa86efa39ffa6b656fc28b8c`;
+[host implementation/evidence](frontend-evidence/implementation.json).
+The following execution checklist stays unchecked: CPython3.12.14/UID1000 host
+tests do not establish official3.12.15/UID10001, read-only mounts, full regression,
+resource controls, OCI output or runner acceptance. The implementer generated and
+checked [exact expected modes](frontend/expected-modes.json); independent Claude
+maintainability/security/behavior review of source/tests/artifacts is pending.
+
 ## Gates and receipts
 
 - [ ] G1 OS/Git/Tini `.deb` closure and Release/signature/index/hash chain complete.
@@ -15,12 +26,13 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   OCI-export/cgroup-inspect and enforcement receipts, pinned rootful BuildKit
   profile and finite disk/inode/evidence quotas. [Venue decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643155880):
   BENJAMIN is offline, not required; no current host qualifies by declaration.
-- [ ] Independent Claude Code **short text delta** review PASS on exact revised
-  design/pins/recipe/venue SHA. [Prior review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319) covers starting 3fdb037a,
-  not this delta. [Maintainer selection](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249) chooses installer 0.7.0 as
-  candidate, not production frontend acceptance or build authority.
-- [ ] Separately authorize/implement/review the production frontend. Pin every
-  reviewed bootstrap/validation/order/hook/build/metadata source file, entrypoint
+- [x] Independent Claude design delta review at d591ecf5 completed with mandatory
+  corrections carried into implementation ([review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643785950)).
+  This is design evidence, not source/host/production acceptance.
+- [ ] Independent Claude maintainability/security/behavior review PASS on exact
+  implemented code, tests, source pins, expected modes and host evidence.
+- [ ] Complete independent review of the authorized implemented candidate frontend. Pin every
+  reviewed bootstrap/validation/hook/build/metadata source file, entrypoint
   and manifest hash in input-sha256.txt. Experimental helpers are evidence only.
 - [ ] Verify installer wheel URL, **453838 bytes**, SHA256
   `05d1933f0a5ba7d8d6296bb6d5018e7c94fa473ceb10cf198a92ccea19c27b53`;
@@ -60,7 +72,8 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
 - [ ] Entire installer bootstrap and builder input sets validate before their
   destination writes. Before any deployment venv/scaffold writes validate the
   entire runtime+generated-editable set: archive hashes, identities/tags, all
-  RECORD contents/hash/size/coverage, ZIP members, safe mapped paths and collisions.
+  RECORD contents/hash/size/coverage, ZIP members, safe mapped paths and collisions. Safe zero-size canonical type-
+  directory members mode0755 may be absent from RECORD and create no output.
   Generated editable is validated after building but before installation. No
   per-wheel verify/install loop or implied runtime-failure transaction guarantee.
 - [ ] Fail-closed negative controls place the bad wheel **last after a valid one**:
@@ -68,9 +81,10 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   unrecorded/duplicate member, unsafe path, wrong identity and destination conflict.
   Each proves zero destination writes (including directories). Reject existing
   unexpected files, conflicting script names, parent type aliases and symlink parents.
-- [ ] Wheels sorted by normalized name/version string/filename/SHA256, bytewise
-  LC_ALL=C; member/destination and generated RECORD row writes sorted by canonical
-  relative path. Review the ordering adapter; actual plan/write receipts agree.
+- [ ] Fixed runtime43 then editable-Genia phase order; wheels within phases sorted
+  by normalized name/version string/filename/SHA256, bytewise
+  LC_ALL=C; native member/entrypoint/RECORD ordering retained, with no extra adapter or
+  post-generation metadata sort. Actual plan/write receipts must agree.
 - [ ] Target editable hook exactly `["editables~=0.3"]`; isolated
   `/opt/genia/build-venv` has precisely the seven unchanged pinned backend wheels.
   Run reviewed Hatchling build_editable on fixed `/opt/genia/source`, using only
@@ -93,6 +107,9 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
 - [ ] Initial metadata matches policy: INSTALLER `installer\n`, deterministic
   editable PEP-610 file:///opt/genia/source + dir_info.editable=true in RECORD;
   no REQUESTED, wheel-local direct_url, uv_cache/uv_build or .lock generated.
+  Tool-root read-only permissions0444/0555 are declared separately from installed
+  deployment modes0644/0755; preserve the actual15 ZIP-executable members, including
+  ruff and the non-binary Python payloads, plus15 generated wrappers.
   Validate expected differences from uv and unchanged METADATA/WHEEL/entry_points.
   Compare every generated byte A/B including wrapper templates, pyvenv.cfg,
   scaffold, .pth and symlinks; never patch/delete/ignore metadata to pass.

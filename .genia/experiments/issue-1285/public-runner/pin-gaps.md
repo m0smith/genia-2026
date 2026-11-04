@@ -9,8 +9,8 @@ frozen or accepted. See [pins.json](pins.json) for exact acquired artifacts and
 | G1 | Immutable Debian snapshot `20261021T000000Z` metadata request failed: proxy tunnel HTTP 403. The active policy does not include `snapshot.debian.org`. No Release/index signature/hash, `.deb` list, Git package closure or Tini artifact is verified. Their fields are null/empty; `closure_complete=false`. | Environment operator enables the host through supported policy configuration; then Codex acquires and verifies the immutable Release/signature/Packages chain and every selected `.deb` (filename/version/architecture/size/SHA256). The user intends to enable it; intent is not observed access. Never substitute a moving apt index or invent package hashes. |
 | G2 | Static approved-source references identify Git, Python, uv, `/bin/sh`, unshare, ps and lsof; historical reaping evidence observes Python/uv. A complete selected-public-runner `execve` trace and writable-path trace do not exist here. Proposed new roots are Git, Tini, procps and lsof; 87 base installed-package entries (including util-linux/shell/coreutils) are inventoried from verified base bytes. | Selected approved venue operator captures full public verification exec/write inventories and per-test outcomes there; BENJAMIN replay is not required. Reconcile the package closure and declared writable set before acceptance. Static references are not a dynamic observed execution inventory. Unexpected required binaries/writes STOP; no silent extra tools/mounts. |
 | G3 | No available approved $0 Linux/amd64 venue has qualified by actual receipts. [Current venue decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643155880) removes offline BENJAMIN as required venue/STOP. Historical evidence remains intact; this executor does not qualify by declaration. | Owner/operator supplies actual build/run/OCI-export, cgroup inspection/enforcement, pinned rootful OCI/native worker, finite disk/inode/evidence quotas, orphan reaping and offline/no-network receipts; two-build equality remains mandatory. Separate authorization still required; no paid provisioning. |
-| G4 | [Claude reviewed starting 3fdb037a](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319) PASS-WITH-REVISIONS; [maintainer selected installer 0.7.0](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249). The new text-only frontend/recipe/venue delta is not independently reviewed. Production source and its hashes are absent. | Request short independent Claude Code delta review of the exact new SHA; then separate production implementation authority, focused tests and source/code review. No Codex self-review substitutes. Later OS/venue deltas require review too. |
-| G5 | Codex host 3.12.14 and independent Claude host 3.12.3 reproduce installer equality, inventory and editable behavior; official target is 3.12.15 with different compiler/linkage. No target installation, control/full regression or independent OCI builds. | After reviewed/pinned frontend, complete pins, qualified venue and separate build/run authority: target umask/scheme/zero-write controls, exact inventories, modes/ownership, all 15 wrappers, compiled imports/ruff, installed RECORD, live source, read-only venv/no-sync, reaping/resource/full-test evidence and two independent OCI builds. Historical aggregate is contextual, not mandatory BENJAMIN replay or E2 parity. |
+| G4 | Claude accepted the design basis with corrections at d591ecf5; maintainer authorized RED/implementation. Source candidate `150d9cb8da3d5e34aa86efa39ffa6b656fc28b8c` has pinned source/input/mode manifests and passing focused host tests. Independent source review is pending. | Independent Claude Code maintainability/security/behavior review of exact source/tests/modes/receipts, with its own negative controls and A/B rerun. No implementer self-approval. Later OS/venue delta review and separate build authority remain required. |
+| G5 | Codex host 3.12.14 and independent Claude host 3.12.3 reproduce installer equality, inventory and editable behavior; official target is 3.12.15 with different compiler/linkage. Focused host frontend/unit/A/B tests exist; no target installation, control/full regression or independent OCI builds. | After reviewed/pinned frontend, complete pins, qualified venue and separate build/run authority: target umask/scheme/zero-write controls, exact inventories, modes/ownership, all 15 wrappers, compiled imports/ruff, installed RECORD, live source, read-only venv/no-sync, reaping/resource/full-test evidence and two independent OCI builds. Historical aggregate is contextual, not mandatory BENJAMIN replay or E2 parity. |
 | Metadata strategy | **SELECTED CANDIDATE: installer 0.7.0 + isolated hash-pinned Hatchling PEP-660 builder**, retaining uv 0.13.5 for scaffold/checks/test/launcher. Prior uv 94/88-file failures remain negative evidence. Original helper uses per-wheel validation/implicit scheme/umask 077 and is not production code. | Revised text requires umask 022, full directory/file/link modes/owners, explicit posix_prefix, complete validation before writes, sorted install/no collisions, pinned reviewed frontend and mandatory project --no-sync. No metadata rewriting/deletion/exclusions or weakened two-build equality. |
 
 
@@ -70,7 +70,7 @@ project/official-target installation was performed. See
 
 ## Historical TEST/DESIGN evidence, not target closure
 
-The now-selected candidate installer pin (0.7.0, no declared dependencies), identical-byte
+The selected candidate installer pin (0.7.0, no declared dependencies), identical-byte
 43-wheel installation and separately pinned seven-wheel Hatchling PEP-660 build
 were evaluated on host CPython 3.12.14, independently reproduced by Claude on 3.12.3. All four final identity/import/consistency/
 public smoke checks pass. Full venv file manifests, metadata, RECORD checks and
@@ -81,7 +81,7 @@ Source-policy matchType is explicitly WILDCARD with a new configuration digest;
 semantic solver denial remains untested. Enforceable per-stream overflow handling
 is specified in the checklist but not implemented or exercised here. G1 and venue-neutral G3 stay open. Installer 0.7.0 is a first-use hash pin,
 not publisher-attested; exact URL/453838-byte size/SHA256 are now in pins.json.
-Reviewed production frontend source and its input-manifest hashes remain missing.
+Implemented candidate source/input-manifest hashes are pinned; independent Claude maintainability/security/behavior review remains missing.
 
 ## Review correction — preserve the lock, not an incorrect exclusion
 
@@ -98,3 +98,15 @@ The earlier `api.github.com` release-metadata request also failed proxy 403. The
 documented public `github.com/moby/buildkit/releases/download/...` endpoint was
 used for the archive within the existing allowlist, retaining proxy/TLS checks.
 Both failures are preserved. No network-policy bypass or paid service was used.
+
+## Implemented host frontend delta
+
+[Source pins](frontend/source-pins.json), [expected per-path modes](frontend/expected-modes.json),
+[complete input hashes](input-sha256.txt) and [implementation evidence](frontend-evidence/implementation.json)
+record the authorized RED/implementation/host phase. Safe ZIP dirs are non-payload;
+native ZIP ordering is retained; every original hash/RECORD/path/collision/mode
+validates before relevant destination writes. All49 input artifacts and source/
+lock remain pinned. Stale active BENJAMIN gate key is removed, provenance retained.
+Read-only tools, isolated builder and editable wheel remain in the proposed image
+and A/B closure. Original helper/proof files remain historical and unchanged.
+G1/G3 remain independent STOPs; successful host tests do not authorize images.
