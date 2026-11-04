@@ -1,0 +1,77 @@
+{
+  "phase": "Phase 1 RED tests",
+  "agent": "Codex; requested GPT-6 High",
+  "design_sha": "d591ecf535f189805fe97f0ffb5cb44ed7ea200e",
+  "authorization": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644232395",
+  "scope": "TEST ONLY; public infrastructure; no language semantics/MCP changes",
+  "portability": {
+    "authority": "STATE unchanged",
+    "boundary": "Linux CPython wheel/filesystem infrastructure",
+    "shared_specs": "not applicable, no portable Genia behavior changed",
+    "capabilities": "unchanged",
+    "host_claims": "none",
+    "known_host_gaps": "unchanged",
+    "docs_sync": "non-authoritative experiment files only"
+  },
+  "host_python": "3.12.14",
+  "uid": 1000,
+  "commands": [
+    {
+      "argv": [
+        "/workspace/work/issue-1285-frontend/uv",
+        "--no-config",
+        "run",
+        "--frozen",
+        "--offline",
+        "--no-sync",
+        "--no-project",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-v",
+        "-s",
+        ".genia/experiments/issue-1285/public-runner/frontend_tests"
+      ],
+      "env": {
+        "GENIA_FRONTEND_INPUTS": "/workspace/work/issue-1285-frontend/wheels",
+        "GENIA_FRONTEND_UV": "/workspace/work/issue-1285-frontend/uv"
+      },
+      "exit_code": 2,
+      "result": "infrastructure setup failure before discovery: default uv cache read-only",
+      "stderr": "red.stderr"
+    },
+    {
+      "same_argv": true,
+      "additional_env": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-frontend/uv-cache"
+      },
+      "exit_code": 1,
+      "result": "14 tests discovered;14 errors: ModuleNotFoundError offline_install (implementation absent)",
+      "stderr": "red2.stderr"
+    }
+  ],
+  "verdict": "Expected RED; implementation absent, no product implementation in this commit",
+  "next_action": "Publish/verify issue handoff, then authorized implementation referencing this test-only SHA",
+  "not_claimed": [
+    "production readiness",
+    "official3.12.15",
+    "OCI equality",
+    "targetUID10001",
+    "runner acceptance",
+    "independent review"
+  ],
+  "checks": [
+    "branch check PASS",
+    "git diff --check PASS"
+  ],
+  "artifact_hashes": {
+    "red.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "red.stderr": "666bb5b2eefc032917814258e144dbb047f07914a162888f0d0a318f6b2399c4",
+    "red2.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "red2.stderr": "f3ce38d89530591af06f5095bf73433e1b7974f3109f5e80456129117ce84eb9"
+  }
+}
