@@ -1,0 +1,8 @@
+{
+  "rules": [
+    {"action": "DENY", "selector": {"identifier": "docker-image://*"}},
+    {"action": "DENY", "selector": {"identifier": "http://*"}},
+    {"action": "DENY", "selector": {"identifier": "https://*"}},
+    {"action": "DENY", "selector": {"identifier": "git://*"}}
+  ]
+}

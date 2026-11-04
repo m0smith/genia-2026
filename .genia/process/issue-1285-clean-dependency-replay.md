@@ -341,3 +341,15 @@ byte-hashed; 43 third-party wheels are target-selected (including colorama from
 mkdocs-material). Immutable Debian snapshot access/Git/Tini closure and fresh
 Claude delta review remain blocked/pending. BENJAMIN execution rights remain
 unverified; no image construction or new regression/replay result is claimed.
+
+## Follow-up: bounded R1–R8 design/recipe correction (2026-11-04)
+
+The preliminary Claude delta review independently confirmed the retained pins,
+then identified the conflicting uv install flags. The maintainer authorized
+bounded text/recipe correction and pinned-tool checks only. The
+[revised record](issue-1285-public-frozen-runner.md) links reproduced rejection/
+corrected-install evidence, offline consistency checks, qualified hook inputs,
+snapshot/base compatibility and worker/evidence/diagnostic gates. Original
+requirements, wheel/tool/base pins and BENJAMIN source/lock stay unchanged.
+Short text delta review is next; G1 OS pins and G3 venue rights remain open.
+No image or original-source regression/replay was performed.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "review_candidate_pending_independent_Claude_delta_review; NOT build-ready",
+  "status": "R1-R8 design correction candidate; short independent text delta review pending; NOT build-ready",
   "scope": "public-only pin acquisition and design; no image construction",
   "maintainer_decisions": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6634461919",
   "original_design_review": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6617856864",
@@ -706,6 +706,15 @@
       "sha256": null,
       "bytes": null,
       "source_required": "same verified Debian snapshot; no substitution from local docker-init"
+    },
+    "base_snapshot_compatibility": {
+      "status": "UNVERIFIED / STOP prerequisite",
+      "base_package_count": 87,
+      "candidate_snapshot_precedes_base_manifest_creation": true,
+      "comparison": "each base version <= verified signed snapshot candidate, Debian dpkg version ordering",
+      "missing_candidate_or_required_downgrade": "STOP; no allow-downgrades",
+      "required_base_upgrade": "explicit old/new/hash/reason/shared-library deviation review before install",
+      "timestamp_changed_or_compatibility_claimed": false
     }
   },
   "uv": {
@@ -771,7 +780,37 @@
     "host_buildx_observed": "v0.31.0 44945d71ff077ce7fc142fbdee6acec8d9acb630; not BENJAMIN evidence",
     "worker": "native OCI worker, bundled buildkit-runc, no containerd worker or emulation",
     "daemon_started": false,
-    "build_executed": false
+    "build_executed": false,
+    "provenance_limit": {
+      "class": "FIRST_USE_HASH_PIN_NO_PUBLISHER_ATTESTATION",
+      "same_url_reviewer_redownload_is_independent_provenance": false,
+      "retained_design_limitation_authorized_by": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6636833906"
+    },
+    "proposed_execution_profile": {
+      "status": "PROPOSED / NOT RUN",
+      "uid": 0,
+      "rootless": false,
+      "oci_worker": true,
+      "containerd_worker": false,
+      "snapshotter": "native",
+      "oci_worker_network": "bridge",
+      "process_sandbox_enabled": true,
+      "platform": "linux/amd64",
+      "garbage_collection": false,
+      "max_parallelism": 1,
+      "runc": "pinned archive bin/buildkit-runc",
+      "same_profile_for_both_builds_required": true,
+      "silent_fallback_allowed": false
+    },
+    "syntax_gate": {
+      "status": "NOT EXECUTED; first gate only in separately authorized build phase",
+      "request": "frontend.lint",
+      "image_output_exporter": false,
+      "policy_path": "offline-source-policy.json",
+      "policy_sha256": "fe7b1c8005ef0da0a8ebddf21c6dc0e3672db473bcc61760d40d878a2ee3e743",
+      "static_json_is_not_semantic_denial_proof": true,
+      "oci_rewrite_timestamp_requires_separate_export_verification": true
+    }
   },
   "runtime_wheels": [
     {
@@ -1748,7 +1787,6 @@
         "editables~=0.3"
       ]
     },
-    "declared_target_closure_complete": true,
     "target_official_image_hook_verified": false,
     "temporary_backend_only_names": [
       "editables",
@@ -1756,7 +1794,17 @@
       "tomlkit",
       "trove-classifiers"
     ],
-    "dynamic_requirement_policy": "must equal recorded hook output in target; unexpected requirements STOP; never download"
+    "dynamic_requirement_policy": "must equal recorded hook output in target; unexpected requirements STOP; never download",
+    "preliminary_host_metadata_hook_consistent": true,
+    "target_closure_status": "UNVERIFIED until official-interpreter hook/install and offline consistency checks pass",
+    "listed_host_hook_replay": {
+      "path": "hook-library-inputs.json",
+      "sha256": "8fc360d1a137bd8179607e5ebfc092f00c5009827414ddfd55898329c6faca2c",
+      "file_count": 190,
+      "listing_sha256": "928d293491b79ef88a271550a7314c8b113a2b8ce4b8a552c22eaf88e76b79c5",
+      "historical_unlisted_directory_retroactively_attested": false,
+      "target_official_image_verified": false
+    }
   },
   "optional_tools": {
     "node": "EXCLUDED by maintainer",
@@ -1776,5 +1824,28 @@
   "image_build_authorized": false,
   "runner_frozen_or_accepted": false,
   "runtime_requirements_sha256": "8ea8d2e9be33a7c51f2d78ae7bc76429dfb9c2fc00ebc0e56eef4bc1a64ed234",
-  "backend_requirements_sha256": "d4505e1474280277a6578f306aacb2f08e03107fc748ba7d7311f70228707769"
+  "backend_requirements_sha256": "d4505e1474280277a6578f306aacb2f08e03107fc748ba7d7311f70228707769",
+  "latest_preliminary_review": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6635654084",
+  "recipe_correction_authorization": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6636833906",
+  "recipe_integrity_requirements": {
+    "compatible_install_flags": [
+      "--require-hashes",
+      "--only-binary",
+      ":all:",
+      "--no-deps",
+      "--offline",
+      "--no-index"
+    ],
+    "offline_pip_check_required": [
+      "after runtime/backend wheel installs",
+      "after backend-only removal"
+    ],
+    "expected_pre_editable_distributions": 47,
+    "expected_final_distributions": 44,
+    "staged_inputs_path": "/opt/runner-input",
+    "retained_readonly_in_image": true,
+    "dist_info_path_metadata": "retain/hash direct_url.json and uv_cache.json; compare A/B; never rewrite to force equality",
+    "target_installer_metadata_reproducibility_verified": false,
+    "fixed_wheel_mtime_controlled_host_uv_cache_timestamp": false
+  }
 }

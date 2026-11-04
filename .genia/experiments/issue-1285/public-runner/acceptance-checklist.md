@@ -7,6 +7,10 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
 ## Gates and receipts
 
 - [ ] G1 OS/Git/Tini `.deb` closure and Release/signature/index/hash chain complete.
+- [ ] R3 compatibility table covers all 87 base packages: Debian-version comparison
+  to signed snapshot candidates passes; no required downgrade; every proposed
+  base upgrade explicitly reviewed. Earlier candidate snapshot is not assumed
+  compatible merely because its date is near the base creation time.
 - [ ] Actual BENJAMIN build/run/export/cgroup-inspect rights demonstrated; no
   inference from the current executor's read-only daemon inspection.
 - [ ] Independent Claude Code **delta** review PASS on exact amended design/pin
@@ -15,6 +19,10 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   runs. No private work, custody or independent-worker authorization follows.
 - [ ] Two independent build receipts, offline proof and OCI archive/index/
   manifest/config/layer comparison pass before any “frozen” claim.
+- [ ] R6 pinned BuildKit metadata-only lint/local-OCI/source-policy gate passes
+  with no RUN/image export; rootful OCI/native snapshotter/bridge/process-sandbox
+  profile verified by worker receipts, identical across A/B. OCI timestamp-export
+  semantics are checked separately in the authorized build, not inferred from lint.
 - [ ] Fresh independent Claude review of actual implementation/evidence SHA,
   followed by owner acceptance. No merge/closure is implied.
 
@@ -33,6 +41,19 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   backend-only residue or system/user site leakage. **Include colorama** from the
   unconditional mkdocs-material dependency; exclude exceptiongroup/tomli/
   typing-extensions and the four inactive version variants.
+- [ ] R2 `uv --no-config pip check --python /opt/genia/venv/bin/python --offline`
+  passes after wheel installation and after backend-only removal, alongside exact
+  inventory equality. A nonzero result STOPs; no implicit dependency repair.
+- [ ] R4 official target hook rerun and closure remain UNVERIFIED until actually
+  executed there; [listed host hook inputs](hook-library-inputs.json) are preliminary
+  evidence only, with library/source bytes unchanged in the bounded host replay.
+- [ ] Retained fixed `/opt/runner-input` paths and editable source path agree in
+  actual dist-info `direct_url.json`/`uv_cache.json`; hash and compare these files
+  across A/B unchanged. Unexpected `/tmp`/external paths or differing bytes STOP;
+  no post-hoc metadata rewriting.
+  Host probe with fixed wheel mtime still produced a different `uv_cache.json`
+  timestamp; target metadata stability/any policy revision is unresolved, not
+  inferred from fixed paths or exporter timestamp rewriting.
 - [ ] Exactly one distinct uv executable on effective PATH, version 0.13.5 and
   SHA256 `8a70db72685b7138121bfcda71fa1a00cb709ed9f1fdc4ecf1dd871e8e167e52`;
   record outer and nested fixture resolution. No uv 0.12.23 fallback.
@@ -53,6 +74,10 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   identities, PPID/PGID/SID/state. Demonstrate orphan PPID 1 then wait/reap;
   no surviving zombie/descendant within a fixed **10-second neutral-control**
   observation bound. Preserve the original test's own existing deadlines.
+  Exact original-pair node:
+  `tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind`.
+  The two `test_r28_mcp_fixture_teardown.py` tests added by #1295 are not in the
+  original source; do not overlay them or cite their PASS as original-pair evidence.
 - [ ] EOF, TERM and deliberate intermediate-parent SIGKILL controls; Tini remains
   alive while supervising the neutral control, adopts and waits the orphan. The
   old process-local subreaper result is not an image result.
@@ -87,8 +112,13 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   `max(256, ceil(1.25*peak)+32)`; if it exceeds 1024 or calibration hits the cap,
   STOP for review rather than silently increasing it. Rerun effective-control
   proof and full acceptance at the reviewed final limit. 256 is not yet measured.
-- [ ] `/tmp` tmpfs proposed 1 GiB and `/dev/shm` 64 MiB: verify mounts/caps and
-  account for their pages **inside** the 4 GiB memory envelope. No claim that
+- [ ] `/tmp` tmpfs proposed 1 GiB, `/dev/shm` 64 MiB and `/evidence` 64 MiB:
+  verify mounts/caps and account for all their pages **inside** the 4 GiB memory
+  envelope, including evidence writes/copy-out. Their capacity ceilings total
+  1152 MiB, leaving at most 2944 MiB for everything else if all fill; those are
+  ceilings, not reservations or guaranteed heap capacity. Verify actual memory
+  charging (especially a host tmpfs bind); if charged elsewhere, record/bound it
+  and STOP the claimed 4 GiB profile until reviewed. No claim that
   these capacities are free additional RAM. Collect full-run peak RSS,
   memory.peak, pids.current peak, OOM/PID events and raw sampling timestamps.
 
@@ -108,10 +138,22 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
 - [ ] `/evidence` bind comes from a dedicated BENJAMIN **64 MiB size-bounded
   tmpfs**, not an unbounded host directory; creation/mount rights remain unverified.
   Confirm ENOSPC on a finite probe and preserve existing logs. Bound inode count
-  too. Container log driver: local, max-size 16 MiB, max-file 2. Cap each captured
-  stream at 16 MiB with an explicit overflow failure; don't truncate then PASS.
-- [ ] Before copying to durable local storage, enforce a 512 MiB whole-evidence
-  budget plus per-file/count caps; inspect public payload and sanitize local paths.
+  too. One verifier container runs the six commands **sequentially**. Container
+  log driver: local, max-size 16 MiB, max-file 2 (32 MiB maximum working retention,
+  not a complete evidence source). Per command allocate at most 16 MiB stdout +
+  16 MiB stderr + 24 MiB JUnit/metrics/receipts = **56 MiB**, leaving 8 MiB free in
+  the tmpfs. Enforce each cap and inode/count limits; overflow is a failed command,
+  never truncated PASS. After every command, copy to bounded durable storage,
+  verify hashes/lengths and acknowledge before deleting its tmpfs files or starting
+  the next. Failed copy/ack STOPs; do not accumulate all six commands in 64 MiB.
+- [ ] The 512 MiB retained **text/test-control** budget is explicit: six command
+  bundles at 56 MiB = 336 MiB; shared receipts 32 MiB; neutral/diagnostic controls
+  64 MiB; one-container working Docker logs 32 MiB; headroom 48 MiB = 512 MiB.
+  Diagnostic/repeated runs share these caps, never multiply them silently.
+  OCI archives, pinned input blobs and BuildKit roots are not claimed to fit this
+  log budget: set and verify separate finite manifest-backed storage quotas before
+  build authorization. Until those caps/venue capacity are approved, storage is
+  an open G5 prerequisite. Inspect public payload and sanitize local paths.
   No paid artifact service/registry or public Actions upload. Missing tmpfs/quota
   support is a STOP, not permission to use unbounded host disk.
 
@@ -150,6 +192,29 @@ failure difference is a documented gap and blocks E2. The historical “60 skips
 contains no sufficient ID/reason set. A deliberately excluded tool is not a
 passing equivalence result; installing it later needs new pins and review.
 
+### R7 — diagnostic hardening differences, not relaxed acceptance
+
+Pre-declare mismatch causes: HARDENING-CONTROL (seccomp/userns/network/RO policy),
+OPTIONAL-TOOL-ABSENT, ENVIRONMENT-SELECTION, DEPENDENCY-INTEGRITY,
+GENIA-REGRESSION or UNKNOWN. Record each full node ID, direct/hardened outcome,
+raw error/skip reason and the evidence supporting attribution. A configured
+hardening flag alone is not a causal diagnosis.
+
+Only after separate owner authorization, an optional diagnostic may use the
+**same image digest, source, packages, argv, deadlines and resource limits**, changing
+one reviewed policy factor at a time: e.g. a private writable source copy (same
+starting hashes), or a narrowly pinned seccomp user-namespace adjustment. If a
+network diagnostic is justified, use an isolated internal test network with no
+external egress. No privileged mode, host networking, Docker socket or unreviewed
+blanket seccomp/capability relaxation. Record exact profile/mount deltas, syscall/
+write observations and full diagnostic result maps. Do not execute it now.
+
+Mark diagnostic artifacts `acceptance=false`. A relaxed-profile PASS may attribute
+a mismatch; it cannot replace the hardened result, excuse an extra skip or make
+E2 pass. Both original full partitions and every failure remain visible. If the
+hardened candidate differs from direct BENJAMIN, E2 remains unestablished even
+when the cause is understood. No test/skip editing, omission or benchmark trial.
+
 ## Direct BENJAMIN receipt and E0–E3 (A8)
 
 Collect on the actual owner host, without publishing usernames/hostnames/secrets:
@@ -163,6 +228,9 @@ separate command results, both partition JUnits/full-ID logs, times and peaks.
 Preserve existing BENJAMIN lock bytes and live checkout; use a new public export.
 Never transmit private benchmark material. Direct host and container observations
 must be labeled separately, with exact execution SHA and target/environment pins.
+Declare `PYTHONHASHSEED=0`, `LANG=C.UTF-8` and `TZ=UTC` as intentional candidate
+settings. Capture BENJAMIN's actual values; differences/unknown prior values are
+E3 context deltas, not presumed matches or timing-normalization evidence.
 
 | Class | Required evidence / permitted claim | Current status |
 |---|---|---|

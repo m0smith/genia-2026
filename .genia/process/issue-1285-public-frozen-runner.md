@@ -1,7 +1,7 @@
 # #1285 — revised public runner design and pin acquisition (A1–A8)
 
 Date: 2026-11-04. **PUBLIC ONLY / DESIGN CANDIDATE / NOT BUILT, FROZEN OR ACCEPTED.**
-Agent: Codex; branch `issue-1285-public-runner-a1-a8`.
+Agent: Codex; branch `issue-1285-recipe-r1-r8` (bounded design/recipe correction).
 Tracking: [#1285](https://github.com/m0smith/genia-2026/issues/1285).
 Original proposal: `aebcd4cb65946d42a14315407b2e8ea616948c3c`.
 
@@ -13,12 +13,22 @@ authorizes this A1–A8 design amendment and pin acquisition only. **STOP before
 image construction.** A fresh independent Claude Code delta review of this exact
 resulting commit is still pending; the original review does not approve new pins.
 
+The [Track A preliminary delta review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6635654084)
+then independently confirmed the retained pins/43-entry graph at
+`778bb1a4e9c24331915005c759b4a44780522b03`, returned PASS-WITH-REVISIONS and proved
+the uv flag defect. The [maintainer authorization](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6636833906)
+permits only R1–R8/low-severity design corrections and bounded pinned-tool checks.
+This revision preserves the verified artifacts; short independent **text** delta
+review is next, with OS-pin/venue delta review later when G1/G3 evidence exists.
+
 **Current decision: BLOCKED for complete pin closure/build authorization.** All
 eight amendments are specified below and in the linked recipe/checklist. Public
 wheel/tool/base-byte acquisition passed, but immutable Debian metadata/Git/Tini
 closure is blocked by the current network policy. BENJAMIN execution access is
 unverified. No image was assembled, built, run or exported; no project dependency
 installation, Genia editable build or regression was performed in this phase.
+Only tiny public backend wheels were installed in disposable host environments
+for the authorized uv checks; those are not project/target installation evidence.
 
 ## Scoped preflight
 
@@ -26,7 +36,7 @@ installation, Genia editable build or regression was performed in this phase.
    reproducibility for the Outcome-aware validated-pipeline experiment. Maintainer
    owns decisions. Scope is amended design, exact public pins/gaps, offline recipe,
    static/acquisition checks and structured issue handoff. Excludes private data,
-   oracle/candidate code, comparisons, runtime/semantic changes, R29 work, CI edits/
+   oracle/candidate code, benchmark comparisons, runtime/semantic changes, R29 work, CI edits/
    dispatch, paid services, merge and issue closure.
 2. Sources: fetched main remains `0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5`.
    Latest AGENTS blob `e913e9d093f5913a4797173f56524c80380b815c`; authority and
@@ -38,9 +48,10 @@ installation, Genia editable build or regression was performed in this phase.
 3. Maturity: N/A, design/data/process only. All controls/OCI behavior remain proposed.
 4. Portable/host boundary: no language, Core IR, Python or C++ implementation
    change. Linux amd64 acquisition targets only the Python reference-host experiment.
-5. Verification: exact byte/size hashes, original lock graph and wheel metadata,
-   read-only uv export, isolated editable-requirements hook (not build), public
-   archive inspection, CLI version/help/static syntax, links/scope/authority checks.
+5. Verification now: bounded pinned-uv matrix, listed host requirements-hook
+   replay, path-metadata probe, retained pin/requirement equality, CLI help and
+   JSON/shell/link/scope/authority checks. Earlier acquisition/graph/export proofs
+   are retained with their original scope, not misrepresented as new executions.
    Full regression and build tests are later gates, not replaced by these checks.
 6. Examples: process-only recipe/checklist; no new Genia program or benchmark case.
 7. Complexity: one candidate manifest, two exact wheel requirement files, evidence,
@@ -53,7 +64,9 @@ installation, Genia editable build or regression was performed in this phase.
    Pin accuracy/provenance and honest unresolved gates are material risks.
 9. Philosophy: minimalism, explicit authority, semantics outside adapters,
    pattern-first preservation and validated-pipeline relevance: YES.
-10. Phases: authorized preflight/design amendment + acquisition → Claude delta
+10. Phases: authorized R1–R8 design/recipe correction + bounded tool checks → text
+    delta review; prior acquisition pins retained without redundant downloads.
+    The earlier sequence was preflight/design amendment + acquisition → Claude delta
     review → STOP for separate build authorization. No runtime contract/RED/
     implementation phase is applicable now. Later executable build/control code
     requires its own applicable tests/maintainability review/evidence audit.
@@ -136,6 +149,12 @@ Seven pinned backend wheels satisfy declared CPython 3.12 requirements. An isola
 host Python 3.12.14 requirements-hook call returned `["editables~=0.3"]`, satisfied
 by editables 0.6. No build/install ran; official-image hook/installation validation
 must still occur after authorization. Unexpected requests STOP, never download.
+This is **preliminary host metadata/hook consistency**, not complete target closure.
+The overstrong `declared_target_closure_complete` field is replaced by explicitly
+preliminary status. [Hook input listing](../experiments/issue-1285/public-runner/hook-library-inputs.json)
+records all 190 files/size/SHA256 from the same seven wheel inputs and a clean
+isolated `-B` host replay, with unchanged source/library bytes. It does not
+retroactively attest the earlier unlisted directory or the official target.
 
 ## A2 — official interpreter decision and unverified venue
 
@@ -158,12 +177,16 @@ Current-executor read-only daemon evidence is not a substitute or authorization.
 
 [Offline recipe](../experiments/issue-1285/public-runner/offline-build-recipe.md)
 specifies local OCI base input, immutable `.deb` closure, single uv, exact local
-wheel requirements and `--require-hashes --only-binary :all: --no-build --no-deps
+wheel requirements and `--require-hashes --only-binary :all: --no-deps
 --offline --no-index` installation. Backend wheels have a separate hashed file.
 Only the explicit, source-hash-verified first-party Genia PEP-660 operation uses
 `--no-build-isolation`; no third-party source build, implicit hook download or
 lock regeneration. Remove four transient backend-only packages; final inventory
 must exactly equal 43 selected distributions plus Genia, with no import-path leak.
+R1 removes the incompatible `--no-build` addition; pinned uv rejects the old
+combination. R2 requires offline `uv pip check` after wheel installation and after
+backend removal, alongside exact inventory checks. Bounded scratch backend checks
+demonstrate these CLI behaviors; official-target installation is still untested.
 Keep repository checks under the pinned uv with explicit `run --frozen --offline
 --no-sync` and the exact installed venv selected. Prove its interpreter selection
 and absence of lock/environment writes during target acceptance; `--no-sync`
@@ -184,6 +207,11 @@ sources and daemon egress, and use RUN network=none. Export OCI locally with
 timestamp rewriting and fixed compression; no registry push, SBOM/provenance
 attestations or paid storage. Capture raw archive SHA256 plus index, manifest,
 config and layer digests distinctly; image ID alone is not a manifest digest.
+R5 keeps BuildKit's **first-use hash pin without publisher attestation** explicit;
+same-URL reviewer re-download is byte corroboration, not independent provenance.
+R6 declares rootful OCI/native snapshotter settings, a pinned metadata-only lint/
+local-OCI/source-policy first gate, and separate OCI-export semantics verification.
+No daemon/solver dry run or image build has run in this correction phase.
 
 Two independent fresh daemon roots build identical reviewed inputs. Verify OCI
 descriptors and compare manifest/config/layers; canonicalize only outer tar
@@ -204,6 +232,9 @@ maps, collection sets and both partitions, retaining JUnit/verbose full-ID logs
 and skip reasons. Every extra skip or omission is an explicit E2 gap. Aggregate
 historical “60 skips” is insufficient. Intended optional exclusion does not make
 missing coverage pass equivalence. New optional tools later require pins/review.
+R7 pre-declares cause classifications and separately authorized, one-factor
+diagnostic profiles of the same image. Diagnostic relaxed-profile PASS is never
+acceptance or E2; every hardened mismatch/extra skip remains an E2 gap.
 
 ## A6 — deterministic Git and declared writable paths
 
@@ -236,10 +267,16 @@ sufficient. tmpfs/shm pages count within memory. Measure loopback/external netwo
 RO filesystem and writable mount behavior; do not infer enforcement from flags.
 
 External watchdog uses TERM through PID 1 then bounded KILL, with actual signal/
-cleanup receipts and both partitions retained. `/evidence` is a 64 MiB host tmpfs
-bind with verified capacity/inode bound, not unbounded disk; logs/stream copies
+cleanup receipts and both partitions retained. `/evidence` is proposed as a
+64 MiB host tmpfs bind whose capacity/inode bound must be verified; logs/stream copies
 and total retained evidence have explicit caps/overflow failure. Mount privileges
-are unverified. Future benchmark 60 s/16 MiB invocation bounds remain unchanged.
+are unverified. R8 makes capture sequential: each 56 MiB maximum command bundle
+(two 16 MiB streams plus 24 MiB metadata) must be copied, hash-verified and cleared
+before the next, leaving 8 MiB free in 64 MiB. The 512 MiB text/control budget is
+itemized; OCI/build storage needs a separate finite quota before authorization.
+Require verified accounting of all tmpfs pages, including evidence, in the 4 GiB
+envelope; overflow fails. No capacity/enforcement result is claimed yet.
+Future benchmark 60 s/16 MiB invocation bounds remain unchanged.
 
 ## A8 — direct BENJAMIN capture and E0–E3
 
@@ -250,6 +287,11 @@ inventory/import paths, source/lock/pyproject hashes, process tree/reaping contr
 six separate command logs, both per-test result maps, wall time and RSS/PID peaks.
 Use a new disposable public export; preserve live lock/checkout. No access is
 claimed or private material requested.
+Record intentional `PYTHONHASHSEED=0`, `LANG=C.UTF-8`, `TZ=UTC` differences under E3;
+do not presume BENJAMIN matches. The checklist pins the exact original reaping
+node ID. Fixed `/opt/runner-input` staging is retained read-only; actual
+`direct_url.json`/`uv_cache.json` bytes join the two-build comparison, not a
+post-hoc metadata rewrite.
 
 E0 = exact source/lock identity; E1 adds installed-set/import evidence; E2 adds
 complete matching per-test outcome IDs/phases/reasons; E3 adds measured timing/
@@ -259,6 +301,29 @@ E0–E1 can be claimed **when their own receipts pass**. This phase establishes
 pin identities/acquired bytes, not a new direct E1/E2/E3 or worker-custody result.
 
 ## Evidence, delta review and next action
+
+| Correction | Disposition / evidence boundary |
+|---|---|
+| R1 | Both install commands use only binary-only enforcement, no conflicting flag. Pinned uv reproduced old exit 2 and corrected success/hash rejection. |
+| R2 | Offline consistency checks after wheel install and transient removal, plus exact 47/44 inventories. Tiny host checks pass and detect five missing hatchling dependencies; target checks not run. |
+| R3 | All 87 base versions must be compatible with signed snapshot candidates; no downgrade, reviewed upgrades only. Data/access still missing. |
+| R4 | Preliminary host consistency replaces complete-target wording; 190 hook-library files listed/hashed. Official target closure remains unverified. |
+| R5 | First-use BuildKit hash pin retained without publisher attestation; no verified pin changed. |
+| R6 | Explicit rootful OCI/native/bridge settings and future metadata-only lint/context/policy gate; help/JSON checks only now, exporter semantics unverified. |
+| R7 | Same-image one-factor diagnostics separately authorized/non-acceptance; understood hardening differences still block E2. |
+| R8 | Per-command drain/copy acknowledgement fits 64 MiB; itemized 512 MiB text/control budget and all tmpfs memory charging. Capacity enforcement remains future evidence. |
+
+Low-severity refinements pin the original reaping node, declare environment
+differences and fixed retained staging paths, and include actual installer path/
+cache metadata in later A/B checks. The host cache-timestamp negative probe is
+retained; no target reproducibility is inferred or metadata rewritten.
+
+[R1–R8 correction evidence](../experiments/issue-1285/public-runner/recipe-correction-evidence.json)
+retains 17 bounded pinned-uv invocations (including setup and intended rejection
+controls), the initial harness/cache failures, listed host hook replay and tool
+help checks. No project dependency set, image or benchmark was installed/executed.
+Verified wheel/backend/uv/BuildKit/base pin records and both requirement files
+remain identical to the independently reviewed candidate.
 
 [Pin acquisition evidence](../experiments/issue-1285/public-runner/pin-acquisition-evidence.json)
 records read-only export/hook and downloaded archive/wheel checks, actual tool/
@@ -270,14 +335,17 @@ supersedes only its metadata-only acquisition limit, not an execution gate.
 completed pins from STOP conditions. Static checks do not replace future offline
 installation, measured controls, two-build OCI or full original-source regression.
 
-Independent Claude Code delta review must inspect this exact committed diff and
-pins, A1–A8 coverage, colorama correction, unresolved OS fields and gate language;
+Independent Claude Code **text** delta review must inspect this exact committed
+R1–R8/low-severity diff, corrected CLI evidence, qualified hook inputs, preserved
+artifact identities, unresolved OS fields and gate language;
 record reviewer/session/model and exact reviewed SHA, ranked findings and verdict.
 No authenticated callable Claude route is available here. Publishing a review
 request/handoff is not obtaining PASS; no Codex self-review is substituted.
 
-**Next owner/operator actions:** complete supported snapshot-host access and
-verified OS/Tini/Git pins, then obtain the independent Claude delta review. Owner
+**Next action:** obtain the short independent Claude text delta review now.
+In parallel, complete supported snapshot access, verified OS/Tini/Git compatibility/
+closure and sanitized BENJAMIN rights receipts; a further minimal OS-pin/venue
+review is required once those exist. Owner
 must separately demonstrate/authorize the BENJAMIN bounded build only after those
 gates; later acceptance runs require their own authorization. This phase maintains
 $0 incremental spending: existing workspace and public downloads only; no paid

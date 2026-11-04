@@ -1,0 +1,693 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-04T17:20:44.450720+00:00",
+  "scope": "authorized bounded DESIGN/RECIPE correction; scratch backend wheels only; no image/project installation",
+  "baseline": "778bb1a4e9c24331915005c759b4a44780522b03",
+  "review": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6635654084",
+  "authorization": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6636833906",
+  "uv_binary_sha256": "8a70db72685b7138121bfcda71fa1a00cb709ed9f1fdc4ecf1dd871e8e167e52",
+  "host_python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "matrix_verdict": "PASS for 17 expected outcomes including setup and intentional rejection controls",
+  "uv_checks": [
+    {
+      "label": "uv-version",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "--version"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "uv 0.13.5 (x86_64-unknown-linux-gnu)\n",
+      "stderr": "",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/bootstrap-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "original-flags-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-r1-r8/original-flags"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: original-flags\nActivate with: source original-flags/bin/activate\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/bootstrap-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "original-conflicting-flags",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/original-flags/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "--no-build",
+        "-r",
+        "/workspace/work/issue-1285-r1-r8/original-conflicting-flags.requirements.txt"
+      ],
+      "exit_code": 2,
+      "expected_exit": 2,
+      "stdout": "",
+      "stderr": "error: the argument '--only-binary <ONLY_BINARY>' cannot be used with '--no-build'\n\nUsage: uv pip install --python <PYTHON> --offline --no-index --require-hashes --only-binary <ONLY_BINARY> --no-deps --cache-dir <CACHE_DIR> <PACKAGE|--requirements <REQUIREMENTS>|--editable <EDITABLE>|--group <GROUP>>\n\nFor more information, try '--help'.\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/original-conflicting-flags-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "good-flags-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-r1-r8/good-flags"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: good-flags\nActivate with: source good-flags/bin/activate\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/original-conflicting-flags-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "corrected-three-wheel-install",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/good-flags/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "-r",
+        "/workspace/work/issue-1285-r1-r8/corrected-three-wheel-install.requirements.txt"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: good-flags\nResolved 3 packages in 0.80ms\nPrepared 3 packages in 1ms\nInstalled 3 packages in 1ms\n + editables==0.6 (from file:///workspace/work/issue-1285-public-runner/editables-0.6-py3-none-any.whl)\n + tomlkit==0.15.2 (from file:///workspace/work/issue-1285-public-runner/tomlkit-0.15.2-py3-none-any.whl)\n + trove-classifiers==2026.9.21.13 (from file:///workspace/work/issue-1285-public-runner/trove_classifiers-2026.9.21.13-py3-none-any.whl)\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/corrected-three-wheel-install-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "consistency-after-install",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/good-flags/bin/python",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: good-flags\nChecked 3 packages in 0.20ms\nAll installed packages are compatible\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/corrected-three-wheel-install-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "scratch-remove-one-transient",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "uninstall",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/good-flags/bin/python",
+        "--offline",
+        "editables"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: good-flags\nUninstalled 1 package in 0.48ms\n - editables==0.6 (from file:///workspace/work/issue-1285-public-runner/editables-0.6-py3-none-any.whl)\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/corrected-three-wheel-install-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "consistency-after-scratch-removal",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/good-flags/bin/python",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: good-flags\nChecked 2 packages in 0.12ms\nAll installed packages are compatible\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/corrected-three-wheel-install-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "wrong-hash-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-r1-r8/wrong-hash"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: wrong-hash\nActivate with: source wrong-hash/bin/activate\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/corrected-three-wheel-install-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "wrong-hash-rejected",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/wrong-hash/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "-r",
+        "/workspace/work/issue-1285-r1-r8/wrong-hash-rejected.requirements.txt"
+      ],
+      "exit_code": 1,
+      "expected_exit": 1,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: wrong-hash\nResolved 1 package in 0.65ms\nerror: Failed to read `editables @ file:///workspace/work/issue-1285-public-runner/editables-0.6-py3-none-any.whl`\n  cause: Hash mismatch for `editables @ file:///workspace/work/issue-1285-public-runner/editables-0.6-py3-none-any.whl`\n\n         Expected:\n           sha256:0000000000000000000000000000000000000000000000000000000000000000\n\n         Computed:\n           sha256:d70e4698078a1d033e7786d9c64e5be070d058a67c21417024d38a58ac20aa43\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/wrong-hash-rejected-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "missing-hash-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-r1-r8/missing-hash"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: missing-hash\nActivate with: source missing-hash/bin/activate\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/wrong-hash-rejected-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "missing-hash-rejected",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/missing-hash/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "-r",
+        "/workspace/work/issue-1285-r1-r8/missing-hash-rejected.requirements.txt"
+      ],
+      "exit_code": 2,
+      "expected_exit": 2,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: missing-hash\nerror: In `--require-hashes` mode, all requirements must have a hash, but none were provided for: file:///workspace/work/issue-1285-public-runner/editables-0.6-py3-none-any.whl\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/missing-hash-rejected-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "no-deps-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-r1-r8/no-deps"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: no-deps\nActivate with: source no-deps/bin/activate\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/missing-hash-rejected-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "hatchling-without-dependencies",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/no-deps/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "-r",
+        "/workspace/work/issue-1285-r1-r8/hatchling-without-dependencies.requirements.txt"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: no-deps\nResolved 1 package in 0.67ms\nPrepared 1 package in 3ms\nInstalled 1 package in 2ms\n + hatchling==1.32.4 (from file:///workspace/work/issue-1285-public-runner/hatchling-1.32.4-py3-none-any.whl)\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/hatchling-without-dependencies-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "missing-closure-detected",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/no-deps/bin/python",
+        "--offline"
+      ],
+      "exit_code": 1,
+      "expected_exit": 1,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: no-deps\nChecked 1 package in 0.17ms\nFound 5 incompatibilities\nThe package `hatchling` requires `packaging>=24.2`, but it's not installed\nThe package `hatchling` requires `pathspec>=0.10.1`, but it's not installed\nThe package `hatchling` requires `pluggy>=1.0.0`, but it's not installed\nThe package `hatchling` requires `tomlkit>=0.11.1`, but it's not installed\nThe package `hatchling` requires `trove-classifiers`, but it's not installed\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/hatchling-without-dependencies-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "unavailable-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-r1-r8/unavailable"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: unavailable\nActivate with: source unavailable/bin/activate\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/hatchling-without-dependencies-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    {
+      "label": "offline-no-index-no-fallback",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "pip",
+        "install",
+        "--python",
+        "/workspace/work/issue-1285-r1-r8/unavailable/bin/python",
+        "--offline",
+        "--no-index",
+        "--require-hashes",
+        "--only-binary",
+        ":all:",
+        "--no-deps",
+        "-r",
+        "/workspace/work/issue-1285-r1-r8/offline-no-index-no-fallback.requirements.txt"
+      ],
+      "exit_code": 1,
+      "expected_exit": 1,
+      "stdout": "",
+      "stderr": "Using Python 3.12.14 environment at: unavailable\nerror: No solution found when resolving dependencies\n  cause: Because editables was not found in the provided package locations and you require editables==0.6, we can conclude that your requirements are unsatisfiable.\n\nhint: Packages were unavailable because index lookups were disabled and no additional package locations were provided (try: `--find-links <uri>`)\n",
+      "cwd": "/workspace/work/issue-1285-r1-r8",
+      "selected_environment": {
+        "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/offline-no-index-no-fallback-cache",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+        "PYTHONNOUSERSITE": "1"
+      }
+    }
+  ],
+  "retained_initial_failures": [
+    {
+      "stage": "scratch harness parse",
+      "exit_code": 1,
+      "pinned_uv_invoked": false,
+      "error": "SyntaxError: mismatched list-comprehension bracket; corrected before checks"
+    },
+    {
+      "label": "uv-version",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "--version"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "stdout": "uv 0.13.5 (x86_64-unknown-linux-gnu)\n",
+      "stderr": ""
+    },
+    {
+      "label": "original-flags-venv",
+      "argv": [
+        "/workspace/work/issue-1285-pins/tools/uv",
+        "--no-config",
+        "venv",
+        "--offline",
+        "--no-python-downloads",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "/workspace/work/issue-1285-r1-r8/original-flags"
+      ],
+      "exit_code": 2,
+      "expected_exit": 0,
+      "stdout": "",
+      "stderr": "error: Could not acquire lock\n  cause: Could not create temporary file\n  cause: Read-only file system (os error 30) at path \"/home/agent/.cache/uv/.tmp09Zbkc\"\n"
+    }
+  ],
+  "cache_failure_disposition": "used explicit writable scratch UV_CACHE_DIR; no permission escalation or global config change",
+  "matrix_inventory_assertions": {
+    "original_conflicting_flags_installed_nothing": true,
+    "corrected_install_exactly_three_backend_wheels": true,
+    "wrong_hash_missing_hash_and_unavailable_cases_left_empty_venvs": true,
+    "no_deps_hatchling_only_inventory": true,
+    "pip_check_detected_five_missing_hatchling_dependencies": true,
+    "pip_check_passed_after_tiny_install_and_one_scratch_uninstall": true
+  },
+  "host_hook_inputs": {
+    "path": "hook-library-inputs.json",
+    "sha256": "8fc360d1a137bd8179607e5ebfc092f00c5009827414ddfd55898329c6faca2c",
+    "files": 190,
+    "scope": "host 3.12.14 only, exact inputs and unchanged source/library; preliminary not target closure"
+  },
+  "host_path_metadata_probe": {
+    "scope": "host scratch one backend wheel only; not official target metadata",
+    "commands": [
+      {
+        "argv": [
+          "/workspace/work/issue-1285-pins/tools/uv",
+          "--no-config",
+          "venv",
+          "--offline",
+          "--no-python-downloads",
+          "--python",
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "/workspace/work/issue-1285-r1-r8/metadata-probe/venv"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: /workspace/work/issue-1285-r1-r8/metadata-probe/venv\nActivate with: source /workspace/work/issue-1285-r1-r8/metadata-probe/venv/bin/activate\n"
+      },
+      {
+        "argv": [
+          "/workspace/work/issue-1285-pins/tools/uv",
+          "--no-config",
+          "pip",
+          "install",
+          "--python",
+          "/workspace/work/issue-1285-r1-r8/metadata-probe/venv/bin/python",
+          "--offline",
+          "--no-index",
+          "--require-hashes",
+          "--only-binary",
+          ":all:",
+          "--no-deps",
+          "-r",
+          "/workspace/work/issue-1285-r1-r8/metadata-probe/requirements.txt"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "Using Python 3.12.14 environment at: /workspace/work/issue-1285-r1-r8/metadata-probe/venv\nResolved 1 package in 0.90ms\nPrepared 1 package in 3ms\nInstalled 1 package in 0.73ms\n + tomlkit==0.15.2 (from file:///workspace/work/issue-1285-r1-r8/metadata-probe/tomlkit-0.15.2-py3-none-any.whl)\n"
+      }
+    ],
+    "wheel_sha256_unchanged": true,
+    "input_mtime_seconds": 1793034850,
+    "metadata": {
+      "direct_url.json": {
+        "bytes": 114,
+        "sha256": "bda1b3b392eb2072a694293ed752d4ae1e597d3bffec978d115b1b67a7382fc6",
+        "content": {
+          "url": "file:///workspace/work/issue-1285-r1-r8/metadata-probe/tomlkit-0.15.2-py3-none-any.whl",
+          "archive_info": {}
+        }
+      },
+      "uv_cache.json": {
+        "bytes": 127,
+        "sha256": "32097cd872722dda9064b3a97e79f5bef8e39bd77be8971639a730a68a87bc86",
+        "content": {
+          "timestamp": {
+            "secs_since_epoch": 1793812763,
+            "nanos_since_epoch": 980386312
+          },
+          "commit": null,
+          "tags": null,
+          "env": {},
+          "directories": {}
+        }
+      }
+    },
+    "uv_cache_timestamp_matches_fixed_input_mtime": false,
+    "selected_environment": {
+      "UV_CACHE_DIR": "/workspace/work/issue-1285-r1-r8/metadata-probe/cache",
+      "UV_OFFLINE": "1",
+      "UV_PYTHON_DOWNLOADS": "never"
+    }
+  },
+  "buildkit_help_checks": [
+    {
+      "argv": [
+        "/workspace/work/issue-1285-pins/builder-tools/buildctl",
+        "build",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "97323eca0b8b9822ec1e6e657268acba08ed12df1d80ef885e44ca9afe2234c9",
+      "verified_help_tokens": [
+        "--oci-layout",
+        "--source-policy-file",
+        "--frontend"
+      ],
+      "daemon_or_solver_contacted": false
+    },
+    {
+      "argv": [
+        "/workspace/work/issue-1285-pins/builder-tools/buildctl",
+        "debug",
+        "workers",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "b43f69643ec27a33d429cf1fe2220c89e6bfcc3a9aced3aab71a291e270c7060",
+      "verified_help_tokens": [
+        "--verbose"
+      ],
+      "daemon_or_solver_contacted": false
+    },
+    {
+      "argv": [
+        "/workspace/work/issue-1285-pins/builder-tools/buildkitd",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "a8c6963ba09d01465c4f1b8c9a3cbb0bdc2a0a26bbc73014818e4d71ea299809",
+      "verified_help_tokens": [
+        "--rootless",
+        "--oci-worker-snapshotter",
+        "--oci-worker-rootless",
+        "--oci-worker-net",
+        "--oci-max-parallelism"
+      ],
+      "daemon_or_solver_contacted": false
+    }
+  ],
+  "buildkit_frontend_request_source": {
+    "reference": "moby/buildkit v0.24.0 frontend/subrequests/lint/lint.go",
+    "constant_read": "RequestLint = frontend.lint",
+    "frontend_request_executed": false
+  },
+  "verified_pin_sections_preserved": [
+    "source",
+    "base",
+    "uv",
+    "runtime_wheels",
+    "backend_wheels",
+    "runtime_selection",
+    "builder.distribution",
+    "debian.base_inventory"
+  ],
+  "requirements_and_base_manifest_bytes_unchanged": true,
+  "remaining_gates": [
+    "G1 signed snapshot/base compatibility and complete OS/Git/Tini closure",
+    "G3 sanitized BENJAMIN rights receipts",
+    "independent short text delta review",
+    "later OS-pin/venue delta review and separate build authorization",
+    "target install/control/OCI/per-test/storage-quotas acceptance"
+  ],
+  "not_performed": [
+    "snapshot request or policy bypass",
+    "artifact reacquisition",
+    "image assembly/build/run/export",
+    "BuildKit daemon/solver request",
+    "project dependency or editable install",
+    "project regression/benchmark/private work",
+    "paid provisioning/API/storage",
+    "merge/issue closure"
+  ],
+  "successful_matrix_harness_sha256": "6296c60f29f832b638f2a3e7c24e51bf49b4ddf922a34f92bd7b7a3b8e1fc9eb",
+  "static_validation": {
+    "status": "PASS",
+    "checks": [
+      "verified artifact pin sections unchanged from 778bb1a4",
+      "runtime/backend requirement and base-manifest bytes unchanged",
+      "190-file canonical hook listing and linked file hashes",
+      "R1-R8/low design corrections and fail-closed flags",
+      "JSON/relative links/embedded bash -n",
+      "64/512 MiB evidence and 4 GiB tmpfs budget arithmetic",
+      "unchanged authority/source-lock/pyproject bytes"
+    ],
+    "commands": [
+      {
+        "argv": [
+          "python",
+          "tools/validate_llm_instructions.py"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "python",
+          "tools/gen_mcp_language_profile.py",
+          "--check"
+        ],
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0
+      }
+    ]
+  }
+}
