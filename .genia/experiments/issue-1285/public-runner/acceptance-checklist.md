@@ -11,15 +11,22 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   to signed snapshot candidates passes; no required downgrade; every proposed
   base upgrade explicitly reviewed. Earlier candidate snapshot is not assumed
   compatible merely because its date is near the base creation time.
-- [ ] Actual BENJAMIN build/run/export/cgroup-inspect rights demonstrated; no
-  inference from the current executor's read-only daemon inspection.
-- [ ] Independent Claude Code **delta** review PASS on exact amended design/pin
-  commit; prior PASS-WITH-REVISIONS is not this review.
-- [ ] Metadata strategy explicitly selected by maintainer **after** independent
-  delta review and **before** build authorization. The unchanged uv draft is
-  predicted to fail strict byte equality: wheel/project ctime enters uv_cache.json
-  and RECORD. [Host proof and one alternative](metadata-strategy.md) do not adopt
-  an installer, approve initial frontend metadata or establish target equality.
+- [ ] Qualify an available approved **$0 Linux/amd64 venue** by actual build/run/
+  OCI-export/cgroup-inspect and enforcement receipts, pinned rootful BuildKit
+  profile and finite disk/inode/evidence quotas. [Venue decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643155880):
+  BENJAMIN is offline, not required; no current host qualifies by declaration.
+- [ ] Independent Claude Code **short text delta** review PASS on exact revised
+  design/pins/recipe/venue SHA. [Prior review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319) covers starting 3fdb037a,
+  not this delta. [Maintainer selection](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249) chooses installer 0.7.0 as
+  candidate, not production frontend acceptance or build authority.
+- [ ] Separately authorize/implement/review the production frontend. Pin every
+  reviewed bootstrap/validation/order/hook/build/metadata source file, entrypoint
+  and manifest hash in input-sha256.txt. Experimental helpers are evidence only.
+- [ ] Verify installer wheel URL, **453838 bytes**, SHA256
+  `05d1933f0a5ba7d8d6296bb6d5018e7c94fa473ceb10cf198a92ccea19c27b53`;
+  retain first-use/no-publisher-attestation limitation. All earlier source, lock,
+  wheel, uv, BuildKit and Python-base artifact hashes remain unchanged.
+
 - [ ] Maintainer separately authorizes bounded offline build, then acceptance
   runs. No private work, custody or independent-worker authorization follows.
 - [ ] Two independent build receipts, offline proof and OCI archive/index/
@@ -39,32 +46,79 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   sysconfig compiler/config/ABI, OpenSSL/SQLite/zlib versions, glibc and loaded
   library paths collected. Compare explicitly with original Clang 22.1.3 build;
   same Python patch number is not interpreter equivalence.
-- [ ] Target editable-requirements hook exactly `["editables~=0.3"]`; pinned seven
-  backend wheels satisfy it; no extra hook download or third-party source build.
-- [ ] Final distributions exactly 43 selected wheels plus Genia; compare names,
-  versions, artifact fingerprints, editable root and actual import paths. No
-  backend-only residue or system/user site leakage. **Include colorama** from the
-  unconditional mkdocs-material dependency; exclude exceptiongroup/tomli/
-  typing-extensions and the four inactive version variants.
-- [ ] Recompute [expected inventory](expected-inventory.json) and its pins.json
-  hash from the unchanged selected wheel bytes; compare all 47 pre-editable and
-  44 final name/version/artifact/import-path entries. For a separately adopted
-  isolated-backend strategy, its pre-editable final prefix has 43 entries and
-  the builder has seven; do not apply the current uv 47-entry phase to that prefix.
-- [ ] R2 `uv --no-config pip check --python /opt/genia/venv/bin/python --offline`
-  passes after wheel installation and after backend-only removal, alongside exact
-  inventory equality. A nonzero result STOPs; no implicit dependency repair.
-- [ ] R4 official target hook rerun and closure remain UNVERIFIED until actually
-  executed there; [listed host hook inputs](hook-library-inputs.json) are preliminary
-  evidence only, with library/source bytes unchanged in the bounded host replay.
-- [ ] Retained fixed `/opt/runner-input` paths and editable source path agree in
-  actual dist-info `direct_url.json`/`uv_cache.json`/`uv_build.json`; hash and compare these files
-  across A/B unchanged. Unexpected `/tmp`/external paths or differing bytes STOP;
-  no post-hoc metadata rewriting.
-  Host proof reproduces every staged wheel timestamp's ctime and editable
-  pyproject.toml ctime to ns; directories.src varies but its exact clock mapping
-  is not established here. Current recipe is expected to fail; strategy remains
-  unselected. No byte exclusions, deletion/patching or weaker equality are allowed.
+- [ ] Assert `umask 022` for scaffold, tool bootstrap, every install and editable
+  hook/build/install. As root build identity, produce 0644 regular files, 0755
+  directories/executables and explicit reviewed symlink targets/lstat modes.
+  Full scaffold/directory/file/link byte/mode/uid/gid inventories match A/B after
+  declared deployment ownership 10001:10001. Verify readability/traversal/execution
+  as runtime UID 10001; historical umask-077 0600/0711 manifests cannot satisfy this.
+- [ ] Explicit `posix_prefix` on official 3.12.15: purelib/platlib exactly
+  `<prefix>/lib/python3.12/site-packages`, scripts `<prefix>/bin`, data `<prefix>`,
+  headers under `<prefix>/include`. Assert every dist-info under site-packages and
+  every mapped destination under fixed `/opt/genia/venv` or isolated builder prefix.
+  No implicit Debian scheme or symlink escape; pinned scaffold links are distinct.
+- [ ] Entire installer bootstrap and builder input sets validate before their
+  destination writes. Before any deployment venv/scaffold writes validate the
+  entire runtime+generated-editable set: archive hashes, identities/tags, all
+  RECORD contents/hash/size/coverage, ZIP members, safe mapped paths and collisions.
+  Generated editable is validated after building but before installation. No
+  per-wheel verify/install loop or implied runtime-failure transaction guarantee.
+- [ ] Fail-closed negative controls place the bad wheel **last after a valid one**:
+  wrong archive hash, missing wheel, matching-archive-hash RECORD corruption,
+  unrecorded/duplicate member, unsafe path, wrong identity and destination conflict.
+  Each proves zero destination writes (including directories). Reject existing
+  unexpected files, conflicting script names, parent type aliases and symlink parents.
+- [ ] Wheels sorted by normalized name/version string/filename/SHA256, bytewise
+  LC_ALL=C; member/destination and generated RECORD row writes sorted by canonical
+  relative path. Review the ordering adapter; actual plan/write receipts agree.
+- [ ] Target editable hook exactly `["editables~=0.3"]`; isolated
+  `/opt/genia/build-venv` has precisely the seven unchanged pinned backend wheels.
+  Run reviewed Hatchling build_editable on fixed `/opt/genia/source`, using only
+  that builder and stdlib, no acquisition. Generated editable wheel hash equal A/B
+  at fixed `/opt/genia/editable-wheel`; scratch-path hashes are not target pins.
+- [ ] Recompute expected inventory identities from unchanged pin records: **47**
+  unique runtime/backend union, historical uv pre-editable 47, selected runtime
+  pre-editable **43**, isolated builder **7**, final **44** = runtime43+Genia0.1.14.
+  Verify all wheel hashes and three overlap hashes, not counts alone. Include
+  colorama; exclude inactive variants, exceptiongroup/tomli/typing-extensions.
+  No backend-only, installer-tool, system/user package leakage in deployment.
+- [ ] `uv --no-config pip check --python /opt/genia/venv/bin/python --offline`
+  passes after runtime wheels and after editable; check builder consistency and
+  exact installed name/version/artifact/import paths separately. No online repair.
+- [ ] Hash/size-validate **every installed RECORD row**, generated scripts and
+  initial INSTALLER/direct_url metadata included; validate all rows/coverage after
+  install and after runtime commands. Only RECORD's own row has empty hash/size.
+  Enumerate all installed files not owned by RECORD; only reviewed venv scaffold
+  exceptions allowed, no unexplained lib/bin payload or duplicate owners.
+- [ ] Initial metadata matches policy: INSTALLER `installer\n`, deterministic
+  editable PEP-610 file:///opt/genia/source + dir_info.editable=true in RECORD;
+  no REQUESTED, wheel-local direct_url, uv_cache/uv_build or .lock generated.
+  Validate expected differences from uv and unchanged METADATA/WHEEL/entry_points.
+  Compare every generated byte A/B including wrapper templates, pyvenv.cfg,
+  scaffold, .pth and symlinks; never patch/delete/ignore metadata to pass.
+- [ ] **All 15 console wrappers** as UID 10001 under official 3.12.15: coverage,
+  coverage-3.12, coverage3, genia, ghp-import, idna, markdown_py, mkdocs,
+  mkdocs-get-deps, normalizer, py.test, pybabel, pygmentize, pytest, watchmedo.
+  Record exact bounded smoke argv, outputs/exits and shebang/interpreter paths;
+  also `genia -c '1 + 1'`, uv list/freeze/show/tree/check. Host wrapper evidence
+  does not complete target acceptance.
+- [ ] Import actual compiled extensions (verify __file__, extension suffix and
+  shared-library resolution): charset-normalizer, coverage, markupsafe, pyyaml,
+  tree-sitter and tree-sitter-{bash,cpp,rust,typescript}, watchdog's applicable
+  native/platform paths. Run ruff executable under target glibc 2.41. Fail on
+  unexpected pure-Python fallback; classify platform-only Python paths honestly.
+- [ ] Editable .pth routes live source under `/opt/genia/source/src`, no copied
+  Genia or PYTHONPATH. In an isolated disposable source copy, an edit and new
+  module are visible without reinstall; restore/verify bytes. From another cwd
+  and minimal environment imports resolve correctly with user site disabled.
+  Repeat smoke against final read-only approved-source mount without mutation.
+- [ ] Zero .pyc in source/venv/builder, bytecode generation disabled; no silent
+  deletion. Precompilation or runtime bytecode-cache policy needs separate review.
+- [ ] Exact `uv --no-config run --frozen --offline --no-sync` for project commands,
+  selected interpreter proven against **read-only venv**. Trace attempted writes,
+  before/after bytes/modes/lock hashes, no .lock/new env or editable auto-rebuild.
+  Preserve the configured launcher's separate **--no-project** argv/behavior.
+
 - [ ] Exactly one distinct uv executable on effective PATH, version 0.13.5 and
   SHA256 `8a70db72685b7138121bfcda71fa1a00cb709ed9f1fdc4ecf1dd871e8e167e52`;
   record outer and nested fixture resolution. No uv 0.12.23 fallback.
@@ -143,10 +197,10 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
   Record actual syscall outcomes and `unshare` availability/probe behavior.
   Default seccomp/userns restrictions are evidence, not a reason to edit skips.
 - [ ] Read-only source/venv/rootfs: attempted writes fail with EROFS as expected.
-  Declared writable set is **only** `/tmp` (HOME, bytecode if enabled, pytest
+  Declared writable set is **only** `/tmp` (HOME, pytest
   basetemp/cache, uv cache, application scratch), `/dev/shm`, and `/evidence`.
   No writable source/index or extra mount without a reviewed deviation.
-- [ ] `/evidence` bind comes from a dedicated BENJAMIN **64 MiB size-bounded
+- [ ] `/evidence` bind comes from a dedicated selected-venue **64 MiB size-bounded
   tmpfs**, not an unbounded host directory; creation/mount rights remain unverified.
   Confirm ENOSPC on a finite probe and preserve existing logs. Bound inode count
   too. One verifier container runs the six commands **sequentially**. Container
@@ -225,8 +279,7 @@ fixture-corrected run is a different source, not original-pair acceptance eviden
 
 Node, installed official MCP client and Wasmtime are intentionally absent in the
 minimal first runner per maintainer decision. Inventory each absence explicitly;
-do not add fake commands or alter tests/markers/skips. For direct BENJAMIN and
-runner results, compare sorted **full node-ID → outcome + phase + reason** maps,
+do not add fake commands or alter tests/markers/skips. For independent A/B runner results and any measured compatible comparison, compare sorted **full node-ID → outcome + phase + reason** maps,
 plus collected/missing/extra IDs. Every extra skip, omitted test, xfail/xpass or
 failure difference is a documented gap and blocks E2. The historical “60 skips”
 contains no sufficient ID/reason set. A deliberately excluded tool is not a
@@ -251,34 +304,33 @@ write observations and full diagnostic result maps. Do not execute it now.
 
 Mark diagnostic artifacts `acceptance=false`. A relaxed-profile PASS may attribute
 a mismatch; it cannot replace the hardened result, excuse an extra skip or make
-E2 pass. Both original full partitions and every failure remain visible. If the
-hardened candidate differs from direct BENJAMIN, E2 remains unestablished even
-when the cause is understood. No test/skip editing, omission or benchmark trial.
+E2 pass. Both original full partitions and every failure remain visible. If the hardened candidate differs from its declared comparison run, E2 remains
+unestablished even when the cause is understood. A historical BENJAMIN aggregate
+is contextual only and is not a mandatory replay or per-test acceptance oracle. No test/skip editing, omission or benchmark trial.
 
-## Direct BENJAMIN receipt and E0–E3 (A8)
+## Actual selected-venue receipts and E0–E3 (A8)
 
-Collect on the actual owner host, without publishing usernames/hostnames/secrets:
-WSL/Windows/kernel identity; Docker Engine/containerd/runc version, `docker info`
-cgroup/runtime/storage/security; PID 1 and controllers/limits; CPU/memory; uv and
-Python executable paths, hashes/versions and `python -VV`, sysconfig/compiler,
-OpenSSL/SQLite/zlib/glibc/ABI; Git version; Node/MCP-client/Wasmtime/unshare/ps/lsof
-availability; locale/TZ; distributions/import paths; original source/lock/pyproject
-hashes. Capture the reaping test alone and full process-tree identities, six
-separate command results, both partition JUnits/full-ID logs, times and peaks.
-Preserve existing BENJAMIN lock bytes and live checkout; use a new public export.
-Never transmit private benchmark material. Direct host and container observations
-must be labeled separately, with exact execution SHA and target/environment pins.
-Declare `PYTHONHASHSEED=0`, `LANG=C.UTF-8` and `TZ=UTC` as intentional candidate
-settings. Capture BENJAMIN's actual values; differences/unknown prior values are
-E3 context deltas, not presumed matches or timing-normalization evidence.
+Collect on the selected approved $0 Linux/amd64 venue without publishing local
+identifiers/secrets: OS/kernel and virtualization identity; Docker Engine/
+containerd/runc; cgroup/runtime/storage/security; PID 1/controllers/limits;
+CPU/memory; uv/Python paths/hashes/versions, python -VV, compiler/sysconfig/ABI,
+OpenSSL/SQLite/zlib/glibc; Git/gated tools; locale/TZ; installed/import inventory;
+original source/lock/pyproject; reaping/process-tree and six command receipts,
+both full partition maps and resource peaks. Use a new public export, preserve
+historical BENJAMIN lock/source records and failed evidence. BENJAMIN is offline
+and direct replay there is not required. No host currently qualifies by assertion.
+Declare PYTHONHASHSEED=0, LANG=C.UTF-8, TZ=UTC as candidate settings; historical
+unknowns and environment differences remain explicit. Never infer equal workers.
 
 | Class | Required evidence / permitted claim | Current status |
 |---|---|---|
-| E0 | Same exact approved source tree, lock and pyproject; no overlays. Does not imply interpreter/package equality. | Original pin identities verified here; new direct BENJAMIN receipt pending. |
-| E1 | E0 plus same installed name/version set, editable source/import isolation; record artifact hashes and any unavailable owner-side artifact identity separately. | Proposed 44-entry set matches historical inventory; new installs/direct replay not executed. No new direct E1 claim. |
-| E2 | E0/E1 plus identical complete per-test node-ID outcome/phase/reason maps and applicable tool state, both partitions, no unaccounted omissions/extra skips. | BLOCKED: direct BENJAMIN per-test evidence absent; aggregate historical counts insufficient. |
-| E3 | E0–E2 plus measured timing/resource/toolchain/kernel/filesystem context, raw peaks/watchdog/cgroup results and declared differences. Contextual reproducibility, not equal independent workers or a speed claim. | NOT ESTABLISHED; official interpreter differs. |
+| E0 | Exact approved source/lock/pyproject, no overlays; not interpreter equality. | Pin identities retained; selected-venue execution receipts pending. |
+| E1 | E0 plus exact installed name/version/artifacts, editable routing/import isolation. | Host proof only; official-target selected-venue receipt pending. |
+| E2 | E0/E1 plus matching complete node-ID/outcome/phase/reason/tool-state maps for explicitly identified compatible comparison runs, both partitions, no omitted/extra skips. | NOT ESTABLISHED. Future A/B maps required; historical BENJAMIN 7134/60 aggregate lacks node IDs and is contextual only. |
+| E3 | E0–E2 plus measured timing/resource/toolchain/kernel/filesystem and control differences. No timing speedup or equal-worker claim. | NOT ESTABLISHED; original interpreter differs. |
 
-Without BENJAMIN per-test data, claims can reach only E0–E1 when their own
-receipts actually pass. Same source or installed set does not license E2/E3,
-interpreter equivalence, custody, benchmark readiness or independent-worker claims.
+Historical BENJAMIN provenance remains immutable contextual evidence, not active
+venue qualification or required acceptance equivalence. Without measured compatible
+per-test data, do not claim historical E2/E3 parity. Public runner acceptance still
+requires all target/full-test/control checks and two independent byte-equal OCI
+builds; venue neutrality does not weaken those gates or authorize benchmarks.

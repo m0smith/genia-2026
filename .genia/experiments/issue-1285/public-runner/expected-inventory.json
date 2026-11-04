@@ -1,6 +1,6 @@
 {
   "status": "Explicit EXPECTED installation inventory; official-target execution pending",
-  "derivation": "Select runtime_wheels where target_selected=true; union backend_wheels by exact name/version, require shared wheel SHA256 equality (packaging/pathspec/pluggy). Current uv pre-editable=47; final=runtime43+editable Genia, removing editables/hatchling/tomlkit/trove-classifiers. Alternative has runtime43 in final prefix before editable and separate backend7 environment. No target install claimed.",
+  "derivation": "Unchanged runtime43/backend7 union has 47 exact identities; historical uv pre-editable=47. Selected installer layout is runtime43 plus isolated builder7, final=runtime43+editable Genia44. Three overlapping wheel hashes must agree. No target execution claimed.",
   "import_path_derivation": "For each verified wheel, take first path component of any .py/.so member outside .dist-info/.data, prefix with canonical target site-packages; these are expected filesystem import roots, not a claim each root is a public import name. Genia derives from approved src-layout and PEP660 .pth. Check actual __file__/distribution paths in target.",
   "phases": {
     "current_uv_pre_editable": [
@@ -638,5 +638,19 @@
       ],
       "artifact_sha256": "NOT PREPINNED: first-party PEP660 wheel is built at fixed approved path; two-build bytes must match, scratch hash is evidence only"
     }
+  },
+  "selected_strategy": {
+    "historical_union_phase": "current_uv_pre_editable",
+    "runtime_pre_editable_phase": "alternative_runtime_only",
+    "builder_phase": "alternative_separate_builder",
+    "final_phase": "final_both_candidates",
+    "umask": "022",
+    "regular_file_mode": "0644",
+    "directory_and_executable_mode": "0755",
+    "deployment_uid": 10001,
+    "deployment_gid": 10001,
+    "symlinks": "lstat mode and exact reviewed scaffold target; no wheel symlink payload",
+    "inventory_required": "all files/directories/links, bytes/hash, mode, uid/gid, targets; A/B equality",
+    "official_target_verified": false
   }
 }

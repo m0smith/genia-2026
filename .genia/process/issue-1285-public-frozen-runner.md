@@ -1,7 +1,7 @@
 # #1285 — revised public runner design and pin acquisition (A1–A8)
 
 Date: 2026-11-04. **PUBLIC ONLY / DESIGN CANDIDATE / NOT BUILT, FROZEN OR ACCEPTED.**
-Agent: Codex; branch `issue-1285-deterministic-install` (TEST/DESIGN-only spike).
+Agent: Codex; branch `issue-1285-installer-strategy-design` (text-only design revision).
 Tracking: [#1285](https://github.com/m0smith/genia-2026/issues/1285).
 Original proposal: `aebcd4cb65946d42a14315407b2e8ea616948c3c`.
 
@@ -26,24 +26,35 @@ The [maintainer decision](https://github.com/m0smith/genia-2026/issues/1285#issu
 authorizes the installation TEST/DESIGN spike and four design corrections below,
 **not** adoption of an installer, recipe change or image construction.
 
-**Current decision: BLOCKED for complete pin closure/build authorization.** All
-eight amendments are specified below and in the linked recipe/checklist. Public
-wheel/tool/base-byte acquisition passed, but immutable Debian metadata/Git/Tini
-closure is blocked by the current network policy. BENJAMIN execution access is
-unverified. No image was assembled, built, run or exported. The current spike
-installed exact public dependency wheels and built/installed only the approved
-first-party Genia editable project in host scratch. Official CPython 3.12.15,
-full regression and direct BENJAMIN replay remain unexecuted. **Metadata strategy
-is UNSELECTED.** The current uv recipe is predicted to fail strict byte equality;
-the one alternative passed host byte comparison only. See the
-[complete installation proof and recommendation](../experiments/issue-1285/public-runner/metadata-strategy.md).
+**Current decision: installer 0.7.0 SELECTED AS CANDIDATE; BLOCKED for production
+frontend implementation/build/acceptance.** [Independent Claude review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319)
+at starting `3fdb037a27dcc555bc5ada85dfe88fe18233f522` returned PASS-WITH-REVISIONS;
+[maintainer selection](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249) authorizes only this design/recipe revision.
+No new installation, build or runtime experiment occurs in this revision.
+The historical host proof uses CPython 3.12.14 (Codex) / 3.12.3 (Claude), not the
+official 3.12.15 target. Full regression and independent two-build OCI remain open.
+[Current venue policy](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643155880) removes offline BENJAMIN as an active dependency;
+qualify an available approved $0 Linux/amd64 venue by actual receipts. No venue
+is qualified here. Historical source/lock/baseline labels remain immutable.
+
+The [selected recipe](../experiments/issue-1285/public-runner/offline-build-recipe.md)
+requires umask 022, explicit posix_prefix, complete-set validation before writes,
+sorted installation/rejected destination conflicts, isolated pinned Hatchling,
+reviewed hashed frontend source, deliberate initial metadata, mandatory project
+`uv --no-config run --frozen --offline --no-sync` and distinct launcher --no-project.
+The experimental helper remains historical, not production code. G1 signed
+immutable Debian OS/Git/Tini closure and venue-neutral G3 receipts remain blocking.
+Short independent Claude text delta review is the next action.
+[Revision evidence](../experiments/issue-1285/public-runner/installer-design-revision-evidence.json)
+records bounded static checks; no target tests were executed. No generated
+metadata normalization or weakening of two-build equality is approved.
 
 ## Scoped preflight
 
 1. Classification/owner: required infrastructure, release-independent public
    reproducibility for the Outcome-aware validated-pipeline experiment. Maintainer
    owns decisions. Scope is amended design, exact public pins/gaps, offline recipe,
-   static/acquisition checks, authorized TEST/DESIGN installation proof and issue handoff. Excludes private data,
+   bounded static checks and issue handoff; prior authorized TEST/DESIGN installation proof is historical evidence only. Excludes private data,
    oracle/candidate code, benchmark comparisons, runtime/semantic changes, R29 work, CI edits/
    dispatch, paid services, merge and issue closure.
 2. Sources: fetched main remains `0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5`.
@@ -61,7 +72,7 @@ the one alternative passed host byte comparison only. See the
    JSON/shell/link/scope/authority checks. Earlier acquisition/graph/export proofs
    are retained with their original scope, not misrepresented as new executions.
    Full regression and build tests are later gates, not replaced by these checks.
-   Current authorized proof: one pinned alternative, two distinct-ctime scratch
+   Historical authorized proof: one pinned alternative, two distinct-ctime scratch
    installations per strategy, complete venv byte/mode/link comparison, PEP-660
    Genia/import/identity/offline-consistency/public smoke checks, negative controls
    and retained failed attempts. Target runtime mismatch is explicit.
@@ -76,9 +87,9 @@ the one alternative passed host byte comparison only. See the
    Pin accuracy/provenance and honest unresolved gates are material risks.
 9. Philosophy: minimalism, explicit authority, semantics outside adapters,
    pattern-first preservation and validated-pipeline relevance: YES.
-10. Phases: authorized TEST/DESIGN spike → separate helper and evidence/design
-    commits → independent Claude delta review → maintainer metadata-strategy
-    decision. Prior acquisition pins retained without redundant downloads.
+10. Phases: completed historical TEST/DESIGN proof → independent Claude review
+    → maintainer candidate selection → current separate text-only DESIGN commit
+    → independent Claude short delta review → STOP before separate implementation/build authority. Prior acquisition pins retained without redundant downloads.
     The earlier sequence was preflight/design amendment + acquisition → Claude delta
     review → STOP for separate build authorization. No runtime contract/RED/
     implementation phase is applicable now. Later executable build/control code
@@ -87,9 +98,10 @@ the one alternative passed host byte comparison only. See the
     execution infrastructure; existing specs/tests remain future evidence; no new
     capability vocabulary; no host-parity claim; no new host gaps/skips; synchronize
     experiment evidence only. Python/C++ semantic implementation effects: none.
-12. GO/BLOCKED: bounded installation proof complete; original provenance and
-    acquisition checks retained. Complete OS/pin closure, venue evidence,
-    metadata-strategy decision and fresh independent delta review BLOCKED. No build authority is
+12. GO/BLOCKED: candidate selection verified; text-only design/static publication
+    authorized. Original provenance/acquisition/proof retained. OS/pin closure,
+    approved venue qualification, production frontend source/review, fresh text
+    delta review and later build/acceptance remain BLOCKED. No build authority is
     inferred from the previous review or the chosen venue.
 
 ## Immutable pair — preserved without overlays
@@ -183,29 +195,39 @@ and GCC/static sysconfig facts; no interpreter execution is claimed. ABI/compile
 crypto/SQLite/zlib/glibc runtime inventory remains required during later execution.
 No multiarch index or final runner digest is invented.
 
-BENJAMIN's existing WSL2/Docker is the **proposed** $0 venue. Actual build/run/
-export/cgroup-inspection rights and standalone worker support are unverified.
-Current-executor read-only daemon evidence is not a substitute or authorization.
+An available approved $0 Linux/amd64 venue must demonstrate build/run/OCI-export,
+cgroup inspection/enforcement, pinned rootful OCI/native worker, finite disk/inode/
+evidence bounds, reaping and offline controls. BENJAMIN is offline and not required;
+historical source/lock/baseline evidence stays intact. No host qualifies by
+declaration or current-executor inspection. Two independent builds remain required.
 
 ## A3 — fully offline, hash-enforced procedure
 
 [Offline recipe](../experiments/issue-1285/public-runner/offline-build-recipe.md)
-specifies local OCI base input, immutable `.deb` closure, single uv, exact local
-wheel requirements and `--require-hashes --only-binary :all: --no-deps
---offline --no-index` installation. Backend wheels have a separate hashed file.
-Only the explicit, source-hash-verified first-party Genia PEP-660 operation uses
-`--no-build-isolation`; no third-party source build, implicit hook download or
-lock regeneration. Remove four transient backend-only packages; final inventory
-must exactly equal 43 selected distributions plus Genia, with no import-path leak.
-R1 removes the incompatible `--no-build` addition; pinned uv rejects the old
-combination. R2 requires offline `uv pip check` after wheel installation and after
-backend removal, alongside exact inventory checks. Bounded scratch backend checks
-demonstrate these CLI behaviors; official-target installation is still untested.
-Keep repository checks under the pinned uv with explicit `run --frozen --offline
---no-sync` and the exact installed venv selected. Prove its interpreter selection
-and absence of lock/environment writes during target acceptance; `--no-sync`
-alone is not treated as proof. Unchanged nested uv is offline and hash/version/
-PATH-verified. No bare/system pytest invocation is proposed.
+now selects installer 0.7.0 as candidate wheel writer, with complete archive/RECORD/
+path/destination validation before any installation writes, deterministic sorted
+order and explicit posix_prefix roots. umask 022 covers every scaffold/install/
+editable step. Full file/directory/link mode/ownership inventories must prove
+0644/0755 deployment access as UID 10001, distinct from root build identity.
+The original helper's implicit scheme/per-wheel checks/umask 077 are not adequate
+production evidence. No production frontend code is written in this revision.
+
+The isolated builder contains exactly seven unchanged pinned wheels at
+/opt/genia/build-venv; target hook output must equal ["editables~=0.3"]. Only
+first-party source-hash-verified Genia is built editable at fixed /opt/genia/source.
+All reviewed orchestration/validation/bootstrap/ordering/metadata sources need
+their own hashes in input-sha256.txt before later use. Runtime prefix has 43 then
+44 distributions; historical 47-entry union and seven builder identities stay exact.
+No third-party source build, implicit acquisition, transient backend uninstall or
+lock regeneration. Offline uv consistency checks and exact import/artifact
+inventories are required after runtime wheels and editable installation.
+
+Retain uv 0.13.5 for venv/check/test/launcher use. Project commands require exact
+`uv --no-config run --frozen --offline --no-sync` against the read-only selected
+venv; prove no lock/write/automatic rebuild. Preserve the unchanged configured
+MCP launcher's distinct --no-project behavior. Initial INSTALLER/PEP-610/RECORD/
+wrapper policy and intentional uv differences are explicit in the recipe; no
+post-hoc metadata patching/deletion/exclusion is permitted. Zero .pyc required.
 
 Read-only `uv export --frozen --offline` succeeded without lock mutation. Universal
 export is a cross-check, not permission to install inactive variants. A missing
@@ -241,9 +263,10 @@ decision. Inventory absence and other gated tools; unshare stays required from
 base util-linux, with actual syscall/security behavior measured. No fake tools,
 test edits, skip additions, omitted cases or deadline relaxation.
 
-Compare direct BENJAMIN and runner **full per-test node-ID → outcome/phase/reason**
+Collect selected-venue runner A/B **full per-test node-ID → outcome/phase/reason**
 maps, collection sets and both partitions, retaining JUnit/verbose full-ID logs
-and skip reasons. Every extra skip or omission is an explicit E2 gap. Aggregate
+and skip reasons. Compare historical BENJAMIN only as context unless compatible
+measured per-test data exists; direct replay there is not required. Every extra skip or omission is an explicit E2 gap. Aggregate
 historical “60 skips” is insufficient. Intended optional exclusion does not make
 missing coverage pass equivalence. New optional tools later require pins/review.
 R7 pre-declares cause classifications and separately authorized, one-factor
@@ -258,7 +281,7 @@ fixed config/ref/shallow, no reflogs/fetch metadata/hooks, fixed timestamps. Run
 UID/GID 10001 owns source/.git; no wildcard safe.directory workaround. Verify actual
 bytes across builds and Git access as that UID. No live-checkout `.git` is copied.
 
-Declared runtime writes: `/tmp` (HOME, bytecode if enabled, pytest cache/basetemp,
+Declared runtime writes: `/tmp` (HOME, pytest cache/basetemp,
 uv cache/scratch), `/dev/shm`, `/evidence` only. Root/source/venv are read-only.
 G2 requires actual write tracing; unexpected writes demand reviewed deviation,
 not silent writable-source mounts. Fixed build normalization paths are recorded
@@ -292,27 +315,21 @@ Require verified accounting of all tmpfs pages, including evidence, in the 4 GiB
 envelope; overflow fails. No capacity/enforcement result is claimed yet.
 Future benchmark 60 s/16 MiB invocation bounds remain unchanged.
 
-## A8 — direct BENJAMIN capture and E0–E3
+## A8 — actual selected-venue receipts and E0–E3
 
-The checklist requires direct host versions/WSL/kernel, Docker cgroups/runtime/
-storage/security, PID 1/controllers/limits, executable paths/versions/hashes,
-Python compiler/ABI/crypto/SQLite/zlib/glibc, Git/gated tools, locale/TZ, installed
-inventory/import paths, source/lock/pyproject hashes, process tree/reaping control,
-six separate command logs, both per-test result maps, wall time and RSS/PID peaks.
-Use a new disposable public export; preserve live lock/checkout. No access is
-claimed or private material requested.
-Record intentional `PYTHONHASHSEED=0`, `LANG=C.UTF-8`, `TZ=UTC` differences under E3;
-do not presume BENJAMIN matches. The checklist pins the exact original reaping
-node ID. Fixed `/opt/runner-input` staging is retained read-only; actual
-`direct_url.json`/`uv_cache.json` bytes join the two-build comparison, not a
-post-hoc metadata rewrite.
+The checklist requires direct selected-venue versions/kernel, Docker cgroups/
+runtime/storage/security, pinned Python/uv/Git and ABI/shared libraries, full
+installed/import/source/lock identity, reaping/process tree, six command results,
+both partition full-ID maps, times/peaks and measured effective controls. Qualify
+the actual approved $0 Linux/amd64 venue; no direct BENJAMIN replay is required.
+Preserve its historical source/lock/baseline provenance and report limits honestly.
 
-E0 = exact source/lock identity; E1 adds installed-set/import evidence; E2 adds
-complete matching per-test outcome IDs/phases/reasons; E3 adds measured timing/
-resource/toolchain context with differences disclosed. The original Python build
-differs; no patch-version-based equivalence. Without direct per-test data only
-E0–E1 can be claimed **when their own receipts pass**. This phase establishes
-pin identities/acquired bytes, not a new direct E1/E2/E3 or worker-custody result.
+E0 = exact source/lock; E1 adds installed-set/artifact/import evidence; E2 requires
+matching full outcome/phase/reason maps between specified compatible runs; E3 adds
+measured timing/resource/toolchain context. Historical 7134/60 aggregate cannot
+establish per-test parity. E2/E3 historical equivalence is unestablished, not a
+public-runner acceptance prerequisite. Full target tests, controls and independent
+two-build OCI equality remain acceptance gates. No custody/equal-worker claim.
 
 ## Historical R1–R8 evidence and handoff
 
@@ -353,27 +370,26 @@ The prior handoff requested independent Claude Code **text** delta review of the
 R1–R8/low-severity diff, corrected CLI evidence, qualified hook inputs, preserved
 artifact identities, unresolved OS fields and gate language, with
 reviewer/session/model, exact reviewed SHA, ranked findings and verdict.
-That review is now linked above; its PASS-WITH-REVISIONS does not review this spike.
+That historical R1–R8 review is linked above. The later installer review covers
+3fdb037a; neither reviews this new text-only revision.
 
-The historical next action was independent Claude text delta review.
-In parallel, complete supported snapshot access, verified OS/Tini/Git compatibility/
-closure and sanitized BENJAMIN rights receipts; a further minimal OS-pin/venue
-review is required once those exist. Owner
-must separately demonstrate/authorize the BENJAMIN bounded build only after those
-gates; later acceptance runs require their own authorization. This phase maintains
-$0 incremental spending: existing workspace and public downloads only; no paid
-API/infrastructure/storage/billing change, image construction, CI dispatch,
-private benchmark/custody/equal-worker claims, merge, issue closure or R29 work.
-Token usage, invoice totals, review time and savings are not measured.
+The historical next action was independent Claude text delta review. That review
+and the candidate selection are now linked above. Current next action is narrow
+Claude review of the new text-only installer/venue delta against 3fdb037a.
+G1 supported snapshot access and signed closure, venue-neutral G3 qualification,
+production frontend source/tests/review and separate build/run authorization stay
+open. No image construction, CI dispatch, private benchmark/custody/equal-worker
+claim, paid infrastructure, merge, closure or R29 change. Token usage, review
+time and savings are not measured.
 
-## Current installation proof and four design corrections
+## Historical installation proof and four design corrections
 
 The [proof report](../experiments/issue-1285/public-runner/metadata-strategy.md)
 records the separately committed helper, exact commands, original-source/lock
 checks, full installed-file/metadata manifests and retained failures. At fixed
 paths/mtime/SOURCE_DATE_EPOCH, pinned uv 0.13.5 writes wheel/project **ctime** into
 uv_cache.json to ns precision; RECORD changes too. Editable uv_build.json is
-inventoried. Current uv draft is **predicted to fail** strict two-build equality,
+inventoried. Historical uv draft is **predicted to fail** strict two-build equality,
 not just an untested risk. The varying directories.src field's exact clock mapping
 is not established by this spike. No metadata cleanup or byte exclusions follow.
 
@@ -387,7 +403,7 @@ import/consistency/CLI/demo checks pass; host 3.12.14 is not official-image 3.12
 This is not target closure, OCI reproducibility, full-test parity or E1–E3 evidence.
 
 The [expected installation inventory](../experiments/issue-1285/public-runner/expected-inventory.json)
-enumerates name/version/wheel hashes and import roots for current uv's 47
+enumerates name/version/wheel hashes and import roots for historical uv's 47
 pre-editable and 44 final entries; pins.json records its digest. Alternative
 pre-editable deployment prefix is 43 with seven backend packages isolated.
 Source-policy selectors now explicitly use WILDCARD and their configuration hash
@@ -398,13 +414,16 @@ triggers bounded Tini/watchdog cleanup, records overflow and preserves capped
 evidence. It is a proposed control requiring implementation and boundary probes;
 the 56/64/512 MiB budgets and strict E2 criteria are unchanged.
 
-**Next owner action:** obtain independent Claude Code narrow delta review of the
-exact helper/evidence/design SHA and four corrections, then explicitly choose or
-reject the candidate metadata strategy. Adoption and production recipe/frontend
-changes require a further maintainer decision; no build is authorized here.
+**Next action:** independent Claude Code short delta review of this separately
+identifiable design-only SHA against 3fdb037a: umask/modes, scheme/root assertions,
+complete validation before writes and collision/order policy, exact installer
+pin/provenance, builder/frontend inputs, inventories/live source, no-sync/launcher,
+official-target wrappers/compiled imports/RECORD/read-only/full-test/two-OCI gates
+and venue neutrality. Separate production code/build authorization remains required.
+
 G1 signed immutable Debian/OS/Git/Tini closure and 87-base-package compatibility
-remain blocked by supported proxy policy. G3 BENJAMIN rights/worker/storage
-receipts remain unverified. Later target installation, controls, per-test direct
+remain blocked by supported proxy policy. G3 approved $0 Linux/amd64 venue rights/worker/storage/control
+receipts remain unverified; BENJAMIN is offline and not required. Later target installation, controls, per-test direct
 receipts and two-build OCI comparison retain their separate gates. All authority
 language docs remain accurate without edits: this changes neither Python/C++
 runtime semantics nor any MCP language-profile fact. No private/benchmark/R29

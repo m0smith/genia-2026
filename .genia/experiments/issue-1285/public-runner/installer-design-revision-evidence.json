@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "phase": "Phase 2 design/recipe revision, iteration 5",
+  "agent": "Codex; requested GPT-6 / Medium",
+  "recorded_at_utc": "2026-11-04T22:09:08Z",
+  "baseline": "3fdb037a27dcc555bc5ada85dfe88fe18233f522",
+  "branch": "issue-1285-installer-strategy-design",
+  "verdict": "PASS for bounded text/static revision; independent Claude text delta PENDING; production implementation/build/runner acceptance BLOCKED",
+  "authority": {
+    "independent_starting_review": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319",
+    "candidate_selection_and_text_authority": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249",
+    "venue_policy_update": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643155880"
+  },
+  "modifications": [
+    "installer 0.7.0 selected candidate with exact artifact identity and first-use/no-publisher-attestation limit",
+    "umask 022, 0644/0755 and complete file/directory/link owner/mode inventory; root build vs UID10001 runtime",
+    "explicit posix_prefix and fixed deployment/builder path assertions",
+    "complete wheel/RECORD/identity/path/collision validation before destination writes, sorted writes, bad-last-wheel zero-write controls; no transaction claim",
+    "isolated unchanged seven-wheel Hatchling PEP660 builder; separate reviewed production frontend source hashes required, still missing",
+    "intentional initial metadata/RECORD/wrapper differences from uv; no normalization",
+    "mandatory uv --no-config run --frozen --offline --no-sync and separate launcher --no-project",
+    "47 unique union / 43 runtime / 7 isolated builder / 44 final sets preserved; selected-layout permission contract added",
+    "official3.12.15/nonroot/all15 wrappers/compiled imports/ruff/RECORD/live-source/read-only/full-tests/control/two-OCI acceptance requirements",
+    "venue-neutral approved $0 Linux/amd64 qualification replaces active BENJAMIN dependency; historical provenance retained"
+  ],
+  "checks": [
+    {
+      "check": "unchanged source",
+      "result": "PASS",
+      "detail": "Structural equality against starting SHA; all artifact identities retained"
+    },
+    {
+      "check": "unchanged target",
+      "result": "PASS",
+      "detail": "Structural equality against starting SHA; all artifact identities retained"
+    },
+    {
+      "check": "unchanged base",
+      "result": "PASS",
+      "detail": "Structural equality against starting SHA; all artifact identities retained"
+    },
+    {
+      "check": "unchanged uv",
+      "result": "PASS",
+      "detail": "Structural equality against starting SHA; all artifact identities retained"
+    },
+    {
+      "check": "unchanged runtime_wheels",
+      "result": "PASS",
+      "detail": "Structural equality against starting SHA; all artifact identities retained"
+    },
+    {
+      "check": "unchanged backend_wheels",
+      "result": "PASS",
+      "detail": "Structural equality against starting SHA; all artifact identities retained"
+    },
+    {
+      "check": "unchanged runtime_selection",
+      "result": "PASS",
+      "detail": "Structural equality against starting SHA; all artifact identities retained"
+    },
+    {
+      "check": "unchanged BuildKit distribution",
+      "result": "PASS",
+      "detail": "Archive and every binary hash unchanged"
+    },
+    {
+      "check": "unchanged Debian pins",
+      "result": "PASS",
+      "detail": "Original null/empty unresolved signed closure and all 87 base package rows preserved"
+    },
+    {
+      "check": "builder worker and source-policy unchanged",
+      "result": "PASS",
+      "detail": "Worker/native/rootful profile, source-policy hash and first-use trust limits identical"
+    },
+    {
+      "check": "unchanged runtime.requirements.txt",
+      "result": "PASS",
+      "detail": "Bytes and stored SHA256 equal baseline"
+    },
+    {
+      "check": "unchanged backend.requirements.txt",
+      "result": "PASS",
+      "detail": "Bytes and stored SHA256 equal baseline"
+    },
+    {
+      "check": "original lock bytes",
+      "result": "PASS",
+      "detail": "284838 bytes and approved SHA256; unchanged tracked lock"
+    },
+    {
+      "check": "installer artifact pin",
+      "result": "PASS",
+      "detail": "0.7.0 / 453838 bytes / 05d1933f0a5ba7d8d6296bb6d5018e7c94fa473ceb10cf198a92ccea19c27b53; retained prior acquisition, no new download"
+    },
+    {
+      "check": "inventory identities preserved",
+      "result": "PASS",
+      "detail": "Every expected identity/artifact hash/import root unchanged; only selected strategy/permission contract added"
+    },
+    {
+      "check": "inventory digest",
+      "result": "PASS",
+      "detail": "Updated design inventory digest matches exact new bytes; old digest retained in baseline"
+    },
+    {
+      "check": "47/44/43/7 exact sets",
+      "result": "PASS",
+      "detail": "Derived from unchanged runtime-selected and backend pin records; target execution remains pending"
+    },
+    {
+      "check": "three shared wheel identities",
+      "result": "PASS",
+      "detail": "Exact overlap hashes agree"
+    },
+    {
+      "check": "inventory artifact cross-check",
+      "result": "PASS",
+      "detail": "All 47 union expected wheel hashes match pins; no wheel bytes reacquired or executed"
+    },
+    {
+      "check": "design-only scope",
+      "result": "PASS",
+      "detail": "No source/test/CI/helper/evidence-history/authority/policy/requirements changes"
+    },
+    {
+      "check": "JSON syntax and unique keys",
+      "result": "PASS",
+      "detail": "Changed JSON documents parse without duplicate keys"
+    },
+    {
+      "check": "local Markdown links",
+      "result": "PASS",
+      "detail": "35 local destinations exist; external URLs not re-fetched by static check"
+    },
+    {
+      "check": "shell recipe syntax only",
+      "result": "PASS",
+      "detail": "3 bash/sh fences passed bash -n; no commands executed"
+    },
+    {
+      "check": "latest authority unchanged",
+      "result": "PASS",
+      "detail": "Latest fetched main 0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5 matches starting candidate; no implemented behavior or MCP profile impact"
+    },
+    {
+      "check": "two-build OCI gate preserved",
+      "result": "PASS",
+      "detail": "Entire section 4 byte-identical except explicit venue-neutral substitutions; equal manifest/config/layers/canonical archive still mandatory"
+    },
+    {
+      "check": "authorization flags fail closed",
+      "result": "PASS",
+      "detail": "No build, accepted runner, target result or invented production source pin"
+    }
+  ],
+  "bounded_static_checks_passed": 26,
+  "additional_commands": [
+    {
+      "argv": [
+        "python",
+        "-B",
+        "tools/validate_llm_instructions.py"
+      ],
+      "exit_code": 0,
+      "stdout": "LLM instruction validation passed."
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "./scripts/check-genia-branch.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "OK branch: issue-1285-installer-strategy-design"
+    }
+  ],
+  "check_method": "Local scratch Python stdlib structural comparison/hash/inventory/link/JSON checks and bash -n only; no wheel install, editable build, target interpreter or OCI command executed. Results do not establish runtime correctness.",
+  "retained_historical_evidence": {
+    "Codex_host_python": "3.12.14",
+    "Claude_host_python": "3.12.3",
+    "official_target_python": "3.12.15 UNEXECUTED",
+    "uv_negative_control_changed_files": [
+      94,
+      88
+    ],
+    "installer_host_AB_changed_files": [
+      0,
+      0
+    ],
+    "original_helper_limitations": [
+      "per-wheel validation not complete set",
+      "implicit sysconfig scheme",
+      "umask077 yields0600/0711",
+      "no directory ownership acceptance inventory"
+    ],
+    "original_helpers_and_proof_files_modified": false
+  },
+  "remaining_blockers": {
+    "G1": "Supported approved snapshot access; signed immutable Release/index/deb OS/Git/Tini closure and all87 base compatibility; prior proxy403 retained",
+    "G2": "Actual selected public runner exec/write inventories and per-test outcomes pending",
+    "G3": "No approved $0 Linux/amd64 venue qualified by build/run/OCI export/cgroup/worker/storage/reaping/offline receipts; BENJAMIN offline and not required",
+    "G4": "Independent Claude short text delta review on new SHA, followed by separate implementation authority/source tests/review/hash pins; later OS/venue delta review",
+    "G5": "Official target install/controls/full regression, read-only behavior and two independent OCI builds remain unexecuted"
+  },
+  "next_action": "Independent Claude Code short delta review of exact new design SHA against baseline, then stop for separate production implementation/build authority. No review claimed.",
+  "not_performed": [
+    "production installer/frontend implementation",
+    "container construction/run/export",
+    "private fixtures/oracle/candidates/benchmarks/trials",
+    "network-policy bypass",
+    "incremental paid infrastructure",
+    "CI dispatch",
+    "merge",
+    "issue closure",
+    "authoritative language-doc or R29 changes"
+  ],
+  "usage_and_review_time": "not measured",
+  "payload_sha256": {
+    ".genia/process/issue-1285-public-frozen-runner.md": "54e8782adb938d5731607f69ab72fd301269982b545430fed97d08af75bb1a8b",
+    ".genia/experiments/issue-1285/public-runner/pins.json": "d0a62a46d0c9e4c3f9a0e5eb6b4b189d3a3148dd34c42b20530326fd02543d11",
+    ".genia/experiments/issue-1285/public-runner/expected-inventory.json": "a2745c1e4a39075f11fa91617773ba318c679053755f5aa7ab42c31f45733fef",
+    ".genia/experiments/issue-1285/public-runner/metadata-strategy.md": "5b567044d82fa949798da934910a54b22df885959446bf740d621eb0fb6f4b4e",
+    ".genia/experiments/issue-1285/public-runner/offline-build-recipe.md": "363d91ccab04a9775f84a5a60d4745e9eeb8535520f790beb10905d2a05d531e",
+    ".genia/experiments/issue-1285/public-runner/acceptance-checklist.md": "297ddd7503f2175bce03f2fa0a077c016d42d941def7245425c00406f9a4632e",
+    ".genia/experiments/issue-1285/public-runner/pin-gaps.md": "27683ae88a2be60234f07b205e9462dc321fedf01979d17694fa3d71a0e98998"
+  }
+}

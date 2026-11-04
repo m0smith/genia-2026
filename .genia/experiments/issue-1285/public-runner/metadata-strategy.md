@@ -1,10 +1,15 @@
-# Deterministic installation spike — decision evidence, not an adopted recipe
+# Deterministic installer strategy — selected candidate and historical proof
 
-Status: **TEST/DESIGN ONLY; strategy UNSELECTED; STOP before image construction.**
-Authorization: [maintainer decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6641293474).
-This addresses the [Claude delta review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6639484157)
-on `00b95b62842f1907bf2174694b1e3de17ffeccbe` without changing approved source,
-lock, dependency pins, installation commands or strict two-build acceptance.
+Status: **DESIGN ONLY; installer 0.7.0 SELECTED AS CANDIDATE; NOT IMPLEMENTED.**
+Starting design/evidence SHA: `3fdb037a27dcc555bc5ada85dfe88fe18233f522`.
+[Independent Claude PASS-WITH-REVISIONS](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6642696319) verified the host proof;
+[maintainer decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249) selects the candidate and authorizes text only.
+[Venue update](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643155880) removes BENJAMIN as an active execution prerequisite.
+The [revised frontend/recipe specification](offline-build-recipe.md) is the current
+design; the following spike evidence remains historical and unchanged in its files.
+No production installer/frontend, official-target result or image is accepted.
+All approved source/lock/wheel/uv/base/BuildKit pins and strict two-build acceptance
+are preserved. Initial metadata is not silently normalized.
 
 ## Executed conditions and results
 
@@ -53,7 +58,7 @@ INSTALLER and direct_url.json are stable within each uv pair at fixed paths.
 Flat-index/cache-mode findings remain attributed to Claude's independent review;
 this spike used exact local wheel paths and did not repeat that matrix.
 
-The current uv recipe is therefore **predicted to fail** strict two-build OCI
+The historical uv recipe is therefore **predicted to fail** strict two-build OCI
 equality. Fixed paths, touch/mtime, cache isolation and exporter timestamp
 rewriting cannot repair these content differences. No normalization, exclusion,
 metadata deletion or weaker equality claim is authorized.
@@ -71,12 +76,14 @@ The evidence records the actual host interpreter executable hash/compiler and
 library versions. The official target runtime and its required dynamic libraries
 remain a target gate, not newly completed pins.
 
-This is the **only** alternative installer evaluated. For each archive the
-helper verifies SHA256 and validates every wheel RECORD hash/size before writes.
+This is the **only** alternative installer evaluated. The historical helper verifies SHA256 and RECORD per wheel immediately before
+installing that wheel. It does **not** prevalidate the whole set: Claude's
+`[good, tampered]` control wrote eight files before failure. The later production
+design requires complete-set validation before any destination writes.
 It supplies a fixed scheme/interpreter, POSIX script kind and no bytecode levels.
 It installs only an explicit list of local wheels; it cannot resolve dependencies
-or build sdists. Wrong archive hash, missing archive and deliberately corrupted
-wheel RECORD controls fail before destination creation. The first RECORD-control
+or build sdists. The helper's single-invalid-input controls failed before destination creation;
+that result is not a complete-set zero-write guarantee. The first RECORD-control
 attempt had an invalid wheel filename and stopped earlier; that harness failure
 and corrected rejection are both retained. Offline `uv pip check` checks the final exact identity
 set. All 17780 installed RECORD entries in each alternative final venv validate.
@@ -95,8 +102,9 @@ uv_build file and 44 REQUESTED markers. There are no installer-only paths.
 and **15 generated console wrappers**. The latter use different standard wrapper
 templates, including argv[0] suffix cleanup; full script texts are retained.
 Alternative-B `genia -c '1 + 1'`, `pytest --version` and `mkdocs --version` pass
-as three additional bounded smokes. Other wrapper behavior, REQUESTED consumers
-and platform behavior remain review/test questions, not presumed equivalence.
+as three additional bounded smokes. Claude independently exercised all 15 wrappers with matching host outputs/exits
+and uv list/freeze/show/tree/check without REQUESTED. Official-target/platform
+behavior remains pending, not inferred from those host results.
 Every difference is visible in the committed inventories. No installed file is patched
 or removed to get the alternative's A/B equality.
 
@@ -119,8 +127,9 @@ with user site disabled and no PYTHONPATH. Exact final name/version inventory,
 `uv pip check --offline`, `1 + 1` CLI and the existing public validated-pipeline
 demo pass in all four final environments. The helper compares exported source/
 lock file bytes/modes/links before and after; no tracked content changes.
-This demonstrates current import routing and two public smoke calls; the full
-existing test suite and live-file-mutation semantics were not separately tested.
+This demonstrates current import routing and two public smoke calls; the full existing test suite was not run. Claude separately verified host live
+source edits and a new module without reinstall; official-target live semantics
+and read-only execution remain pending.
 
 ## Reproduction and retained failures
 
@@ -160,29 +169,51 @@ Supplementary manifests describe the tool library, last editable wheel and last
 isolated builder after the separately labeled timestamp probe. Earlier transient
 builder trees are not retrospectively inventoried or claimed byte-reproducible.
 
-## Recommendation and next gate
+## Selected strategy, review corrections and next gate
 
-Recommend **reviewing** installer 0.7.0 as the final wheel writer with the isolated
-pinned Hatchling PEP-660 frontend above, retaining uv for venv scaffolding,
-consistency checks and the existing public command launcher. This preserves the
-strict two-build requirement in the observed scratch pair. It is not approval to
-adopt the helper or change the recipe. The production frontend, initial metadata
-policy, tool bootstrap hash, canonical /opt paths, script behavior, absent uv cache
-metadata and exact official-interpreter requirements need independent review and
-a maintainer strategy decision before a separate recipe/build authorization.
-The original source/lock and every existing artifact pin remain unchanged.
+The maintainer **selected** installer 0.7.0 plus the unchanged isolated seven-wheel
+Hatchling builder, retaining uv 0.13.5 for scaffolding/checks/test/launcher use.
+Selection does not accept the spike helper as production code. Installer's pin is
+first-use SHA256 trust, corroborated by PyPI JSON and same-URL re-download, with
+no publisher signature/attestation or independent provenance channel.
 
-Independent Claude Code delta review should verify: exact helper/evidence SHA;
-the decoded file inventories and ctime comparisons; all RECORDs/initial frontend
-metadata and PEP-660/import assumptions; the explicit expected 47/44 inventory;
-source-policy WILDCARD/hash correction; stream-overflow design; preserved strict
-equality and failures. Return reviewer/session/model, exact reviewed SHA, ranked
-findings and verdict. No callable Claude route is available here; this document
-requests that review and does not claim it happened.
+Claude's independent host CPython **3.12.3** results complement Codex's **3.12.14**:
+0 wheel/final A/B differences; 17,736 reviewed installed RECORD entries valid;
+47/44 inventories, all 15 wrappers and live-source routing reproduced. Its raw
+18,127/18,138 paths include 339/341 directories; Codex's 17,788/17,797 count only
+files/links. Different RECORD totals are attributed to their respective trees,
+not silently reconciled. Neither environment is official CPython **3.12.15**.
+
+High-priority correction: the committed Codex proof used umask 077, yielding
+0600/0711 files; this does not prove UID 10001 readability. Current design requires
+`umask 022` for scaffold/install/editable, 0644 files, 0755 directories/executables,
+explicit ownership and full directory/file/link A/B inventories. Other required
+corrections: explicit `posix_prefix` plus fixed-root assertions, validate all wheels
+and RECORDs/destinations before writes, reject collisions, deterministic sorted
+order, reviewed/hash-pinned frontend source, isolated builder, mandatory
+`uv --no-config run --frozen --offline --no-sync` and distinct launcher `--no-project`.
+The unchanged evidence files/helpers retain their historical limitations.
+
+Intentional uv differences remain: 133 uv-only paths (one .lock, 44 REQUESTED,
+43 wheel direct_url.json, 44 uv_cache.json, one uv_build.json); 104 common differing
+files (44 INSTALLER, 44 RECORD, editable direct_url serialization, 15 wrappers).
+No installer-only paths or METADATA/WHEEL/entry_points.txt differences were observed.
+The new recipe specifies these as initial outputs, not post-install cleanup.
+Zero bytecode remains required; precompilation requires separate review.
+
+**Next action:** independent Claude Code short text delta review of this exact new
+design SHA against `3fdb037a`, including venue neutrality, all retained pins and
+the requirements above. Return reviewer/session/model, SHA, ranked findings and
+verdict. No review is claimed here. Only after separate production frontend
+implementation authority, reviewed hashed source, G1/G3 closure and separate build
+authority may official-target install/control/full-regression/two-build evidence
+be collected. Equal manifest/config/layers and canonical archive bytes remain
+mandatory; no exclusions, metadata patch/delete-on-diff or single-build substitute.
 
 **G1** signed snapshot/OS/Git/Tini closure and all 87 base-package compatibility
-checks remain blocked by supported network policy. **G3** direct BENJAMIN
-build/run/export/cgroup inspection, worker/snapshotter and finite storage-quota
-receipts remain unverified. G2 dynamic execution/write inventory and G5 target/
+checks remain blocked by supported network policy. **G3** qualification of an approved $0 Linux/amd64 venue (build/run/export/cgroup,
+pinned rootful worker/snapshotter, finite storage, reaping and offline controls)
+remains unverified; BENJAMIN is offline and not required. Historical BENJAMIN
+provenance is retained, without claiming per-test equivalence. G2 dynamic execution/write inventory and G5 target/
 resource/test/OCI acceptance remain open. No E1–E3, independent-worker or custody
 claim follows. $0 incremental spending is preserved.
