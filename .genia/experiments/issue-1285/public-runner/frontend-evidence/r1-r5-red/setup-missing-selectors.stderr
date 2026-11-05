@@ -1,0 +1,255 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+test_all_47_pins_and_15_executable_members_match_plan (test_offline_install.FrontendContract.test_all_47_pins_and_15_executable_members_match_plan) ... ERROR
+test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes (test_offline_install.FrontendContract.test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes) ... ok
+test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent (test_offline_install.FrontendContract.test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent) ... ERROR
+test_collisions_file_parents_scripts_and_scaffold_rejected (test_offline_install.FrontendContract.test_collisions_file_parents_scripts_and_scaffold_rejected) ... ok
+test_data_scheme_bad_tag_and_generated_metadata_rejected (test_offline_install.FrontendContract.test_data_scheme_bad_tag_and_generated_metadata_rejected) ... ok
+test_different_input_timestamps_and_reversed_wheel_order_are_equal (test_offline_install.FrontendContract.test_different_input_timestamps_and_reversed_wheel_order_are_equal) ... ERROR
+test_duplicate_regular_and_directory_entries_rejected (test_offline_install.FrontendContract.test_duplicate_regular_and_directory_entries_rejected) ... ok
+test_existing_prefix_and_symlink_parent_rejected (test_offline_install.FrontendContract.test_existing_prefix_and_symlink_parent_rejected) ... ok
+test_explicit_posix_prefix_ignores_default_scheme (test_offline_install.FrontendContract.test_explicit_posix_prefix_ignores_default_scheme) ... ok
+test_installed_record_corruption_and_unowned_file_are_detected (test_offline_install.FrontendContract.test_installed_record_corruption_and_unowned_file_are_detected) ... ERROR
+test_live_editable_metadata_exact_bytes_and_no_reinstall (test_offline_install.FrontendContract.test_live_editable_metadata_exact_bytes_and_no_reinstall) ... ERROR
+test_modes_wrappers_data_scripts_symlinks_and_record_validation (test_offline_install.FrontendContract.test_modes_wrappers_data_scripts_symlinks_and_record_validation) ... ERROR
+test_record_bidirectional_coverage_duplicate_and_digest_controls (test_offline_install.FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls) ... ok
+test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing (test_offline_install.FrontendContract.test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing) ... ERROR
+test_umask_changed_after_plan_is_rejected_before_scaffold (test_offline_install.FrontendContract.test_umask_changed_after_plan_is_rejected_before_scaffold) ... ERROR
+test_umask_override_fails_before_writes (test_offline_install.FrontendContract.test_umask_override_fails_before_writes) ... ok
+test_unsafe_members_rejected_before_any_output (test_offline_install.FrontendContract.test_unsafe_members_rejected_before_any_output) ... ok
+test_archive_limits (test_revision.RevisionContract.test_archive_limits) ... ok
+test_duplicate_distribution (test_revision.RevisionContract.test_duplicate_distribution) ... ok
+test_entrypoint_diagnostics (test_revision.RevisionContract.test_entrypoint_diagnostics) ... ok
+test_readonly_primary_error_preserved_and_modes_restored (test_revision.RevisionContract.test_readonly_primary_error_preserved_and_modes_restored) ... ERROR
+test_real_build_cache_argument_without_ambient_cache (test_revision.RevisionContract.test_real_build_cache_argument_without_ambient_cache) ... ERROR
+test_real_install_fresh_home_no_ambient_cache (test_revision.RevisionContract.test_real_install_fresh_home_no_ambient_cache) ... ERROR
+test_record_listed_member_validations (test_revision.RevisionContract.test_record_listed_member_validations) ... ok
+test_root_harness_rejected_before_writes (test_revision.RevisionContract.test_root_harness_rejected_before_writes) ... ERROR
+test_scaffold_directories_reserved_before_writes (test_revision.RevisionContract.test_scaffold_directories_reserved_before_writes) ... 
+  test_scaffold_directories_reserved_before_writes (test_revision.RevisionContract.test_scaffold_directories_reserved_before_writes) (name='bin') ... FAIL
+test_tag_checks_independent (test_revision.RevisionContract.test_tag_checks_independent) ... ok
+test_unsupported_compression_normalized (test_revision.RevisionContract.test_unsupported_compression_normalized) ... ERROR
+test_wheel_and_metadata_headers (test_revision.RevisionContract.test_wheel_and_metadata_headers) ... ok
+
+======================================================================
+ERROR: test_all_47_pins_and_15_executable_members_match_plan (test_offline_install.FrontendContract.test_all_47_pins_and_15_executable_members_match_plan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 330, in test_all_47_pins_and_15_executable_members_match_plan
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent (test_offline_install.FrontendContract.test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 356, in test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_different_input_timestamps_and_reversed_wheel_order_are_equal (test_offline_install.FrontendContract.test_different_input_timestamps_and_reversed_wheel_order_are_equal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 309, in test_different_input_timestamps_and_reversed_wheel_order_are_equal
+    plan = self.install(list(reversed(rows)))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 104, in install
+    plan, self.tools(), Path(os.environ["GENIA_FRONTEND_UV"]), Path(sys.executable)
+          ^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 94, in tools
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_installed_record_corruption_and_unowned_file_are_detected (test_offline_install.FrontendContract.test_installed_record_corruption_and_unowned_file_are_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 390, in test_installed_record_corruption_and_unowned_file_are_detected
+    self.install([make_wheel(self.root)])
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 104, in install
+    plan, self.tools(), Path(os.environ["GENIA_FRONTEND_UV"]), Path(sys.executable)
+          ^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 94, in tools
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_live_editable_metadata_exact_bytes_and_no_reinstall (test_offline_install.FrontendContract.test_live_editable_metadata_exact_bytes_and_no_reinstall)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 283, in test_live_editable_metadata_exact_bytes_and_no_reinstall
+    self.install([row], editable_source=source)
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 104, in install
+    plan, self.tools(), Path(os.environ["GENIA_FRONTEND_UV"]), Path(sys.executable)
+          ^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 94, in tools
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_modes_wrappers_data_scripts_symlinks_and_record_validation (test_offline_install.FrontendContract.test_modes_wrappers_data_scripts_symlinks_and_record_validation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 247, in test_modes_wrappers_data_scripts_symlinks_and_record_validation
+    self.install([make_wheel(self.root, files=files)])
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 104, in install
+    plan, self.tools(), Path(os.environ["GENIA_FRONTEND_UV"]), Path(sys.executable)
+          ^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 94, in tools
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing (test_offline_install.FrontendContract.test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 117, in test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing
+    self.install([row])
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 104, in install
+    plan, self.tools(), Path(os.environ["GENIA_FRONTEND_UV"]), Path(sys.executable)
+          ^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 94, in tools
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_umask_changed_after_plan_is_rejected_before_scaffold (test_offline_install.FrontendContract.test_umask_changed_after_plan_is_rejected_before_scaffold)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 380, in test_umask_changed_after_plan_is_rejected_before_scaffold
+    tools = self.tools()
+            ^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 94, in tools
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_readonly_primary_error_preserved_and_modes_restored (test_revision.RevisionContract.test_readonly_primary_error_preserved_and_modes_restored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 108, in probe_readonly
+    output = run(
+             ^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+RuntimeError: primary sentinel
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_revision.py", line 154, in test_readonly_primary_error_preserved_and_modes_restored
+    harness.probe_readonly(self.prefix, self.root, Path("uv"), {}, [])
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 152, in probe_readonly
+    frontend.require(
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 56, in require
+    raise ValueError(message)
+ValueError: mode diagnostic restoration mismatch
+
+======================================================================
+ERROR: test_real_build_cache_argument_without_ambient_cache (test_revision.RevisionContract.test_real_build_cache_argument_without_ambient_cache)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_revision.py", line 167, in test_real_build_cache_argument_without_ambient_cache
+    stage = Path(os.environ["GENIA_FRONTEND_STAGE"])
+                 ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_STAGE'
+
+======================================================================
+ERROR: test_real_install_fresh_home_no_ambient_cache (test_revision.RevisionContract.test_real_install_fresh_home_no_ambient_cache)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_revision.py", line 163, in test_real_install_fresh_home_no_ambient_cache
+    self.install([make_wheel(self.root)])
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 104, in install
+    plan, self.tools(), Path(os.environ["GENIA_FRONTEND_UV"]), Path(sys.executable)
+          ^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_offline_install.py", line 94, in tools
+    inputs = Path(os.environ["GENIA_FRONTEND_INPUTS"])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 714, in __getitem__
+KeyError: 'GENIA_FRONTEND_INPUTS'
+
+======================================================================
+ERROR: test_root_harness_rejected_before_writes (test_revision.RevisionContract.test_root_harness_rejected_before_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_revision.py", line 135, in test_root_harness_rejected_before_writes
+    harness.verify(type("Args", (), {"work": self.root / "work"})())
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 263, in verify
+    expected = json.loads(args.pins.with_name("expected-inventory.json").read_text())["phases"][
+                          ^^^^^^^^^
+AttributeError: 'Args' object has no attribute 'pins'
+
+======================================================================
+ERROR: test_unsupported_compression_normalized (test_revision.RevisionContract.test_unsupported_compression_normalized)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_revision.py", line 129, in test_unsupported_compression_normalized
+    self.reject(row, "malformed wheel:.*compression")
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_revision.py", line 35, in reject
+    self.api.prepare([good, row], self.prefix, **kwargs)
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 392, in prepare
+    sorted(
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 393, in <genexpr>
+    (validate_wheel(row) for row in rows),
+     ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 137, in validate_wheel
+    return _validate_wheel(row)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 205, in _validate_wheel
+    payload[name] = archive.read(item)  # also checks CRC/local-header consistency
+                    ^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/zipfile/__init__.py", line 1585, in read
+    with self.open(name, "r", pwd) as fp:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/zipfile/__init__.py", line 1694, in open
+    return ZipExtFile(zef_file, mode, zinfo, pwd, True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/zipfile/__init__.py", line 882, in __init__
+    self._decompressor = _get_decompressor(self._compress_type)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/zipfile/__init__.py", line 778, in _get_decompressor
+    _check_compression(compress_type)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/zipfile/__init__.py", line 758, in _check_compression
+    raise NotImplementedError("That compression method is not supported")
+NotImplementedError: That compression method is not supported
+
+======================================================================
+FAIL: test_scaffold_directories_reserved_before_writes (test_revision.RevisionContract.test_scaffold_directories_reserved_before_writes) (name='bin')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_revision.py", line 117, in test_scaffold_directories_reserved_before_writes
+    self.reject(row, "destination collision: " + name)
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend_tests/test_revision.py", line 34, in reject
+    with self.assertRaisesRegex(ValueError, diagnostic):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 29 tests in 0.426s
+
+FAILED (failures=1, errors=13)

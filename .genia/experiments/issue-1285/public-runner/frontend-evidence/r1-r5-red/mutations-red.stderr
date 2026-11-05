@@ -1,0 +1,14 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+test_archive_limits (test_revision.RevisionContract.test_archive_limits) ... ok
+test_duplicate_distribution (test_revision.RevisionContract.test_duplicate_distribution) ... ok
+test_entrypoint_diagnostics (test_revision.RevisionContract.test_entrypoint_diagnostics) ... ok
+test_record_listed_member_validations (test_revision.RevisionContract.test_record_listed_member_validations) ... ok
+test_tag_checks_independent (test_revision.RevisionContract.test_tag_checks_independent) ... ok
+test_wheel_and_metadata_headers (test_revision.RevisionContract.test_wheel_and_metadata_headers) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.156s
+
+OK
+surviving mutant or invalid mutation; inspect retained output
