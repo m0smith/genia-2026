@@ -62,8 +62,8 @@ follow RED commit `de1f455823e18f049a87cccbc2934bcb0bc20e11` and its
 [verified handoff](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644332896)
 precede code. [Implemented source pins](../experiments/issue-1285/public-runner/frontend/source-pins.json)
 and [evidence](../experiments/issue-1285/public-runner/frontend-evidence/implementation.json)
-record current status. Independent Claude maintainability/security/behavior review
-of exact code/tests is pending; no self-approval or production-readiness claim.
+record that historical candidate status. Its initial Claude review and current
+R1–R5 delta-review gate are recorded below; no self-approval or production-readiness claim.
 
 M1 permits safe zero-size directory entries omitted from RECORD without output;
 M2 preserves all15 ZIP-executable members (ruff included), plus15 wrappers, in the
@@ -73,6 +73,53 @@ complete input closure are explicitly retained and compared. Source/lock and all
 settled artifact pins remain unchanged. Host3.12.14/UID1000 does not establish
 official3.12.15/UID10001 or independent OCI equality. G1/G3 remain STOPs. No language
 or MCP profile fact changed; authority documents require no edits.
+
+## Focused frontend R1–R5 correction (2026-11-05)
+
+The [independent Claude review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6649295319)
+on `65c345100f5c36698364522d5ac4fc5a6e7ceef0` returned PASS-WITH-REVISIONS.
+The [maintainer decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6658033204)
+authorized only public $0 revisions. Strengthened TEST-ONLY RED
+`9b87b220a5a9168f22087cecae748faa8a6def34` and its
+[verified handoff](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6658357008)
+precede corrected implementation/evidence `2da6d870bed443059eeb56f45709fd23a30b9ccd`
+and [host handoff](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6658657164).
+All RED tests are frozen. [Current evidence](../experiments/issue-1285/public-runner/frontend-evidence/r1-r5-correction/summary.json)
+supersedes earlier source-review-pending status with **independent R1–R5 delta
+review pending**, not frontend acceptance or image authority.
+
+Corrections force pinned uv --no-cache, reserve scaffold directories before writes,
+reject root at harness entry, preserve primary probe errors through cleanup and
+normalize unsupported ZIP compression. The strengthened battery uses RECORD-listed
+members and specific diagnostics; 17 validator-removal mutants are assertion-killed.
+29 focused tests and 47-wheel validation pass; 7 CLI negatives have zero destination
+writes. Two fresh same-host installs differ in all 65 input ctimes/mtimes and match
+all 21,073 retained paths (bytes/modes/uid/gid/symlinks); each has exact 44 distributions,
+17,780 RECORD rows, 15 wrappers and 10 compiled imports. Original source/lock and all
+settled wheel/uv/base/BuildKit pins are unchanged. The input manifest now has 65 entries.
+
+Fake-HOME/no-ambient-cache builds leave HOME/TMPDIR empty. Subsequent uv project
+smokes leave only an empty declared TMPDIR coordination lock. The first overbroad
+TMPDIR assertion failed and is retained, along with a command-level probe,
+initial lint/setup failures and all RED negatives. The recipe requires named
+cache/receipt/dedicated TMPDIR paths on tmpfs or removal within the same future RUN
+before layer commit. No retained install output is deleted, rewritten or excluded.
+
+Codex separately inspected the committed implementation diff and adjacent call
+sites: PASS WITH NON-BLOCKING FINDINGS, with self-review limitation disclosed.
+Original R6/R7 debt remains maintainer-owned on #1285 (function length, coordinated
+pins/generator, environment/deadline/path policy, bytecode ENV and exclusive
+ownership/TOCTOU assumptions); no broad refactor is authorized. Independent Claude
+Code delta-only maintainability/security/behavior review is requested before
+frontend acceptance. This self-review does not satisfy that independent gate.
+
+This remains CPython3.12.14/UID1000 host evidence, not official3.12.15/UID10001,
+read-only mounts, full regression, independent workers or OCI acceptance. G1 signed
+OS/Git/Tini closure, venue-neutral G3 qualification, separate image authority and
+strict two-independent-build manifest/config/layer/canonical-archive equality
+remain required. No image/container build/run/export, private benchmark work,
+CI dispatch, merge, closure or R29 work occurred; incremental spending $0,
+usage/review effort unmeasured. Authority docs and language semantics are unchanged.
 
 ## Scoped preflight
 

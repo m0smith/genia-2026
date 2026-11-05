@@ -1,0 +1,23 @@
+"""Check local links, fenced shell syntax and scope without executing recipe code."""
+from pathlib import Path
+import hashlib,json,re,subprocess
+files=[Path(x) for x in subprocess.check_output(['git','diff','--name-only','HEAD']).decode().splitlines()]
+results=[]
+for p in files:
+ assert p.suffix=='.md',p
+ s=p.read_text();links=[];shells=[]
+ for link in re.findall(r'\]\(([^)]+)\)',s):
+  if link.startswith(('http:','https:','#','mailto:')):continue
+  path=(p.parent/link.split('#',1)[0]);assert path.exists(),(p,link);links.append(link)
+ for code in re.findall(r'```(?:bash|sh)\n(.*?)\n```',s,re.S):
+  run=subprocess.run(['bash','-n'],input=code.encode(),capture_output=True)
+  shells.append({'exit_code':run.returncode,'stderr':run.stderr.decode()});assert run.returncode==0,(p,run.stderr.decode())
+ results.append({'path':str(p),'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'local_links':len(links),'shell_fences':shells})
+assert len(files)==4
+b=Path('.genia/experiments/issue-1285/public-runner/offline-build-recipe.md')
+old=subprocess.check_output(['git','show','2da6d870:'+str(b)]).decode();new=b.read_text()
+assert old[old.index('## 4. Offline OCI construction'):]==new[new.index('## 4. Offline OCI construction'):]
+assert '65-entry' in new and '**tmpfs**' in new and '**same future RUN before its layer is committed**' in new
+for p in ['AGENTS.md','GENIA_STATE.md','GENIA_RULES.md','GENIA_REPL_README.md','README.md']:
+ assert not subprocess.check_output(['git','diff','65c34510','--',p])
+print(json.dumps({'documents':results,'strict_OCI_section_byte_identical':True,'authority_docs_unchanged':True,'checks':'local links and fenced shell syntax only; no shell recipe executed'},indent=2))

@@ -4,9 +4,9 @@ This is a design artifact. The maintainer selected installer 0.7.0 and authorize
 not image construction. Subsequent
 [authorization](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644232395)
 permits the frontend implementation and bounded host tests only; independent
-Claude source review remains pending. The host code is not production-ready. [G1–G5](pin-gaps.md) and independent Claude delta review remain open.
+Claude returned [PASS-WITH-REVISIONS](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6649295319); the [authorized R1–R5 correction](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6658033204) now requires a fresh independent delta review. The host code is not production-ready. [G1–G5](pin-gaps.md) and independent Claude delta review remain open.
 No image-construction command below was executed.
-[Host frontend evidence](frontend-evidence/implementation.json) is separate from
+[Current R1–R5 host evidence](frontend-evidence/r1-r5-correction/summary.json) (earlier [implementation evidence](frontend-evidence/implementation.json) is historical) is separate from
 image, official-target and runner acceptance. Commands with unknown
 OS inputs deliberately cannot be completed; this is not a runnable accepted build.
 The [R1–R8 correction evidence](recipe-correction-evidence.json) tests only bounded
@@ -81,7 +81,7 @@ uv.lock and unchanged requirements. Its expected SHA256 is supplied separately
 by the reviewed caller; verify it and every source entry before executing Python.
 Missing independent source review still STOPs build authority. No signature or
 self-verification establishes its own trust.
-The checked-in63-entry input manifest is the **frontend/host closure**, not a
+The checked-in65-entry input manifest is the **frontend/host closure**, not a
 complete image-context pin closure. Future reviewed G1 OS/deb and Dockerfile/Git/
 builder-config inputs must extend the image candidate's manifest and receive a
 new separately supplied expected hash. No missing OS/recipe hash is invented.
@@ -129,7 +129,7 @@ must verify actual `.git` bytes and source paths; a description alone is not pro
 
 ## 3. Offline image operations and selected installer design (A3)
 
-**Implemented host candidate; target/independent source review pending.** [Maintainer selection](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249)
+**Implemented host candidate; target/independent source delta review pending.** [Maintainer selection](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6643051249)
 adopts PyPA installer **0.7.0 as the candidate**, with a separately isolated,
 hash-pinned Hatchling PEP-660 builder. The experimental helper is retained evidence,
 not accepted production code. The stdlib validator/native writer is [offline_install.py](frontend/offline_install.py);
@@ -167,14 +167,21 @@ export UV_OFFLINE=1 UV_PYTHON_DOWNLOADS=never PYTHONDONTWRITEBYTECODE=1
 export PYTHONNOUSERSITE=1 PYTHONHASHSEED=0 TZ=UTC LANG=C.UTF-8
 export UV_CACHE_DIR=/tmp/uv-cache
 # Builder scaffold: only after all original tool/runtime/backend inputs validate.
-/usr/local/bin/uv --no-config venv --offline --no-python-downloads \
+/usr/local/bin/uv --no-config --no-cache venv --offline --no-python-downloads \
   --python /usr/local/bin/python3.12 /opt/genia/build-venv
 # Deployment scaffold: later, only after the generated editable wheel and the
 # complete final-prefix plan validate; these are argv patterns, not a script
 # to run back-to-back before validation.
-/usr/local/bin/uv --no-config venv --offline --no-python-downloads \
+/usr/local/bin/uv --no-config --no-cache venv --offline --no-python-downloads \
   --python /usr/local/bin/python3.12 /opt/genia/venv
 ```
+
+Every pinned uv 0.13.5 call in install/build uses **`--no-cache`**, including
+both scaffolds, the runtime-phase dependency check and final builder/deployment
+checks. `--cache` remains an explicit scratch selector; it alone did not govern
+installer calls before R1. No ambient `UV_CACHE_DIR` is required for correctness.
+Fresh-HOME tests unset it and prove no persistent HOME writes. Prevalidation also
+reserves `bin`, `lib`, `lib/python3.12` and site-packages before any scaffold writes.
 
 The reviewed frontend is invoked by `/usr/local/bin/python3.12 -I -S -B` at
 `/opt/runner-input/frontend/`; bootstrap only the hash/RECORD-validated installer
@@ -284,7 +291,7 @@ isolation downloads or additional hooks. Hash the approved source/lock before an
 after. The historical 190-file hook listing is preliminary evidence, not the
 production frontend source pin; separately review every orchestration, validation, bootstrap and metadata-writing source.
 Their exact hashes are now in source-pins.json and input-sha256.txt; independent
-Claude review is pending. No third-party source build or dependency resolver exists.
+Claude R1–R5 delta review is pending. No third-party source build or dependency resolver exists.
 
 Before writing the editable destination, validate the **entire generated wheel**
 and RECORD, Genia 0.1.14 identity, source routing and full destination plan against
@@ -379,6 +386,19 @@ distribution enters deployment44. Input/build/tool bytes are public and readable
 by runtime UID10001. Full A/B comparisons include every retained byte/mode/link,
 including input files, scaffold, builder and editable output. Only declared /tmp
 caches/receipts are scratch; no opportunistic retained-file deletion is allowed.
+Specifically, `/tmp/uv-cache`, `/tmp/frontend-receipt.json` and a dedicated declared
+`TMPDIR` (for example `/tmp/frontend-tmp`) must be on **tmpfs**, or removed in the
+**same future RUN before its layer is committed**. Never copy these paths, HOME
+caches or kernel/interpreter cache receipts into a retained layer. Host evidence
+preserves receipts separately; that does not authorize retaining them in an image.
+Pinned `--no-cache venv` and `pip check` leave HOME/TMPDIR empty. The later `uv run`
+smoke diagnostic leaves an empty `uv-*.lock` coordination file in TMPDIR even with
+`--no-cache`; it is explicitly inventoried temporary scratch under the same policy,
+not an installed-output exclusion. The non-root verification harness checks empty
+HOME/TMPDIR immediately after build, then accepts only empty regular uv lock files
+after smokes; HOME stays empty. Its first overbroad TMPDIR check and corrected
+command-level probe are retained in the current evidence. Root execution is
+rejected before harness writes; cleanup preserves primary errors and notes failures.
 Future OS/Git canonicalization/ownership and image-layer work remain separately
 authorized construction, not performed by this frontend or host test.
 

@@ -1,0 +1,44 @@
+{
+  "documents": [
+    {
+      "path": ".genia/experiments/issue-1285/public-runner/acceptance-checklist.md",
+      "sha256": "287230d8c8c3c63dd33d0e6ab4fa61ffc4b2b02beab11c9ceae62000c1a7b98b",
+      "local_links": 7,
+      "shell_fences": []
+    },
+    {
+      "path": ".genia/experiments/issue-1285/public-runner/offline-build-recipe.md",
+      "sha256": "15a688fdbe257b8d0aa53e9d22ee0778c24e584cbcc590ca8801840ed65e29a3",
+      "local_links": 14,
+      "shell_fences": [
+        {
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "path": ".genia/experiments/issue-1285/public-runner/pin-gaps.md",
+      "sha256": "479ba55086f47fa9a8633067030b9ad7a47062c9ff7db04dfad2e0bd2f183da4",
+      "local_links": 10,
+      "shell_fences": []
+    },
+    {
+      "path": ".genia/process/issue-1285-public-frozen-runner.md",
+      "sha256": "5ae0c2e0db304b119d1cfd5ecf8d17519f90ce01b5a5c0711fb60bddc407b5a5",
+      "local_links": 17,
+      "shell_fences": []
+    }
+  ],
+  "strict_OCI_section_byte_identical": true,
+  "authority_docs_unchanged": true,
+  "checks": "local links and fenced shell syntax only; no shell recipe executed"
+}

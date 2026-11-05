@@ -1,4 +1,4 @@
-# Public-runner acceptance — proposed, all execution items pending
+# Public-runner acceptance — proposed, target execution items pending
 
 This checklist implements review amendments A5–A8 as **requirements**, not results.
 It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-runner.md),
@@ -6,14 +6,38 @@ It authorizes no execution. [Design](../../../process/issue-1285-public-frozen-r
 
 ## Implemented host evidence, not target acceptance
 
-RED tests: `de1f455823e18f049a87cccbc2934bcb0bc20e11`;
+Historical RED tests: `de1f455823e18f049a87cccbc2934bcb0bc20e11`;
 implementation `150d9cb8da3d5e34aa86efa39ffa6b656fc28b8c`;
 [host implementation/evidence](frontend-evidence/implementation.json).
 The following execution checklist stays unchecked: CPython3.12.14/UID1000 host
 tests do not establish official3.12.15/UID10001, read-only mounts, full regression,
 resource controls, OCI output or runner acceptance. The implementer generated and
 checked [exact expected modes](frontend/expected-modes.json); independent Claude
-maintainability/security/behavior review of source/tests/artifacts is pending.
+R1–R5 delta maintainability/security/behavior review is pending. The initial
+[Claude review](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6649295319)
+returned PASS-WITH-REVISIONS, not frontend acceptance.
+
+Current strengthened RED `9b87b220a5a9168f22087cecae748faa8a6def34` precedes corrected
+implementation/evidence `2da6d870bed443059eeb56f45709fd23a30b9ccd`; RED tests are unchanged.
+[Correction receipts](frontend-evidence/r1-r5-correction/summary.json): 29 focused
+tests, 17 assertion-killed validator mutants, 47 strict wheels, 7 zero-write CLI
+negatives; A/B 21,073 paths each with 0 differences; 65 distinct-ctime/mtime inputs;
+44 distributions/17,780 RECORD rows/15 wrappers/10 compiled imports each side.
+Fresh-HOME/no-ambient-cache builds leave HOME/TMPDIR empty. The later empty uv
+project lock is declared temporary scratch; receipt/cache/TMPDIR must be tmpfs
+or removed in the same future RUN, never retained in a layer. Failed attempts,
+setup errors and negative results remain linked. This is sequential same-host
+3.12.14 evidence; every target/OCI execution gate below remains unchecked.
+
+## Focused correction status (host only)
+
+- [x] Separate strengthened RED commit before production fixes; RECORD-listed
+  diagnostics, zero writes, fake HOME, root, cleanup and ZIP controls retained.
+- [x] Pinned uv --no-cache on install/build calls; scaffold directories reserved;
+  root precondition/primary-error preservation and ZIP normalization corrected.
+- [x] Source/input pins refreshed; original source/lock/wheel/uv/base/BuildKit pins preserved.
+- [ ] Independent Claude Code delta-only maintainability/security/behavior review
+  PASS on the corrected exact code/tests/receipts before frontend acceptance.
 
 ## Gates and receipts
 
