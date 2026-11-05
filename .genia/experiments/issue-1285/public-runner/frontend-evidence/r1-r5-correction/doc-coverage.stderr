@@ -1,0 +1,10 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+Traceback (most recent call last):
+  File "/workspace/work/tools/lint_doc.py", line 780, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/workspace/work/tools/lint_doc.py", line 727, in main
+    if args[0] == "--scan-dir":
+       ~~~~^^^
+IndexError: list index out of range

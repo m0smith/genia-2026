@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 438, in <module>
+    main()
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 433, in main
+    result = verify(args)
+             ^^^^^^^^^^^^
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/verify_frontend.py", line 376, in verify
+    frontend.require(not list(temporary.rglob("*")), "retained temporary cache writes")
+  File "/workspace/work/.genia/experiments/issue-1285/public-runner/frontend/offline_install.py", line 56, in require
+    raise ValueError(message)
+ValueError: retained temporary cache writes

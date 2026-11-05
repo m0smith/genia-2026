@@ -1,0 +1,16 @@
+"""Distinguish pinned uv no-cache scaffold/check residue from uv project locking."""
+import json,os,subprocess,sys
+from pathlib import Path
+sys.path.insert(0,'/workspace/work/.genia/experiments/issue-1285/public-runner/frontend')
+import offline_install as f
+base=Path('/workspace/work/.genia/process/tmp/1285-revision');root=base/'tmp-probe';root.mkdir()
+uv=base/'uv';active=base/'ab/active';prefix=active/'genia/venv';source=active/'genia/source'
+cases={'venv':[str(uv),'--no-config','--no-cache','venv','--offline','--no-python-downloads','--python',sys.executable,str(root/'venv')], 'pip-check':[str(uv),'--no-config','--no-cache','pip','check','--offline','--python',str(prefix/'bin/python')], 'project-run':[str(uv),'--no-config','--no-cache','run','--frozen','--offline','--no-sync','python','-B','-c','import sys;print(sys.prefix)']}
+results={}
+for name,argv in cases.items():
+ home=root/(name+'-home');tmp=root/(name+'-tmp');home.mkdir();tmp.mkdir()
+ env=f.clean_environment()|{'HOME':str(home),'TMPDIR':str(tmp),'UV_PROJECT_ENVIRONMENT':str(prefix),'UV_PYTHON':str(prefix/'bin/python')};env.pop('UV_CACHE_DIR',None)
+ p=subprocess.run(argv,cwd=source,env=env,capture_output=True,timeout=60)
+ results[name]={'argv':argv,'returncode':p.returncode,'stdout':p.stdout.decode(),'stderr':p.stderr.decode(),'home':f.inventory(home),'tmp':f.inventory(tmp)}
+ assert p.returncode==0
+print(json.dumps(results,indent=2))

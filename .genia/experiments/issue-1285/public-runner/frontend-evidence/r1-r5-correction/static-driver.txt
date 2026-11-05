@@ -1,0 +1,36 @@
+"""Check exact retained source, lock, artifact, source-pin and input-manifest bytes."""
+import ast,hashlib,json,subprocess
+from pathlib import Path
+base=Path('.genia/experiments/issue-1285/public-runner');start='65c345100f5c36698364522d5ac4fc5a6e7ceef0';red='9b87b220a5a9168f22087cecae748faa8a6def34'
+checks=[]
+def check(name,condition):
+ checks.append({'check':name,'pass':bool(condition)})
+ if not condition: raise ValueError(name)
+def old(path,ref=start):return subprocess.check_output(['git','show',ref+':'+str(path)])
+p=json.loads((base/'pins.json').read_text());prev=json.loads(old(base/'pins.json'))
+allowed={'frontend_source_inputs','frontend_implementation_authorization','frontend_retention'}
+for k in p:
+ if k not in allowed:check('preserved pin section '+k,p[k]==prev[k])
+for n in ['AGENTS.md','GENIA_STATE.md','GENIA_RULES.md','GENIA_REPL_README.md','README.md','src','spec','hosts','apps','.github','docs']:
+ check('unchanged '+n,not subprocess.check_output(['git','diff',start,'--',n]))
+for n in ['runtime.requirements.txt','backend.requirements.txt','base-amd64.manifest.json','expected-inventory.json','offline-source-policy.json','frontend/installer-files.json','frontend/expected-modes.json']:
+ check('preserved bytes '+n,(base/n).read_bytes()==old(base/n))
+for n in ['test_offline_install.py','test_revision.py','mutation_checks.py','offline_guard.py']:
+ check('RED tests frozen '+n,(base/'frontend_tests'/n).read_bytes()==old(base/'frontend_tests'/n,red))
+s=json.loads((base/'frontend/source-pins.json').read_text())
+for n,r in s['files'].items():
+ data=(base/n).read_bytes();check('source hash/size '+n,hashlib.sha256(data).hexdigest()==r['sha256'] and len(data)==r['bytes'])
+ if n.endswith('.py'):ast.parse(data)
+check('source pin closure',s['files']==p['frontend_source_inputs']['files'])
+check('source manifest hash',hashlib.sha256((base/'frontend/source-pins.json').read_bytes()).hexdigest()==p['frontend_source_inputs']['source_sha256'])
+tmp=Path('.genia/process/tmp/1285-revision')
+for line in (base/'input-sha256.txt').read_text().splitlines():
+ h,n=line.split('  ',1);path=base/n
+ if n in ('uv','uv.lock','source.tar') or n.startswith('wheels/'):path=tmp/n
+ check('input '+n,hashlib.sha256(path.read_bytes()).hexdigest()==h)
+check('input count65',len((base/'input-sha256.txt').read_text().splitlines())==65)
+check('no source bytecode',not list((base/'frontend').rglob('*.pyc')) and not list((base/'frontend_tests').rglob('*.pyc')))
+check('original lock',hashlib.sha256((tmp/'uv.lock').read_bytes()).hexdigest()==p['source']['lock_sha256'])
+check('original source export',hashlib.sha256((tmp/'source.tar').read_bytes()).hexdigest()==p['source']['export_archive_sha256'])
+check('uv binary',hashlib.sha256((tmp/'uv').read_bytes()).hexdigest()==p['uv']['binary_sha256'])
+print(json.dumps(checks,indent=2))

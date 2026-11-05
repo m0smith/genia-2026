@@ -1,0 +1,92 @@
+[
+  {
+    "name": "code-documentation",
+    "argv": [
+      "/workspace/work/.genia/process/tmp/1285-revision/uv",
+      "--no-cache",
+      "--no-config",
+      "run",
+      "--frozen",
+      "--offline",
+      "--no-sync",
+      "--no-project",
+      "--python",
+      "/workspace/work/.genia/process/tmp/1285-revision/ab/active/genia/venv/bin/python",
+      "python",
+      "-B",
+      "-m",
+      "tools.code_documentation",
+      "--base-ref",
+      "65c345100f5c36698364522d5ac4fc5a6e7ceef0"
+    ],
+    "returncode": 0,
+    "stdout": "code-documentation.stdout",
+    "stderr": "code-documentation.stderr"
+  },
+  {
+    "name": "generated-function-docs",
+    "argv": [
+      "/workspace/work/.genia/process/tmp/1285-revision/uv",
+      "--no-cache",
+      "--no-config",
+      "run",
+      "--frozen",
+      "--offline",
+      "--no-sync",
+      "--no-project",
+      "--python",
+      "/workspace/work/.genia/process/tmp/1285-revision/ab/active/genia/venv/bin/python",
+      "python",
+      "-B",
+      "tools/gen_function_docs.py",
+      "--check"
+    ],
+    "returncode": 0,
+    "stdout": "generated-function-docs.stdout",
+    "stderr": "generated-function-docs.stderr"
+  },
+  {
+    "name": "doc-coverage",
+    "argv": [
+      "/workspace/work/.genia/process/tmp/1285-revision/uv",
+      "--no-cache",
+      "--no-config",
+      "run",
+      "--frozen",
+      "--offline",
+      "--no-sync",
+      "--no-project",
+      "--python",
+      "/workspace/work/.genia/process/tmp/1285-revision/ab/active/genia/venv/bin/python",
+      "python",
+      "-B",
+      "tools/lint_doc.py",
+      "--require-coverage"
+    ],
+    "returncode": 1,
+    "stdout": "doc-coverage.stdout",
+    "stderr": "doc-coverage.stderr"
+  },
+  {
+    "name": "mcp-language-profile",
+    "argv": [
+      "/workspace/work/.genia/process/tmp/1285-revision/uv",
+      "--no-cache",
+      "--no-config",
+      "run",
+      "--frozen",
+      "--offline",
+      "--no-sync",
+      "--no-project",
+      "--python",
+      "/workspace/work/.genia/process/tmp/1285-revision/ab/active/genia/venv/bin/python",
+      "python",
+      "-B",
+      "tools/gen_mcp_language_profile.py",
+      "--check"
+    ],
+    "returncode": 0,
+    "stdout": "mcp-language-profile.stdout",
+    "stderr": "mcp-language-profile.stderr"
+  }
+]

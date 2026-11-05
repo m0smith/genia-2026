@@ -1,0 +1,37 @@
+[
+  {
+    "case": "wrong_hash",
+    "zero_destination_writes": true,
+    "error": "archive hash mismatch"
+  },
+  {
+    "case": "missing_file",
+    "zero_destination_writes": true,
+    "error": "input tree missing/extra/hash mismatch"
+  },
+  {
+    "case": "bad_RECORD",
+    "zero_destination_writes": true,
+    "error": "RECORD content mismatch"
+  },
+  {
+    "case": "unsafe_path",
+    "zero_destination_writes": true,
+    "error": "noncanonical path"
+  },
+  {
+    "case": "collision",
+    "zero_destination_writes": true,
+    "error": "destination collision: lib/python3.12/site-packages/babel/__init__.py"
+  },
+  {
+    "case": "umask_override",
+    "zero_destination_writes": true,
+    "error": "umask must be 022"
+  },
+  {
+    "case": "wrong_input_manifest_hash",
+    "zero_destination_writes": true,
+    "error": "input manifest hash mismatch"
+  }
+]

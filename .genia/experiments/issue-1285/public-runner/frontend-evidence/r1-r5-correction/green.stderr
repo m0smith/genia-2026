@@ -1,0 +1,69 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+test_all_47_pins_and_15_executable_members_match_plan (test_offline_install.FrontendContract.test_all_47_pins_and_15_executable_members_match_plan) ... ok
+test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes (test_offline_install.FrontendContract.test_bad_last_wheel_hash_missing_and_wrong_identity_zero_writes) ... ok
+test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent (test_offline_install.FrontendContract.test_bootstrap_wrong_hash_and_tampered_tools_leave_prefix_absent) ... ok
+test_collisions_file_parents_scripts_and_scaffold_rejected (test_offline_install.FrontendContract.test_collisions_file_parents_scripts_and_scaffold_rejected) ... ok
+test_data_scheme_bad_tag_and_generated_metadata_rejected (test_offline_install.FrontendContract.test_data_scheme_bad_tag_and_generated_metadata_rejected) ... ok
+test_different_input_timestamps_and_reversed_wheel_order_are_equal (test_offline_install.FrontendContract.test_different_input_timestamps_and_reversed_wheel_order_are_equal) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-hs5fr3o_/venv
+Activate with: source /tmp/genia-frontend-hs5fr3o_/venv/bin/activate
+Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-hs5fr3o_/venv
+Activate with: source /tmp/genia-frontend-hs5fr3o_/venv/bin/activate
+ok
+test_duplicate_regular_and_directory_entries_rejected (test_offline_install.FrontendContract.test_duplicate_regular_and_directory_entries_rejected) ... ok
+test_existing_prefix_and_symlink_parent_rejected (test_offline_install.FrontendContract.test_existing_prefix_and_symlink_parent_rejected) ... ok
+test_explicit_posix_prefix_ignores_default_scheme (test_offline_install.FrontendContract.test_explicit_posix_prefix_ignores_default_scheme) ... ok
+test_installed_record_corruption_and_unowned_file_are_detected (test_offline_install.FrontendContract.test_installed_record_corruption_and_unowned_file_are_detected) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-k4gd18at/venv
+Activate with: source /tmp/genia-frontend-k4gd18at/venv/bin/activate
+ok
+test_live_editable_metadata_exact_bytes_and_no_reinstall (test_offline_install.FrontendContract.test_live_editable_metadata_exact_bytes_and_no_reinstall) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-0goxe_rv/venv
+Activate with: source /tmp/genia-frontend-0goxe_rv/venv/bin/activate
+ok
+test_modes_wrappers_data_scripts_symlinks_and_record_validation (test_offline_install.FrontendContract.test_modes_wrappers_data_scripts_symlinks_and_record_validation) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-ubih10zh/venv
+Activate with: source /tmp/genia-frontend-ubih10zh/venv/bin/activate
+ok
+test_record_bidirectional_coverage_duplicate_and_digest_controls (test_offline_install.FrontendContract.test_record_bidirectional_coverage_duplicate_and_digest_controls) ... ok
+test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing (test_offline_install.FrontendContract.test_safe_unrecorded_directory_is_nonpayload_and_creates_nothing) ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-3vp871a4/venv
+Activate with: source /tmp/genia-frontend-3vp871a4/venv/bin/activate
+ok
+test_umask_changed_after_plan_is_rejected_before_scaffold (test_offline_install.FrontendContract.test_umask_changed_after_plan_is_rejected_before_scaffold) ... ok
+test_umask_override_fails_before_writes (test_offline_install.FrontendContract.test_umask_override_fails_before_writes) ... ok
+test_unsafe_members_rejected_before_any_output (test_offline_install.FrontendContract.test_unsafe_members_rejected_before_any_output) ... ok
+test_archive_limits (test_revision.RevisionContract.test_archive_limits)
+Exercise compressed, expanded and aggregate size limits independently. ... ok
+test_duplicate_distribution (test_revision.RevisionContract.test_duplicate_distribution)
+Reject repeated identities before reserving any destination. ... ok
+test_entrypoint_diagnostics (test_revision.RevisionContract.test_entrypoint_diagnostics)
+Reject unsafe names, targets, identifiers and duplicate entries. ... ok
+test_readonly_primary_error_preserved_and_modes_restored (test_revision.RevisionContract.test_readonly_primary_error_preserved_and_modes_restored)
+Keep the probe error when cleanup verification also fails. ... ok
+test_real_build_cache_argument_without_ambient_cache (test_revision.RevisionContract.test_real_build_cache_argument_without_ambient_cache)
+Exercise all real build calls with cache supplied only as an argument. ... ok
+test_real_install_fresh_home_no_ambient_cache (test_revision.RevisionContract.test_real_install_fresh_home_no_ambient_cache)
+Exercise real pinned uv scaffold writes with a fresh HOME. ... Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python
+Creating virtual environment at: /tmp/genia-frontend-kn4c_72g/venv
+Activate with: source /tmp/genia-frontend-kn4c_72g/venv/bin/activate
+ok
+test_record_listed_member_validations (test_revision.RevisionContract.test_record_listed_member_validations)
+Reject unsafe recorded members at their individual validator. ... ok
+test_root_harness_rejected_before_writes (test_revision.RevisionContract.test_root_harness_rejected_before_writes)
+Reject root before accessing other arguments or creating work. ... ok
+test_scaffold_directories_reserved_before_writes (test_revision.RevisionContract.test_scaffold_directories_reserved_before_writes)
+Reserve uv scaffold directories even without a planned bin child. ... ok
+test_tag_checks_independent (test_revision.RevisionContract.test_tag_checks_independent)
+Separate filename agreement from actual target compatibility. ... ok
+test_unsupported_compression_normalized (test_revision.RevisionContract.test_unsupported_compression_normalized)
+Fail closed with ValueError for an actual unsupported ZIP method. ... ok
+test_wheel_and_metadata_headers (test_revision.RevisionContract.test_wheel_and_metadata_headers)
+Reject unsupported and ambiguous identity/format metadata. ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 89.555s
+
+OK

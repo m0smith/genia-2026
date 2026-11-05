@@ -1,0 +1,151 @@
+{
+  "phase": "R1\u2013R5 minimal correction and focused host verification",
+  "agent": "Codex",
+  "date_utc": "2026-11-05",
+  "starting_SHA": "65c345100f5c36698364522d5ac4fc5a6e7ceef0",
+  "RED_SHA": "9b87b220a5a9168f22087cecae748faa8a6def34",
+  "RED_handoff": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6658357008",
+  "authorization": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6658033204",
+  "implementation_SHA": "containing commit; exact SHA published on #1285; no self-hash cycle",
+  "verdict": "PASS focused host checks; independent Claude Code delta review REQUIRED before frontend acceptance; no image authorization",
+  "host": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "executable_sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "uid": 1000,
+    "gid": 1000,
+    "machine": "x86_64",
+    "glibc": [
+      "glibc",
+      "2.41"
+    ],
+    "cpu_max": "200000 100000",
+    "memory_max": "8589934592",
+    "official_3_12_15_acceptance": false,
+    "independent_workers_or_OCI": false,
+    "root_precondition_test": "mocked geteuid==0; real host UID1000"
+  },
+  "tests": {
+    "focused": 29,
+    "final_result": "PASS in74.445s",
+    "prior_green": "PASS29 in89.555s before temporary-lock classification refinement",
+    "old_RED_tests_changed": false,
+    "mutation_baseline_tests": 6,
+    "valid_removal_mutants": 17,
+    "assertion_kills": 17,
+    "mutation_errors": 0,
+    "strict_unique_wheels": 47,
+    "CLI_zero_write_negatives": 7,
+    "HOME_isolation": "real install/build --cache provided, no ambient UV_CACHE_DIR; HOME empty before cleanup; A/B build HOME/TMPDIR empty; only declared zero-byte uv project lock persists after smokes",
+    "final_builders": [
+      "editables==0.6",
+      "hatchling==1.32.4",
+      "packaging==26.3",
+      "pathspec==1.1.1",
+      "pluggy==1.7.0",
+      "tomlkit==0.15.2",
+      "trove-classifiers==2026.9.21.13"
+    ]
+  },
+  "AB": {
+    "cases": {
+      "A": {
+        "paths": 21073,
+        "distributions": 44,
+        "wrappers": 15,
+        "compiled_imports": 10,
+        "RECORD_rows": 17780,
+        "live_edit_and_new_module": true,
+        "readonly_mode_diagnostic": {
+          "mode_protection_only": true,
+          "write_creation_denied": true,
+          "explicit_no_sync_frozen_pass": true,
+          "UV_NO_SYNC_UV_FROZEN_diagnostic_pass": true,
+          "changed_venv_paths": [],
+          "read_only_mount_or_UID10001_claim": false
+        }
+      },
+      "B": {
+        "paths": 21073,
+        "distributions": 44,
+        "wrappers": 15,
+        "compiled_imports": 10,
+        "RECORD_rows": 17780,
+        "live_edit_and_new_module": true,
+        "readonly_mode_diagnostic": {
+          "mode_protection_only": true,
+          "write_creation_denied": true,
+          "explicit_no_sync_frozen_pass": true,
+          "UV_NO_SYNC_UV_FROZEN_diagnostic_pass": true,
+          "changed_venv_paths": [],
+          "read_only_mount_or_UID10001_claim": false
+        }
+      }
+    },
+    "comparison": {
+      "changed_paths": [],
+      "strict_equal": true,
+      "includes": "all files/directories/symlinks, bytes/hash/size/mode/uid/gid/link targets in source/builder/editable/deployment/tools and complete retained runner-input tree; timestamps excluded",
+      "independent_workers_or_OCI": false
+    },
+    "mode_audit": {
+      "whole_tree_paths_each": 21073,
+      "deployment_paths": 18138,
+      "mode_manifest_files": 17780,
+      "mode_mismatches": 0,
+      "directory_modes": [
+        493
+      ],
+      "ownership": [
+        1000,
+        1000
+      ],
+      "RECORD_rows": 17780,
+      "different_ctime_and_mtime_inputs": 65,
+      "manifest_hashes_verified": true,
+      "all_retained_tree_equal": true,
+      "timestamps_compared_for_output": false,
+      "official_3_12_15_or_OCI_acceptance": false
+    },
+    "manifest_artifact": {
+      "file": "manifests.json.xz",
+      "sha256": "570062bdae8f9fb0a596500310be9fd4a0d1cd710d91e14b2c6922a7bb31a4bb",
+      "decoded_sha256": "cb7deef3a0a4f4c1d98f8be7f060e38a5be9fe71b9069cb2cd0db023d96c426d",
+      "bytes": 864520
+    }
+  },
+  "pins": {
+    "input_manifest_SHA256": "d942578aa5dd71a0f9be07eebe64ec60d4ddaf5d2140440448c10cf30b5284e3",
+    "input_files": 65,
+    "source_manifest_SHA256": "e8d852f564bc602bdd9cc5dfa1b190a05a757c52c8983e057b04831d53896c3a",
+    "changed_sections": [
+      "frontend_source_inputs",
+      "frontend_implementation_authorization",
+      "frontend_retention"
+    ],
+    "original_source_lock_wheel_uv_base_BuildKit_pins": "unchanged; see static-final.json"
+  },
+  "static": {
+    "ruff": "check/format PASS,7 sources",
+    "code_documentation": "10280 records,2793 legacy gaps,1 classified exclusion,0 errors; no new exemption",
+    "generated_function_docs": "PASS",
+    "generated_MCP_language_profile": "PASS",
+    "doc_lint_corrected": "24 files,286 @doc strings,0 errors/warnings",
+    "preservation_checks": 132,
+    "source_diff_whitespace": "PASS",
+    "full_delta_whitespace": "RED raw unittest logs contain four trailing-space lines; preserved losslessly, not source violations"
+  },
+  "failures_and_limits": [
+    "RED29:3 failures+3 errors at R1/R3/R4/R5; raw logs and initial setup/mutation failures committed separately",
+    "First A/B: installation and all smokes passed, then overly broad TMPDIR-empty assertion rejected uv project coordination lock; failed results/build receipt retained; no completed A/B claim for that run",
+    "Pinned command probe: --no-cache venv/pip check leave HOME/TMPDIR empty; uv project run alone leaves empty uv-*.lock; harness checks build isolation before smokes and permits only explicitly recorded empty regular locks in declared TMPDIR, never installed outputs",
+    "Initial doc lint invocation omitted --scan-dir and raised IndexError; CI-equivalent corrected invocation passed; no lint source change",
+    "Initial Ruff F401 unused test json import removed before RED; initial formatter required test/code formatting in respective phases; final check/format passed",
+    "Initial clone could not reach proxy in network sandbox; supported approved network clone/acquisition succeeded; first GitHub comment-fetch parameter spelling corrected",
+    "Official CPython3.12.15, UID10001, read-only mounts, full regression, independent workers, complete venue/G1 qualification and two independent OCI builds NOT RUN/NOT PROVEN",
+    "Host A/B excludes output timestamps; later OCI comparison must include strict manifest/config/layer/canonical-archive equality; no weakening"
+  ],
+  "spending": "$0 incremental; no paid service requested",
+  "usage_effort": "not measured",
+  "stop": "No image/container construction/execution/export, private benchmark/oracle/candidates, CI dispatch, merge, closure or R29 work"
+}

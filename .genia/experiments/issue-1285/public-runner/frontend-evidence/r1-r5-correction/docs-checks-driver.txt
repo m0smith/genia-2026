@@ -1,0 +1,15 @@
+"""Run bounded independent documentation gates with the pinned installed tools."""
+import json,subprocess
+from pathlib import Path
+base=Path('/workspace/work/.genia/process/tmp/1285-revision')
+python=base/'ab/active/genia/venv/bin/python'
+uv=[str(base/'uv'),'--no-cache','--no-config','run','--frozen','--offline','--no-sync','--no-project','--python',str(python),'python','-B']
+cases={'code-documentation':['-m','tools.code_documentation','--base-ref','65c345100f5c36698364522d5ac4fc5a6e7ceef0'],'generated-function-docs':['tools/gen_function_docs.py','--check'],'doc-coverage':['tools/lint_doc.py','--require-coverage'],'mcp-language-profile':['tools/gen_mcp_language_profile.py','--check']}
+rows=[]
+for name,args in cases.items():
+ r=subprocess.run(uv+args,capture_output=True,timeout=180)
+ (base/(name+'.stdout')).write_bytes(r.stdout);(base/(name+'.stderr')).write_bytes(r.stderr)
+ rows.append({'name':name,'argv':uv+args,'returncode':r.returncode,'stdout':name+'.stdout','stderr':name+'.stderr'})
+ (base/'documentation-checks.json').write_text(json.dumps(rows,indent=2)+'\n')
+print(json.dumps(rows,indent=2))
+raise SystemExit(any(r['returncode'] for r in rows))

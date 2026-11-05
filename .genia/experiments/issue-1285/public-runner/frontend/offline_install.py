@@ -135,7 +135,13 @@ def validate_wheel(row):
     """Return a stdlib-validated snapshot; malformed archive formats raise ValueError."""
     try:
         return _validate_wheel(row)
-    except (zipfile.BadZipFile, csv.Error, configparser.Error, KeyError) as error:
+    except (
+        zipfile.BadZipFile,
+        csv.Error,
+        configparser.Error,
+        KeyError,
+        NotImplementedError,
+    ) as error:
         raise ValueError("malformed wheel: " + str(error)) from error
 
 
@@ -404,7 +410,7 @@ def prepare(rows, prefix, editable_source=None):
         len({canonical(w.row["name"]) for w in wheels}) == len(wheels), "duplicate distribution"
     )
     require(sum(len(w.data) for w in wheels) <= MAX_BATCH, "batch archive limit")
-    files, metadata, directories = {}, {}, set()
+    files, metadata, directories = {}, {}, {"bin", "lib", "lib/python3.12", SITE}
 
     def reserve(path, mode):
         """Reject exact and file/parent aliases, including scaffold script names."""
@@ -594,6 +600,7 @@ def install(plan, tools_root, uv, python):
             [
                 str(uv),
                 "--no-config",
+                "--no-cache",
                 "venv",
                 "--offline",
                 "--no-python-downloads",
@@ -612,6 +619,7 @@ def install(plan, tools_root, uv, python):
                 argv = [
                     str(uv),
                     "--no-config",
+                    "--no-cache",
                     "pip",
                     "check",
                     "--python",

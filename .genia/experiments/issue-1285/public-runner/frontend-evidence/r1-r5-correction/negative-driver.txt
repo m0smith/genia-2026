@@ -1,0 +1,96 @@
+"""Exercise real CLI failures on owned copies; preserve pristine approved inputs."""
+import base64
+import csv
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import zipfile
+
+work=Path('/workspace/work/.genia/process/tmp/1285-revision')
+source=work/'stage-final'
+root=work/'cli-negative'
+assert not root.exists()
+root.mkdir()
+stage=root/'inputs';shutil.copytree(source,stage)
+original_pins=(stage/'pins.json').read_bytes()
+original_manifest=(stage/'input-sha256.txt').read_bytes()
+pins=json.loads(original_pins)
+row=next(r for r in pins['runtime_wheels'] if r['target_selected'] and r['name']=='watchdog')
+archive_path=stage/'wheels'/row['filename']
+original_wheel=archive_path.read_bytes()
+results=[]
+
+def digest(data):
+    """Hash exact negative fixture bytes, never repin approved repository data."""
+    return hashlib.sha256(data).hexdigest()
+
+def altered_wheel(case):
+    """Create a deliberate final-wheel RECORD/path/collision fault with valid ZIP."""
+    output=io.BytesIO()
+    with zipfile.ZipFile(io.BytesIO(original_wheel)) as old,zipfile.ZipFile(output,'w') as new:
+        names=old.namelist()
+        payload=next(n for n in names if n.endswith('.py'))
+        record=next(n for n in names if n.endswith('.dist-info/RECORD'))
+        for info in old.infolist():
+            data=old.read(info)
+            if case=='bad_RECORD' and info.filename==payload:
+                data+=b'\n# deliberate negative fixture\n'
+            if case=='collision' and info.filename==record:
+                rows=list(csv.reader(io.StringIO(data.decode())))
+                content=b'collision\n'
+                hash64=base64.urlsafe_b64encode(hashlib.sha256(content).digest()).decode().rstrip('=')
+                rows.append(['babel/__init__.py','sha256='+hash64,str(len(content))])
+                buffer=io.StringIO(newline='');csv.writer(buffer,lineterminator='\n').writerows(rows)
+                data=buffer.getvalue().encode()
+            new.writestr(info,data)
+        if case in ('unsafe_path','collision'):
+            name='../escape' if case=='unsafe_path' else 'babel/__init__.py'
+            info=zipfile.ZipInfo(name);info.create_system=3;info.external_attr=0o100644<<16
+            new.writestr(info,b'collision\n')
+    return output.getvalue()
+
+for case in ['wrong_hash','missing_file','bad_RECORD','unsafe_path','collision','umask_override','wrong_input_manifest_hash']:
+    archive_path.write_bytes(original_wheel)
+    (stage/'pins.json').write_bytes(original_pins)
+    (stage/'input-sha256.txt').write_bytes(original_manifest)
+    altered=json.loads(original_pins)
+    selected=next(r for r in altered['runtime_wheels'] if r['name']=='watchdog')
+    if case=='wrong_hash':
+        selected['sha256']='0'*64
+    if case in ('bad_RECORD','unsafe_path','collision'):
+        data=altered_wheel(case);archive_path.write_bytes(data)
+        selected.update(sha256=digest(data),bytes=len(data))
+    (stage/'pins.json').write_text(json.dumps(altered,indent=2)+'\n')
+    entries={name:hash_ for hash_,name in (line.split('  ',1) for line in original_manifest.decode().splitlines())}
+    entries['pins.json']=digest((stage/'pins.json').read_bytes())
+    entries['wheels/'+row['filename']]=digest(archive_path.read_bytes())
+    manifest=''.join(f'{entries[n]}  {n}\n' for n in sorted(entries)).encode()
+    (stage/'input-sha256.txt').write_bytes(manifest)
+    if case=='missing_file':archive_path.unlink()
+    output=root/('output-'+case)
+    receipt=root/(case+'.json')
+    expected_hash='0'*64 if case=='wrong_input_manifest_hash' else digest(manifest)
+    argv=[sys.executable,'-I','-S','-B',str(stage/'frontend/build_frontend.py'),
+          '--pins',str(stage/'pins.json'),'--inputs',str(stage/'wheels'),
+          '--source-archive',str(stage/'source.tar'),'--lock',str(stage/'uv.lock'),
+          '--uv',str(stage/'uv'),'--input-manifest',str(stage/'input-sha256.txt'),
+          '--input-manifest-sha256',expected_hash,'--receipt',str(receipt),
+          '--cache',str(root/'cache'),'--host-test','--root',str(output),
+          '--python',sys.executable]
+    old_mask=os.umask(0o077 if case=='umask_override' else 0o022)
+    try:
+        proc=subprocess.run(argv,capture_output=True,timeout=90)
+    finally:os.umask(old_mask)
+    result={'case':case,'exit_code':proc.returncode,'output_root_exists':output.exists(),
+            'destination_paths':list(str(p) for p in output.rglob('*')) if output.exists() else [],
+            'receipt':json.loads(receipt.read_text()),'argv':argv,
+            'stdout':proc.stdout.decode(),'stderr':proc.stderr.decode()}
+    results.append(result)
+    (root/'results.json').write_text(json.dumps(results,indent=2)+'\n')
+    assert proc.returncode!=0 and not output.exists(),result
+print(json.dumps([{'case':r['case'],'zero_destination_writes':not r['output_root_exists'],'error':r['receipt']['message']} for r in results],indent=2))

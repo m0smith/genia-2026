@@ -11,6 +11,7 @@ import importlib.machinery
 import json
 import lzma
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -85,10 +86,12 @@ def probe_readonly(prefix, source, uv, env, commands):
 
     Temporarily remove write bits from owned venv files/directories; never change
     bytes. Record attempted-write denial, execute commands, assert exact protected
-    inventory equality, and restore original modes explicitly in finally. No
+    inventory equality, and restore original modes explicitly in finally. Preserve
+    a primary failure and attach any cleanup failure as an exception note. No
     chmod operation is part of installation or used to manufacture A/B equality.
     """
     original = frontend.inventory(prefix)
+    primary_error = None
     try:
         for name, item in original.items():
             if item["kind"] != "symlink":
@@ -109,6 +112,7 @@ def probe_readonly(prefix, source, uv, env, commands):
             [
                 uv,
                 "--no-config",
+                "--no-cache",
                 "run",
                 "--frozen",
                 "--offline",
@@ -127,7 +131,17 @@ def probe_readonly(prefix, source, uv, env, commands):
         # Diagnostic omission only: verifies pinned env switches. Normal project
         # commands still always require the explicit flags above.
         output = run(
-            [uv, "--no-config", "run", "--offline", "python", "-B", "-c", python_code],
+            [
+                uv,
+                "--no-config",
+                "--no-cache",
+                "run",
+                "--offline",
+                "python",
+                "-B",
+                "-c",
+                python_code,
+            ],
             source,
             hardened,
             commands,
@@ -144,14 +158,22 @@ def probe_readonly(prefix, source, uv, env, commands):
             "changed_venv_paths": [],
             "read_only_mount_or_UID10001_claim": False,
         }
+    except BaseException as error:
+        primary_error = error
+        raise
     finally:
         # Restore directory traversal/writability first for reliable owned cleanup.
-        for name, item in original.items():
-            if item["kind"] != "symlink":
-                (prefix / name).chmod(item["mode"])
-        frontend.require(
-            frontend.inventory(prefix) == original, "mode diagnostic restoration mismatch"
-        )
+        try:
+            for name, item in original.items():
+                if item["kind"] != "symlink":
+                    (prefix / name).chmod(item["mode"])
+            frontend.require(
+                frontend.inventory(prefix) == original, "mode diagnostic restoration mismatch"
+            )
+        except Exception as cleanup_error:
+            if primary_error is None:
+                raise
+            primary_error.add_note("mode diagnostic cleanup failed: " + repr(cleanup_error))
 
 
 def smoke(active, uv, env, expected, commands):
@@ -204,7 +226,7 @@ def smoke(active, uv, env, expected, commands):
         ["check"],
     ):
         run(
-            [uv, "--no-config", "pip", *operation, "--python", python, "--offline"],
+            [uv, "--no-config", "--no-cache", "pip", *operation, "--python", python, "--offline"],
             source,
             env,
             commands,
@@ -254,6 +276,7 @@ def smoke(active, uv, env, expected, commands):
 
 def verify(args):
     """Create two independent host installations at fixed paths and compare all roots."""
+    frontend.require(os.geteuid() != 0, "verification requires non-root")
     frontend.umask_022()
     work = args.work
     frontend.require(not work.exists(), "verification requires a fresh work directory")
@@ -307,7 +330,11 @@ def verify(args):
                 }
             (stage / "input-sha256.txt").write_bytes(input_bytes)
             os.utime(stage / "input-sha256.txt", (timestamp, timestamp))
-            env = frontend.clean_environment() | {"UV_CACHE_DIR": str(work / f"cache-{label}")}
+            home, temporary = work / f"home-{label}", work / f"tmp-{label}"
+            home.mkdir()
+            temporary.mkdir()
+            env = frontend.clean_environment() | {"HOME": str(home), "TMPDIR": str(temporary)}
+            env.pop("UV_CACHE_DIR", None)
             receipt = work / f"build-{label}.json"
             run(
                 [
@@ -345,7 +372,28 @@ def verify(args):
                 results["commands"],
             )
             result = json.loads(receipt.read_text())
+            frontend.require(not list(home.rglob("*")), "build wrote undeclared HOME bytes")
+            frontend.require(
+                not list(temporary.rglob("*")), "build retained temporary cache writes"
+            )
+            frontend.require(not (work / f"cache-{label}").exists(), "retained uv cache")
             checks = smoke(active, stage / "uv", env, expected, results["commands"])
+            frontend.require(not list(home.rglob("*")), "undeclared HOME writes")
+            # uv project run retains an empty coordination lock even with --no-cache.
+            # It is explicit /tmp diagnostic scratch, never installed/layer output.
+            scratch = frontend.inventory(temporary)
+            frontend.require(
+                all(
+                    re.fullmatch(r"uv-[0-9a-f]{16}\.lock", name)
+                    and item["kind"] == "file"
+                    and item["bytes"] == 0
+                    for name, item in scratch.items()
+                    if name != "."
+                ),
+                "unexpected verification temporary bytes",
+            )
+            checks["fresh_HOME_and_build_TMPDIR_empty_no_ambient_UV_CACHE_DIR"] = True
+            checks["declared_uv_project_lock_scratch"] = scratch
             manifest[label] = {
                 **{"installed/" + n: v for n, v in frontend.inventory(active).items()},
                 **{"runner-input/" + n: v for n, v in frontend.inventory(stage).items()},

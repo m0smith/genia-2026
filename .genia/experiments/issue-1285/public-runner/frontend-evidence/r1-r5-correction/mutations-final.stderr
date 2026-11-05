@@ -1,0 +1,19 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+test_archive_limits (test_revision.RevisionContract.test_archive_limits)
+Exercise compressed, expanded and aggregate size limits independently. ... ok
+test_duplicate_distribution (test_revision.RevisionContract.test_duplicate_distribution)
+Reject repeated identities before reserving any destination. ... ok
+test_entrypoint_diagnostics (test_revision.RevisionContract.test_entrypoint_diagnostics)
+Reject unsafe names, targets, identifiers and duplicate entries. ... ok
+test_record_listed_member_validations (test_revision.RevisionContract.test_record_listed_member_validations)
+Reject unsafe recorded members at their individual validator. ... ok
+test_tag_checks_independent (test_revision.RevisionContract.test_tag_checks_independent)
+Separate filename agreement from actual target compatibility. ... ok
+test_wheel_and_metadata_headers (test_revision.RevisionContract.test_wheel_and_metadata_headers)
+Reject unsupported and ambiguous identity/format metadata. ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.681s
+
+OK

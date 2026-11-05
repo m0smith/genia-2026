@@ -1,0 +1,530 @@
+[
+  {
+    "check": "preserved pin section schema_version",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section status",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section scope",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section maintainer_decisions",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section original_design_review",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section source",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section venue",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section target",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section base",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section debian",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section uv",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section builder",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section runtime_wheels",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section runtime_selection",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section backend_wheels",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section backend",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section optional_tools",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section gaps",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section image_build_authorized",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section runner_frozen_or_accepted",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section runtime_requirements_sha256",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section backend_requirements_sha256",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section latest_preliminary_review",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section recipe_correction_authorization",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section recipe_integrity_requirements",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section deterministic_spike_authorization",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section installation_spike",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section installer_strategy_authorization",
+    "pass": true
+  },
+  {
+    "check": "preserved pin section installer",
+    "pass": true
+  },
+  {
+    "check": "unchanged AGENTS.md",
+    "pass": true
+  },
+  {
+    "check": "unchanged GENIA_STATE.md",
+    "pass": true
+  },
+  {
+    "check": "unchanged GENIA_RULES.md",
+    "pass": true
+  },
+  {
+    "check": "unchanged GENIA_REPL_README.md",
+    "pass": true
+  },
+  {
+    "check": "unchanged README.md",
+    "pass": true
+  },
+  {
+    "check": "unchanged src",
+    "pass": true
+  },
+  {
+    "check": "unchanged spec",
+    "pass": true
+  },
+  {
+    "check": "unchanged hosts",
+    "pass": true
+  },
+  {
+    "check": "unchanged apps",
+    "pass": true
+  },
+  {
+    "check": "unchanged .github",
+    "pass": true
+  },
+  {
+    "check": "unchanged docs",
+    "pass": true
+  },
+  {
+    "check": "preserved bytes runtime.requirements.txt",
+    "pass": true
+  },
+  {
+    "check": "preserved bytes backend.requirements.txt",
+    "pass": true
+  },
+  {
+    "check": "preserved bytes base-amd64.manifest.json",
+    "pass": true
+  },
+  {
+    "check": "preserved bytes expected-inventory.json",
+    "pass": true
+  },
+  {
+    "check": "preserved bytes offline-source-policy.json",
+    "pass": true
+  },
+  {
+    "check": "preserved bytes frontend/installer-files.json",
+    "pass": true
+  },
+  {
+    "check": "preserved bytes frontend/expected-modes.json",
+    "pass": true
+  },
+  {
+    "check": "RED tests frozen test_offline_install.py",
+    "pass": true
+  },
+  {
+    "check": "RED tests frozen test_revision.py",
+    "pass": true
+  },
+  {
+    "check": "RED tests frozen mutation_checks.py",
+    "pass": true
+  },
+  {
+    "check": "RED tests frozen offline_guard.py",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend/build_frontend.py",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend/offline_install.py",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend/verify_frontend.py",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend/expected-modes.json",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend/installer-files.json",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend_tests/offline_guard.py",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend_tests/test_offline_install.py",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend_tests/test_revision.py",
+    "pass": true
+  },
+  {
+    "check": "source hash/size frontend_tests/mutation_checks.py",
+    "pass": true
+  },
+  {
+    "check": "source pin closure",
+    "pass": true
+  },
+  {
+    "check": "source manifest hash",
+    "pass": true
+  },
+  {
+    "check": "input backend.requirements.txt",
+    "pass": true
+  },
+  {
+    "check": "input frontend/build_frontend.py",
+    "pass": true
+  },
+  {
+    "check": "input frontend/expected-modes.json",
+    "pass": true
+  },
+  {
+    "check": "input frontend/installer-files.json",
+    "pass": true
+  },
+  {
+    "check": "input frontend/offline_install.py",
+    "pass": true
+  },
+  {
+    "check": "input frontend/source-pins.json",
+    "pass": true
+  },
+  {
+    "check": "input frontend/verify_frontend.py",
+    "pass": true
+  },
+  {
+    "check": "input frontend_tests/mutation_checks.py",
+    "pass": true
+  },
+  {
+    "check": "input frontend_tests/offline_guard.py",
+    "pass": true
+  },
+  {
+    "check": "input frontend_tests/test_offline_install.py",
+    "pass": true
+  },
+  {
+    "check": "input frontend_tests/test_revision.py",
+    "pass": true
+  },
+  {
+    "check": "input pins.json",
+    "pass": true
+  },
+  {
+    "check": "input runtime.requirements.txt",
+    "pass": true
+  },
+  {
+    "check": "input source.tar",
+    "pass": true
+  },
+  {
+    "check": "input uv",
+    "pass": true
+  },
+  {
+    "check": "input uv.lock",
+    "pass": true
+  },
+  {
+    "check": "input wheels/babel-2.18.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/backrefs-8.1-py312-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/certifi-2026.10.23-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/click-8.5.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/colorama-0.4.6-py2.py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/coverage-7.17.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/editables-0.6-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/execnet-2.1.2-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/ghp_import-2.1.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/hatchling-1.32.4-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/idna-3.20-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/iniconfig-2.3.1-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/installer-0.7.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/jinja2-3.1.6-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/markdown-3.11.2-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/mergedeep-1.3.4-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/mkdocs-1.6.1-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/mkdocs_get_deps-0.2.2-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/mkdocs_material-9.8.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/mkdocs_material_extensions-1.3.1-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/packaging-26.3-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/paginate-0.5.7-py2.py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pathspec-1.1.1-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/platformdirs-4.13.5-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pluggy-1.7.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pygments-2.21.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pymdown_extensions-12.3-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pytest-9.1.1-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pytest_cov-7.1.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pytest_xdist-3.8.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/python_dateutil-3.0.0-py2.py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/pyyaml_env_tag-1.1-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/requests-2.34.2-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/ruff-0.15.18-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/six-1.17.0-py2.py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/tomlkit-0.15.2-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/tree_sitter_cpp-0.23.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/trove_classifiers-2026.9.21.13-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/tzdata-2026.5-py2.py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/urllib3-2.8.0-py3-none-any.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/uv-0.13.5-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input wheels/watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl",
+    "pass": true
+  },
+  {
+    "check": "input count65",
+    "pass": true
+  },
+  {
+    "check": "no source bytecode",
+    "pass": true
+  },
+  {
+    "check": "original lock",
+    "pass": true
+  },
+  {
+    "check": "original source export",
+    "pass": true
+  },
+  {
+    "check": "uv binary",
+    "pass": true
+  }
+]

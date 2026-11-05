@@ -241,6 +241,7 @@ def build(args):
             [
                 args.uv,
                 "--no-config",
+                "--no-cache",
                 "pip",
                 "check",
                 "--python",

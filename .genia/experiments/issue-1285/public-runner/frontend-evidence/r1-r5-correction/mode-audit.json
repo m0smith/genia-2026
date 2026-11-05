@@ -1,0 +1,19 @@
+{
+  "whole_tree_paths_each": 21073,
+  "deployment_paths": 18138,
+  "mode_manifest_files": 17780,
+  "mode_mismatches": 0,
+  "directory_modes": [
+    493
+  ],
+  "ownership": [
+    1000,
+    1000
+  ],
+  "RECORD_rows": 17780,
+  "different_ctime_and_mtime_inputs": 65,
+  "manifest_hashes_verified": true,
+  "all_retained_tree_equal": true,
+  "timestamps_compared_for_output": false,
+  "official_3_12_15_or_OCI_acceptance": false
+}

@@ -1,0 +1,7 @@
+warning: `--frozen` has no effect when used alongside `--no-project`
+warning: `--no-sync` has no effect when used alongside `--no-project`
+
+--- Scan summary ---
+Files scanned: 24
+@doc strings found: 286
+Errors: 0  Warnings: 0

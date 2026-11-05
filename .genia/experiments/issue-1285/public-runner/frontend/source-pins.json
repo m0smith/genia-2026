@@ -1,18 +1,18 @@
 {
-  "status": "Implemented host candidate; independent Claude maintainability/security/behavior review PENDING",
-  "red_commit": "de1f455823e18f049a87cccbc2934bcb0bc20e11",
+  "status": "R1\u2013R5 corrected host candidate; independent Claude delta review PENDING",
+  "red_commit": "9b87b220a5a9168f22087cecae748faa8a6def34",
   "files": {
     "frontend/build_frontend.py": {
-      "sha256": "1c9d8fc895bde24d49298b3f34c302e23c5540f9aaf7001344c0ad6a9f5d03c7",
-      "bytes": 13774
+      "sha256": "002d55862ec3cdf3706f6564898d4434f7a032cec234f382aef73371c4693a69",
+      "bytes": 13804
     },
     "frontend/offline_install.py": {
-      "sha256": "be2bc92f4c9e1cd992f0e7ca03fb9142fd6700b716c8c82bafc5b4b41a8208c2",
-      "bytes": 31072
+      "sha256": "209fbe4b273f363d878eaf200bb68b80d4e839e9baa3a8f496a60620748bc26b",
+      "bytes": 31237
     },
     "frontend/verify_frontend.py": {
-      "sha256": "3c8c6ba1d8c6d577fab50af75ba3a3378da870db70654758c80b4b798f5ce94d",
-      "bytes": 15765
+      "sha256": "a3a72672587eff91f7b9f62fdcaa93318254c29f1515e9d441b98c2c13ccfe38",
+      "bytes": 17817
     },
     "frontend/expected-modes.json": {
       "sha256": "ee54a2afe36150e60049c78460300db102f5c6a5c8d4fde2e38b126972fe5875",
@@ -29,6 +29,14 @@
     "frontend_tests/test_offline_install.py": {
       "sha256": "69622262c9dc7ecd51cff5b1b854e55950812cbfe20835b500bf37286d403411",
       "bytes": 17353
+    },
+    "frontend_tests/test_revision.py": {
+      "sha256": "1e3b3e0ef633c5ebf25fcd27b401fce1e3df320a3b165e0125b0e73fcb0eab34",
+      "bytes": 12545
+    },
+    "frontend_tests/mutation_checks.py": {
+      "sha256": "696b7bac492f09a40845e78d8651830c188b116e6eb4bb4ad6c77d92dbc94515",
+      "bytes": 3641
     }
   }
 }

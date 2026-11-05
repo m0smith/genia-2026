@@ -1,0 +1,1767 @@
+{
+  "scope": "HOST ONLY, no target3.12.15/UID10001/OCI proof",
+  "host": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "uid": 1000,
+  "cases": {
+    "A": {
+      "inputs": {
+        "backend.requirements.txt": {
+          "ctime_ns": 1793883356767936356,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend/build_frontend.py": {
+          "ctime_ns": 1793883356768307458,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend/expected-modes.json": {
+          "ctime_ns": 1793883356785711414,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend/installer-files.json": {
+          "ctime_ns": 1793883356787550176,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend/offline_install.py": {
+          "ctime_ns": 1793883356788047117,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend/source-pins.json": {
+          "ctime_ns": 1793883356788210130,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend/verify_frontend.py": {
+          "ctime_ns": 1793883356788299302,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend_tests/mutation_checks.py": {
+          "ctime_ns": 1793883356789495846,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend_tests/offline_guard.py": {
+          "ctime_ns": 1793883356789781400,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend_tests/test_offline_install.py": {
+          "ctime_ns": 1793883356789889995,
+          "mtime_ns": 1000000000000000000
+        },
+        "frontend_tests/test_revision.py": {
+          "ctime_ns": 1793883356790036200,
+          "mtime_ns": 1000000000000000000
+        },
+        "pins.json": {
+          "ctime_ns": 1793883356790539861,
+          "mtime_ns": 1000000000000000000
+        },
+        "runtime.requirements.txt": {
+          "ctime_ns": 1793883356791115821,
+          "mtime_ns": 1000000000000000000
+        },
+        "source.tar": {
+          "ctime_ns": 1793883356877706999,
+          "mtime_ns": 1000000000000000000
+        },
+        "uv": {
+          "ctime_ns": 1793883357201691449,
+          "mtime_ns": 1000000000000000000
+        },
+        "uv.lock": {
+          "ctime_ns": 1793883357207326660,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/babel-2.18.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357241689529,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/backrefs-8.1-py312-none-any.whl": {
+          "ctime_ns": 1793883357246751251,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/certifi-2026.10.23-py3-none-any.whl": {
+          "ctime_ns": 1793883357249412237,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883357250562951,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/click-8.5.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357252435307,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/colorama-0.4.6-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883357253324540,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/coverage-7.17.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl": {
+          "ctime_ns": 1793883357254355355,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/editables-0.6-py3-none-any.whl": {
+          "ctime_ns": 1793883357255397786,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/execnet-2.1.2-py3-none-any.whl": {
+          "ctime_ns": 1793883357255529834,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/ghp_import-2.1.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357256240458,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/hatchling-1.32.4-py3-none-any.whl": {
+          "ctime_ns": 1793883357256467993,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/idna-3.20-py3-none-any.whl": {
+          "ctime_ns": 1793883357257199100,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/iniconfig-2.3.1-py3-none-any.whl": {
+          "ctime_ns": 1793883357257560081,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/installer-0.7.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357258313471,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/jinja2-3.1.6-py3-none-any.whl": {
+          "ctime_ns": 1793883357261036328,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/markdown-3.11.2-py3-none-any.whl": {
+          "ctime_ns": 1793883357262165045,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883357262853657,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/mergedeep-1.3.4-py3-none-any.whl": {
+          "ctime_ns": 1793883357263192504,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/mkdocs-1.6.1-py3-none-any.whl": {
+          "ctime_ns": 1793883357277687801,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/mkdocs_get_deps-0.2.2-py3-none-any.whl": {
+          "ctime_ns": 1793883357279612862,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/mkdocs_material-9.8.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357309686266,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/mkdocs_material_extensions-1.3.1-py3-none-any.whl": {
+          "ctime_ns": 1793883357312072595,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/packaging-26.3-py3-none-any.whl": {
+          "ctime_ns": 1793883357313686074,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/paginate-0.5.7-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883357316795222,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pathspec-1.1.1-py3-none-any.whl": {
+          "ctime_ns": 1793883357317216410,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/platformdirs-4.13.5-py3-none-any.whl": {
+          "ctime_ns": 1793883357319386930,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pluggy-1.7.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357319818603,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pygments-2.21.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357329685306,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pymdown_extensions-12.3-py3-none-any.whl": {
+          "ctime_ns": 1793883357333185469,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pytest-9.1.1-py3-none-any.whl": {
+          "ctime_ns": 1793883357335435429,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pytest_cov-7.1.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357337356183,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pytest_xdist-3.8.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357337534635,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/python_dateutil-3.0.0-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883357337929234,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883357341684730,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/pyyaml_env_tag-1.1-py3-none-any.whl": {
+          "ctime_ns": 1793883357344977899,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/requests-2.34.2-py3-none-any.whl": {
+          "ctime_ns": 1793883357345199370,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/ruff-0.15.18-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883357389682426,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/six-1.17.0-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883357392467885,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/tomlkit-0.15.2-py3-none-any.whl": {
+          "ctime_ns": 1793883357392637799,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883357394708893,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883357398552570,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/tree_sitter_cpp-0.23.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883357401752164,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl": {
+          "ctime_ns": 1793883357405059586,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883357407802061,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/trove_classifiers-2026.9.21.13-py3-none-any.whl": {
+          "ctime_ns": 1793883357409407897,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/tzdata-2026.5-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883357410694553,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/urllib3-2.8.0-py3-none-any.whl": {
+          "ctime_ns": 1793883357412666251,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/uv-0.13.5-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883357485677819,
+          "mtime_ns": 1000000000000000000
+        },
+        "wheels/watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883357488781950,
+          "mtime_ns": 1000000000000000000
+        }
+      },
+      "build": {
+        "status": "PASS",
+        "host_test": true,
+        "host_python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runtime_prefix": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv",
+        "source_archive_sha256": "5416717445a9cb2e916a543cca9751626508870ef958187890734be05483c4de",
+        "editable_wheel": {
+          "name": "genia",
+          "version": "0.1.14",
+          "filename": "genia-0.1.14-py3-none-any.whl",
+          "path": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/editable-wheel/genia-0.1.14-py3-none-any.whl",
+          "sha256": "11a1f10018d8397b83d5c4a315a4b7364d055b7306d49e9cd7c4d14f94368dee",
+          "bytes": 45164
+        },
+        "commands": [
+          {
+            "argv": [
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/build-venv/bin/python",
+              "-I",
+              "-B",
+              "-c",
+              "import json,sys,hatchling.build; requirements=hatchling.build.get_requires_for_build_editable({}); assert requirements == [\"editables~=0.3\"],requirements; print(json.dumps({\"requires\":requirements,\"wheel\":hatchling.build.build_editable(sys.argv[1])}))",
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/editable-wheel"
+            ],
+            "exit_code": 0,
+            "stdout": "{\"requires\": [\"editables~=0.3\"], \"wheel\": \"genia-0.1.14-py3-none-any.whl\"}\n",
+            "stderr": ""
+          },
+          {
+            "phase": "after runtime wheels, before editable",
+            "argv": [
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+              "--no-config",
+              "--no-cache",
+              "pip",
+              "check",
+              "--python",
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+              "--offline"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "Using Python 3.12.14 environment at: active/genia/venv\nChecked 43 packages in 67ms\nAll installed packages are compatible\n"
+          },
+          {
+            "argv": [
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+              "--no-config",
+              "--no-cache",
+              "pip",
+              "check",
+              "--python",
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/build-venv/bin/python",
+              "--offline"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "Using Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/build-venv\nChecked 7 packages in 74ms\nAll installed packages are compatible\n"
+          },
+          {
+            "argv": [
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+              "--no-config",
+              "--no-cache",
+              "pip",
+              "check",
+              "--python",
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+              "--offline"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "Using Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\nChecked 44 packages in 76ms\nAll installed packages are compatible\n"
+          }
+        ],
+        "wheel_order": [
+          "babel-2.18.0-py3-none-any.whl",
+          "backrefs-8.1-py312-none-any.whl",
+          "certifi-2026.10.23-py3-none-any.whl",
+          "charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "click-8.5.0-py3-none-any.whl",
+          "colorama-0.4.6-py2.py3-none-any.whl",
+          "coverage-7.17.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+          "execnet-2.1.2-py3-none-any.whl",
+          "ghp_import-2.1.0-py3-none-any.whl",
+          "idna-3.20-py3-none-any.whl",
+          "iniconfig-2.3.1-py3-none-any.whl",
+          "jinja2-3.1.6-py3-none-any.whl",
+          "markdown-3.11.2-py3-none-any.whl",
+          "markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "mergedeep-1.3.4-py3-none-any.whl",
+          "mkdocs-1.6.1-py3-none-any.whl",
+          "mkdocs_get_deps-0.2.2-py3-none-any.whl",
+          "mkdocs_material-9.8.0-py3-none-any.whl",
+          "mkdocs_material_extensions-1.3.1-py3-none-any.whl",
+          "packaging-26.3-py3-none-any.whl",
+          "paginate-0.5.7-py2.py3-none-any.whl",
+          "pathspec-1.1.1-py3-none-any.whl",
+          "platformdirs-4.13.5-py3-none-any.whl",
+          "pluggy-1.7.0-py3-none-any.whl",
+          "pygments-2.21.0-py3-none-any.whl",
+          "pymdown_extensions-12.3-py3-none-any.whl",
+          "pytest-9.1.1-py3-none-any.whl",
+          "pytest_cov-7.1.0-py3-none-any.whl",
+          "pytest_xdist-3.8.0-py3-none-any.whl",
+          "python_dateutil-3.0.0-py2.py3-none-any.whl",
+          "pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "pyyaml_env_tag-1.1-py3-none-any.whl",
+          "requests-2.34.2-py3-none-any.whl",
+          "ruff-0.15.18-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+          "six-1.17.0-py2.py3-none-any.whl",
+          "tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "tree_sitter_cpp-0.23.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+          "tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+          "tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+          "tzdata-2026.5-py2.py3-none-any.whl",
+          "urllib3-2.8.0-py3-none-any.whl",
+          "watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl",
+          "genia-0.1.14-py3-none-any.whl"
+        ],
+        "installed_RECORD_rows": 17780,
+        "retained_roots": [
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source",
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/build-venv",
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/editable-wheel",
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv",
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/runner-tools/installer"
+        ],
+        "official_target_or_OCI_acceptance": false
+      },
+      "smokes": {
+        "final_distributions": [
+          "babel==2.18.0",
+          "backrefs==8.1",
+          "certifi==2026.10.23",
+          "charset-normalizer==3.5.2",
+          "click==8.5.0",
+          "colorama==0.4.6",
+          "coverage==7.17.0",
+          "execnet==2.1.2",
+          "genia==0.1.14",
+          "ghp-import==2.1.0",
+          "idna==3.20",
+          "iniconfig==2.3.1",
+          "jinja2==3.1.6",
+          "markdown==3.11.2",
+          "markupsafe==3.0.4",
+          "mergedeep==1.3.4",
+          "mkdocs-get-deps==0.2.2",
+          "mkdocs-material-extensions==1.3.1",
+          "mkdocs-material==9.8.0",
+          "mkdocs==1.6.1",
+          "packaging==26.3",
+          "paginate==0.5.7",
+          "pathspec==1.1.1",
+          "platformdirs==4.13.5",
+          "pluggy==1.7.0",
+          "pygments==2.21.0",
+          "pymdown-extensions==12.3",
+          "pytest-cov==7.1.0",
+          "pytest-xdist==3.8.0",
+          "pytest==9.1.1",
+          "python-dateutil==3.0.0",
+          "pyyaml-env-tag==1.1",
+          "pyyaml==6.0.3",
+          "requests==2.34.2",
+          "ruff==0.15.18",
+          "six==1.17.0",
+          "tree-sitter-bash==0.25.1",
+          "tree-sitter-cpp==0.23.4",
+          "tree-sitter-rust==0.24.2",
+          "tree-sitter-typescript==0.23.2",
+          "tree-sitter==0.25.2",
+          "tzdata==2026.5",
+          "urllib3==2.8.0",
+          "watchdog==6.0.0"
+        ],
+        "wrappers": [
+          "coverage",
+          "coverage-3.12",
+          "coverage3",
+          "genia",
+          "ghp-import",
+          "idna",
+          "markdown_py",
+          "mkdocs",
+          "mkdocs-get-deps",
+          "normalizer",
+          "py.test",
+          "pybabel",
+          "pygmentize",
+          "pytest",
+          "watchmedo"
+        ],
+        "native_modules": {
+          "charset_normalizer.cd": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/charset_normalizer/cd.cpython-312-x86_64-linux-gnu.so",
+          "charset_normalizer.md": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/charset_normalizer/md.cpython-312-x86_64-linux-gnu.so",
+          "coverage.tracer": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/coverage/tracer.cpython-312-x86_64-linux-gnu.so",
+          "markupsafe._speedups": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/markupsafe/_speedups.cpython-312-x86_64-linux-gnu.so",
+          "yaml._yaml": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/yaml/_yaml.cpython-312-x86_64-linux-gnu.so",
+          "tree_sitter._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter/_binding.cpython-312-x86_64-linux-gnu.so",
+          "tree_sitter_bash._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_bash/_binding.abi3.so",
+          "tree_sitter_cpp._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_cpp/_binding.abi3.so",
+          "tree_sitter_rust._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_rust/_binding.abi3.so",
+          "tree_sitter_typescript._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_typescript/_binding.abi3.so"
+        },
+        "watchdog_platform_python_backend": true,
+        "live_edit_and_new_module": true,
+        "readonly_uv": {
+          "mode_protection_only": true,
+          "write_creation_denied": true,
+          "explicit_no_sync_frozen_pass": true,
+          "UV_NO_SYNC_UV_FROZEN_diagnostic_pass": true,
+          "changed_venv_paths": [],
+          "read_only_mount_or_UID10001_claim": false
+        },
+        "source_unchanged": true,
+        "RECORD_rows": 17780,
+        "direct_url_bytes": "{\"dir_info\":{\"editable\":true},\"url\":\"file:///workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source\"}",
+        "fresh_HOME_and_build_TMPDIR_empty_no_ambient_UV_CACHE_DIR": true,
+        "declared_uv_project_lock_scratch": {
+          ".": {
+            "mode": 493,
+            "uid": 1000,
+            "gid": 1000,
+            "kind": "directory"
+          },
+          "uv-65cd17949cbf353f.lock": {
+            "mode": 438,
+            "uid": 1000,
+            "gid": 1000,
+            "kind": "file",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "paths": 21073,
+      "socket_connect_denial_inherited": true,
+      "packet_trace_or_general_sandbox_claim": false
+    },
+    "B": {
+      "inputs": {
+        "backend.requirements.txt": {
+          "ctime_ns": 1793883455407080675,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend/build_frontend.py": {
+          "ctime_ns": 1793883455407375322,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend/expected-modes.json": {
+          "ctime_ns": 1793883455421401237,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend/installer-files.json": {
+          "ctime_ns": 1793883455423092480,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend/offline_install.py": {
+          "ctime_ns": 1793883455423224826,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend/source-pins.json": {
+          "ctime_ns": 1793883455423334627,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend/verify_frontend.py": {
+          "ctime_ns": 1793883455423417549,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend_tests/mutation_checks.py": {
+          "ctime_ns": 1793883455423593150,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend_tests/offline_guard.py": {
+          "ctime_ns": 1793883455423660902,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend_tests/test_offline_install.py": {
+          "ctime_ns": 1793883455423766525,
+          "mtime_ns": 1600000000000000000
+        },
+        "frontend_tests/test_revision.py": {
+          "ctime_ns": 1793883455423840602,
+          "mtime_ns": 1600000000000000000
+        },
+        "pins.json": {
+          "ctime_ns": 1793883455424233468,
+          "mtime_ns": 1600000000000000000
+        },
+        "runtime.requirements.txt": {
+          "ctime_ns": 1793883455424352178,
+          "mtime_ns": 1600000000000000000
+        },
+        "source.tar": {
+          "ctime_ns": 1793883455504978205,
+          "mtime_ns": 1600000000000000000
+        },
+        "uv": {
+          "ctime_ns": 1793883455776965151,
+          "mtime_ns": 1600000000000000000
+        },
+        "uv.lock": {
+          "ctime_ns": 1793883455784726858,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/babel-2.18.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455840962079,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/backrefs-8.1-py312-none-any.whl": {
+          "ctime_ns": 1793883455846239607,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/certifi-2026.10.23-py3-none-any.whl": {
+          "ctime_ns": 1793883455847154498,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883455848357061,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/click-8.5.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455849807268,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/colorama-0.4.6-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883455850193806,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/coverage-7.17.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl": {
+          "ctime_ns": 1793883455851495218,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/editables-0.6-py3-none-any.whl": {
+          "ctime_ns": 1793883455851918445,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/execnet-2.1.2-py3-none-any.whl": {
+          "ctime_ns": 1793883455852170554,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/ghp_import-2.1.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455852462991,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/hatchling-1.32.4-py3-none-any.whl": {
+          "ctime_ns": 1793883455852905240,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/idna-3.20-py3-none-any.whl": {
+          "ctime_ns": 1793883455853992405,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/iniconfig-2.3.1-py3-none-any.whl": {
+          "ctime_ns": 1793883455854272182,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/installer-0.7.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455857106387,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/jinja2-3.1.6-py3-none-any.whl": {
+          "ctime_ns": 1793883455859183596,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/markdown-3.11.2-py3-none-any.whl": {
+          "ctime_ns": 1793883455860021786,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883455860304554,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/mergedeep-1.3.4-py3-none-any.whl": {
+          "ctime_ns": 1793883455860492348,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/mkdocs-1.6.1-py3-none-any.whl": {
+          "ctime_ns": 1793883455880960160,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/mkdocs_get_deps-0.2.2-py3-none-any.whl": {
+          "ctime_ns": 1793883455886288759,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/mkdocs_material-9.8.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455964956128,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/mkdocs_material_extensions-1.3.1-py3-none-any.whl": {
+          "ctime_ns": 1793883455969701981,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/packaging-26.3-py3-none-any.whl": {
+          "ctime_ns": 1793883455971167258,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/paginate-0.5.7-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883455972154579,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pathspec-1.1.1-py3-none-any.whl": {
+          "ctime_ns": 1793883455972814765,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/platformdirs-4.13.5-py3-none-any.whl": {
+          "ctime_ns": 1793883455973076147,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pluggy-1.7.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455973237255,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pygments-2.21.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455980955360,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pymdown_extensions-12.3-py3-none-any.whl": {
+          "ctime_ns": 1793883455985829328,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pytest-9.1.1-py3-none-any.whl": {
+          "ctime_ns": 1793883455988012873,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pytest_cov-7.1.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455988610378,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pytest_xdist-3.8.0-py3-none-any.whl": {
+          "ctime_ns": 1793883455989289909,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/python_dateutil-3.0.0-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883455989994681,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883455996954593,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/pyyaml_env_tag-1.1-py3-none-any.whl": {
+          "ctime_ns": 1793883455999471343,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/requests-2.34.2-py3-none-any.whl": {
+          "ctime_ns": 1793883456000089397,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/ruff-0.15.18-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883456068951137,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/six-1.17.0-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883456075649124,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/tomlkit-0.15.2-py3-none-any.whl": {
+          "ctime_ns": 1793883456077224076,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883456081353048,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": {
+          "ctime_ns": 1793883456085319410,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/tree_sitter_cpp-0.23.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883456087499363,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl": {
+          "ctime_ns": 1793883456089889477,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883456092524973,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/trove_classifiers-2026.9.21.13-py3-none-any.whl": {
+          "ctime_ns": 1793883456094156050,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/tzdata-2026.5-py2.py3-none-any.whl": {
+          "ctime_ns": 1793883456096750313,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/urllib3-2.8.0-py3-none-any.whl": {
+          "ctime_ns": 1793883456099097337,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/uv-0.13.5-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883456196944994,
+          "mtime_ns": 1600000000000000000
+        },
+        "wheels/watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl": {
+          "ctime_ns": 1793883456201724188,
+          "mtime_ns": 1600000000000000000
+        }
+      },
+      "build": {
+        "status": "PASS",
+        "host_test": true,
+        "host_python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runtime_prefix": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv",
+        "source_archive_sha256": "5416717445a9cb2e916a543cca9751626508870ef958187890734be05483c4de",
+        "editable_wheel": {
+          "name": "genia",
+          "version": "0.1.14",
+          "filename": "genia-0.1.14-py3-none-any.whl",
+          "path": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/editable-wheel/genia-0.1.14-py3-none-any.whl",
+          "sha256": "11a1f10018d8397b83d5c4a315a4b7364d055b7306d49e9cd7c4d14f94368dee",
+          "bytes": 45164
+        },
+        "commands": [
+          {
+            "argv": [
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/build-venv/bin/python",
+              "-I",
+              "-B",
+              "-c",
+              "import json,sys,hatchling.build; requirements=hatchling.build.get_requires_for_build_editable({}); assert requirements == [\"editables~=0.3\"],requirements; print(json.dumps({\"requires\":requirements,\"wheel\":hatchling.build.build_editable(sys.argv[1])}))",
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/editable-wheel"
+            ],
+            "exit_code": 0,
+            "stdout": "{\"requires\": [\"editables~=0.3\"], \"wheel\": \"genia-0.1.14-py3-none-any.whl\"}\n",
+            "stderr": ""
+          },
+          {
+            "phase": "after runtime wheels, before editable",
+            "argv": [
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+              "--no-config",
+              "--no-cache",
+              "pip",
+              "check",
+              "--python",
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+              "--offline"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "Using Python 3.12.14 environment at: active/genia/venv\nChecked 43 packages in 83ms\nAll installed packages are compatible\n"
+          },
+          {
+            "argv": [
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+              "--no-config",
+              "--no-cache",
+              "pip",
+              "check",
+              "--python",
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/build-venv/bin/python",
+              "--offline"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "Using Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/build-venv\nChecked 7 packages in 66ms\nAll installed packages are compatible\n"
+          },
+          {
+            "argv": [
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+              "--no-config",
+              "--no-cache",
+              "pip",
+              "check",
+              "--python",
+              "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+              "--offline"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": "Using Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\nChecked 44 packages in 59ms\nAll installed packages are compatible\n"
+          }
+        ],
+        "wheel_order": [
+          "babel-2.18.0-py3-none-any.whl",
+          "backrefs-8.1-py312-none-any.whl",
+          "certifi-2026.10.23-py3-none-any.whl",
+          "charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "click-8.5.0-py3-none-any.whl",
+          "colorama-0.4.6-py2.py3-none-any.whl",
+          "coverage-7.17.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+          "execnet-2.1.2-py3-none-any.whl",
+          "ghp_import-2.1.0-py3-none-any.whl",
+          "idna-3.20-py3-none-any.whl",
+          "iniconfig-2.3.1-py3-none-any.whl",
+          "jinja2-3.1.6-py3-none-any.whl",
+          "markdown-3.11.2-py3-none-any.whl",
+          "markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "mergedeep-1.3.4-py3-none-any.whl",
+          "mkdocs-1.6.1-py3-none-any.whl",
+          "mkdocs_get_deps-0.2.2-py3-none-any.whl",
+          "mkdocs_material-9.8.0-py3-none-any.whl",
+          "mkdocs_material_extensions-1.3.1-py3-none-any.whl",
+          "packaging-26.3-py3-none-any.whl",
+          "paginate-0.5.7-py2.py3-none-any.whl",
+          "pathspec-1.1.1-py3-none-any.whl",
+          "platformdirs-4.13.5-py3-none-any.whl",
+          "pluggy-1.7.0-py3-none-any.whl",
+          "pygments-2.21.0-py3-none-any.whl",
+          "pymdown_extensions-12.3-py3-none-any.whl",
+          "pytest-9.1.1-py3-none-any.whl",
+          "pytest_cov-7.1.0-py3-none-any.whl",
+          "pytest_xdist-3.8.0-py3-none-any.whl",
+          "python_dateutil-3.0.0-py2.py3-none-any.whl",
+          "pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "pyyaml_env_tag-1.1-py3-none-any.whl",
+          "requests-2.34.2-py3-none-any.whl",
+          "ruff-0.15.18-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+          "six-1.17.0-py2.py3-none-any.whl",
+          "tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "tree_sitter_cpp-0.23.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+          "tree_sitter_rust-0.24.2-cp39-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+          "tree_sitter_typescript-0.23.2-cp39-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+          "tzdata-2026.5-py2.py3-none-any.whl",
+          "urllib3-2.8.0-py3-none-any.whl",
+          "watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl",
+          "genia-0.1.14-py3-none-any.whl"
+        ],
+        "installed_RECORD_rows": 17780,
+        "retained_roots": [
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source",
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/build-venv",
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/editable-wheel",
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv",
+          "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/runner-tools/installer"
+        ],
+        "official_target_or_OCI_acceptance": false
+      },
+      "smokes": {
+        "final_distributions": [
+          "babel==2.18.0",
+          "backrefs==8.1",
+          "certifi==2026.10.23",
+          "charset-normalizer==3.5.2",
+          "click==8.5.0",
+          "colorama==0.4.6",
+          "coverage==7.17.0",
+          "execnet==2.1.2",
+          "genia==0.1.14",
+          "ghp-import==2.1.0",
+          "idna==3.20",
+          "iniconfig==2.3.1",
+          "jinja2==3.1.6",
+          "markdown==3.11.2",
+          "markupsafe==3.0.4",
+          "mergedeep==1.3.4",
+          "mkdocs-get-deps==0.2.2",
+          "mkdocs-material-extensions==1.3.1",
+          "mkdocs-material==9.8.0",
+          "mkdocs==1.6.1",
+          "packaging==26.3",
+          "paginate==0.5.7",
+          "pathspec==1.1.1",
+          "platformdirs==4.13.5",
+          "pluggy==1.7.0",
+          "pygments==2.21.0",
+          "pymdown-extensions==12.3",
+          "pytest-cov==7.1.0",
+          "pytest-xdist==3.8.0",
+          "pytest==9.1.1",
+          "python-dateutil==3.0.0",
+          "pyyaml-env-tag==1.1",
+          "pyyaml==6.0.3",
+          "requests==2.34.2",
+          "ruff==0.15.18",
+          "six==1.17.0",
+          "tree-sitter-bash==0.25.1",
+          "tree-sitter-cpp==0.23.4",
+          "tree-sitter-rust==0.24.2",
+          "tree-sitter-typescript==0.23.2",
+          "tree-sitter==0.25.2",
+          "tzdata==2026.5",
+          "urllib3==2.8.0",
+          "watchdog==6.0.0"
+        ],
+        "wrappers": [
+          "coverage",
+          "coverage-3.12",
+          "coverage3",
+          "genia",
+          "ghp-import",
+          "idna",
+          "markdown_py",
+          "mkdocs",
+          "mkdocs-get-deps",
+          "normalizer",
+          "py.test",
+          "pybabel",
+          "pygmentize",
+          "pytest",
+          "watchmedo"
+        ],
+        "native_modules": {
+          "charset_normalizer.cd": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/charset_normalizer/cd.cpython-312-x86_64-linux-gnu.so",
+          "charset_normalizer.md": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/charset_normalizer/md.cpython-312-x86_64-linux-gnu.so",
+          "coverage.tracer": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/coverage/tracer.cpython-312-x86_64-linux-gnu.so",
+          "markupsafe._speedups": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/markupsafe/_speedups.cpython-312-x86_64-linux-gnu.so",
+          "yaml._yaml": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/yaml/_yaml.cpython-312-x86_64-linux-gnu.so",
+          "tree_sitter._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter/_binding.cpython-312-x86_64-linux-gnu.so",
+          "tree_sitter_bash._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_bash/_binding.abi3.so",
+          "tree_sitter_cpp._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_cpp/_binding.abi3.so",
+          "tree_sitter_rust._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_rust/_binding.abi3.so",
+          "tree_sitter_typescript._binding": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_typescript/_binding.abi3.so"
+        },
+        "watchdog_platform_python_backend": true,
+        "live_edit_and_new_module": true,
+        "readonly_uv": {
+          "mode_protection_only": true,
+          "write_creation_denied": true,
+          "explicit_no_sync_frozen_pass": true,
+          "UV_NO_SYNC_UV_FROZEN_diagnostic_pass": true,
+          "changed_venv_paths": [],
+          "read_only_mount_or_UID10001_claim": false
+        },
+        "source_unchanged": true,
+        "RECORD_rows": 17780,
+        "direct_url_bytes": "{\"dir_info\":{\"editable\":true},\"url\":\"file:///workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source\"}",
+        "fresh_HOME_and_build_TMPDIR_empty_no_ambient_UV_CACHE_DIR": true,
+        "declared_uv_project_lock_scratch": {
+          ".": {
+            "mode": 493,
+            "uid": 1000,
+            "gid": 1000,
+            "kind": "directory"
+          },
+          "uv-65cd17949cbf353f.lock": {
+            "mode": 438,
+            "uid": 1000,
+            "gid": 1000,
+            "kind": "file",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      },
+      "paths": 21073,
+      "socket_connect_denial_inherited": true,
+      "packet_trace_or_general_sandbox_claim": false
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-S",
+        "-B",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/frontend/build_frontend.py",
+        "--pins",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/pins.json",
+        "--inputs",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/wheels",
+        "--source-archive",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/source.tar",
+        "--lock",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv.lock",
+        "--uv",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--receipt",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/build-A.json",
+        "--cache",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/cache-A",
+        "--input-manifest",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/input-sha256.txt",
+        "--input-manifest-sha256",
+        "d942578aa5dd71a0f9be07eebe64ec60d4ddaf5d2140440448c10cf30b5284e3",
+        "--host-test",
+        "--root",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: active/genia/build-venv\nActivate with: source active/genia/build-venv/bin/activate\nUsing CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: active/genia/venv\nActivate with: source active/genia/venv/bin/activate\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import json,importlib.metadata,site,genia;print(json.dumps({\"distributions\":sorted(d.metadata[\"Name\"].lower().replace(\"_\",\"-\")+\"==\"+d.version for d in importlib.metadata.distributions()),\"source\":genia.__file__,\"user_site\":site.ENABLE_USER_SITE}))"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "{\"distributions\": [\"babel==2.18.0\", \"backrefs==8.1\", \"certifi==2026.10.23\", \"charset-normalizer==3.5.2\", \"click==8.5.0\", \"colorama==0.4.6\", \"coverage==7.17.0\", \"execnet==2.1.2\", \"genia==0.1.14\", \"ghp-import==2.1.0\", \"idna==3.20\", \"iniconfig==2.3.1\", \"jinja2==3.1.6\", \"markdown==3.11.2\", \"markupsafe==3.0.4\", \"mergedeep==1.3.4\", \"mkdocs-get-deps==0.2.2\", \"mkdocs-material-extensions==1.3.1\", \"mkdocs-material==9.8.0\", \"mkdocs==1.6.1\", \"packaging==26.3\", \"paginate==0.5.7\", \"pathspec==1.1.1\", \"platformdirs==4.13.5\", \"pluggy==1.7.0\", \"pygments==2.21.0\", \"pymdown-extensions==12.3\", \"pytest-cov==7.1.0\", \"pytest-xdist==3.8.0\", \"pytest==9.1.1\", \"python-dateutil==3.0.0\", \"pyyaml-env-tag==1.1\", \"pyyaml==6.0.3\", \"requests==2.34.2\", \"ruff==0.15.18\", \"six==1.17.0\", \"tree-sitter-bash==0.25.1\", \"tree-sitter-cpp==0.23.4\", \"tree-sitter-rust==0.24.2\", \"tree-sitter-typescript==0.23.2\", \"tree-sitter==0.25.2\", \"tzdata==2026.5\", \"urllib3==2.8.0\", \"watchdog==6.0.0\"], \"source\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source/src/genia/__init__.py\", \"user_site\": false}\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/coverage",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Coverage.py, version 7.17.0 with C extension\nFull documentation is at https://coverage.readthedocs.io/en/7.17.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/coverage-3.12",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "**\n** This entry point is deprecated and will be removed.\n** Send me an email if you want to keep this command name working:\n** ned@nedbatchelder.com\n**\n\nCoverage.py, version 7.17.0 with C extension\nFull documentation is at https://coverage.readthedocs.io/en/7.17.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/coverage3",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "**\n** This entry point is deprecated and will be removed.\n** Send me an email if you want to keep this command name working:\n** ned@nedbatchelder.com\n**\n\nCoverage.py, version 7.17.0 with C extension\nFull documentation is at https://coverage.readthedocs.io/en/7.17.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/genia",
+        "-c",
+        "1 + 1"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "2\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/ghp-import",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "usage: ghp-import [-h] [--version] [-n] [-c CNAME] [-m MESG] [-p] [-x PREFIX]\n                  [-f] [-o] [-r REMOTE] [-b BRANCH] [-s] [-l]\n                  directory\n\npositional arguments:\n  directory\n\noptions:\n  -h, --help            show this help message and exit\n  --version             show program's version number and exit\n  -n, --no-jekyll       Include a .nojekyll file in the branch.\n  -c CNAME, --cname CNAME\n                        Write a CNAME file with the given CNAME.\n  -m MESG, --message MESG\n                        The commit message to use on the target branch.\n  -p, --push            Push the branch to origin/{branch} after committing.\n  -x PREFIX, --prefix PREFIX\n                        The prefix to add to each file that gets pushed to the\n                        remote. Only files below this prefix will be cleared\n                        out. [None]\n  -f, --force           Force the push to the repository.\n  -o, --no-history      Force new commit without parent history.\n  -r REMOTE, --remote REMOTE\n                        The name of the remote to push to. [origin]\n  -b BRANCH, --branch BRANCH\n                        Name of the branch to write to. [gh-pages]\n  -s, --shell           Use the shell when invoking Git. [False]\n  -l, --follow-links    Follow symlinks when adding files. [False]\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/idna",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "usage: python -m idna [-h] [-e | -d] [--strict] [--version] [domain ...]\n\nConvert a domain name between its Unicode (U-label) and ASCII-compatible\n(A-label) forms. With no mode flag, the direction is chosen from the first\ninput \u2014 if it contains an xn-- label the stream is decoded, otherwise it is\nencoded \u2014 and the same mode is applied to every remaining input. UTS #46\nmapping is applied by default; pass --strict to disable it. When no domains\nare given on the command line and stdin is piped, one domain per line is read\nfrom stdin.\n\npositional arguments:\n  domain        One or more domain names to convert. Omit to read from stdin.\n\noptions:\n  -h, --help    show this help message and exit\n  -e, --encode  Encode the input to its ASCII A-label form.\n  -d, --decode  Decode the input from its ASCII A-label form.\n  --strict      Disable the default UTS #46 mapping and apply IDNA 2008 rules\n                verbatim.\n  --version     show program's version number and exit\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/markdown_py",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Usage: markdown_py [options] [INPUTFILE]\n       (STDIN is assumed if no INPUTFILE is given)\n\nA Python implementation of John Gruber's Markdown. https://python-\nmarkdown.github.io/\n\nOptions:\n  --version             show program's version number and exit\n  -h, --help            show this help message and exit\n  -f OUTPUT_FILE, --file=OUTPUT_FILE\n                        Write output to OUTPUT_FILE. Defaults to STDOUT.\n  -e ENCODING, --encoding=ENCODING\n                        Encoding for input and output files.\n  -o OUTPUT_FORMAT, --output_format=OUTPUT_FORMAT\n                        Use output format 'xhtml' (default) or 'html'.\n  -n, --no_lazy_ol      Observe number of first item of ordered lists.\n  -x EXTENSION, --extension=EXTENSION\n                        Load extension EXTENSION.\n  -c CONFIG_FILE, --extension_configs=CONFIG_FILE\n                        Read extension configurations from CONFIG_FILE.\n                        CONFIG_FILE must be of JSON or YAML format. YAML\n                        format requires that a python YAML library be\n                        installed. The parsed JSON or YAML must result in a\n                        python dictionary which would be accepted by the\n                        'extension_configs' keyword on the markdown.Markdown\n                        class. The extensions must also be loaded with the\n                        `--extension` option.\n  -q, --quiet           Suppress all warnings.\n  -v, --verbose         Print all warnings.\n  --noisy               Print debug messages.\n\nWARNING: The Python-Markdown library does NOT sanitize its HTML output. If you\nare processing Markdown input from an untrusted source, it is your\nresponsibility to ensure that it is properly sanitized. For more information\nsee <https://python-markdown.github.io/sanitization/>.\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/mkdocs",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "mkdocs, version 1.6.1 from /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/mkdocs (Python 3.12)\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/mkdocs-get-deps",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "usage: mkdocs-get-deps [-h] [-v] [-f CONFIG_FILE] [-p PROJECTS_FILE]\n\nShow required PyPI packages inferred from plugins in mkdocs.yml.\n\noptions:\n  -h, --help            show this help message and exit\n  -v, --verbose         Enable verbose output\n  -f CONFIG_FILE, --config-file CONFIG_FILE\n                        Provide a specific MkDocs config. This can be a file\n                        name, or '-' to read from stdin.\n  -p PROJECTS_FILE, --projects-file PROJECTS_FILE\n                        URL or local path of the registry file that declares\n                        all known MkDocs-related projects.\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/normalizer",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Charset-Normalizer 3.5.2 - Python 3.12.14 - Unicode 15.0.0 - SpeedUp ON\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/py.test",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "pytest 9.1.1\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/pybabel",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "pybabel 2.18.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/pygmentize",
+        "-V"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Pygments version 2.21.0, (c) 2006-present by Georg Brandl, Matth\u00e4us Chajdas and contributors.\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/pytest",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "pytest 9.1.1\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/watchmedo",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "usage: watchmedo [-h] [--version]\n                 {tricks-from,tricks,tricks-generate-yaml,generate-tricks-yaml,log,shell-command,auto-restart}\n                 ...\n\npositional arguments:\n  {tricks-from,tricks,tricks-generate-yaml,generate-tricks-yaml,log,shell-command,auto-restart}\n\noptions:\n  -h, --help\n      show this help message and exit\n      \n  --version\n      show program's version number and exit\n      \n\nCopyright 2018-2024 Micka\u00ebl Schoentgen & contributors\nCopyright 2014-2018 Thomas Amland & contributors\nCopyright 2012-2014 Google, Inc.\nCopyright 2011-2012 Yesudeep Mangalapilly\n\nLicensed under the terms of the Apache license, version 2.0. Please see\nLICENSE in the source code for more information.\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/ruff",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "ruff 0.15.18\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import importlib,json;modules=['charset_normalizer.cd', 'charset_normalizer.md', 'coverage.tracer', 'markupsafe._speedups', 'yaml._yaml', 'tree_sitter._binding', 'tree_sitter_bash._binding', 'tree_sitter_cpp._binding', 'tree_sitter_rust._binding', 'tree_sitter_typescript._binding'];print(json.dumps({n:importlib.import_module(n).__file__ for n in modules}))"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "{\"charset_normalizer.cd\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/charset_normalizer/cd.cpython-312-x86_64-linux-gnu.so\", \"charset_normalizer.md\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/charset_normalizer/md.cpython-312-x86_64-linux-gnu.so\", \"coverage.tracer\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/coverage/tracer.cpython-312-x86_64-linux-gnu.so\", \"markupsafe._speedups\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/markupsafe/_speedups.cpython-312-x86_64-linux-gnu.so\", \"yaml._yaml\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/yaml/_yaml.cpython-312-x86_64-linux-gnu.so\", \"tree_sitter._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter/_binding.cpython-312-x86_64-linux-gnu.so\", \"tree_sitter_bash._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_bash/_binding.abi3.so\", \"tree_sitter_cpp._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_cpp/_binding.abi3.so\", \"tree_sitter_rust._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_rust/_binding.abi3.so\", \"tree_sitter_typescript._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_typescript/_binding.abi3.so\"}\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "from watchdog.observers.inotify_c import Inotify;print(Inotify.__module__)"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "watchdog.observers.inotify_c\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "list",
+        "--format",
+        "json",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "[{\"name\":\"babel\",\"version\":\"2.18.0\"},{\"name\":\"backrefs\",\"version\":\"8.1\"},{\"name\":\"certifi\",\"version\":\"2026.10.23\"},{\"name\":\"charset-normalizer\",\"version\":\"3.5.2\"},{\"name\":\"click\",\"version\":\"8.5.0\"},{\"name\":\"colorama\",\"version\":\"0.4.6\"},{\"name\":\"coverage\",\"version\":\"7.17.0\"},{\"name\":\"execnet\",\"version\":\"2.1.2\"},{\"name\":\"genia\",\"version\":\"0.1.14\",\"editable_project_location\":\"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source\"},{\"name\":\"ghp-import\",\"version\":\"2.1.0\"},{\"name\":\"idna\",\"version\":\"3.20\"},{\"name\":\"iniconfig\",\"version\":\"2.3.1\"},{\"name\":\"jinja2\",\"version\":\"3.1.6\"},{\"name\":\"markdown\",\"version\":\"3.11.2\"},{\"name\":\"markupsafe\",\"version\":\"3.0.4\"},{\"name\":\"mergedeep\",\"version\":\"1.3.4\"},{\"name\":\"mkdocs\",\"version\":\"1.6.1\"},{\"name\":\"mkdocs-get-deps\",\"version\":\"0.2.2\"},{\"name\":\"mkdocs-material\",\"version\":\"9.8.0\"},{\"name\":\"mkdocs-material-extensions\",\"version\":\"1.3.1\"},{\"name\":\"packaging\",\"version\":\"26.3\"},{\"name\":\"paginate\",\"version\":\"0.5.7\"},{\"name\":\"pathspec\",\"version\":\"1.1.1\"},{\"name\":\"platformdirs\",\"version\":\"4.13.5\"},{\"name\":\"pluggy\",\"version\":\"1.7.0\"},{\"name\":\"pygments\",\"version\":\"2.21.0\"},{\"name\":\"pymdown-extensions\",\"version\":\"12.3\"},{\"name\":\"pytest\",\"version\":\"9.1.1\"},{\"name\":\"pytest-cov\",\"version\":\"7.1.0\"},{\"name\":\"pytest-xdist\",\"version\":\"3.8.0\"},{\"name\":\"python-dateutil\",\"version\":\"3.0.0\"},{\"name\":\"pyyaml\",\"version\":\"6.0.3\"},{\"name\":\"pyyaml-env-tag\",\"version\":\"1.1\"},{\"name\":\"requests\",\"version\":\"2.34.2\"},{\"name\":\"ruff\",\"version\":\"0.15.18\"},{\"name\":\"six\",\"version\":\"1.17.0\"},{\"name\":\"tree-sitter\",\"version\":\"0.25.2\"},{\"name\":\"tree-sitter-bash\",\"version\":\"0.25.1\"},{\"name\":\"tree-sitter-cpp\",\"version\":\"0.23.4\"},{\"name\":\"tree-sitter-rust\",\"version\":\"0.24.2\"},{\"name\":\"tree-sitter-typescript\",\"version\":\"0.23.2\"},{\"name\":\"tzdata\",\"version\":\"2026.5\"},{\"name\":\"urllib3\",\"version\":\"2.8.0\"},{\"name\":\"watchdog\",\"version\":\"6.0.0\"}]\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "freeze",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "babel==2.18.0\nbackrefs==8.1\ncertifi==2026.10.23\ncharset-normalizer==3.5.2\nclick==8.5.0\ncolorama==0.4.6\ncoverage==7.17.0\nexecnet==2.1.2\n-e file:///workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source\nghp-import==2.1.0\nidna==3.20\niniconfig==2.3.1\njinja2==3.1.6\nmarkdown==3.11.2\nmarkupsafe==3.0.4\nmergedeep==1.3.4\nmkdocs==1.6.1\nmkdocs-get-deps==0.2.2\nmkdocs-material==9.8.0\nmkdocs-material-extensions==1.3.1\npackaging==26.3\npaginate==0.5.7\npathspec==1.1.1\nplatformdirs==4.13.5\npluggy==1.7.0\npygments==2.21.0\npymdown-extensions==12.3\npytest==9.1.1\npytest-cov==7.1.0\npytest-xdist==3.8.0\npython-dateutil==3.0.0\npyyaml==6.0.3\npyyaml-env-tag==1.1\nrequests==2.34.2\nruff==0.15.18\nsix==1.17.0\ntree-sitter==0.25.2\ntree-sitter-bash==0.25.1\ntree-sitter-cpp==0.23.4\ntree-sitter-rust==0.24.2\ntree-sitter-typescript==0.23.2\ntzdata==2026.5\nurllib3==2.8.0\nwatchdog==6.0.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "show",
+        "genia",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Name: genia\nVersion: 0.1.14\nLocation: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages\nEditable project location: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source\nRequires: pyyaml\nRequired-by:\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "tree",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "genia v0.1.14\n\u2514\u2500\u2500 pyyaml v6.0.3\nmkdocs-material v9.8.0\n\u251c\u2500\u2500 babel v2.18.0\n\u251c\u2500\u2500 backrefs v8.1\n\u251c\u2500\u2500 colorama v0.4.6\n\u251c\u2500\u2500 jinja2 v3.1.6\n\u2502   \u2514\u2500\u2500 markupsafe v3.0.4\n\u251c\u2500\u2500 markdown v3.11.2\n\u251c\u2500\u2500 mkdocs v1.6.1\n\u2502   \u251c\u2500\u2500 click v8.5.0\n\u2502   \u251c\u2500\u2500 ghp-import v2.1.0\n\u2502   \u2502   \u2514\u2500\u2500 python-dateutil v3.0.0\n\u2502   \u2502       \u251c\u2500\u2500 six v1.17.0\n\u2502   \u2502       \u2514\u2500\u2500 tzdata v2026.5\n\u2502   \u251c\u2500\u2500 jinja2 v3.1.6 (*)\n\u2502   \u251c\u2500\u2500 markdown v3.11.2\n\u2502   \u251c\u2500\u2500 markupsafe v3.0.4\n\u2502   \u251c\u2500\u2500 mergedeep v1.3.4\n\u2502   \u251c\u2500\u2500 mkdocs-get-deps v0.2.2\n\u2502   \u2502   \u251c\u2500\u2500 mergedeep v1.3.4\n\u2502   \u2502   \u251c\u2500\u2500 platformdirs v4.13.5\n\u2502   \u2502   \u2514\u2500\u2500 pyyaml v6.0.3\n\u2502   \u251c\u2500\u2500 packaging v26.3\n\u2502   \u251c\u2500\u2500 pathspec v1.1.1\n\u2502   \u251c\u2500\u2500 pyyaml v6.0.3\n\u2502   \u251c\u2500\u2500 pyyaml-env-tag v1.1\n\u2502   \u2502   \u2514\u2500\u2500 pyyaml v6.0.3\n\u2502   \u2514\u2500\u2500 watchdog v6.0.0\n\u251c\u2500\u2500 mkdocs-material-extensions v1.3.1\n\u251c\u2500\u2500 paginate v0.5.7\n\u251c\u2500\u2500 pygments v2.21.0\n\u251c\u2500\u2500 pymdown-extensions v12.3\n\u2502   \u251c\u2500\u2500 markdown v3.11.2\n\u2502   \u2514\u2500\u2500 pyyaml v6.0.3\n\u2514\u2500\u2500 requests v2.34.2\n    \u251c\u2500\u2500 certifi v2026.10.23\n    \u251c\u2500\u2500 charset-normalizer v3.5.2\n    \u251c\u2500\u2500 idna v3.20\n    \u2514\u2500\u2500 urllib3 v2.8.0\npytest-cov v7.1.0\n\u251c\u2500\u2500 coverage v7.17.0\n\u251c\u2500\u2500 pluggy v1.7.0\n\u2514\u2500\u2500 pytest v9.1.1\n    \u251c\u2500\u2500 iniconfig v2.3.1\n    \u251c\u2500\u2500 packaging v26.3\n    \u251c\u2500\u2500 pluggy v1.7.0\n    \u2514\u2500\u2500 pygments v2.21.0\npytest-xdist v3.8.0\n\u251c\u2500\u2500 execnet v2.1.2\n\u2514\u2500\u2500 pytest v9.1.1 (*)\nruff v0.15.18\ntree-sitter v0.25.2\ntree-sitter-bash v0.25.1\ntree-sitter-cpp v0.23.4\ntree-sitter-rust v0.24.2\ntree-sitter-typescript v0.23.2\n(*) Package tree already displayed\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\nChecked 44 packages in 56ms\nAll installed packages are compatible\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import genia,genia.frontend_live_probe as p;print(genia.frontend_live_probe_value,p.value)"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "1285 1285\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "run",
+        "--frozen",
+        "--offline",
+        "--no-sync",
+        "python",
+        "-B",
+        "-c",
+        "import sys;print(sys.prefix)"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "run",
+        "--offline",
+        "python",
+        "-B",
+        "-c",
+        "import sys;print(sys.prefix)"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-S",
+        "-B",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/frontend/build_frontend.py",
+        "--pins",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/pins.json",
+        "--inputs",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/wheels",
+        "--source-archive",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/source.tar",
+        "--lock",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv.lock",
+        "--uv",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--receipt",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/build-B.json",
+        "--cache",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/cache-B",
+        "--input-manifest",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/input-sha256.txt",
+        "--input-manifest-sha256",
+        "d942578aa5dd71a0f9be07eebe64ec60d4ddaf5d2140440448c10cf30b5284e3",
+        "--host-test",
+        "--root",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active",
+        "--python",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: active/genia/build-venv\nActivate with: source active/genia/build-venv/bin/activate\nUsing CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: active/genia/venv\nActivate with: source active/genia/venv/bin/activate\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import json,importlib.metadata,site,genia;print(json.dumps({\"distributions\":sorted(d.metadata[\"Name\"].lower().replace(\"_\",\"-\")+\"==\"+d.version for d in importlib.metadata.distributions()),\"source\":genia.__file__,\"user_site\":site.ENABLE_USER_SITE}))"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "{\"distributions\": [\"babel==2.18.0\", \"backrefs==8.1\", \"certifi==2026.10.23\", \"charset-normalizer==3.5.2\", \"click==8.5.0\", \"colorama==0.4.6\", \"coverage==7.17.0\", \"execnet==2.1.2\", \"genia==0.1.14\", \"ghp-import==2.1.0\", \"idna==3.20\", \"iniconfig==2.3.1\", \"jinja2==3.1.6\", \"markdown==3.11.2\", \"markupsafe==3.0.4\", \"mergedeep==1.3.4\", \"mkdocs-get-deps==0.2.2\", \"mkdocs-material-extensions==1.3.1\", \"mkdocs-material==9.8.0\", \"mkdocs==1.6.1\", \"packaging==26.3\", \"paginate==0.5.7\", \"pathspec==1.1.1\", \"platformdirs==4.13.5\", \"pluggy==1.7.0\", \"pygments==2.21.0\", \"pymdown-extensions==12.3\", \"pytest-cov==7.1.0\", \"pytest-xdist==3.8.0\", \"pytest==9.1.1\", \"python-dateutil==3.0.0\", \"pyyaml-env-tag==1.1\", \"pyyaml==6.0.3\", \"requests==2.34.2\", \"ruff==0.15.18\", \"six==1.17.0\", \"tree-sitter-bash==0.25.1\", \"tree-sitter-cpp==0.23.4\", \"tree-sitter-rust==0.24.2\", \"tree-sitter-typescript==0.23.2\", \"tree-sitter==0.25.2\", \"tzdata==2026.5\", \"urllib3==2.8.0\", \"watchdog==6.0.0\"], \"source\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source/src/genia/__init__.py\", \"user_site\": false}\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/coverage",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Coverage.py, version 7.17.0 with C extension\nFull documentation is at https://coverage.readthedocs.io/en/7.17.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/coverage-3.12",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "**\n** This entry point is deprecated and will be removed.\n** Send me an email if you want to keep this command name working:\n** ned@nedbatchelder.com\n**\n\nCoverage.py, version 7.17.0 with C extension\nFull documentation is at https://coverage.readthedocs.io/en/7.17.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/coverage3",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "**\n** This entry point is deprecated and will be removed.\n** Send me an email if you want to keep this command name working:\n** ned@nedbatchelder.com\n**\n\nCoverage.py, version 7.17.0 with C extension\nFull documentation is at https://coverage.readthedocs.io/en/7.17.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/genia",
+        "-c",
+        "1 + 1"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "2\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/ghp-import",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "usage: ghp-import [-h] [--version] [-n] [-c CNAME] [-m MESG] [-p] [-x PREFIX]\n                  [-f] [-o] [-r REMOTE] [-b BRANCH] [-s] [-l]\n                  directory\n\npositional arguments:\n  directory\n\noptions:\n  -h, --help            show this help message and exit\n  --version             show program's version number and exit\n  -n, --no-jekyll       Include a .nojekyll file in the branch.\n  -c CNAME, --cname CNAME\n                        Write a CNAME file with the given CNAME.\n  -m MESG, --message MESG\n                        The commit message to use on the target branch.\n  -p, --push            Push the branch to origin/{branch} after committing.\n  -x PREFIX, --prefix PREFIX\n                        The prefix to add to each file that gets pushed to the\n                        remote. Only files below this prefix will be cleared\n                        out. [None]\n  -f, --force           Force the push to the repository.\n  -o, --no-history      Force new commit without parent history.\n  -r REMOTE, --remote REMOTE\n                        The name of the remote to push to. [origin]\n  -b BRANCH, --branch BRANCH\n                        Name of the branch to write to. [gh-pages]\n  -s, --shell           Use the shell when invoking Git. [False]\n  -l, --follow-links    Follow symlinks when adding files. [False]\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/idna",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "usage: python -m idna [-h] [-e | -d] [--strict] [--version] [domain ...]\n\nConvert a domain name between its Unicode (U-label) and ASCII-compatible\n(A-label) forms. With no mode flag, the direction is chosen from the first\ninput \u2014 if it contains an xn-- label the stream is decoded, otherwise it is\nencoded \u2014 and the same mode is applied to every remaining input. UTS #46\nmapping is applied by default; pass --strict to disable it. When no domains\nare given on the command line and stdin is piped, one domain per line is read\nfrom stdin.\n\npositional arguments:\n  domain        One or more domain names to convert. Omit to read from stdin.\n\noptions:\n  -h, --help    show this help message and exit\n  -e, --encode  Encode the input to its ASCII A-label form.\n  -d, --decode  Decode the input from its ASCII A-label form.\n  --strict      Disable the default UTS #46 mapping and apply IDNA 2008 rules\n                verbatim.\n  --version     show program's version number and exit\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/markdown_py",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Usage: markdown_py [options] [INPUTFILE]\n       (STDIN is assumed if no INPUTFILE is given)\n\nA Python implementation of John Gruber's Markdown. https://python-\nmarkdown.github.io/\n\nOptions:\n  --version             show program's version number and exit\n  -h, --help            show this help message and exit\n  -f OUTPUT_FILE, --file=OUTPUT_FILE\n                        Write output to OUTPUT_FILE. Defaults to STDOUT.\n  -e ENCODING, --encoding=ENCODING\n                        Encoding for input and output files.\n  -o OUTPUT_FORMAT, --output_format=OUTPUT_FORMAT\n                        Use output format 'xhtml' (default) or 'html'.\n  -n, --no_lazy_ol      Observe number of first item of ordered lists.\n  -x EXTENSION, --extension=EXTENSION\n                        Load extension EXTENSION.\n  -c CONFIG_FILE, --extension_configs=CONFIG_FILE\n                        Read extension configurations from CONFIG_FILE.\n                        CONFIG_FILE must be of JSON or YAML format. YAML\n                        format requires that a python YAML library be\n                        installed. The parsed JSON or YAML must result in a\n                        python dictionary which would be accepted by the\n                        'extension_configs' keyword on the markdown.Markdown\n                        class. The extensions must also be loaded with the\n                        `--extension` option.\n  -q, --quiet           Suppress all warnings.\n  -v, --verbose         Print all warnings.\n  --noisy               Print debug messages.\n\nWARNING: The Python-Markdown library does NOT sanitize its HTML output. If you\nare processing Markdown input from an untrusted source, it is your\nresponsibility to ensure that it is properly sanitized. For more information\nsee <https://python-markdown.github.io/sanitization/>.\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/mkdocs",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "mkdocs, version 1.6.1 from /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/mkdocs (Python 3.12)\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/mkdocs-get-deps",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "usage: mkdocs-get-deps [-h] [-v] [-f CONFIG_FILE] [-p PROJECTS_FILE]\n\nShow required PyPI packages inferred from plugins in mkdocs.yml.\n\noptions:\n  -h, --help            show this help message and exit\n  -v, --verbose         Enable verbose output\n  -f CONFIG_FILE, --config-file CONFIG_FILE\n                        Provide a specific MkDocs config. This can be a file\n                        name, or '-' to read from stdin.\n  -p PROJECTS_FILE, --projects-file PROJECTS_FILE\n                        URL or local path of the registry file that declares\n                        all known MkDocs-related projects.\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/normalizer",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Charset-Normalizer 3.5.2 - Python 3.12.14 - Unicode 15.0.0 - SpeedUp ON\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/py.test",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "pytest 9.1.1\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/pybabel",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "pybabel 2.18.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/pygmentize",
+        "-V"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Pygments version 2.21.0, (c) 2006-present by Georg Brandl, Matth\u00e4us Chajdas and contributors.\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/pytest",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "pytest 9.1.1\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/watchmedo",
+        "--help"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "usage: watchmedo [-h] [--version]\n                 {tricks-from,tricks,tricks-generate-yaml,generate-tricks-yaml,log,shell-command,auto-restart}\n                 ...\n\npositional arguments:\n  {tricks-from,tricks,tricks-generate-yaml,generate-tricks-yaml,log,shell-command,auto-restart}\n\noptions:\n  -h, --help\n      show this help message and exit\n      \n  --version\n      show program's version number and exit\n      \n\nCopyright 2018-2024 Micka\u00ebl Schoentgen & contributors\nCopyright 2014-2018 Thomas Amland & contributors\nCopyright 2012-2014 Google, Inc.\nCopyright 2011-2012 Yesudeep Mangalapilly\n\nLicensed under the terms of the Apache license, version 2.0. Please see\nLICENSE in the source code for more information.\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/ruff",
+        "--version"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "ruff 0.15.18\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import importlib,json;modules=['charset_normalizer.cd', 'charset_normalizer.md', 'coverage.tracer', 'markupsafe._speedups', 'yaml._yaml', 'tree_sitter._binding', 'tree_sitter_bash._binding', 'tree_sitter_cpp._binding', 'tree_sitter_rust._binding', 'tree_sitter_typescript._binding'];print(json.dumps({n:importlib.import_module(n).__file__ for n in modules}))"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "{\"charset_normalizer.cd\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/charset_normalizer/cd.cpython-312-x86_64-linux-gnu.so\", \"charset_normalizer.md\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/charset_normalizer/md.cpython-312-x86_64-linux-gnu.so\", \"coverage.tracer\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/coverage/tracer.cpython-312-x86_64-linux-gnu.so\", \"markupsafe._speedups\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/markupsafe/_speedups.cpython-312-x86_64-linux-gnu.so\", \"yaml._yaml\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/yaml/_yaml.cpython-312-x86_64-linux-gnu.so\", \"tree_sitter._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter/_binding.cpython-312-x86_64-linux-gnu.so\", \"tree_sitter_bash._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_bash/_binding.abi3.so\", \"tree_sitter_cpp._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_cpp/_binding.abi3.so\", \"tree_sitter_rust._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_rust/_binding.abi3.so\", \"tree_sitter_typescript._binding\": \"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages/tree_sitter_typescript/_binding.abi3.so\"}\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "from watchdog.observers.inotify_c import Inotify;print(Inotify.__module__)"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "watchdog.observers.inotify_c\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "list",
+        "--format",
+        "json",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "[{\"name\":\"babel\",\"version\":\"2.18.0\"},{\"name\":\"backrefs\",\"version\":\"8.1\"},{\"name\":\"certifi\",\"version\":\"2026.10.23\"},{\"name\":\"charset-normalizer\",\"version\":\"3.5.2\"},{\"name\":\"click\",\"version\":\"8.5.0\"},{\"name\":\"colorama\",\"version\":\"0.4.6\"},{\"name\":\"coverage\",\"version\":\"7.17.0\"},{\"name\":\"execnet\",\"version\":\"2.1.2\"},{\"name\":\"genia\",\"version\":\"0.1.14\",\"editable_project_location\":\"/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source\"},{\"name\":\"ghp-import\",\"version\":\"2.1.0\"},{\"name\":\"idna\",\"version\":\"3.20\"},{\"name\":\"iniconfig\",\"version\":\"2.3.1\"},{\"name\":\"jinja2\",\"version\":\"3.1.6\"},{\"name\":\"markdown\",\"version\":\"3.11.2\"},{\"name\":\"markupsafe\",\"version\":\"3.0.4\"},{\"name\":\"mergedeep\",\"version\":\"1.3.4\"},{\"name\":\"mkdocs\",\"version\":\"1.6.1\"},{\"name\":\"mkdocs-get-deps\",\"version\":\"0.2.2\"},{\"name\":\"mkdocs-material\",\"version\":\"9.8.0\"},{\"name\":\"mkdocs-material-extensions\",\"version\":\"1.3.1\"},{\"name\":\"packaging\",\"version\":\"26.3\"},{\"name\":\"paginate\",\"version\":\"0.5.7\"},{\"name\":\"pathspec\",\"version\":\"1.1.1\"},{\"name\":\"platformdirs\",\"version\":\"4.13.5\"},{\"name\":\"pluggy\",\"version\":\"1.7.0\"},{\"name\":\"pygments\",\"version\":\"2.21.0\"},{\"name\":\"pymdown-extensions\",\"version\":\"12.3\"},{\"name\":\"pytest\",\"version\":\"9.1.1\"},{\"name\":\"pytest-cov\",\"version\":\"7.1.0\"},{\"name\":\"pytest-xdist\",\"version\":\"3.8.0\"},{\"name\":\"python-dateutil\",\"version\":\"3.0.0\"},{\"name\":\"pyyaml\",\"version\":\"6.0.3\"},{\"name\":\"pyyaml-env-tag\",\"version\":\"1.1\"},{\"name\":\"requests\",\"version\":\"2.34.2\"},{\"name\":\"ruff\",\"version\":\"0.15.18\"},{\"name\":\"six\",\"version\":\"1.17.0\"},{\"name\":\"tree-sitter\",\"version\":\"0.25.2\"},{\"name\":\"tree-sitter-bash\",\"version\":\"0.25.1\"},{\"name\":\"tree-sitter-cpp\",\"version\":\"0.23.4\"},{\"name\":\"tree-sitter-rust\",\"version\":\"0.24.2\"},{\"name\":\"tree-sitter-typescript\",\"version\":\"0.23.2\"},{\"name\":\"tzdata\",\"version\":\"2026.5\"},{\"name\":\"urllib3\",\"version\":\"2.8.0\"},{\"name\":\"watchdog\",\"version\":\"6.0.0\"}]\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "freeze",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "babel==2.18.0\nbackrefs==8.1\ncertifi==2026.10.23\ncharset-normalizer==3.5.2\nclick==8.5.0\ncolorama==0.4.6\ncoverage==7.17.0\nexecnet==2.1.2\n-e file:///workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source\nghp-import==2.1.0\nidna==3.20\niniconfig==2.3.1\njinja2==3.1.6\nmarkdown==3.11.2\nmarkupsafe==3.0.4\nmergedeep==1.3.4\nmkdocs==1.6.1\nmkdocs-get-deps==0.2.2\nmkdocs-material==9.8.0\nmkdocs-material-extensions==1.3.1\npackaging==26.3\npaginate==0.5.7\npathspec==1.1.1\nplatformdirs==4.13.5\npluggy==1.7.0\npygments==2.21.0\npymdown-extensions==12.3\npytest==9.1.1\npytest-cov==7.1.0\npytest-xdist==3.8.0\npython-dateutil==3.0.0\npyyaml==6.0.3\npyyaml-env-tag==1.1\nrequests==2.34.2\nruff==0.15.18\nsix==1.17.0\ntree-sitter==0.25.2\ntree-sitter-bash==0.25.1\ntree-sitter-cpp==0.23.4\ntree-sitter-rust==0.24.2\ntree-sitter-typescript==0.23.2\ntzdata==2026.5\nurllib3==2.8.0\nwatchdog==6.0.0\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "show",
+        "genia",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "Name: genia\nVersion: 0.1.14\nLocation: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/lib/python3.12/site-packages\nEditable project location: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/source\nRequires: pyyaml\nRequired-by:\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "tree",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "genia v0.1.14\n\u2514\u2500\u2500 pyyaml v6.0.3\nmkdocs-material v9.8.0\n\u251c\u2500\u2500 babel v2.18.0\n\u251c\u2500\u2500 backrefs v8.1\n\u251c\u2500\u2500 colorama v0.4.6\n\u251c\u2500\u2500 jinja2 v3.1.6\n\u2502   \u2514\u2500\u2500 markupsafe v3.0.4\n\u251c\u2500\u2500 markdown v3.11.2\n\u251c\u2500\u2500 mkdocs v1.6.1\n\u2502   \u251c\u2500\u2500 click v8.5.0\n\u2502   \u251c\u2500\u2500 ghp-import v2.1.0\n\u2502   \u2502   \u2514\u2500\u2500 python-dateutil v3.0.0\n\u2502   \u2502       \u251c\u2500\u2500 six v1.17.0\n\u2502   \u2502       \u2514\u2500\u2500 tzdata v2026.5\n\u2502   \u251c\u2500\u2500 jinja2 v3.1.6 (*)\n\u2502   \u251c\u2500\u2500 markdown v3.11.2\n\u2502   \u251c\u2500\u2500 markupsafe v3.0.4\n\u2502   \u251c\u2500\u2500 mergedeep v1.3.4\n\u2502   \u251c\u2500\u2500 mkdocs-get-deps v0.2.2\n\u2502   \u2502   \u251c\u2500\u2500 mergedeep v1.3.4\n\u2502   \u2502   \u251c\u2500\u2500 platformdirs v4.13.5\n\u2502   \u2502   \u2514\u2500\u2500 pyyaml v6.0.3\n\u2502   \u251c\u2500\u2500 packaging v26.3\n\u2502   \u251c\u2500\u2500 pathspec v1.1.1\n\u2502   \u251c\u2500\u2500 pyyaml v6.0.3\n\u2502   \u251c\u2500\u2500 pyyaml-env-tag v1.1\n\u2502   \u2502   \u2514\u2500\u2500 pyyaml v6.0.3\n\u2502   \u2514\u2500\u2500 watchdog v6.0.0\n\u251c\u2500\u2500 mkdocs-material-extensions v1.3.1\n\u251c\u2500\u2500 paginate v0.5.7\n\u251c\u2500\u2500 pygments v2.21.0\n\u251c\u2500\u2500 pymdown-extensions v12.3\n\u2502   \u251c\u2500\u2500 markdown v3.11.2\n\u2502   \u2514\u2500\u2500 pyyaml v6.0.3\n\u2514\u2500\u2500 requests v2.34.2\n    \u251c\u2500\u2500 certifi v2026.10.23\n    \u251c\u2500\u2500 charset-normalizer v3.5.2\n    \u251c\u2500\u2500 idna v3.20\n    \u2514\u2500\u2500 urllib3 v2.8.0\npytest-cov v7.1.0\n\u251c\u2500\u2500 coverage v7.17.0\n\u251c\u2500\u2500 pluggy v1.7.0\n\u2514\u2500\u2500 pytest v9.1.1\n    \u251c\u2500\u2500 iniconfig v2.3.1\n    \u251c\u2500\u2500 packaging v26.3\n    \u251c\u2500\u2500 pluggy v1.7.0\n    \u2514\u2500\u2500 pygments v2.21.0\npytest-xdist v3.8.0\n\u251c\u2500\u2500 execnet v2.1.2\n\u2514\u2500\u2500 pytest v9.1.1 (*)\nruff v0.15.18\ntree-sitter v0.25.2\ntree-sitter-bash v0.25.1\ntree-sitter-cpp v0.23.4\ntree-sitter-rust v0.24.2\ntree-sitter-typescript v0.23.2\n(*) Package tree already displayed\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "pip",
+        "check",
+        "--python",
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "--offline"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\nUsing Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\nChecked 44 packages in 76ms\nAll installed packages are compatible\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv/bin/python",
+        "-I",
+        "-B",
+        "-c",
+        "import genia,genia.frontend_live_probe as p;print(genia.frontend_live_probe_value,p.value)"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "1285 1285\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "run",
+        "--frozen",
+        "--offline",
+        "--no-sync",
+        "python",
+        "-B",
+        "-c",
+        "import sys;print(sys.prefix)"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    },
+    {
+      "argv": [
+        "/workspace/work/.genia/process/tmp/1285-revision/ab2/stage/uv",
+        "--no-config",
+        "--no-cache",
+        "run",
+        "--offline",
+        "python",
+        "-B",
+        "-c",
+        "import sys;print(sys.prefix)"
+      ],
+      "restrictive_offline_guard": true,
+      "exit_code": 0,
+      "stdout": "/workspace/work/.genia/process/tmp/1285-revision/ab2/active/genia/venv\n",
+      "stderr": "OFFLINE_GUARD: socket EPERM; socket/connect denial inherited across exec\n"
+    }
+  ],
+  "comparison": {
+    "changed_paths": [],
+    "strict_equal": true,
+    "includes": "all files/directories/symlinks, bytes/hash/size/mode/uid/gid/link targets in source/builder/editable/deployment/tools and complete retained runner-input tree; timestamps excluded",
+    "independent_workers_or_OCI": false
+  },
+  "manifest_artifact": {
+    "file": "manifests.json.xz",
+    "sha256": "570062bdae8f9fb0a596500310be9fd4a0d1cd710d91e14b2c6922a7bb31a4bb",
+    "decoded_sha256": "cb7deef3a0a4f4c1d98f8be7f060e38a5be9fe71b9069cb2cd0db023d96c426d",
+    "bytes": 864520
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "venv": {
+    "argv": [
+      "/workspace/work/.genia/process/tmp/1285-revision/uv",
+      "--no-config",
+      "--no-cache",
+      "venv",
+      "--offline",
+      "--no-python-downloads",
+      "--python",
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "/workspace/work/.genia/process/tmp/1285-revision/tmp-probe/venv"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python\nCreating virtual environment at: /workspace/work/.genia/process/tmp/1285-revision/tmp-probe/venv\nActivate with: source /workspace/work/.genia/process/tmp/1285-revision/tmp-probe/venv/bin/activate\n",
+    "home": {
+      ".": {
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "kind": "directory"
+      }
+    },
+    "tmp": {
+      ".": {
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "kind": "directory"
+      }
+    }
+  },
+  "pip-check": {
+    "argv": [
+      "/workspace/work/.genia/process/tmp/1285-revision/uv",
+      "--no-config",
+      "--no-cache",
+      "pip",
+      "check",
+      "--offline",
+      "--python",
+      "/workspace/work/.genia/process/tmp/1285-revision/ab/active/genia/venv/bin/python"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Using Python 3.12.14 environment at: /workspace/work/.genia/process/tmp/1285-revision/ab/active/genia/venv\nChecked 44 packages in 101ms\nAll installed packages are compatible\n",
+    "home": {
+      ".": {
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "kind": "directory"
+      }
+    },
+    "tmp": {
+      ".": {
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "kind": "directory"
+      }
+    }
+  },
+  "project-run": {
+    "argv": [
+      "/workspace/work/.genia/process/tmp/1285-revision/uv",
+      "--no-config",
+      "--no-cache",
+      "run",
+      "--frozen",
+      "--offline",
+      "--no-sync",
+      "python",
+      "-B",
+      "-c",
+      "import sys;print(sys.prefix)"
+    ],
+    "returncode": 0,
+    "stdout": "/workspace/work/.genia/process/tmp/1285-revision/ab/active/genia/venv\n",
+    "stderr": "",
+    "home": {
+      ".": {
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "kind": "directory"
+      }
+    },
+    "tmp": {
+      ".": {
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "kind": "directory"
+      },
+      "uv-a7e50112bda54268.lock": {
+        "mode": 438,
+        "uid": 1000,
+        "gid": 1000,
+        "kind": "file",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  }
+}
