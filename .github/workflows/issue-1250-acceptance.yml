@@ -1,12 +1,22 @@
-# Temporary bounded acceptance infrastructure; never dispatch without maintainer authorization.
-# G0 runs in each fresh hosted job before any candidate test. G3–G5 do not exist here.
+# Temporary #1250 infrastructure. Registration and each mode's dispatch need separate authorization.
+# Removal: delete workflow/helper/registration/procedure after the #1250 acceptance decision is recorded.
 name: Issue 1250 bounded acceptance
 
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: Separately authorized mode (smoke is diagnostic only, never G0)
+        type: choice
+        options: [smoke, acceptance]
+        default: smoke
+        required: true
+      workflow_sha:
+        description: Exact 40-character workflow commit authorized in the issue ledger
+        type: string
+        required: true
       authorized:
-        description: Maintainer has authorized this reviewed workflow SHA for G0–G2
+        description: Maintainer authorized this mode at exactly workflow_sha
         type: boolean
         required: true
         default: false
@@ -14,29 +24,52 @@ on:
 permissions:
   contents: read
 
-# Preserve every attempt; do not cancel an earlier run or share test caches.
-concurrency:
-  group: issue-1250-${{ github.run_id }}-${{ github.run_attempt }}
-  cancel-in-progress: false
-
 jobs:
-  serial:
-    if: github.repository == 'm0smith/genia-2026' && github.ref == 'refs/heads/issue-1250-acceptance-infrastructure' && inputs.authorized
-    name: G0 then G1 (${{ matrix.environment }})
+  smoke:
+    # Mode selection alone may skip a job. Invalid modes reach serial's fail-loud guard.
+    if: inputs.mode == 'smoke'
+    name: Diagnostic smoke (never G0)
     runs-on: ubuntu-24.04
-    strategy:
-      max-parallel: 1
-      fail-fast: true
-      matrix:
-        environment: [A, B]
+    timeout-minutes: 15
     env:
-      STAGE: serial
-      ENVIRONMENT: ${{ matrix.environment }}
+      STAGE: smoke
+      ENVIRONMENT: smoke
     steps: &bounded-steps
+      - name: Fail loudly unless exact dispatch is authorized (attempt 1 only)
+        env:
+          REQUESTED_SHA: ${{ inputs.workflow_sha }}
+          REQUESTED_MODE: ${{ inputs.mode }}
+          AUTHORIZED: ${{ inputs.authorized }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          e = os.environ
+          record = {k: e.get(k) for k in ('GITHUB_EVENT_NAME', 'GITHUB_REPOSITORY', 'GITHUB_REF',
+                    'GITHUB_SHA', 'GITHUB_WORKFLOW_SHA', 'GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT',
+                    'REQUESTED_SHA', 'REQUESTED_MODE', 'AUTHORIZED', 'STAGE', 'ENVIRONMENT')}
+          valid = (e.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
+                   and e.get('GITHUB_REPOSITORY') == 'm0smith/genia-2026'
+                   and e.get('GITHUB_REF') == 'refs/heads/issue-1250-acceptance-infrastructure'
+                   and e.get('AUTHORIZED') == 'true' and e.get('GITHUB_RUN_ATTEMPT') == '1'
+                   and re.fullmatch('[0-9a-f]{40}', e.get('REQUESTED_SHA', '')) is not None
+                   and e['REQUESTED_SHA'] == e.get('GITHUB_SHA') == e.get('GITHUB_WORKFLOW_SHA')
+                   and e.get('REQUESTED_MODE') == ('smoke' if e['STAGE'] == 'smoke' else 'acceptance'))
+          record['outcome'] = 'PASS' if valid else 'FAIL'
+          path = Path(e['RUNNER_TEMP']) / f"issue-1250-{e['STAGE']}-{e['ENVIRONMENT']}" / 'evidence'
+          path.mkdir(parents=True, exist_ok=True)
+          (path / 'dispatch.json').write_text(json.dumps(record, indent=2) + '\n')
+          print(json.dumps(record), flush=True)
+          if not valid:
+              raise SystemExit('Unauthorized dispatch: wrong event/repository/ref/mode/SHA or attempt; no tests run')
+          PY
       - name: Checkout authorized workflow implementation
+        id: infrastructure
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ inputs.workflow_sha }}
           path: infrastructure
           persist-credentials: false
       - name: Checkout unchanged main control
@@ -46,80 +79,128 @@ jobs:
           path: baseline
           fetch-depth: 0
           persist-credentials: false
-      - name: Checkout frozen candidate
+      - name: Checkout frozen candidate (acceptance mode only)
+        if: env.STAGE != 'smoke'
         uses: actions/checkout@v6
         with:
           ref: e3562f620020023ea39c44273068872d6bc73fe6
           path: candidate
           persist-credentials: false
-      - name: Set up frozen Python build
+      - name: Set up CPython version (record actual GitHub build)
         uses: actions/setup-python@v6
         with:
           python-version: '3.12.14'
-      - name: Bootstrap frozen uv
+      - name: Bootstrap pinned uv
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check --no-input uv==0.13.5
-      - name: Download both successful G1 environments for provenance comparison
+      - name: Download both successful G1 artifacts
         if: env.STAGE == 'parallel'
         uses: actions/download-artifact@v4
         with:
-          pattern: issue-1250-serial-*
+          pattern: issue-1250-serial-*-attempt-1
           path: upstream
-      - name: Require independently provisioned G1 runners
-        if: env.STAGE == 'parallel'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          roots = sorted(Path('upstream').glob('*/provenance.json'))
-          assert len(roots) == 2, 'two G1 provenance artifacts required'
-          records = [json.loads(p.read_text()) for p in roots]
-          assert len({r['boot_id'] for r in records}) == 2, 'G1 provisioning is not independent'
-          assert all(r['runner']['GITHUB_RUN_ID'] == __import__('os').environ['GITHUB_RUN_ID'] for r in records)
-          assert all(r['runner']['GITHUB_WORKFLOW_SHA'] == __import__('os').environ['GITHUB_WORKFLOW_SHA'] for r in records)
-          PY
-      - name: Run G0 controls then bounded gate in non-reaping PID1 namespace
+      - name: Run authorized phase in fresh non-reaping PID1 namespaces
+        id: gate
+        env:
+          WORKFLOW_SHA: ${{ inputs.workflow_sha }}
+          DISPATCH_MODE: ${{ inputs.mode }}
         shell: bash
         run: |
           set -euo pipefail
           work="$RUNNER_TEMP/issue-1250-$STAGE-$ENVIRONMENT"
-          mkdir -p "$work/evidence"
-          # Resource controls affect the whole process tree, not individual pytest workers.
-          # A fresh mount/PID namespace retains orphan zombies until this gate exits.
-          # Drop back to the runner user before running any repository code.
-          sudo systemd-run --quiet --wait --pipe --collect \
-            --property=CPUQuota=200% --property=MemoryMax=8G \
-            --property="WorkingDirectory=$GITHUB_WORKSPACE" \
-            --setenv="PATH=$PATH" --setenv="LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}" \
-            --setenv="RUNNER_NAME=$RUNNER_NAME" --setenv="RUNNER_OS=$RUNNER_OS" \
-            --setenv="RUNNER_ARCH=$RUNNER_ARCH" --setenv="ImageOS=$ImageOS" \
-            --setenv="ImageVersion=$ImageVersion" --setenv="CI=true" \
-            --setenv="GITHUB_RUN_ID=$GITHUB_RUN_ID" --setenv="GITHUB_RUN_ATTEMPT=$GITHUB_RUN_ATTEMPT" \
-            --setenv="GITHUB_JOB=$GITHUB_JOB" --setenv="GITHUB_WORKFLOW_REF=$GITHUB_WORKFLOW_REF" \
-            --setenv="GITHUB_WORKFLOW_SHA=$GITHUB_WORKFLOW_SHA" \
-            unshare --pid --fork --mount-proc --mount \
-            setpriv --reuid="$(id -u)" --regid="$(id -g)" --init-groups \
-            "$(command -v python)" infrastructure/tools/issue_1250/run.py "$STAGE" \
-            --baseline "$GITHUB_WORKSPACE/baseline" --candidate "$GITHUB_WORKSPACE/candidate" --work "$work"
+          python_executable="$(command -v python)"
+          # Root only creates resource/PID/mount boundaries; setpriv drops uid before Python runs.
+          # Runner passwordless sudo means uid drop is realistic test context, not a security boundary.
+          run_namespace() {
+            local phase="$1"
+            shift
+            /usr/bin/sudo /usr/bin/systemd-run --quiet --wait --pipe --collect \
+              --property=CPUQuota=200% --property=MemoryMax=8G \
+              --property="WorkingDirectory=$GITHUB_WORKSPACE" \
+              --setenv="PATH=$PATH" --setenv="LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}" \
+              --setenv="RUNNER_NAME=$RUNNER_NAME" --setenv="RUNNER_OS=$RUNNER_OS" \
+              --setenv="RUNNER_ARCH=$RUNNER_ARCH" --setenv="ImageOS=$ImageOS" \
+              --setenv="ImageVersion=$ImageVersion" --setenv="CI=true" \
+              --setenv="GITHUB_RUN_ID=$GITHUB_RUN_ID" --setenv="GITHUB_RUN_ATTEMPT=$GITHUB_RUN_ATTEMPT" \
+              --setenv="GITHUB_JOB=$GITHUB_JOB" --setenv="GITHUB_WORKFLOW_REF=$GITHUB_WORKFLOW_REF" \
+              --setenv="GITHUB_WORKFLOW_SHA=$GITHUB_WORKFLOW_SHA" --setenv="WORKFLOW_SHA=$WORKFLOW_SHA" \
+              --setenv="DISPATCH_MODE=$DISPATCH_MODE" --setenv="ACCEPTANCE_ENVIRONMENT=$ENVIRONMENT" \
+              /usr/bin/unshare --pid --fork --mount-proc --mount \
+              /usr/bin/setpriv --reuid="$(/usr/bin/id -u)" --regid="$(/usr/bin/id -g)" --init-groups \
+              "$python_executable" infrastructure/tools/issue_1250/run.py "$phase" \
+              --baseline "$GITHUB_WORKSPACE/baseline" --work "$work/$phase" \
+              --evidence "$work/evidence/$phase" "$@"
+          }
+          if [ "$STAGE" = smoke ]; then
+            # No candidate, negative controls, signal nodes or acceptance classification.
+            run_namespace smoke
+          else
+            run_namespace g0
+            # G0's namespace has exited; mutant debris cannot contaminate G1/G2 snapshots.
+            args=(--candidate "$GITHUB_WORKSPACE/candidate" --qualification "$work/evidence/g0")
+            if [ "$STAGE" = parallel ]; then
+              args+=(--upstream "$GITHUB_WORKSPACE/upstream")
+            fi
+            run_namespace "$STAGE" "${args[@]}"
+          fi
+      - name: Report outcomes and manifest digest including failures
+        id: report
+        if: always() && steps.infrastructure.outcome == 'success'
+        env:
+          COMMAND_OUTCOME: ${{ steps.gate.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 infrastructure/tools/issue_1250/run.py report \
+            --evidence "$RUNNER_TEMP/issue-1250-$STAGE-$ENVIRONMENT/evidence" \
+            --stage "$STAGE" --command-outcome "$COMMAND_OUTCOME"
       - name: Preserve evidence including failures
+        id: upload
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: issue-1250-${{ env.STAGE }}-${{ env.ENVIRONMENT }}
+          name: issue-1250-${{ env.STAGE }}-${{ env.ENVIRONMENT }}-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/issue-1250-${{ env.STAGE }}-${{ env.ENVIRONMENT }}/evidence/
           if-no-files-found: error
           retention-days: 30
           include-hidden-files: false
+      - name: Publish uploaded artifact identity and digest
+        if: always()
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          MANIFEST_DIGEST: ${{ steps.report.outputs.manifest_digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'artifact_id=%s\nartifact_url=%s\nartifact_digest=%s\nmanifest_sha256=%s\n' \
+            "$ARTIFACT_ID" "$ARTIFACT_URL" "$ARTIFACT_DIGEST" "$MANIFEST_DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"
+          test -n "$ARTIFACT_ID" && test -n "$ARTIFACT_DIGEST"
+
+  serial:
+    if: inputs.mode != 'smoke'
+    name: G0 then G1 (${{ matrix.environment }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        environment: [A, B]
+    env:
+      STAGE: serial
+      ENVIRONMENT: ${{ matrix.environment }}
+    steps: *bounded-steps
 
   parallel:
-    # Default success() dependency is intentional: no G2 after any G0/G1 failure.
+    # Default success() dependency forbids G2 after any G0/G1 failure.
     needs: serial
     name: G0 then G2 (24 nodes, n=2)
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
     env:
       STAGE: parallel
       ENVIRONMENT: G2
