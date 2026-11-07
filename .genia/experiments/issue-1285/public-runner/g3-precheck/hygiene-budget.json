@@ -1,0 +1,54 @@
+{
+  "status": "INFEASIBLE on observed executor; draft, not allocated or enforced",
+  "units": "bytes, inode counts",
+  "disk_total": 8417406976,
+  "disk_available_historical": 7888793600,
+  "inodes_total": 524288,
+  "inodes_available_historical": 517981,
+  "disk_caps": [
+    {
+      "purpose": "pinned inputs",
+      "bytes": 1073741824,
+      "inodes": 65536
+    },
+    {
+      "purpose": "clean BuildKit root A",
+      "bytes": 2147483648,
+      "inodes": 131072
+    },
+    {
+      "purpose": "clean BuildKit root B",
+      "bytes": 2147483648,
+      "inodes": 131072
+    },
+    {
+      "purpose": "OCI archive A",
+      "bytes": 1073741824,
+      "inodes": 16384
+    },
+    {
+      "purpose": "OCI archive B",
+      "bytes": 1073741824,
+      "inodes": 16384
+    },
+    {
+      "purpose": "text/logs",
+      "bytes": 536870912,
+      "inodes": 32768
+    }
+  ],
+  "disk_margin_bytes": 1073741824,
+  "disk_margin_inodes": 65536,
+  "evidence_tmpfs": {
+    "bytes": 67108864,
+    "inodes": 4096,
+    "charged_to_worker_memory_bytes": 4294967296,
+    "disk_backed": false
+  },
+  "historical_projection_canonical_sha256": "ca9a787ba4f48aad2da8cae5be9f5d1c77d4ec5b813e34f931d0a5871c4a426e",
+  "canonicalization": "json.dumps(original sanitized_stdout_projection, sort_keys=True, separators=(comma,colon)), UTF-8 + LF; integrity only, not a raw-output hash",
+  "disk_caps_total_bytes": 8053063680,
+  "disk_caps_total_inodes": 393216,
+  "disk_required_with_margin_bytes": 9126805504,
+  "disk_required_with_margin_inodes": 458752
+}

@@ -1,3 +1,6 @@
+[Iteration-2 hygiene, resource reconciliation and infeasible draft budget](hygiene.md)
+qualify this historical precheck; G3 remains UNQUALIFIED.
+
 # G3 — venue-neutral infrastructure precheck (iteration 1)
 
 Codex, 2026-11-07 UTC. **BLOCKED — no execution venue qualified.** Public-only
