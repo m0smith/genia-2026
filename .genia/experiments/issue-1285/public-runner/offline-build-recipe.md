@@ -1,5 +1,13 @@
 # Offline public runner recipe — review draft, DO NOT BUILD
 
+Current status: [maintainer accepted exact frontend `fd74a583`](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6702416476)
+after independent Claude PASS; earlier frontend-review-pending prose below is
+historical. See the [current process status](../../../process/issue-1285-public-frozen-runner.md)
+for carried Low-1–Low-4/R6/R7 debt and unchanged later gates. `pins.json` remains
+byte-identical accepted-head historical metadata. [Fresh G1 evidence](g1-precheck/README.md)
+is BLOCKED (proxy403); G3 is separate, no venue/build acceptance follows.
+
+
 This is a design artifact. The maintainer selected installer 0.7.0 and authorized this text-only revision,
 not image construction. Subsequent
 [authorization](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6644232395)

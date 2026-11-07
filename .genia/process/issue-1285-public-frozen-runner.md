@@ -1,5 +1,29 @@
 # #1285 — revised public runner design and pin acquisition (A1–A8)
 
+## Current status — maintainer decision, 2026-11-07 capture
+
+The [maintainer decision](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6702416476)
+accepts the host-verified frontend at exact SHA
+`fd74a5830c76373d724bbd40a603ea85870f0aca`, following independent Claude
+[PASS](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6659717443)
+and its [directory-count correction](https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6659720450).
+Earlier frontend-review-pending statements below describe historical phases;
+that frontend gate is closed. Low-1–Low-4 and R6/R7 remain maintainer-owned debt;
+no new mandatory frontend review loop is required. Dedicated TMPDIR retention
+policy, no scratch/cache/receipt/HOME bytes in OCI layers,
+PYTHONDONTWRITEBYTECODE and runtime non-root/read-only behavior remain later
+image-gate obligations. The immutable `pins.json` is preserved byte-for-byte
+from that accepted head; its old review-status fields are historical metadata,
+not the current coordination decision.
+
+[G1's fresh public precheck](../experiments/issue-1285/public-runner/g1-precheck/README.md) is BLOCKED by proxy HTTP 403;
+G3 venue qualification is a separate lane and is not established here. Neither
+frontend acceptance nor parallel prechecks authorizes image build/run/export,
+CI dispatch, private work, benchmark trials, merge, issue closure or R29 work.
+Strict two-independent-build OCI equality and all later target/resource/reaping,
+G2/G5/custody/benchmark gates remain intact; incremental spending stays $0.
+
+
 Date: 2026-11-04. **PUBLIC ONLY / DESIGN CANDIDATE / NOT BUILT, FROZEN OR ACCEPTED.**
 Agent: Codex; branch `issue-1285-offline-frontend` (authorized frontend/host-only phase).
 Tracking: [#1285](https://github.com/m0smith/genia-2026/issues/1285).

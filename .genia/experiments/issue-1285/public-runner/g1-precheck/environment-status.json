@@ -1,0 +1,17 @@
+{
+  "environment_id": "ccarenv_b64_Y2NhcmVudl8zMDNmMzNlOGQ0MjQ4MTkxODJiNmEwYzIyODIyYzgxYw",
+  "observations_current": true,
+  "spec_revision": "1",
+  "observed_spec_revision": "1",
+  "network_policy": {
+    "mode": "restricted",
+    "state": "enforced",
+    "allowed_hosts": [],
+    "presets": [
+      "package_managers"
+    ],
+    "snapshot_debian_org_effective_allowed": false
+  },
+  "secret_bindings_count": 0,
+  "outbound_identities_count": 0
+}

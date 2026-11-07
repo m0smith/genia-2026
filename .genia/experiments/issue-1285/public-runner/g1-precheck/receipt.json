@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "phase": "G1 immutable Debian closure public precheck",
+  "verdict": "BLOCKED",
+  "checked_at_utc": "2026-11-07T04:51:34Z",
+  "agent": "Codex G1 lane",
+  "accepted_frontend_sha": "fd74a5830c76373d724bbd40a603ea85870f0aca",
+  "authorization": "https://github.com/m0smith/genia-2026/issues/1285#issuecomment-6702416476",
+  "command": "curl --max-time 20 --silent --show-error --dump-header snapshot.headers --output snapshot.body https://snapshot.debian.org/archive/debian/20261021T000000Z/dists/trixie/InRelease",
+  "inherited_proxy_and_CA_preserved": true,
+  "redirects_followed": false,
+  "curl_exit": 56,
+  "http_connect_status": 403,
+  "response_body_received": false,
+  "failure_class": "policy denial at HTTPS CONNECT; no upstream Debian metadata received",
+  "startup_policy": {
+    "mode": "restricted",
+    "snapshot_debian_org_present": false
+  },
+  "pins_sha256": "958fdd646e305bc38753a5d10b91f0f8927e41b4c2f5e2037dec3225ac25590b",
+  "pins_equal_accepted_frontend": true,
+  "retained_base_inventory_count": 87,
+  "retained_base_inventory_unique_packages": 87,
+  "retained_debian_snapshot": "20261021T000000Z",
+  "retained_new_package_roots": [
+    "git",
+    "tini",
+    "procps",
+    "lsof"
+  ],
+  "verification": {
+    "signed_release": "UNVERIFIED: policy blocked",
+    "packages_hash_chain": "UNVERIFIED: policy blocked",
+    "complete_deb_dependency_hashes": "UNVERIFIED: policy blocked",
+    "all_87_base_packages_compatibility": "UNVERIFIED: signed candidates unavailable",
+    "independent_Claude_Code_review": "REQUESTED in issue handoff; not performed by this lane"
+  },
+  "images_built_run_exported": 0,
+  "incremental_spending_usd": 0,
+  "private_inputs_accessed": false,
+  "operator_required_action": "In managed environment settings, preserve all existing configuration and add exact HTTPS destination host snapshot.debian.org to the outbound HTTP allowed hosts for this executor configuration. Save/apply through the supported environment flow. Confirm fresh environment_status observations_current=true, network_policy.state=enforced and effective_allowed_hosts includes snapshot.debian.org, then authorize a fresh direct immutable URL probe with inherited proxy/CA. Add any later redirect host only after separately reviewing its actual destination; no wildcard/relay/mirror/live apt substitution.",
+  "evidence_files": {
+    "snapshot.headers": {
+      "bytes": 143,
+      "sha256": "16b1bcbe30b6f0eb50da85542827c8cd8bec025726836068f31bec9882d28959"
+    },
+    "snapshot.stderr": {
+      "bytes": 47,
+      "sha256": "115ac061d5c11b9f88bc706341277e549679986ec53ba237026722b790803312"
+    },
+    "environment-status.json": {
+      "bytes": 449,
+      "sha256": "73cd1edab57aabe24f93daf8b20e01084a32a143f0a03da0ebb1689146b7582f"
+    }
+  }
+}
