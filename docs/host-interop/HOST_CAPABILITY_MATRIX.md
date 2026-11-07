@@ -133,7 +133,7 @@ capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`) and
 runner executes against the Python reference host); closed groups are rejected with
 `model-b-not-implemented`. Closed-function execution is not claimed. The Python
 protocol adapter advertises `default_open_functions` as `supported`, and the 143
-`model-b-c-*` cases (55 existing-behavior guards plus 88 gated cases) pass through that
+`model-b-c-*` cases (53 existing-behavior guards plus 90 gated cases) pass through that
 adapter; the 18 Python-host-only fixture/debug cases remain the only `unsupported`
 results of the external Python run.
 C++ does not claim `immutable_bindings` or `default_open_functions`: both are listed
