@@ -1,0 +1,57 @@
+{
+  "scope": "this hygiene session only; not reconstruction of iteration-1 environment",
+  "observed_at_utc": "2026-11-07T15:07:55.813589+00:00",
+  "proxy_variables_present": [
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "NO_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "no_proxy"
+  ],
+  "proxy_values_retained": false,
+  "ca_variables": {
+    "SSL_CERT_FILE": {
+      "present": true,
+      "path": "/etc/ssl/certs/ca-certificates.crt",
+      "file_sha256": "43e169bf3454bc74c12d3df8c1403f0b4e7da135bf5959f8ab31eb634896bf73"
+    },
+    "REQUESTS_CA_BUNDLE": {
+      "present": true,
+      "path": "/etc/ssl/certs/ca-certificates.crt",
+      "file_sha256": "43e169bf3454bc74c12d3df8c1403f0b4e7da135bf5959f8ab31eb634896bf73"
+    },
+    "NODE_EXTRA_CA_CERTS": {
+      "present": true,
+      "path": "/usr/local/share/ca-certificates/environment-proxy-ca.crt",
+      "file_sha256": "7fa2d7d439db8bfa7c191457e61af5e3f4eb412314eb148766ac09e93786e4c3"
+    }
+  },
+  "startup_policy": {
+    "snapshot_debian_org_literal_present": false,
+    "projection_source": "/etc/codex/network-policy.json; http_network_policy subtree only",
+    "full_policy_retained": false,
+    "mode": "restricted",
+    "egress_rule_count": 144
+  },
+  "historical_inherited_proxy_CA_claim": "assertion only; original environment was not recaptured",
+  "environment_identifier": "omitted from new evidence; original projection retained unchanged for hash integrity",
+  "trust_anchor_observation": {
+    "source": "attached executor /usr/share/keyrings/debian-archive-trixie-automatic.gpg",
+    "package": "2025.1",
+    "sha256": "8dbd0029697f8c9b009eeb9a153c6536b62ca031fa0a5b4cec74e8d718fccef6",
+    "primary_fingerprint": "04B54C3CDCA79751B16BC6B5225629DF75B188BD",
+    "signing_subkey_fingerprint": "B8E5F13176D2A7A75220028078DBA3BC47EF2265",
+    "base_layer_member_equality_verified": false,
+    "gpg_path": "/usr/bin/gpg",
+    "gpg_sha256": "7c9d2f9416aabcd10199e2984439f49612644a948279ac56bdf70d69c8958ddf",
+    "gpg_version": "gpg (GnuPG) 2.4.7"
+  },
+  "design_delta": {
+    "claim": "debian.base_snapshot_compatibility.candidate_snapshot_precedes_base_manifest_creation",
+    "original_pins_value": true,
+    "effective_verified_value": null,
+    "status": "UNVERIFIED pending signed Release date and pinned base-config creation comparison",
+    "original_pins_preserved": true
+  }
+}

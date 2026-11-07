@@ -1,3 +1,6 @@
+[Iteration-2 hygiene and qualifications](hygiene.md) supersede unsupported timestamp
+and provenance assertions below; G1 remains BLOCKED.
+
 # G1 immutable Debian closure — public precheck, iteration 1
 
 **BLOCKED, 2026-11-07 UTC.** This bounded lane follows the
@@ -12,7 +15,8 @@ exit 56. [Headers](snapshot.headers) and [stderr](snapshot.stderr) preserve the
 failure; no Debian response body or metadata was received. No retry via another
 origin, mirror, relay, live apt or proxy bypass was attempted. The fresh managed
 [status projection](environment-status.json) is current/enforced, restricted,
-revision 1, and excludes `snapshot.debian.org`; the startup policy agrees.
+revision 1, and excludes `snapshot.debian.org`; startup-policy agreement was asserted but
+its projection was not retained in that iteration.
 
 [receipt.json](receipt.json) records the command, hashes and static preservation
 checks. The unchanged manifest contains 87 unique base packages and proposed
