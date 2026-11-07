@@ -1,0 +1,32 @@
+# Registration stub for #1250. Intentionally non-executable.
+# The reviewed branch workflow must be loaded for any authorized diagnostic run.
+name: Issue 1250 bounded acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Separately authorized mode (smoke is diagnostic only, never G0)
+        type: choice
+        options: [smoke, acceptance]
+        default: smoke
+        required: true
+      workflow_sha:
+        description: Exact 40-character workflow commit authorized in the issue ledger
+        type: string
+        required: true
+      authorized:
+        description: Maintainer authorized this mode at exactly workflow_sha
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  registration-only:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    steps:
+      - run: exit 1
