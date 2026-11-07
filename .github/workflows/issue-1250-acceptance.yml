@@ -1,0 +1,126 @@
+# Temporary bounded acceptance infrastructure; never dispatch without maintainer authorization.
+# G0 runs in each fresh hosted job before any candidate test. G3–G5 do not exist here.
+name: Issue 1250 bounded acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      authorized:
+        description: Maintainer has authorized this reviewed workflow SHA for G0–G2
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+# Preserve every attempt; do not cancel an earlier run or share test caches.
+concurrency:
+  group: issue-1250-${{ github.run_id }}-${{ github.run_attempt }}
+  cancel-in-progress: false
+
+jobs:
+  serial:
+    if: github.repository == 'm0smith/genia-2026' && github.ref == 'refs/heads/issue-1250-acceptance-infrastructure' && inputs.authorized
+    name: G0 then G1 (${{ matrix.environment }})
+    runs-on: ubuntu-24.04
+    strategy:
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        environment: [A, B]
+    env:
+      STAGE: serial
+      ENVIRONMENT: ${{ matrix.environment }}
+    steps: &bounded-steps
+      - name: Checkout authorized workflow implementation
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          path: infrastructure
+          persist-credentials: false
+      - name: Checkout unchanged main control
+        uses: actions/checkout@v6
+        with:
+          ref: 0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5
+          path: baseline
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checkout frozen candidate
+        uses: actions/checkout@v6
+        with:
+          ref: e3562f620020023ea39c44273068872d6bc73fe6
+          path: candidate
+          persist-credentials: false
+      - name: Set up frozen Python build
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12.14'
+      - name: Bootstrap frozen uv
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv==0.13.5
+      - name: Download both successful G1 environments for provenance comparison
+        if: env.STAGE == 'parallel'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: issue-1250-serial-*
+          path: upstream
+      - name: Require independently provisioned G1 runners
+        if: env.STAGE == 'parallel'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          roots = sorted(Path('upstream').glob('*/provenance.json'))
+          assert len(roots) == 2, 'two G1 provenance artifacts required'
+          records = [json.loads(p.read_text()) for p in roots]
+          assert len({r['boot_id'] for r in records}) == 2, 'G1 provisioning is not independent'
+          assert all(r['runner']['GITHUB_RUN_ID'] == __import__('os').environ['GITHUB_RUN_ID'] for r in records)
+          assert all(r['runner']['GITHUB_WORKFLOW_SHA'] == __import__('os').environ['GITHUB_WORKFLOW_SHA'] for r in records)
+          PY
+      - name: Run G0 controls then bounded gate in non-reaping PID1 namespace
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/issue-1250-$STAGE-$ENVIRONMENT"
+          mkdir -p "$work/evidence"
+          # Resource controls affect the whole process tree, not individual pytest workers.
+          # A fresh mount/PID namespace retains orphan zombies until this gate exits.
+          # Drop back to the runner user before running any repository code.
+          sudo systemd-run --quiet --wait --pipe --collect \
+            --property=CPUQuota=200% --property=MemoryMax=8G \
+            --property="WorkingDirectory=$GITHUB_WORKSPACE" \
+            --setenv="PATH=$PATH" --setenv="LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}" \
+            --setenv="RUNNER_NAME=$RUNNER_NAME" --setenv="RUNNER_OS=$RUNNER_OS" \
+            --setenv="RUNNER_ARCH=$RUNNER_ARCH" --setenv="ImageOS=$ImageOS" \
+            --setenv="ImageVersion=$ImageVersion" --setenv="CI=true" \
+            --setenv="GITHUB_RUN_ID=$GITHUB_RUN_ID" --setenv="GITHUB_RUN_ATTEMPT=$GITHUB_RUN_ATTEMPT" \
+            --setenv="GITHUB_JOB=$GITHUB_JOB" --setenv="GITHUB_WORKFLOW_REF=$GITHUB_WORKFLOW_REF" \
+            --setenv="GITHUB_WORKFLOW_SHA=$GITHUB_WORKFLOW_SHA" \
+            unshare --pid --fork --mount-proc --mount \
+            setpriv --reuid="$(id -u)" --regid="$(id -g)" --init-groups \
+            "$(command -v python)" infrastructure/tools/issue_1250/run.py "$STAGE" \
+            --baseline "$GITHUB_WORKSPACE/baseline" --candidate "$GITHUB_WORKSPACE/candidate" --work "$work"
+      - name: Preserve evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-1250-${{ env.STAGE }}-${{ env.ENVIRONMENT }}
+          path: ${{ runner.temp }}/issue-1250-${{ env.STAGE }}-${{ env.ENVIRONMENT }}/evidence/
+          if-no-files-found: error
+          retention-days: 30
+          include-hidden-files: false
+
+  parallel:
+    # Default success() dependency is intentional: no G2 after any G0/G1 failure.
+    needs: serial
+    name: G0 then G2 (24 nodes, n=2)
+    runs-on: ubuntu-24.04
+    env:
+      STAGE: parallel
+      ENVIRONMENT: G2
+    steps: *bounded-steps
