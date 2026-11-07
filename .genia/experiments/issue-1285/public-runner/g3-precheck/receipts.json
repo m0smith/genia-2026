@@ -1,0 +1,192 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-11-07T04:52:12.222825+00:00",
+  "subject": "current attached managed Linux/amd64 executor; not historical BENJAMIN",
+  "accepted_frontend": "fd74a5830c76373d724bbd40a603ea85870f0aca",
+  "verdict": "BLOCKED: no qualified venue",
+  "receipts": [
+    {
+      "argv": [
+        "env",
+        "-u",
+        "DOCKER_HOST",
+        "-u",
+        "DOCKER_CONTEXT",
+        "-u",
+        "DOCKER_TLS",
+        "-u",
+        "DOCKER_TLS_VERIFY",
+        "-u",
+        "DOCKER_CERT_PATH",
+        "docker",
+        "--host=unix:///var/run/docker.sock",
+        "info",
+        "--format",
+        "{{json .}}"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "sanitized_stdout_projection": {
+        "Containers": 0,
+        "ContainersRunning": 0,
+        "ContainersStopped": 0,
+        "Images": 0,
+        "Driver": "vfs",
+        "MemoryLimit": true,
+        "SwapLimit": true,
+        "CpuCfsPeriod": true,
+        "CpuCfsQuota": true,
+        "CPUSet": true,
+        "PidsLimit": true,
+        "CgroupDriver": "cgroupfs",
+        "CgroupVersion": "2",
+        "KernelVersion": "6.18.57",
+        "OperatingSystem": "Debian GNU/Linux 13 (trixie) (containerized)",
+        "OSType": "linux",
+        "Architecture": "x86_64",
+        "NCPU": 3,
+        "MemTotal": 10452459520,
+        "ServerVersion": "28.4.0",
+        "DefaultRuntime": "runc",
+        "SecurityOptions": [
+          "name=seccomp,profile=builtin",
+          "name=cgroupns"
+        ],
+        "Warnings": null
+      },
+      "omission": "Identity, daemon paths, proxy, registry and runtime detail omitted; no credentials collected."
+    },
+    {
+      "argv": [
+        "uname",
+        "-srm"
+      ],
+      "exit_code": 0,
+      "stdout": "Linux 6.18.57 x86_64\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "id",
+        "-u"
+      ],
+      "exit_code": 0,
+      "stdout": "1000\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "id",
+        "-g"
+      ],
+      "exit_code": 0,
+      "stdout": "1000\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ps",
+        "-C",
+        "dockerd,buildkitd",
+        "-o",
+        "uid=,comm="
+      ],
+      "exit_code": 0,
+      "stdout": "65534 dockerd\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "env",
+        "-u",
+        "DOCKER_HOST",
+        "-u",
+        "DOCKER_CONTEXT",
+        "-u",
+        "DOCKER_TLS",
+        "-u",
+        "DOCKER_TLS_VERIFY",
+        "-u",
+        "DOCKER_CERT_PATH",
+        "docker",
+        "--host=unix:///var/run/docker.sock",
+        "buildx",
+        "ls",
+        "--format",
+        "{{json .}}"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "ERROR: mkdir /home/agent/.docker/buildx: read-only file system\n"
+    },
+    {
+      "argv": [
+        "stat",
+        "-c",
+        "%a %u %g %F",
+        "/var/run/docker.sock"
+      ],
+      "exit_code": 0,
+      "stdout": "660 65534 1000 socket\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "df",
+        "-B1",
+        "/workspace"
+      ],
+      "exit_code": 0,
+      "stdout": "Filesystem      1B-blocks     Used  Available Use% Mounted on\noverlay        8417406976 82341888 7888793600   2% /workspace\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "df",
+        "-i",
+        "/workspace"
+      ],
+      "exit_code": 0,
+      "stdout": "Filesystem     Inodes IUsed  IFree IUse% Mounted on\noverlay        524288  6307 517981    2% /workspace\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "findmnt",
+        "-no",
+        "FSTYPE,OPTIONS",
+        "/sys/fs/cgroup"
+      ],
+      "exit_code": 0,
+      "stdout": "cgroup2 ro,nosuid,nodev,noexec,relatime,nsdelegate\n",
+      "stderr": ""
+    }
+  ],
+  "read_only_files": {
+    "/etc/os-release": "PRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\nNAME=\"Debian GNU/Linux\"\nVERSION_ID=\"13\"\nVERSION=\"13 (trixie)\"\nVERSION_CODENAME=trixie\nDEBIAN_VERSION_FULL=13.6\nID=debian\nHOME_URL=\"https://www.debian.org/\"\nSUPPORT_URL=\"https://www.debian.org/support\"\nBUG_REPORT_URL=\"https://bugs.debian.org/\"",
+    "/proc/self/cgroup": "0::/",
+    "/proc/1/comm": "tail",
+    "/sys/fs/cgroup/cgroup.controllers": "cpuset cpu io memory hugetlb pids",
+    "/sys/fs/cgroup/cpu.max": "200000 100000",
+    "/sys/fs/cgroup/memory.max": "8589934592",
+    "/sys/fs/cgroup/memory.swap.max": "max",
+    "/sys/fs/cgroup/pids.max": "max"
+  },
+  "available_commands": {
+    "docker": "/usr/local/bin/docker",
+    "buildctl": null,
+    "buildkitd": null,
+    "runc": "/usr/local/bin/runc",
+    "unshare": "/usr/bin/unshare",
+    "quota": null,
+    "xfs_quota": null
+  },
+  "existing_paths": {
+    "/run/buildkit/buildkitd.sock": false,
+    "/run/buildkit": false,
+    "/var/lib/buildkit": false
+  },
+  "cgroup_subtree_control_writable_access_check": false,
+  "limits": "Read-only inspection. No daemon started, build/container created/run/exported, namespace/cgroup modified, policy changed or CI dispatched. Docker feature flags are advertised capabilities, not enforcement proof."
+}
