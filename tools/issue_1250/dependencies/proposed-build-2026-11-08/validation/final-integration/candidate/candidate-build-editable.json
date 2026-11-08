@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/workspace/1250-backend-preparation/evidence/final-integration/candidate/candidate-build-env-5t564mup/venv/bin/python",
+    "-I",
+    "/workspace/genia-2026/tools/issue_1250/editable_builder.py",
+    "build",
+    "/workspace/1250-backend-preparation/evidence/final-integration/candidate/candidate-build-inputs.json",
+    "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/candidate",
+    "/workspace/1250-backend-preparation/evidence/final-integration/candidate/candidate-build-env-5t564mup/wheel",
+    "/workspace/1250-backend-preparation/evidence/final-integration/candidate/candidate-build-inventory.json"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/candidate",
+  "rc": 0
+}

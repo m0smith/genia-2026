@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "uv",
+    "--no-config",
+    "pip",
+    "install",
+    "--python",
+    "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline/.venv/bin/python",
+    "--no-deps",
+    "--no-index",
+    "--reinstall",
+    "/workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-env-4qlt3fy0/wheel/genia-0.1.14-py3-none-any.whl"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline",
+  "rc": 0
+}

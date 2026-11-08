@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-env-4qlt3fy0/venv/bin/python",
+    "-I",
+    "/workspace/genia-2026/tools/issue_1250/editable_builder.py",
+    "build",
+    "/workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-inputs.json",
+    "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline",
+    "/workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-env-4qlt3fy0/wheel",
+    "/workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-inventory.json"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline",
+  "rc": 0
+}

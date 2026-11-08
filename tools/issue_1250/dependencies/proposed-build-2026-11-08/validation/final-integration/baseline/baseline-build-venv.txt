@@ -1,0 +1,3 @@
+Using CPython 3.12.14 interpreter at: /workspace/1250-proposed/subject/.venv/bin/python
+Creating virtual environment at: /workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-env-4qlt3fy0/venv
+Activate with: source /workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-env-4qlt3fy0/venv/bin/activate

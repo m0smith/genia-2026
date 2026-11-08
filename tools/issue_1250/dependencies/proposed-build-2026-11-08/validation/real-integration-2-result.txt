@@ -1,0 +1,110 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_real_cold_baseline_and_candidate_provisioning ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-7/test_real_cold_baseline_and_ca0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd38e7de2a0>
+
+    @pytest.mark.skipif(os.environ.get("ISSUE1250_BUILD_INTEGRATION") != "1",
+                        reason="explicit pinned-download preparation integration only")
+    def test_real_cold_baseline_and_candidate_provisioning(tmp_path, monkeypatch):
+        """Build/install both frozen projects, check exact freezes, then inject backend drift.
+    
+        Calls only the internal preparation seam. No acceptance nodes, main(),
+        activation or PID/signal tests. Each subject gets an empty private uv cache.
+        """
+        module = backend()
+        fixture = PROPOSAL / "acceptance.lock"
+        expected = json.loads((PROPOSAL / "proposal.json").read_text())
+        build_inputs, _ = module.load_evidence()
+        evidence_root = Path(os.environ.get("ISSUE1250_BUILD_EVIDENCE", tmp_path / "evidence"))
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        inventories = []
+        for label, sha in (("baseline", gate.BASELINE), ("candidate", gate.CANDIDATE)):
+            root, evidence = tmp_path / label, evidence_root / label
+            evidence.mkdir()
+            subprocess.run(["git", "clone", "--shared", "--no-checkout", str(ROOT), str(root)], check=True)
+            subprocess.run(["git", "-C", str(root), "checkout", "--detach", sha], check=True)
+            monkeypatch.setenv("UV_CACHE_DIR", str(tmp_path / (label + "-cold-cache")))
+            assert not Path(os.environ["UV_CACHE_DIR"]).exists()
+>           gate.provision_locked(root, sha, evidence, label, fixture, expected)
+
+tests/unit/test_issue_1250_build_backend.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/tmp/pytest-of-agent/pytest-7/test_real_cold_baseline_and_ca0/baseline')
+sha = '0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5'
+evidence = PosixPath('/workspace/1250-backend-preparation/evidence/real-integration-2/baseline')
+label = 'baseline'
+fixture = PosixPath('/workspace/genia-2026/tools/issue_1250/dependencies/proposed-2026-11-08/acceptance.lock')
+expected = {'status': 'PROPOSED_NOT_APPROVED', 'lock_file': 'acceptance.lock', 'lock_sha256': '2bb0f5f5a5b073539ba0df6e92820a461d...64ca8951a99717b3c684a8bf', 'pyproject_sha256': 'cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc', ...}
+
+    def provision_locked(root, sha, evidence, label, fixture, expected):
+        """Install one shared immutable lock and reject lock, declaration or freeze drift.
+    
+        Internal preparation seam: callers supply the fixture path and registered
+        digest/pyproject/freeze values. Acceptance reaches it only through provision's
+        approval gate. Save evidence before raising; never solve or overwrite an
+        existing different lock. Locked sync validates freshness; hash checks before
+        and after sync reject mutation. A separate hash-pinned build environment
+        installs the real editable project without leaking backend packages into the
+        target. Editable Genia's path is excluded from freeze.
+        """
+        clean(root, sha)
+        started = time.monotonic()
+        try:
+            lock_bytes = fixture.read_bytes()
+        except OSError as error:
+            raise RuntimeError("missing dependency lock evidence") from error
+        (evidence / f"{label}.lock").write_bytes(lock_bytes)
+        digest = hashlib.sha256(lock_bytes).hexdigest()
+        if digest != expected["lock_sha256"]:
+            raise RuntimeError("dependency fixture lock digest mismatch")
+        if hashlib.sha256((root / "pyproject.toml").read_bytes()).hexdigest() != expected["pyproject_sha256"]:
+            raise RuntimeError("dependency declarations mismatch")
+        target = root / "uv.lock"
+        if target.is_symlink() or (target.exists() and target.read_bytes() != lock_bytes):
+            raise RuntimeError("pre-existing dependency lock mismatch")
+        inputs = build_backend.load_evidence()
+        build_backend.check_runtime(root, evidence, label, command)
+        target.write_bytes(lock_bytes)
+        command(["uv", "--no-config", "sync", "--dev", "--locked", "--no-python-downloads",
+                 "--no-install-project", "--no-build", "--python", sys.executable], root, evidence, label + "-sync")
+        build_backend.install_editable(root, evidence, label, command, inputs)
+        after = target.read_bytes()
+        (evidence / f"{label}-after-sync.lock").write_bytes(after)
+        if hashlib.sha256(after).hexdigest() != digest:
+            raise RuntimeError("dependency lock modified during sync")
+        freeze = command(["uv", "pip", "freeze"], root, evidence, label + "-freeze").splitlines()
+        actual = sorted(line.lower() for line in freeze if not line.startswith("-e "))
+        write_json(evidence / f"{label}-freeze-diff.json", {
+            "expected": expected["freeze"], "actual": actual,
+            "missing": sorted(set(expected["freeze"]) - set(actual)),
+            "extra": sorted(set(actual) - set(expected["freeze"])),
+        })
+        write_json(evidence / f"{label}-identity.json", {
+            "sha": sha, "tree": git(root, "rev-parse", "HEAD^{tree}"),
+            "lock_sha256": digest, "seconds": time.monotonic() - started,
+            "non_editable_count": len(actual), "status": git(root, "status", "--porcelain"),
+        })
+        if actual != expected["freeze"]:
+>           raise RuntimeError("installed freeze drift from dependency evidence")
+E           RuntimeError: installed freeze drift from dependency evidence
+
+tools/issue_1250/run.py:173: RuntimeError
+----------------------------- Captured stdout call -----------------------------
+baseline-uv-version: rc=0
+baseline-sync: rc=0
+baseline-build-venv: rc=0
+baseline-build-install: rc=0
+baseline-build-editable: rc=0
+baseline-project-install: rc=0
+baseline-editable-metadata: rc=0
+baseline-freeze: rc=0
+----------------------------- Captured stderr call -----------------------------
+Cloning into '/tmp/pytest-of-agent/pytest-7/test_real_cold_baseline_and_ca0/baseline'...
+done.
+HEAD is now at 0b25d2b4 Merge pull request #1295 from m0smith/issue-1285-mcp-reaping-investigation
+=========================== short test summary info ============================
+FAILED tests/unit/test_issue_1250_build_backend.py::test_real_cold_baseline_and_candidate_provisioning
+1 failed in 2.37s

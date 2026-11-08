@@ -21,10 +21,29 @@ historical failures; it has no acceptance credit.
 `None`. There is no CLI/environment activation switch. Independent review must
 approve or reject the proposal before a separate reviewed registration change
 can connect the shared-lock helper. No dispatch is authorized by this change.
-The unpinned editable-build backend is a reproducibility limitation to resolve
-before claiming that *all* build inputs are pinned. The prepared helper disables
-isolated build resolution (`--no-build-isolation`); a cold environment without
-the backend fails closed until reviewed build provisioning is supplied.
+The build-backend correction is documented in
+[the correction record](issue-1250-build-backend-correction.md). It pins seven
+build distributions and their wheel hashes separately from the proposed runtime
+lock. Each subject receives a fresh isolated build venv; no backend-only package
+is installed into its runtime/development venv. The existing Hatchling backend
+builds a real PEP 660 editable wheel, which is installed without dependencies or
+index lookup. The frontend records PEP 610 editable source metadata and maintains
+installed RECORD. The project-wide pyproject/build contract is unchanged.
+
+Backend evidence is checked against literal SHA-256 constants before install;
+direct-wheel installs require hashes, prohibit transitive dependency acquisition,
+and use no index. Complete build inventories and static/dynamic requirements
+must match before building. Missing/tampered evidence, absent/wrong backend,
+failed build/install, lock mutation or any extra installed backend distribution
+fails closed. Target freeze names its exact interpreter; an inherited active
+VIRTUAL_ENV cannot redirect verification. Supported scope is CPython 3.12.14,
+uv 0.13.5, Linux x86_64; conflicting UV_/PIP_ configuration is rejected.
+
+The original default-isolation installation evidence remains immutable and does
+not identify its backend versions. Additive corrected cold-cache baseline and
+candidate packaging evidence names and hashes the actual backend inputs. It
+supersedes only the earlier installation reproducibility claim. Hosted execution,
+acceptance and independent approval remain unperformed.
 
 ## Authorization and registration
 

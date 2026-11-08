@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/candidate/.venv/bin/python",
+    "-I",
+    "/workspace/genia-2026/tools/issue_1250/editable_builder.py",
+    "record",
+    "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/candidate"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/candidate",
+  "rc": 0
+}

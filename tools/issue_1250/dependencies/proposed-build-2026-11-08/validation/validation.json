@@ -1,0 +1,85 @@
+{
+  "classification": "PREPARATION_ONLY_NOT_ACCEPTANCE",
+  "recorded_utc": "2026-11-08T20:28:39.347737+00:00",
+  "starting_head": "d83e1c8bd3a0d6246c3c7cd7d8ba6a9610e07456",
+  "red_commit": "888aacb3",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "command": "ISSUE1250_BUILD_INTEGRATION=1 ISSUE1250_BUILD_EVIDENCE=/workspace/1250-backend-preparation/evidence/final-integration UV_CACHE_DIR=/workspace/1250-backend-preparation/test-cache uv run --project /workspace/1250-proposed/subject --no-sync pytest -n 0 -q tests/unit/test_issue_1250_acceptance_infrastructure.py tests/unit/test_issue_1250_build_backend.py",
+  "result": "73 passed in 6.91s; no skipped tests",
+  "ruff": "All checks passed",
+  "documentation": "10199 records; 2793 legacy gaps; 1 classified exclusions; 0 errors",
+  "compileall": "python3 -m compileall -q tools/issue_1250: exit 0",
+  "original_failure": "uv sync --dev --locked --no-python-downloads --no-build-isolation --python /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3: exit 1, ModuleNotFoundError hatchling",
+  "intermediate_failures": [
+    "first real integration rejected UV_RUN_RECURSION_DEPTH; allowlisted uv internal recursion bookkeeping only",
+    "second real integration built/installed successfully but correctly rejected freeze from inherited VIRTUAL_ENV; fixed by explicit subject --python and --quiet",
+    "third real integration passed 1 test in 5.22s; final combined test added editable RECORD assertions and negative guards"
+  ],
+  "subjects": {
+    "baseline": {
+      "sha": "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5",
+      "identity": {
+        "sha": "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5",
+        "tree": "780ec50e3f9cd2864cb18f93f2df34e1fc650515",
+        "lock_sha256": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf",
+        "seconds": 2.0255813990006573,
+        "non_editable_count": 42,
+        "status": ""
+      },
+      "build_wheel_sha256": "db5388a162f4e7c7bb6fd9adc4911792b13036396d79382fb43dec071e9807d3",
+      "build_inventory": [
+        "editables==0.6",
+        "hatchling==1.33.0",
+        "packaging==26.3",
+        "pathspec==1.1.1",
+        "pluggy==1.7.0",
+        "tomlkit==0.15.2",
+        "trove-classifiers==2026.9.21.13"
+      ]
+    },
+    "candidate": {
+      "sha": "e3562f620020023ea39c44273068872d6bc73fe6",
+      "identity": {
+        "sha": "e3562f620020023ea39c44273068872d6bc73fe6",
+        "tree": "5152ca5fc693fcaaab13faf615b2fc1013fdf068",
+        "lock_sha256": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf",
+        "seconds": 1.975454510000418,
+        "non_editable_count": 42,
+        "status": ""
+      },
+      "build_wheel_sha256": "ff38bbd543eefaaef3410e42b8617fd006894fb0f94c72e356523c4348fee4ee",
+      "build_inventory": [
+        "editables==0.6",
+        "hatchling==1.33.0",
+        "packaging==26.3",
+        "pathspec==1.1.1",
+        "pluggy==1.7.0",
+        "tomlkit==0.15.2",
+        "trove-classifiers==2026.9.21.13"
+      ]
+    }
+  },
+  "deduplicated_lock_files": {
+    "baseline/baseline-after-sync.lock": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf",
+    "baseline/baseline.lock": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf",
+    "candidate/candidate-after-sync.lock": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf",
+    "candidate/candidate.lock": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf"
+  },
+  "deduplicated_lock_source": "../proposed-2026-11-08/acceptance.lock",
+  "limitations": [
+    "packaging only; no acceptance or behavior validation",
+    "same CPython 3.12.14 Linux x86_64 build; hosted Ubuntu not tested",
+    "editable wheel bytes contain source path and are recorded per subject, not required identical",
+    "original unpinned backend versions remain unknown; their evidence is retained unchanged"
+  ],
+  "implementation_commit": "57a65650669b55890bb4e501cfc31d6051f1ed80",
+  "tested_sources_sha256": {
+    "tools/issue_1250/run.py": "8cac470281775e0068ea96a86bf7b7b429370f945231a0ddc48729d8a9c9da76",
+    "tools/issue_1250/build_backend.py": "d21fcfe6f031abf629deac43dcdb97b215ab3381f9eaa60bc82feab51ad2782d",
+    "tools/issue_1250/editable_builder.py": "f53f06f2e48621e7cc303eaa2198fd3575783b2b71f29d8caba2ea752bca4b1c",
+    "tests/unit/test_issue_1250_acceptance_infrastructure.py": "3334b4adc12627819d8d07c2428d0b7b2f86df98eb942e8ce8d8792432474e0c",
+    "tests/unit/test_issue_1250_build_backend.py": "2e2c55ac250f0cd5cc937c2c5ef703087f3f2855b132af29913ec865b984fa54"
+  }
+}

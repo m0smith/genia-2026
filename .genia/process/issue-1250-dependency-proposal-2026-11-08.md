@@ -61,7 +61,7 @@ Subject: disposable `git archive` of baseline
 `/workspace/1250-proposed/subject`. Candidate
 `e3562f620020023ea39c44273068872d6bc73fe6` has byte-identical pyproject:
 SHA-256 `cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc`
-(blob `ecdc7c009fe1ada11d9ae1e43ca796677913fceb`). No candidate solve or install.
+(blob `ecdc7c009fe1ada11d9ae1e43ca796677913fceb`). During that initial preparation, no candidate solve or install.
 
 Commands, from that archive:
 
@@ -133,19 +133,16 @@ No installation/conformance claim is made for non-3.12.14 or non-Linux forks.
 - Immutable bytes + artifact hashes remove a fresh project dependency solve
   during acceptance. Package availability, platform wheel selection and uv/Python
   builds remain external prerequisites. PyPI artifacts were not vendored.
-- **Build-tool limitation:** pyproject's `hatchling` requirement is unpinned.
-  `uv sync --locked` may independently resolve isolated PEP 517 build dependencies
-  for editable Genia; these are absent from the 42-package installed freeze.
-  The preparation installation used that default behavior; its hidden build
-  inputs were not pinned. The prepared acceptance helper instead passes
-  `--no-build-isolation`, which prevents uv from resolving build dependencies
-  and fails if the backend is absent. Before activation, the reviewer must require
-  separately pinned/preprovisioned build evidence (and a corresponding strict
-  freeze), or approve a build-free strategy. A cold environment cannot currently
-  provision successfully; the approval sentinel blocks execution meanwhile. Do not call this a completely
-  hermetic build or approve it without addressing that limitation.
+- **Initial build-evidence limitation:** the initial default-isolation install
+  did not record its backend versions; that evidence remains unchanged. The
+  [backend correction](issue-1250-build-backend-correction.md) adds pinned,
+  hash-recorded isolated build inputs and real cold-cache packaging evidence for
+  both subjects. The target's exact freeze remains the same; no project-wide
+  build contract changed. The original backend versions cannot be recovered from
+  the freeze, and are not inferred from the new pins.
 - Linux/Clang here differs from hosted Ubuntu/GCC and original executor context.
-  No new cold-host baseline/candidate provisioning or acceptance was performed.
+  Cold-cache packaging was subsequently verified for both subjects in the
+  correction; no hosted provisioning or acceptance was performed.
 - Dependency drift explains the prior provisioning rejection only. Earlier
   independent source inspection found no pymdown/mkdocs/markdown reference in the
   original22 modules, architecture test, helper or launcher. That suggests limited
@@ -164,12 +161,13 @@ The internal `provision_locked()` helper takes one fixture and exact registered
 lock/pyproject/freeze evidence for baseline, candidate and both scratch paths.
 It requires a clean pinned checkout, hashes fixture before installation, rejects
 changed pyproject and conflicting/symlink existing uv.lock, copies exact bytes,
-uses `uv sync --dev --locked --no-python-downloads --no-build-isolation`,
-hashes again, saves normalized
-freeze + missing/extra diff and checks strict list equality, then rechecks clean
-subject identity. No `uv lock` call remains. Sync errors preserve logs/exits;
-lock and freeze errors are distinct. This implements project-dependency guards;
-the build-tool limitation above remains an explicit activation prerequisite.
+uses locked dependency-only sync with builds disabled, then installs an actual
+editable wheel built in the separate pinned backend environment. All wheel/hash
+inputs and complete build inventories are retained. The target contains the
+real installed Genia metadata/entry point/source link; this does not bypass
+project installation. Exact subject-interpreter freeze verification follows.
+No `uv lock` call remains. Sync/build/install errors preserve logs/exits; lock
+and freeze errors remain distinct. The closed approval gate remains unchanged.
 
 ## Validation and review plan
 
@@ -189,7 +187,7 @@ unit tests. No full regression, G0/G1/G2, hosted smoke, CI or signal test run.
 Independent reviewer should inspect actual diff, literal hashes/manifests,
 freeze normalization, graph unknowns, build-input gap and approval gate. If
 accepted, a separate registration/activation change must preserve historical
-metadata, register the reviewed new evidence, close the build-input gap and
+metadata, register the reviewed runtime and isolated-build evidence and
 obtain its own exact-SHA authorization before any diagnostic/acceptance run.
 
 Rollback: revert this proposal's commits as one reviewed revert, restoring

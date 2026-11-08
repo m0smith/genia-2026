@@ -1,0 +1,1 @@
+{"url": "file:///tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/candidate", "dir_info": {"editable": true}}
