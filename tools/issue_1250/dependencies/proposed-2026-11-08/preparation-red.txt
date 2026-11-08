@@ -1,0 +1,470 @@
+FFFFFFFFFFFFF                                                            [100%]
+=================================== FAILURES ===================================
+______________ test_shared_locked_provisioning_fails_closed[None] ______________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin0/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c4021be0>
+change = None
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+                gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+        else:
+>           gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+            ^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:304: AttributeError
+____________ test_shared_locked_provisioning_fails_closed[missing] _____________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin1/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c4023d70>
+change = 'missing'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+_____________ test_shared_locked_provisioning_fails_closed[tamper] _____________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin2/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fd0ce0>
+change = 'tamper'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+____________ test_shared_locked_provisioning_fails_closed[existing] ____________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin3/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fd0740>
+change = 'existing'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+____________ test_shared_locked_provisioning_fails_closed[symlink] _____________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin4/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fd3740>
+change = 'symlink'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+__________ test_shared_locked_provisioning_fails_closed[declarations] __________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin5/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fd2f30>
+change = 'declarations'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+_________ test_shared_locked_provisioning_fails_closed[freeze-version] _________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin6/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fce1e0>
+change = 'freeze-version'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+_________ test_shared_locked_provisioning_fails_closed[freeze-missing] _________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin7/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fcfb00>
+change = 'freeze-missing'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+__________ test_shared_locked_provisioning_fails_closed[freeze-extra] __________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin8/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fcf350>
+change = 'freeze-extra'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+______________ test_shared_locked_provisioning_fails_closed[sync] ______________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin9/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fcdb20>
+change = 'sync'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+____________ test_shared_locked_provisioning_fails_closed[rewrite] _____________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin10/subject'), 'ba2a38751920e1508bd4b5c7e56ac95...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fa8320>
+change = 'rewrite'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+_____________ test_shared_locked_provisioning_fails_closed[dirty] ______________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_shared_locked_provisionin11/subject'), 'ba2a38751920e1508bd4b5c7e56ac95...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f97c3fa83b0>
+change = 'dirty'
+
+    @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                      "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+    def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+        root, sha, evidence, fixture, expected = locked_subject
+        if change == "missing":
+            fixture.unlink()
+        elif change == "tamper":
+            fixture.write_text(fixture.read_text() + "x")
+        elif change == "existing":
+            (root / "uv.lock").write_text("different")
+        elif change == "symlink":
+            (root / "uv.lock").symlink_to(fixture)
+        elif change == "declarations":
+            expected["pyproject_sha256"] = "0" * 64
+        elif change and change.startswith("freeze-"):
+            monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                             "freeze-extra": "example==1\nextra==1"}[change])
+        elif change == "sync":
+            monkeypatch.setenv("FAKE_SYNC_RC", "1")
+        elif change == "rewrite":
+            monkeypatch.setenv("FAKE_REWRITE", "1")
+        elif change == "dirty":
+            (root / "untracked").touch()
+        if change:
+            with pytest.raises(RuntimeError):
+>               gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+                ^^^^^^^^^^^^^^^^^^^^^
+E               AttributeError: module 'tools.issue_1250.run' has no attribute 'provision_locked'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:302: AttributeError
+____________ test_proposal_is_pinned_and_cannot_activate_acceptance ____________
+
+locked_subject = (PosixPath('/tmp/pytest-of-agent/pytest-1/test_proposal_is_pinned_and_ca0/subject'), 'ba2a38751920e1508bd4b5c7e56ac953...15', 'pyproject_sha256': 'a360cc8990f8f9f5865e4c1cdb9d12c309448a16bbddaee57bd1847cc6bba7a6', 'freeze': ['example==1']})
+
+    def test_proposal_is_pinned_and_cannot_activate_acceptance(locked_subject):
+        root, sha, evidence, _, _ = locked_subject
+        proposal = ROOT / "tools/issue_1250/dependencies/proposed-2026-11-08"
+        expected = json.loads((proposal / "proposal.json").read_text())
+        assert expected["status"] == "PROPOSED_NOT_APPROVED"
+        assert hashlib.sha256((proposal / "acceptance.lock").read_bytes()).hexdigest() == expected["lock_sha256"]
+        assert gate.LOCK == "27ca5a9328ba8641ce18078782c7edecdc8a753aa6b4fd3ca57932a66d49f291"
+        assert len(gate.REGISTRATION["freeze"]) == 42
+        assert "pymdown-extensions==12.3" in gate.REGISTRATION["freeze"]
+        assert len(gate.REGISTRATION["original"]) == 22
+>       assert gate.APPROVED_DEPENDENCIES is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.run' has no attribute 'APPROVED_DEPENDENCIES'
+
+tests/unit/test_issue_1250_acceptance_infrastructure.py:328: AttributeError
+=========================== short test summary info ============================
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[None]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[missing]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[tamper]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[existing]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[symlink]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[declarations]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[freeze-version]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[freeze-missing]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[freeze-extra]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[sync]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[rewrite]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_shared_locked_provisioning_fails_closed[dirty]
+FAILED tests/unit/test_issue_1250_acceptance_infrastructure.py::test_proposal_is_pinned_and_cannot_activate_acceptance
+13 failed, 42 deselected in 0.31s
