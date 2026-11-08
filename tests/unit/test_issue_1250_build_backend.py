@@ -4,7 +4,6 @@ The real provisioning integration is opt-in because it downloads pinned wheels
 into disposable caches. It never activates the approval sentinel or runs gates.
 """
 
-from copy import deepcopy
 import hashlib
 import importlib
 import json
@@ -50,11 +49,22 @@ def test_real_backend_inventory_rejects_absence_version_and_extra(tmp_path, chan
     manifest, _ = module.load_evidence()
     venv = tmp_path / "build"
     subprocess.run(["uv", "venv", "--no-python-downloads", "--python", sys.executable, str(venv)], check=True)
-    # An empty environment must fail both the actual pins and modified inventories.
-    if change == "version":
-        manifest["packages"][0]["version"] = "0.0.0"
-    elif change == "extra":
-        manifest["packages"].append({"name": "unregistered", "version": "1"})
+    purelib = subprocess.check_output([str(venv / "bin/python"), "-I", "-c",
+                                       "import sysconfig; print(sysconfig.get_path('purelib'))"], text=True).strip()
+    # Synthetic installed METADATA distinguishes exact version checks from absence.
+    for package in manifest["packages"]:
+        name, version = package["name"], package["version"]
+        if change == "missing" and name == "hatchling":
+            continue
+        if change == "version" and name == "hatchling":
+            version = "0.0.0"
+        info = Path(purelib) / (name.replace("-", "_") + "-" + version + ".dist-info")
+        info.mkdir()
+        (info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: {name}\nVersion: {version}\n")
+    if change == "extra":
+        info = Path(purelib) / "unregistered-1.dist-info"
+        info.mkdir()
+        (info / "METADATA").write_text("Metadata-Version: 2.1\nName: unregistered\nVersion: 1\n")
     expected = tmp_path / "inputs.json"
     expected.write_text(json.dumps(manifest))
     result = subprocess.run([str(venv / "bin/python"), "-I", str(module.BUILDER),
@@ -62,7 +72,13 @@ def test_real_backend_inventory_rejects_absence_version_and_extra(tmp_path, chan
                             capture_output=True, text=True)
     assert result.returncode != 0
     assert "build distribution drift" in result.stderr
-    assert json.loads((tmp_path / "inventory.json").read_text())["actual"] == []
+    actual = json.loads((tmp_path / "inventory.json").read_text())["actual"]
+    if change == "missing":
+        assert not any(line.startswith("hatchling==") for line in actual)
+    elif change == "version":
+        assert "hatchling==0.0.0" in actual
+    else:
+        assert "unregistered==1" in actual
 
 
 def test_provision_handoff_uses_one_fixture_for_both_subjects(monkeypatch, tmp_path):
@@ -85,7 +101,7 @@ def test_failed_provisioning_cannot_finalize_as_pass(tmp_path):
 @pytest.mark.skipif(os.environ.get("ISSUE1250_BUILD_INTEGRATION") != "1",
                     reason="explicit pinned-download preparation integration only")
 def test_real_cold_baseline_and_candidate_provisioning(tmp_path, monkeypatch):
-    """Build/install both frozen projects, check exact freezes, then inject backend drift.
+    """Build/install both frozen projects and verify exact build and target inventories.
 
     Calls only the internal preparation seam. No acceptance nodes, main(),
     activation or PID/signal tests. Each subject gets an empty private uv cache.
@@ -118,13 +134,58 @@ def test_real_cold_baseline_and_candidate_provisioning(tmp_path, monkeypatch):
         assert str(root / "src/genia") in installed
         assert '"editable": true' in installed
         assert (root / ".venv/bin/genia").is_file()
+        # Frontend metadata must agree with installed RECORD, not just freeze.
+        gate.command([str(python), "-I", "-c",
+            "import base64,csv,hashlib; from importlib import metadata; "
+            "d=metadata.distribution('genia'); "
+            "r=next(d.locate_file(f) for f in d.files if str(f).endswith('.dist-info/RECORD')); "
+            "p=r.parent/'direct_url.json'; "
+            "row=next(x for x in csv.reader(r.open()) if x[0].endswith('/direct_url.json')); "
+            "assert row[1]=='sha256='+base64.urlsafe_b64encode(hashlib.sha256(p.read_bytes()).digest()).rstrip(b'=').decode(); "
+            "assert int(row[2])==len(p.read_bytes()); print('editable RECORD verified')"],
+            tmp_path, evidence, label + "-editable-record")
         assert not list(evidence.glob("*-build-env-*"))
         gate.clean(root, sha)
         gate.manifest(evidence)
     assert inventories[0] == inventories[1]
-    # A backend accidentally present in target must trip the unchanged freeze guard.
-    bad = deepcopy(expected)
-    bad["freeze"] = [*bad["freeze"], "hatchling==1.33.0"]
-    # Target drift is exercised without another dependency install below by unit tests;
-    # real targets above prove backend-only distributions never leaked.
-    assert "hatchling==1.33.0" not in expected["freeze"]
+
+
+@pytest.mark.parametrize("override", ["UV_INDEX_URL", "PIP_INDEX_URL", "UV_NO_VERIFY_HASHES", "UV_PROJECT_ENVIRONMENT"])
+def test_dependency_configuration_override_fails_before_command(monkeypatch, tmp_path, override):
+    module = backend()
+    monkeypatch.setenv(override, "unregistered")
+    calls = []
+    with pytest.raises(RuntimeError, match="unregistered dependency configuration"):
+        module.check_runtime(tmp_path, tmp_path, "unit", lambda *args: calls.append(args))
+    assert calls == []
+
+
+def test_incorrect_uv_version_is_rejected(tmp_path):
+    with pytest.raises(RuntimeError, match="requires uv 0.13.5"):
+        backend().check_runtime(tmp_path, tmp_path, "unit", lambda *args: "uv 0.13.6")
+
+
+def test_build_installs_only_hashed_direct_requirements_and_local_editable(tmp_path):
+    """Capture acquisition flags; fake the backend output only for command inspection."""
+    module = backend()
+    inputs = module.load_evidence()
+    calls = []
+
+    def command(argv, root, evidence, label):
+        """Emulate the built wheel/report; never download or execute a resolver."""
+        calls.append(argv)
+        if label.endswith("build-editable"):
+            output = Path(argv[-2])
+            wheel = output / "genia-0.1.14-py3-none-any.whl"
+            wheel.write_bytes(b"unit wheel")
+            Path(argv[-1]).write_text(json.dumps({"wheel": wheel.name,
+                "wheel_sha256": hashlib.sha256(wheel.read_bytes()).hexdigest()}))
+        return ""
+
+    module.install_editable(tmp_path, tmp_path, "unit", command, inputs)
+    pip_calls = [args for args in calls if "install" in args]
+    assert len(pip_calls) == 2
+    assert all("--no-deps" in args and "--no-index" in args for args in pip_calls)
+    assert "--require-hashes" in pip_calls[0] and "--only-binary" in pip_calls[0]
+    assert all("--no-build-isolation" not in args and "lock" not in args for args in calls)
+    assert not list(tmp_path.glob("*-build-env-*"))

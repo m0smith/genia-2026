@@ -22,6 +22,12 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 
+# Direct-script workflow entry and package-imported preparation tests share one helper.
+if __package__:
+    from . import build_backend
+else:
+    import build_backend
+
 BASELINE = "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5"
 CANDIDATE = "e3562f620020023ea39c44273068872d6bc73fe6"
 R4 = "38eb980ee5fc95bdad45f197543861c2c2eb6046"
@@ -122,9 +128,9 @@ def provision_locked(root, sha, evidence, label, fixture, expected):
     digest/pyproject/freeze values. Acceptance reaches it only through provision's
     approval gate. Save evidence before raising; never solve or overwrite an
     existing different lock. Locked sync validates freshness; hash checks before
-    and after sync reject mutation. Disable isolated build dependency resolution;
-    a missing preprovisioned build backend fails closed. Editable Genia's path
-    is excluded from freeze.
+    and after sync reject mutation. A separate hash-pinned build environment
+    installs the real editable project without leaking backend packages into the
+    target. Editable Genia's path is excluded from freeze.
     """
     clean(root, sha)
     started = time.monotonic()
@@ -141,13 +147,17 @@ def provision_locked(root, sha, evidence, label, fixture, expected):
     target = root / "uv.lock"
     if target.is_symlink() or (target.exists() and target.read_bytes() != lock_bytes):
         raise RuntimeError("pre-existing dependency lock mismatch")
+    inputs = build_backend.load_evidence()
+    build_backend.check_runtime(root, evidence, label, command)
     target.write_bytes(lock_bytes)
-    command(["uv", "sync", "--dev", "--locked", "--no-python-downloads", "--no-build-isolation", "--python", sys.executable], root, evidence, label + "-sync")
+    command(["uv", "--no-config", "sync", "--dev", "--locked", "--no-python-downloads",
+             "--no-install-project", "--no-build", "--python", sys.executable], root, evidence, label + "-sync")
+    build_backend.install_editable(root, evidence, label, command, inputs)
     after = target.read_bytes()
     (evidence / f"{label}-after-sync.lock").write_bytes(after)
     if hashlib.sha256(after).hexdigest() != digest:
         raise RuntimeError("dependency lock modified during sync")
-    freeze = command(["uv", "pip", "freeze"], root, evidence, label + "-freeze").splitlines()
+    freeze = command(["uv", "--no-config", "--quiet", "pip", "freeze", "--python", str(root / ".venv/bin/python")], root, evidence, label + "-freeze").splitlines()
     actual = sorted(line.lower() for line in freeze if not line.startswith("-e "))
     write_json(evidence / f"{label}-freeze-diff.json", {
         "expected": expected["freeze"], "actual": actual,

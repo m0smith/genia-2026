@@ -263,19 +263,21 @@ def locked_subject(tmp_path, monkeypatch):
     executable.write_text("#!/usr/bin/env python3\n" +
         "import json, os, sys\nfrom pathlib import Path\n" +
         "with Path(os.environ['FAKE_CALLS']).open('a') as out: out.write(json.dumps(sys.argv[1:])+'\\n')\n" +
-        "if sys.argv[1] == 'sync':\n" +
+        "if 'sync' in sys.argv[1:]:\n" +
         "    if os.environ.get('FAKE_REWRITE'): Path('uv.lock').write_text('changed')\n" +
         "    sys.exit(int(os.environ.get('FAKE_SYNC_RC', '0')))\n" +
-        "elif sys.argv[1:] == ['pip', 'freeze']: print(os.environ.get('FAKE_FREEZE', 'example==1'))\n" +
+        "elif 'freeze' in sys.argv[1:]: print(os.environ.get('FAKE_FREEZE', 'example==1'))\n" +
         "else: sys.exit('unexpected resolution/acceptance command')\n")
     executable.chmod(0o755)
+    monkeypatch.setattr(gate.build_backend, "check_runtime", lambda *args: None)
+    monkeypatch.setattr(gate.build_backend, "install_editable", lambda *args: None)
     monkeypatch.setenv("PATH", str(binary) + os.pathsep + os.environ["PATH"])
     monkeypatch.setenv("FAKE_CALLS", str(tmp_path / "calls"))
     return root, gate.git(root, "rev-parse", "HEAD"), evidence, fixture, expected
 
 
 @pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
-                                  "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+                                  "freeze-version", "freeze-missing", "freeze-extra", "freeze-backend", "sync", "rewrite", "dirty"])
 def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
     root, sha, evidence, fixture, expected = locked_subject
     if change == "missing":
@@ -290,7 +292,8 @@ def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, ch
         expected["pyproject_sha256"] = "0" * 64
     elif change and change.startswith("freeze-"):
         monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
-                                         "freeze-extra": "example==1\nextra==1"}[change])
+                                         "freeze-extra": "example==1\nextra==1",
+                                         "freeze-backend": "example==1\nhatchling==1.33.0"}[change])
     elif change == "sync":
         monkeypatch.setenv("FAKE_SYNC_RC", "1")
     elif change == "rewrite":
@@ -308,9 +311,12 @@ def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, ch
     calls = [json.loads(x) for x in calls_path.read_text().splitlines()] if calls_path.exists() else []
     assert all(call[0] != "lock" for call in calls)
     if calls:
-        assert calls[0][:5] == ["sync", "--dev", "--locked", "--no-python-downloads", "--no-build-isolation"]
+        assert calls[0][:7] == ["--no-config", "sync", "--dev", "--locked", "--no-python-downloads", "--no-install-project", "--no-build"]
     if change in {"missing", "tamper", "existing", "symlink", "declarations", "dirty"}:
         assert not calls
+    if calls and any("freeze" in call for call in calls):
+        freeze_call = next(call for call in calls if "freeze" in call)
+        assert freeze_call[-2:] == ["--python", str(root / ".venv/bin/python")]
     if change and change.startswith("freeze-"):
         assert json.loads((evidence / "unit-freeze-diff.json").read_text())["actual"] != expected["freeze"]
 
@@ -330,3 +336,18 @@ def test_proposal_is_pinned_and_cannot_activate_acceptance(locked_subject):
         gate.provision(root, sha, evidence, "unit")
     assert json.loads((evidence / "unit-dependency-gate.json").read_text())["outcome"] == "BLOCKED"
     assert not (root / "uv.lock").exists()
+
+
+def test_missing_build_evidence_stops_provisioning_and_records_failure(locked_subject, monkeypatch):
+    root, sha, evidence, fixture, expected = locked_subject
+
+    def missing():
+        """Represent absent registered build evidence before any installer command."""
+        raise RuntimeError("missing build evidence")
+
+    monkeypatch.setattr(gate.build_backend, "load_evidence", missing)
+    with pytest.raises(RuntimeError, match="missing build evidence") as caught:
+        gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+    gate.finalize(evidence, [root], "smoke", caught.value)
+    assert json.loads((evidence / "summary.json").read_text())["outcome"] == "FAIL"
+    assert not (root.parent / "calls").exists()
