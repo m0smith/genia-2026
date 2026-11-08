@@ -96,24 +96,71 @@ def context():
     return table
 
 
+# Independent approval must replace this sentinel in a separately reviewed change.
+# The proposed fixture is deliberately unreachable from every acceptance caller.
+APPROVED_DEPENDENCIES = None
+
+
 def provision(root, sha, evidence, label):
-    """Solve locally, sync locked, and fail on historical dependency/lock drift."""
+    """Reject provisioning until independent approval registers immutable evidence.
+
+    Baseline, candidate and scratch clones all enter here. No CLI/environment
+    override can activate a proposal; historical LOCK/registration remain evidence.
+    """
+    if APPROVED_DEPENDENCIES is None:
+        write_json(evidence / f"{label}-dependency-gate.json", {
+            "outcome": "BLOCKED", "reason": "independent dependency baseline approval required",
+        })
+        raise RuntimeError("independent dependency baseline approval required")
+    provision_locked(root, sha, evidence, label, *APPROVED_DEPENDENCIES)
+
+
+def provision_locked(root, sha, evidence, label, fixture, expected):
+    """Install one shared immutable lock and reject lock, declaration or freeze drift.
+
+    Internal preparation seam: callers supply the fixture path and registered
+    digest/pyproject/freeze values. Acceptance reaches it only through provision's
+    approval gate. Save evidence before raising; never solve or overwrite an
+    existing different lock. Locked sync validates freshness; hash checks before
+    and after sync reject mutation. Disable isolated build dependency resolution;
+    a missing preprovisioned build backend fails closed. Editable Genia's path
+    is excluded from freeze.
+    """
     clean(root, sha)
     started = time.monotonic()
-    command(["uv", "lock", "--no-python-downloads", "--python", sys.executable], root, evidence, label + "-lock")
-    lock_bytes = (root / "uv.lock").read_bytes()
+    try:
+        lock_bytes = fixture.read_bytes()
+    except OSError as error:
+        raise RuntimeError("missing dependency lock evidence") from error
     (evidence / f"{label}.lock").write_bytes(lock_bytes)
     digest = hashlib.sha256(lock_bytes).hexdigest()
-    command(["uv", "sync", "--dev", "--locked", "--no-python-downloads", "--python", sys.executable], root, evidence, label + "-sync")
+    if digest != expected["lock_sha256"]:
+        raise RuntimeError("dependency fixture lock digest mismatch")
+    if hashlib.sha256((root / "pyproject.toml").read_bytes()).hexdigest() != expected["pyproject_sha256"]:
+        raise RuntimeError("dependency declarations mismatch")
+    target = root / "uv.lock"
+    if target.is_symlink() or (target.exists() and target.read_bytes() != lock_bytes):
+        raise RuntimeError("pre-existing dependency lock mismatch")
+    target.write_bytes(lock_bytes)
+    command(["uv", "sync", "--dev", "--locked", "--no-python-downloads", "--no-build-isolation", "--python", sys.executable], root, evidence, label + "-sync")
+    after = target.read_bytes()
+    (evidence / f"{label}-after-sync.lock").write_bytes(after)
+    if hashlib.sha256(after).hexdigest() != digest:
+        raise RuntimeError("dependency lock modified during sync")
     freeze = command(["uv", "pip", "freeze"], root, evidence, label + "-freeze").splitlines()
     actual = sorted(line.lower() for line in freeze if not line.startswith("-e "))
+    write_json(evidence / f"{label}-freeze-diff.json", {
+        "expected": expected["freeze"], "actual": actual,
+        "missing": sorted(set(expected["freeze"]) - set(actual)),
+        "extra": sorted(set(actual) - set(expected["freeze"])),
+    })
     write_json(evidence / f"{label}-identity.json", {
         "sha": sha, "tree": git(root, "rev-parse", "HEAD^{tree}"),
         "lock_sha256": digest, "seconds": time.monotonic() - started,
         "non_editable_count": len(actual), "status": git(root, "status", "--porcelain"),
     })
-    if digest != LOCK or actual != REGISTRATION["freeze"]:
-        raise RuntimeError("lock/freeze drift from approved evidence")
+    if actual != expected["freeze"]:
+        raise RuntimeError("installed freeze drift from dependency evidence")
     clean(root, sha)
 
 

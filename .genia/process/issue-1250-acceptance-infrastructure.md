@@ -1,12 +1,30 @@
 # Temporary #1250 acceptance infrastructure procedure
 
-Non-authoritative CI/process instructions for PR #1317. `GENIA_STATE.md`
+Non-authoritative CI/process instructions for PR #1317 and its dependency proposal. `GENIA_STATE.md`
 remains final authority. No language, runtime, capability or host parity change.
 
 **Removal condition:** after the maintainer records #1250's acceptance decision,
 delete `.github/workflows/issue-1250-acceptance.yml`, `tools/issue_1250/` and its
 focused helper tests, and this temporary procedure in the same retirement change.
 Retain durable evidence/authorization links in #1250's append-only ledger.
+
+## Proposed dependency baseline — NOT APPROVED
+
+Preparation on 2026-11-08 generated one lock in an isolated baseline archive.
+See [the proposal and difference report](issue-1250-dependency-proposal-2026-11-08.md)
+and `tools/issue_1250/dependencies/proposed-2026-11-08/` for immutable proposed
+bytes, freeze, provenance and graph. Historical `LOCK`, registration freeze and
+original22 remain unchanged. The proposal is a different environment from the
+historical failures; it has no acceptance credit.
+
+`provision()` now stops before installation while `APPROVED_DEPENDENCIES` is
+`None`. There is no CLI/environment activation switch. Independent review must
+approve or reject the proposal before a separate reviewed registration change
+can connect the shared-lock helper. No dispatch is authorized by this change.
+The unpinned editable-build backend is a reproducibility limitation to resolve
+before claiming that *all* build inputs are pinned. The prepared helper disables
+isolated build resolution (`--no-build-isolation`); a cold environment without
+the backend fails closed until reviewed build provisioning is supplied.
 
 ## Authorization and registration
 
@@ -32,15 +50,21 @@ One Ubuntu 24.04 hosted job, 15-minute bound, exact baseline checkout only:
 `0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5`. No candidate checkout, mutant or signal
 node. The actual hosted wrapper creates the resource/PID/mount boundaries and
 drops uid, then verifies non-root PID 1, 2-CPU/8-GiB cgroup limits, provisioning
-metadata and actual Python/uv versions. It generates the baseline-local lock,
-syncs locked dependencies and checks the historical lock/freeze before running
-only the exact probe→session cleanup node. Its outcome is `DIAGNOSTIC_ONLY`,
+metadata and actual Python/uv versions. Dependency provisioning currently stops
+at the independent-approval gate. After separately reviewed activation, the
+shared helper copies one registered immutable fixture, verifies its literal SHA
+before and after locked sync, and compares the registered installed freeze
+before running only the exact probe→session cleanup node. Its outcome is `DIAGNOSTIC_ONLY`,
 even on success. Upload and digest reporting run on failure as well.
 
 GitHub's CPython 3.12.14 build is recorded, not assumed identical to the original
-Clang build. uv 0.13.5, generated-lock digest and normalized installed freeze must
-match published evidence. The live solve may drift; fail closed rather than pin
-new versions or copy an old lock to hide drift. Hosted Python availability,
+Clang build. uv 0.13.5, immutable-lock digest and normalized installed freeze must
+match independently approved registered evidence. Acceptance provisioning has
+no `uv lock` invocation and cannot independently resolve baseline/candidate
+project dependencies. Missing/tampered evidence, declaration drift, conflicting
+existing locks, failed/stale locked sync, rewritten locks or freeze drift fail
+closed. A proposed lock is never approved merely by copying it; historical
+evidence is preserved separately and is not overwritten. Hosted Python availability,
 systemd/cgroup behavior and namespace integration remain unverified until the
 separately authorized smoke runs. A clean smoke requires review before a separate
 exact-SHA G0–G2 authorization; it never supplies acceptance credit.
