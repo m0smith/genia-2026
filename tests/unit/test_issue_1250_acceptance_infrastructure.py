@@ -5,6 +5,7 @@ All tests are offline; no hosted dispatch, acceptance subprocess or real timer w
 """
 
 from copy import deepcopy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -239,3 +240,93 @@ def test_absent_phase_is_not_run_and_cannot_report_pass(tmp_path):
     index = json.loads((tmp_path / "artifact-index.json").read_text())
     assert index["outcome"] == "FAIL"
     assert all(phase["outcome"] == "NOT RUN" for phase in index["phases"].values())
+
+
+@pytest.fixture
+def locked_subject(tmp_path, monkeypatch):
+    """Real throwaway git subject and fake uv; never installs or runs acceptance."""
+    root, evidence, binary = (tmp_path / name for name in ("subject", "evidence", "bin"))
+    for path in (root, evidence, binary):
+        path.mkdir()
+    (root / ".gitignore").write_text("uv.lock\n")
+    (root / "pyproject.toml").write_text("[project]\nname='unit-subject'\n")
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(root), "-c", "user.name=Unit", "-c", "user.email=unit@example.invalid",
+                    "commit", "-qm", "fixture"], check=True)
+    fixture = tmp_path / "acceptance.lock"
+    fixture.write_text("immutable unit lock\n")
+    expected = {"lock_sha256": hashlib.sha256(fixture.read_bytes()).hexdigest(),
+                "pyproject_sha256": hashlib.sha256((root / "pyproject.toml").read_bytes()).hexdigest(),
+                "freeze": ["example==1"]}
+    executable = binary / "uv"
+    executable.write_text("#!/usr/bin/env python3\n" +
+        "import json, os, sys\nfrom pathlib import Path\n" +
+        "with Path(os.environ['FAKE_CALLS']).open('a') as out: out.write(json.dumps(sys.argv[1:])+'\\n')\n" +
+        "if sys.argv[1] == 'sync':\n" +
+        "    if os.environ.get('FAKE_REWRITE'): Path('uv.lock').write_text('changed')\n" +
+        "    sys.exit(int(os.environ.get('FAKE_SYNC_RC', '0')))\n" +
+        "elif sys.argv[1:] == ['pip', 'freeze']: print(os.environ.get('FAKE_FREEZE', 'example==1'))\n" +
+        "else: sys.exit('unexpected resolution/acceptance command')\n")
+    executable.chmod(0o755)
+    monkeypatch.setenv("PATH", str(binary) + os.pathsep + os.environ["PATH"])
+    monkeypatch.setenv("FAKE_CALLS", str(tmp_path / "calls"))
+    return root, gate.git(root, "rev-parse", "HEAD"), evidence, fixture, expected
+
+
+@pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                  "freeze-version", "freeze-missing", "freeze-extra", "sync", "rewrite", "dirty"])
+def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+    root, sha, evidence, fixture, expected = locked_subject
+    if change == "missing":
+        fixture.unlink()
+    elif change == "tamper":
+        fixture.write_text(fixture.read_text() + "x")
+    elif change == "existing":
+        (root / "uv.lock").write_text("different")
+    elif change == "symlink":
+        (root / "uv.lock").symlink_to(fixture)
+    elif change == "declarations":
+        expected["pyproject_sha256"] = "0" * 64
+    elif change and change.startswith("freeze-"):
+        monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                         "freeze-extra": "example==1\nextra==1"}[change])
+    elif change == "sync":
+        monkeypatch.setenv("FAKE_SYNC_RC", "1")
+    elif change == "rewrite":
+        monkeypatch.setenv("FAKE_REWRITE", "1")
+    elif change == "dirty":
+        (root / "untracked").touch()
+    if change:
+        with pytest.raises(RuntimeError):
+            gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+    else:
+        gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+        gate.clean(root, sha)
+        assert (root / "uv.lock").read_bytes() == fixture.read_bytes()
+    calls_path = root.parent / "calls"
+    calls = [json.loads(x) for x in calls_path.read_text().splitlines()] if calls_path.exists() else []
+    assert all(call[0] != "lock" for call in calls)
+    if calls:
+        assert calls[0][:5] == ["sync", "--dev", "--locked", "--no-python-downloads", "--no-build-isolation"]
+    if change in {"missing", "tamper", "existing", "symlink", "declarations", "dirty"}:
+        assert not calls
+    if change and change.startswith("freeze-"):
+        assert json.loads((evidence / "unit-freeze-diff.json").read_text())["actual"] != expected["freeze"]
+
+
+def test_proposal_is_pinned_and_cannot_activate_acceptance(locked_subject):
+    root, sha, evidence, _, _ = locked_subject
+    proposal = ROOT / "tools/issue_1250/dependencies/proposed-2026-11-08"
+    expected = json.loads((proposal / "proposal.json").read_text())
+    assert expected["status"] == "PROPOSED_NOT_APPROVED"
+    assert hashlib.sha256((proposal / "acceptance.lock").read_bytes()).hexdigest() == expected["lock_sha256"]
+    assert gate.LOCK == "27ca5a9328ba8641ce18078782c7edecdc8a753aa6b4fd3ca57932a66d49f291"
+    assert len(gate.REGISTRATION["freeze"]) == 42
+    assert "pymdown-extensions==12.3" in gate.REGISTRATION["freeze"]
+    assert len(gate.REGISTRATION["original"]) == 22
+    assert gate.APPROVED_DEPENDENCIES is None
+    with pytest.raises(RuntimeError, match="independent dependency baseline approval"):
+        gate.provision(root, sha, evidence, "unit")
+    assert json.loads((evidence / "unit-dependency-gate.json").read_text())["outcome"] == "BLOCKED"
+    assert not (root / "uv.lock").exists()
