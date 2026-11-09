@@ -380,7 +380,15 @@ def retrieve(api, expected, destination, diagnostics, *, now=None):
     only redacted diagnostics and never leaves a trusted partial destination.
     """
     published = False
-    diagnostics.mkdir(parents=True, exist_ok=True)
+    if (
+        diagnostics.exists()
+        or diagnostics.is_symlink()
+        or diagnostics.resolve().is_relative_to(qualification.ROOT.resolve())
+    ):
+        raise RuntimeError(
+            "fresh independent diagnostic location required; previous evidence preserved"
+        )
+    diagnostics.mkdir(parents=True, exist_ok=False)
     result = {"outcome": "FAIL", "classification": "HOSTED_EVIDENCE_VERIFICATION"}
     try:
         if destination.resolve().is_relative_to(qualification.ROOT.resolve()):
@@ -388,6 +396,8 @@ def retrieve(api, expected, destination, diagnostics, *, now=None):
         proof = verify_metadata(api, expected, now=now)
         result["api_metadata"] = proof
         data = api.download(f"/repos/{REPOSITORY}/actions/artifacts/{expected['artifact_id']}/zip")
+        result["download_sha256"] = hashlib.sha256(data).hexdigest()
+        result["download_size"] = len(data)
         if (
             len(data) != proof["artifact_size"]
             or hashlib.sha256(data).hexdigest() != proof["artifact_sha256"]

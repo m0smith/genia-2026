@@ -523,3 +523,14 @@ def test_full_mocked_snapshot_approval_does_not_activate(downloadable, tmp_path)
     from tools.issue_1250 import run
 
     assert run.APPROVED_DEPENDENCIES is None
+
+
+def test_previous_diagnostics_are_never_overwritten(hosted, tmp_path):
+    expected, api, now = hosted
+    diagnostics = tmp_path / "diagnostics"
+    diagnostics.mkdir()
+    (diagnostics / "verification.json").write_text("previous failure")
+    with pytest.raises(RuntimeError, match="previous evidence preserved"):
+        trust().retrieve(api, expected, tmp_path / "verified", diagnostics, now=now)
+    assert (diagnostics / "verification.json").read_text() == "previous failure"
+    assert api.calls == [] and not (tmp_path / "verified").exists()
