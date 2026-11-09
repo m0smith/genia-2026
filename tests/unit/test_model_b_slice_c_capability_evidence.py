@@ -6,7 +6,7 @@ adapter advertised `default_open_functions` as `unsupported`, so every gated
 Slice C case was reported `unsupported` *before* any host was invoked (staging
 evidence only; an `unsupported` case is never a pass). At GREEN (B9) the staging
 is removed: the adapter advertises `default_open_functions` as `supported`
-because every one of the 143 Slice C shared cases (55 guards plus 88 gated)
+because every one of the 143 Slice C shared cases (53 guards plus 90 gated)
 passes through the real adapter, asserted per id below.
 
 The immutable external parity assertion
@@ -55,7 +55,7 @@ def test_every_slice_c_case_is_applicable_to_the_python_host():
     assert [n for n in SLICE_C_CASE_IDS if not case_is_applicable(tuple(specs[n].requires), claimed)[0]] == []
     gated = [n for n in SLICE_C_ALL_GATED_IDS if "default_open_functions" in specs[n].requires]
     guards = [n for n in SLICE_C_GUARD_IDS if "default_open_functions" in specs[n].requires]
-    assert len(gated) == 88 and guards == []
+    assert len(gated) == 90 and guards == []
 
 
 @pytest.mark.slow
