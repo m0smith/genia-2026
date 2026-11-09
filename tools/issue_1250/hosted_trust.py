@@ -18,6 +18,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -63,6 +64,7 @@ class GitHubReadOnly:
     """Bounded GET-only API client; tokens are never logged, serialized or forwarded."""
 
     def __init__(self, token):
+        """Bind an operator-configured read-only token to a non-redirecting GET client."""
         if not token or "\n" in token:
             raise RuntimeError("explicit read-only GitHub credential required")
         self._token = token
@@ -464,12 +466,37 @@ def discard_snapshot(root):
     shutil.rmtree(root)
 
 
+def checkout_identity():
+    """Read the exact staged verifier/activation checkout identity without mutation."""
+
+    def git(*args):
+        """Read immutable Git identity or current status from the trusted checkout."""
+        return subprocess.check_output(
+            ["git", "-C", str(qualification.ROOT), *args], text=True
+        ).strip()
+
+    return {
+        "commit_sha": git("rev-parse", "HEAD"),
+        "tree_sha": git("rev-parse", "HEAD^{tree}"),
+        "status": git("status", "--porcelain"),
+    }
+
+
 def require_approved_snapshot(api, receipt, snapshot, reviewers, *, now=None):
     """Future staged activation boundary: require both complete API proof and external approval.
 
     Returns verified receipt data only. No provisioning or registration mutation
     is connected in this preparation; the checked-in sentinel stays None.
     """
+    local = checkout_identity()
+    if (
+        local["commit_sha"] != snapshot.proof["commit_sha"]
+        or local["tree_sha"] != snapshot.proof["tree_sha"]
+        or local["status"]
+    ):
+        raise RuntimeError(
+            "exact clean staged source required for approval; changed code must requalify"
+        )
     qualification.require_qualification(
         snapshot.root,
         snapshot.proof["manifest_sha256"],

@@ -492,7 +492,7 @@ def test_forged_hosted_json_cannot_mint_independent_proof(downloadable):
         )
 
 
-def test_full_mocked_snapshot_approval_does_not_activate(downloadable, tmp_path):
+def test_full_mocked_snapshot_approval_does_not_activate(downloadable, tmp_path, monkeypatch):
     expected, api, now, _, _ = downloadable
     module = trust()
     snapshot = module.retrieve(
@@ -514,6 +514,15 @@ def test_full_mocked_snapshot_approval_does_not_activate(downloadable, tmp_path)
         "submitted_at": now.isoformat(),
         "body": "ISSUE1250-APPROVAL sha256:" + module.receipt_digest(receipt),
     }
+    monkeypatch.setattr(
+        module,
+        "checkout_identity",
+        lambda: {
+            "commit_sha": expected["commit_sha"],
+            "tree_sha": expected["tree_sha"],
+            "status": "",
+        },
+    )
     assert (
         module.require_approved_snapshot(api, receipt, snapshot, {"independent-reviewer"}, now=now)[
             "status"
@@ -534,3 +543,23 @@ def test_previous_diagnostics_are_never_overwritten(hosted, tmp_path):
         trust().retrieve(api, expected, tmp_path / "verified", diagnostics, now=now)
     assert (diagnostics / "verification.json").read_text() == "previous failure"
     assert api.calls == [] and not (tmp_path / "verified").exists()
+
+
+@pytest.mark.parametrize("change", ["commit_sha", "tree_sha", "status"])
+def test_changed_staged_source_cannot_use_prior_approval(
+    downloadable, tmp_path, monkeypatch, change
+):
+    expected, api, now, _, _ = downloadable
+    module = trust()
+    snapshot = module.retrieve(
+        api, expected, tmp_path / "verified", tmp_path / "diagnostics", now=now
+    )
+    identity = {
+        "commit_sha": expected["commit_sha"],
+        "tree_sha": expected["tree_sha"],
+        "status": "",
+    }
+    identity[change] = "changed"
+    monkeypatch.setattr(module, "checkout_identity", lambda: identity)
+    with pytest.raises(RuntimeError, match="changed code must requalify"):
+        module.require_approved_snapshot(api, None, snapshot, {"independent-reviewer"}, now=now)
