@@ -31,7 +31,7 @@ def installed_record(tmp_path, monkeypatch):
     return record, distribution
 
 
-@pytest.mark.parametrize("change", ["missing", "malformed", "empty", "duplicate", "bad-hash", "bad-size", "escape", "ambiguous"])
+@pytest.mark.parametrize("change", ["missing", "malformed", "empty", "duplicate", "bad-hash", "bad-size", "escape", "existing-escape", "ambiguous"])
 def test_record_corruption_rejected_before_frontend_mutation(installed_record, tmp_path, change):
     record, distribution = installed_record
     original = record.read_text()
@@ -52,6 +52,13 @@ def test_record_corruption_rejected_before_frontend_mutation(installed_record, t
             csv.writer(out).writerows(rows)
     elif change == "escape":
         record.write_text(original + "../../../../../outside,sha256=x,1\n")
+    elif change == "existing-escape":
+        import os
+        outside = tmp_path / "outside-existing"
+        outside.write_bytes(b"real outside file")
+        digest = base64.urlsafe_b64encode(hashlib.sha256(outside.read_bytes()).digest()).rstrip(b"=").decode()
+        relative = os.path.relpath(outside, record.parent.parent)
+        record.write_text(original + f"{relative},sha256={digest},{outside.stat().st_size}\n")
     elif change == "ambiguous":
         distribution.files.append(Path("other.dist-info/RECORD"))
     with pytest.raises(RuntimeError, match="RECORD"):

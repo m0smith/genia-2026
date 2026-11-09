@@ -42,6 +42,8 @@ def sha256(path):
 def sources():
     """Bind qualification to all current #1250 tooling and preparation test bytes."""
     files = sorted(HERE.glob("*.py")) + sorted((ROOT / "tests/unit").glob("test_issue_1250*.py"))
+    files += sorted((ROOT / ".github/workflows").glob("issue-1250*.yml"))
+    files += [HERE / "hosted-policy.json", HERE / "hosted-receipt.pending.json"]
     return {str(path.relative_to(ROOT)): sha256(path) for path in files}
 
 
@@ -75,7 +77,7 @@ def environment():
     os_release = platform.freedesktop_os_release()
     hosted = {key: os.environ.get(key) for key in (
         "GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_SHA", "GITHUB_WORKFLOW_REF",
-        "GITHUB_WORKFLOW_SHA", "RUNNER_OS", "ImageOS", "ImageVersion")}
+        "GITHUB_WORKFLOW_SHA", "GITHUB_REPOSITORY", "RUNNER_OS", "RUNNER_ARCH", "ImageOS", "ImageVersion")}
     context = "local-" + os_release["ID"] + "-" + os_release["VERSION_ID"]
     if os.environ.get("GITHUB_ACTIONS") == "true":
         if (not all(hosted.values()) or hosted["GITHUB_RUN_ATTEMPT"] != "1"
@@ -122,7 +124,7 @@ def capture(root):
         if record["outcome"] == "PASS":
             try:
                 # Local schema/integrity validation is not independent approval.
-                require_qualification(root, sha256(root / "manifest.json"),
+                _validate_contents(root, sha256(root / "manifest.json"),
                                       record["environment"]["environment_class"])
             except BaseException as error:
                 record.update(outcome="FAIL", error=str(error))
@@ -133,7 +135,7 @@ def capture(root):
                 raise
 
 
-def require_qualification(root, expected_manifest_sha256, expected_environment, *, now=None):
+def _validate_contents(root, expected_manifest_sha256, expected_environment, *, now=None):
     """Reject absent, modified, stale, skipped, wrong-source or failed qualification.
 
     The caller must supply an independently approved manifest digest and intended
@@ -208,8 +210,21 @@ def require_qualification(root, expected_manifest_sha256, expected_environment, 
         if len(set(caches)) != 2 or any(not cache for cache in caches):
             raise ValueError("subjects did not use separate cold caches")
         return record
-    except (OSError, KeyError, ValueError, TypeError) as error:
+    except (OSError, KeyError, ValueError, TypeError, AttributeError) as error:
         raise RuntimeError("dependency qualification rejected: " + str(error)) from error
+
+
+def require_qualification(root, expected_manifest_sha256, expected_environment, *, now=None, hosted_snapshot=None):
+    """Validate local contents; hosted qualification additionally requires independent API proof.
+
+    Artifact environment variables, candidate manifests and arbitrary paths never
+    grant hosted trust. Collection uses content checks only and cannot issue the
+    transient snapshot capability created by the independent retrieval process.
+    """
+    if expected_environment == "github-hosted-ubuntu-24.04":
+        from tools.issue_1250.hosted_trust import check_snapshot
+        check_snapshot(hosted_snapshot, root, expected_manifest_sha256)
+    return _validate_contents(root, expected_manifest_sha256, expected_environment, now=now)
 
 
 def main(argv=None):
