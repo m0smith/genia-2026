@@ -174,7 +174,9 @@ def test_smoke_only_provisions_baseline_and_runs_probe(monkeypatch, tmp_path):
     calls = []
     monkeypatch.setattr(gate.os, "getpid", lambda: 1)
     monkeypatch.setattr(gate, "provenance", lambda evidence: (current, {"test": {"cpu.max": "200000 100000", "memory.max": "8589934592"}}))
-    monkeypatch.setattr(gate, "provision", lambda root, sha, evidence, label: calls.append(("provision", sha)))
+    monkeypatch.setattr(gate, "authorize", lambda *args: object())
+    monkeypatch.setattr(gate, "prepare_subject", lambda *args: None)
+    monkeypatch.setattr(gate, "provision", lambda root, sha, evidence, label, **kw: calls.append(("provision", sha)))
     monkeypatch.setattr(gate, "run_nodes", lambda root, nodes, evidence, label, **kw: calls.append(("nodes", nodes, kw)))
     monkeypatch.setattr(gate, "clean", lambda *args: None)
     monkeypatch.setattr(gate, "git", lambda *args: gate.BASELINE)
@@ -189,7 +191,7 @@ def test_first_dispatch_step_fails_loudly_before_checkout(tmp_path, change):
     workflow = yaml.load(WORKFLOW.read_text(), Loader=yaml.BaseLoader)
     script = workflow["jobs"]["smoke"]["steps"][0]["run"]
     env = {**os.environ, "RUNNER_TEMP": str(tmp_path), "GITHUB_EVENT_NAME": "workflow_dispatch",
-           "GITHUB_REPOSITORY": "m0smith/genia-2026", "GITHUB_REF": "refs/heads/issue-1250-acceptance-infrastructure",
+           "GITHUB_REPOSITORY": "m0smith/genia-2026", "GITHUB_REF": "refs/heads/issue-1250-fresh-dependency-baseline",
            "GITHUB_SHA": SHA, "GITHUB_WORKFLOW_SHA": SHA, "GITHUB_RUN_ATTEMPT": "1",
            "AUTHORIZED": "true", "REQUESTED_SHA": SHA, "REQUESTED_MODE": "smoke",
            "STAGE": "smoke", "ENVIRONMENT": "smoke"}
@@ -207,7 +209,7 @@ def test_first_dispatch_step_fails_loudly_before_checkout(tmp_path, change):
 def test_workflow_dispatch_permissions_dependencies_and_privileged_paths():
     workflow = yaml.load(WORKFLOW.read_text(), Loader=yaml.BaseLoader)
     assert set(workflow["on"]) == {"workflow_dispatch"}
-    assert workflow["permissions"] == {"contents": "read"}
+    assert workflow["permissions"] == {"contents": "read", "actions": "read", "pull-requests": "read"}
     assert workflow["jobs"]["parallel"]["needs"] == "serial"
     for job in workflow["jobs"].values():
         assert 0 < int(job["timeout-minutes"]) <= 45
@@ -216,8 +218,8 @@ def test_workflow_dispatch_permissions_dependencies_and_privileged_paths():
         assert "/usr/bin/sudo /usr/bin/systemd-run" in body
         assert "/usr/bin/unshare" in body and "/usr/bin/setpriv" in body
         assert 'run_namespace smoke' in body
-    candidate = next(s for s in workflow["jobs"]["smoke"]["steps"] if s["name"].startswith("Checkout frozen candidate"))
-    assert candidate["if"] == "env.STAGE != 'smoke'"
+    # Subject clones moved into the verified controller; smoke still never uses candidate.
+    assert not any(s["name"].startswith("Checkout frozen candidate") for s in workflow["jobs"]["smoke"]["steps"])
 
 
 @pytest.mark.parametrize("command_outcome", ["success", "failure", "skipped"])
@@ -274,6 +276,11 @@ def locked_subject(tmp_path, monkeypatch):
     monkeypatch.setattr(gate.build_backend, "install_editable", lambda *args: None)
     monkeypatch.setenv("PATH", str(binary) + os.pathsep + os.environ["PATH"])
     monkeypatch.setenv("FAKE_CALLS", str(tmp_path / "calls"))
+    original_environment = gate.child_environment
+    # Fake installer controls are test-only; production allowlist excludes them.
+    monkeypatch.setattr(gate, "child_environment", lambda: {
+        **original_environment(), **{k: v for k, v in os.environ.items() if k.startswith("FAKE_")}
+    })
     return root, gate.git(root, "rev-parse", "HEAD"), evidence, fixture, expected
 
 
@@ -303,9 +310,9 @@ def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, ch
         (root / "untracked").touch()
     if change:
         with pytest.raises(RuntimeError):
-            gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+            gate.prepare_locked(root, sha, evidence, "unit", fixture, expected)
     else:
-        gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+        gate.prepare_locked(root, sha, evidence, "unit", fixture, expected)
         gate.clean(root, sha)
         assert (root / "uv.lock").read_bytes() == fixture.read_bytes()
     calls_path = root.parent / "calls"
@@ -348,7 +355,7 @@ def test_missing_build_evidence_stops_provisioning_and_records_failure(locked_su
 
     monkeypatch.setattr(gate.build_backend, "load_evidence", missing)
     with pytest.raises(RuntimeError, match="missing build evidence") as caught:
-        gate.provision_locked(root, sha, evidence, "unit", fixture, expected)
+        gate.prepare_locked(root, sha, evidence, "unit", fixture, expected)
     gate.finalize(evidence, [root], "smoke", caught.value)
     assert json.loads((evidence / "summary.json").read_text())["outcome"] == "FAIL"
     assert not (root.parent / "calls").exists()
@@ -358,7 +365,9 @@ def test_missing_build_evidence_stops_provisioning_and_records_failure(locked_su
 def test_actual_provision_wrapper_propagates_backend_and_install_failures(locked_subject, monkeypatch, failure):
     """Exercise wrapper -> locked helper -> real build coordinator with injected IO failure."""
     root, sha, evidence, fixture, expected = locked_subject
-    monkeypatch.setattr(gate, "APPROVED_DEPENDENCIES", (fixture, expected))
+    capability = gate.Authorization(object(), "{}", gate._AUTHORIZED)
+    monkeypatch.setattr(gate, "authorized_inputs", lambda _: (fixture, expected))
+    monkeypatch.setattr(gate, "provision_locked", lambda *args, **kw: gate.prepare_locked(*args))
     monkeypatch.setattr(gate.build_backend, "install_editable", REAL_INSTALL_EDITABLE)
 
     def command(argv, cwd, output, label):
@@ -377,7 +386,7 @@ def test_actual_provision_wrapper_propagates_backend_and_install_failures(locked
 
     monkeypatch.setattr(gate, "command", command)
     with pytest.raises(RuntimeError, match=failure) as caught:
-        gate.provision(root, sha, evidence, "wrapper")
+        gate.provision(root, sha, evidence, "wrapper", authorization=capability)
     gate.finalize(evidence, [root], "smoke", caught.value)
     assert json.loads((evidence / "summary.json").read_text())["outcome"] == "FAIL"
     assert json.loads((evidence / ("wrapper-" + failure + ".json")).read_text())["rc"] == 1

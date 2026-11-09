@@ -1,5 +1,10 @@
 # #1250 hosted qualification infrastructure preparation
 
+> Historical phase record: current constrained Design A staging is documented in
+> [iteration 6](issue-1250-constrained-design-a.md). That record supersedes the
+> old unwired-caller/login-allowlist instructions and obsolete activation patch,
+> not the evidence or verdict recorded here. No baseline activation is approved.
+
 PROPOSED_NOT_APPROVED. Author Codex. Existing PR #1318, starting bb63061a;
 base issue-1250-acceptance-infrastructure@9f96c6d9 unchanged. Preflight comment
 6746805331 verified before implementation. User authorizes preparation only.

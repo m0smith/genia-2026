@@ -17,10 +17,11 @@ bytes, freeze, provenance and graph. Historical `LOCK`, registration freeze and
 original22 remain unchanged. The proposal is a different environment from the
 historical failures; it has no acceptance credit.
 
-`provision()` now stops before installation while `APPROVED_DEPENDENCIES` is
-`None`. There is no CLI/environment activation switch. Independent review must
-approve or reject the proposal before a separate reviewed registration change
-can connect the shared-lock helper. No dispatch is authorized by this change.
+`APPROVED_DEPENDENCIES` remains `None`; the no-authorization path stops before
+installation. The separate staged runtime path requires a live same-process
+verified snapshot and independent API approval, never an environment/JSON flag.
+See [iteration 6 constrained Design A](issue-1250-constrained-design-a.md) for the
+current authority, credential and failure contract. No dispatch is authorized.
 The build-backend correction is documented in
 [the correction record](issue-1250-build-backend-correction.md). It pins seven
 build distributions and their wheel hashes separately from the proposed runtime
@@ -49,10 +50,10 @@ correction only; baseline activation is still unapproved.
 ## Mandatory future dependency qualification
 
 [Registration preparation](issue-1250-registration-preparation.md) defines the
-inactive registration proposal and exact unapplied activation wiring. The
+inactive registration proposal and superseded historical unapplied patch. The
 read-only approval_validation module rejects missing/stale/skipped/failed or
-wrong-source/input/environment evidence. Future activation wiring must call it
-with a separately approved manifest receipt before any provisioning. A normal
+wrong-source/input/environment evidence. The staged controller calls it with
+an API-verified snapshot and independently approved manifest before provisioning. A normal
 unit run may omit integration; explicit future qualification cannot. Local
 Debian evidence never supplies hosted Ubuntu qualification. No current workflow
 or sentinel was changed to activate this behavior.
@@ -65,11 +66,11 @@ RECORD corruption, requirements/backend-path and subject/environment mismatches.
 
 ## Prepared hosted qualification (unexecuted)
 
-Iteration 5 is [blocked before final activation wiring](issue-1250-activation-staging-blocker.md)
-at the explicit trust-model review stop. The verifier's process-local capability
-and credential-free acceptance process have no approved transfer/caller boundary.
-The additive assessment records alternatives and read-only readiness evidence;
-it does not supersede the pending receipt or approve provisioning.
+Iteration 5 [stopped at trust-model review](issue-1250-activation-staging-blocker.md).
+The subsequent approved constrained Design A and maintainer authorization permit
+[iteration 6 local staging](issue-1250-constrained-design-a.md), with verification
+and provisioning in the same process. That implementation needs a fresh exact-SHA
+independent review; it does not supersede historical evidence or approve dependencies.
 
 [Hosted qualification infrastructure](issue-1250-hosted-qualification-preparation.md)
 adds a separate manual-only workflow, immutable official toolchain/action pins,
@@ -84,8 +85,9 @@ and is not a usable hosted activation recipe. Final staged executable/workflow
 code must be reviewed before collecting its exact commit/tree; any code change
 requires requalification. The external reviewer must approve a source/run/artifact-
 bound payload through an independently allowlisted API review identity. Same-account
-preparation COMMENT reviews do not become activation receipts. No active
-provisioning entry is wired to this new helper, and the sentinel remains None.
+preparation COMMENT reviews do not become activation receipts. No
+baseline is activated; the staged runtime path is wired but requires external
+main policy, receipt and independent GitHub verification. The sentinel remains None.
 
 ## Authorization and registration
 
@@ -103,7 +105,9 @@ The first step of each selected job fails loudly unless event, repository,
 branch, mode, exact executing commit (`GITHUB_SHA` and `GITHUB_WORKFLOW_SHA`),
 and `GITHUB_RUN_ATTEMPT=1` match. Re-run-job attempts are rejected; new attempts
 need a new run and ledger authorization, with every earlier outcome preserved.
-No secret binding, write permission or persisted checkout credential is used.
+No new secret, write permission or persisted checkout credential is used. The
+read-only job token is delivered to the controller over stdin; the gate step
+owns its environment copy. Same-UID/root access remains outside the boundary.
 
 ## Diagnostic smoke: never G0 acceptance
 
@@ -111,7 +115,7 @@ One Ubuntu 24.04 hosted job, 15-minute bound, exact baseline checkout only:
 `0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5`. No candidate checkout, mutant or signal
 node. The actual hosted wrapper creates the resource/PID/mount boundaries and
 drops uid, then verifies non-root PID 1, 2-CPU/8-GiB cgroup limits, provisioning
-metadata and actual Python/uv versions. Dependency provisioning currently stops
+metadata and actual Python/uv versions. Without external approval, dependency provisioning stops
 at the independent-approval gate. After separately reviewed activation, the
 shared helper copies one registered immutable fixture, verifies its literal SHA
 before and after locked sync, and compares the registered installed freeze

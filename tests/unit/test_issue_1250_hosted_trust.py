@@ -18,6 +18,17 @@ def trust():
     return importlib.import_module("tools.issue_1250.hosted_trust")
 
 
+def synthetic_policy(expected, reviewers):
+    """Model a separately verified policy for focused legacy receipt/snapshot tests.
+
+    Main-policy authentication and complete contributor checks are exercised by
+    test_issue_1250_controller; these existing tests retain their original oracles.
+    """
+    module = trust()
+    return module.VerifiedPolicy(frozenset(reviewers), frozenset({10, 30, 31}),
+                                 "d" * 64, expected["commit_sha"], 55, module._VERIFIED)
+
+
 class FakeAPI:
     """Return deep copies of authoritative-API-shaped fixtures, no network credentials."""
 
@@ -77,8 +88,8 @@ def hosted():
         "event": "workflow_dispatch",
         "status": "completed",
         "conclusion": "success",
-        "actor": {"login": "collector"},
-        "triggering_actor": {"login": "collector"},
+        "actor": {"login": "collector", "id": 40},
+        "triggering_actor": {"login": "collector", "id": 41},
         "run_started_at": (now - timedelta(minutes=5)).isoformat(),
         "updated_at": (now - timedelta(minutes=1)).isoformat(),
     }
@@ -250,7 +261,7 @@ def test_independent_receipt_requires_api_approval_of_canonical_payload(hosted):
         **expected,
         "status": "APPROVED",
         "scope": "dependency-baseline-activation",
-        "reviewer": "independent-reviewer",
+        "reviewer": 20,
         "expires_utc": (now + timedelta(hours=1)).isoformat(),
         "review": {"pull_number": 1318, "id": 88},
     }
@@ -258,12 +269,12 @@ def test_independent_receipt_requires_api_approval_of_canonical_payload(hosted):
         "id": 88,
         "state": "APPROVED",
         "commit_id": expected["commit_sha"],
-        "user": {"login": "independent-reviewer"},
+        "user": {"login": "independent-reviewer", "id": 20},
         "submitted_at": now.isoformat(),
         "body": "ISSUE1250-APPROVAL sha256:" + module.receipt_digest(receipt),
     }
     assert (
-        module.verify_receipt(api, receipt, proof, {"independent-reviewer"}, now=now)["status"]
+        module.verify_receipt(api, receipt, proof, synthetic_policy(expected, {20}), now=now)["status"]
         == "APPROVED"
     )
 
@@ -294,7 +305,7 @@ def test_untrusted_receipts_never_authorize(hosted, change):
         **expected,
         "status": "APPROVED",
         "scope": "dependency-baseline-activation",
-        "reviewer": "independent-reviewer",
+        "reviewer": 20,
         "expires_utc": (now + timedelta(hours=1)).isoformat(),
         "review": {"pull_number": 1318, "id": 88},
     }
@@ -302,7 +313,7 @@ def test_untrusted_receipts_never_authorize(hosted, change):
         "id": 88,
         "state": "APPROVED",
         "commit_id": expected["commit_sha"],
-        "user": {"login": "independent-reviewer"},
+        "user": {"login": "independent-reviewer", "id": 20},
         "submitted_at": now.isoformat(),
         "body": "",
     }
@@ -311,9 +322,9 @@ def test_untrusted_receipts_never_authorize(hosted, change):
     elif change == "pending":
         receipt["status"] = "PENDING"
     elif change == "self-issued":
-        receipt["reviewer"] = review["user"]["login"] = "collector"
+        receipt["reviewer"] = review["user"]["id"] = 40
     elif change == "unknown-reviewer":
-        receipt["reviewer"] = review["user"]["login"] = "stranger"
+        receipt["reviewer"] = review["user"]["id"] = 999
     elif change == "wrong-commit":
         receipt["commit_sha"] = "0" * 40
     elif change == "wrong-tree":
@@ -334,7 +345,7 @@ def test_untrusted_receipts_never_authorize(hosted, change):
     if change != "api-error":
         api.values["/repos/m0smith/genia-2026/pulls/1318/reviews/88"] = review
     with pytest.raises(RuntimeError, match="approval receipt rejected"):
-        module.verify_receipt(api, receipt, proof, {"independent-reviewer", "collector"}, now=now)
+        module.verify_receipt(api, receipt, proof, synthetic_policy(expected, {20, 40}), now=now)
 
 
 @pytest.fixture
@@ -502,7 +513,7 @@ def test_full_mocked_snapshot_approval_does_not_activate(downloadable, tmp_path,
         **expected,
         "status": "APPROVED",
         "scope": "dependency-baseline-activation",
-        "reviewer": "independent-reviewer",
+        "reviewer": 20,
         "expires_utc": (now + timedelta(hours=1)).isoformat(),
         "review": {"pull_number": 1318, "id": 88},
     }
@@ -510,7 +521,7 @@ def test_full_mocked_snapshot_approval_does_not_activate(downloadable, tmp_path,
         "id": 88,
         "state": "APPROVED",
         "commit_id": expected["commit_sha"],
-        "user": {"login": "independent-reviewer"},
+        "user": {"login": "independent-reviewer", "id": 20},
         "submitted_at": now.isoformat(),
         "body": "ISSUE1250-APPROVAL sha256:" + module.receipt_digest(receipt),
     }
@@ -524,7 +535,7 @@ def test_full_mocked_snapshot_approval_does_not_activate(downloadable, tmp_path,
         },
     )
     assert (
-        module.require_approved_snapshot(api, receipt, snapshot, {"independent-reviewer"}, now=now)[
+        module.require_approved_snapshot(api, receipt, snapshot, synthetic_policy(expected, {20}), now=now)[
             "status"
         ]
         == "APPROVED"
@@ -562,4 +573,4 @@ def test_changed_staged_source_cannot_use_prior_approval(
     identity[change] = "changed"
     monkeypatch.setattr(module, "checkout_identity", lambda: identity)
     with pytest.raises(RuntimeError, match="changed code must requalify"):
-        module.require_approved_snapshot(api, None, snapshot, {"independent-reviewer"}, now=now)
+        module.require_approved_snapshot(api, None, snapshot, synthetic_policy(expected, {20}), now=now)

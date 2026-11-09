@@ -1,5 +1,10 @@
 # #1250 final activation staging — iteration 5 blocked
 
+> Historical phase record: current constrained Design A staging is documented in
+> [iteration 6](issue-1250-constrained-design-a.md). That record supersedes the
+> old unwired-caller/login-allowlist instructions and obsolete activation patch,
+> not the evidence or verdict recorded here. No baseline activation is approved.
+
 Codex, 2026-11-09. **NOT APPROVED — DO NOT MERGE.** This is a
 trust-boundary assessment, not completed activation wiring or qualification.
 The user explicitly requires: “If the current architecture cannot satisfy these

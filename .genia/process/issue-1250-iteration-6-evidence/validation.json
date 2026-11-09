@@ -1,0 +1,99 @@
+{
+  "classification": "STAGED_LOCAL_VALIDATION_NOT_ACTIVATION_OR_ACCEPTANCE",
+  "starting_head": "39747f64989336fa919655e0239488a21a5a7dee",
+  "base": "9f96c6d9369bc29b87d6f63a97b3f7ce89bb7e05",
+  "red_commits": [
+    "258ee34f",
+    "48983f1f"
+  ],
+  "red_results": {
+    "controller_missing_behavior": 44,
+    "runtime_seam_missing_checks": 2
+  },
+  "commands": [
+    {
+      "command": "/workspace/genia-2026/.venv/bin/python -m pytest -o addopts='' -q tests/unit/test_issue_1250_controller.py",
+      "result": "44 failed before controller implementation",
+      "log": "red.log"
+    },
+    {
+      "command": "PATH=/workspace/work/issue1250-toolchain/bin:$PATH /workspace/genia-2026/.venv/bin/python -m pytest -o addopts='' -q tests/unit/test_issue_1250_controller.py -k 'locked_acceptance_entry or legacy_sentinel'",
+      "result": "2 failed before seam hardening",
+      "log": "runtime-seam-red.log"
+    },
+    {
+      "command": "PATH=/workspace/work/issue1250-toolchain/bin:$PATH /workspace/genia-2026/.venv/bin/python -m pytest -o addopts='' -q tests/unit/test_issue_1250*.py",
+      "result": "291 passed, 1 skipped in 13.41s",
+      "log": "pass.log",
+      "skip": "opt-in real cold-cache integration not authorized/executed"
+    },
+    {
+      "command": "PATH=/workspace/work/issue1250-toolchain/bin:$PATH /workspace/genia-2026/.venv/bin/python -m pytest -o addopts='' -q tests/doc/test_semantic_doc_sync.py tests/doc/test_state_anchors_and_registry_sync.py",
+      "result": "235 passed, 34 skipped in 1.30s",
+      "log": "root-doc-tests.log",
+      "skip": "existing non-text evidence is verified by unit tests (test_state_anchors_and_registry_sync.py:114)"
+    },
+    {
+      "command": "/workspace/genia-2026/.venv/bin/ruff check tools/issue_1250 tests/unit/test_issue_1250*.py",
+      "result": "PASS",
+      "log": "ruff.log"
+    },
+    {
+      "command": "/workspace/genia-2026/.venv/bin/python -m tools.code_documentation --base-ref 39747f64989336fa919655e0239488a21a5a7dee",
+      "result": "10367 records; 2793 legacy gaps; 1 classified exclusions; 0 errors",
+      "log": "code-documentation.log"
+    },
+    {
+      "command": "/workspace/work/validation-bin/actionlint -shellcheck= .github/workflows/issue-1250-acceptance.yml .github/workflows/issue-1250-qualification.yml",
+      "result": "PASS actionlint 1.7.12; shellcheck unavailable and explicitly disabled",
+      "log": "actionlint.log"
+    },
+    {
+      "command": "PYTHONPATH=. /workspace/genia-2026/.venv/bin/python .genia/process/issue-1250-iteration-6-evidence/static_checks.py",
+      "result": "1995 protected inputs byte-identical; 20 source fingerprints; 25 bash blocks parsed with bash -n, none executed; Python AST parse PASS",
+      "log": "static-preservation.log"
+    },
+    {
+      "command": "/workspace/genia-2026/.venv/bin/python tools/issue_1250/run.py --help",
+      "result": "PASS direct-script imports/argument parser only",
+      "log": "direct-entry-help.log"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "intermediate_results": "Retained in intermediate-checks.tar.gz; includes initial fixture-migration failures and documentation-check invocation/gap failures. No retry-to-pass acceptance or hidden hosted run.",
+  "tool_limitations": [
+    "go install failed: /usr/bin/go is not a compatible Go compiler (Unknown option: install).",
+    "actionlint 1.7.7 failed on existing YAML aliases (four diagnostics); 1.7.12 supports aliases and passed.",
+    "shellcheck unavailable; bash -n and actionlint without shellcheck ran."
+  ],
+  "action_pin_verification": {
+    "command": "git ls-remote https://github.com/actions/{checkout,download-artifact,upload-artifact}.git <tag> (separate commands)",
+    "checkout_v4": "11d5960a326750d5838078e36cf38b85af677262",
+    "download_artifact_v4_3_0": "d3f86a106a0bac45b974a628896c90dbdf5c8093",
+    "upload_artifact_v4_6_2": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+  },
+  "tool_acquisition": {
+    "uv": "Existing hosted-policy.json wheel SHA-256 and extracted executable SHA-256 both verified; installed only into /workspace/work/issue1250-toolchain/bin for local unit checks.",
+    "actionlint_1_7_7_archive_sha256": "023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757",
+    "actionlint_1_7_12_archive_sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+    "actionlint_integrity": "Official release archive checked against official release checksum file."
+  },
+  "inactive_proof": {
+    "APPROVED_DEPENDENCIES": null,
+    "reviewers": [],
+    "maintainers": [],
+    "original_nodes": 22,
+    "historical_patch": "unchanged, unapplied and superseded",
+    "pending_receipt": "unchanged and pending; no real receipt issued"
+  },
+  "real_qualification_artifacts": false,
+  "hosted_execution": false,
+  "workflow_registration_or_dispatch": false,
+  "acceptance_smoke_G0_G1_G2": false,
+  "executor_A_modified": false,
+  "next_gate": "Independent Claude review of final exact SHA/tree, including changed credential boundary",
+  "publication": "Preflight published/read back; detailed progress comment rejected by automatic approval review; final publication pending."
+}

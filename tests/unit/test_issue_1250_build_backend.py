@@ -85,10 +85,11 @@ def test_real_backend_inventory_rejects_absence_version_and_extra(tmp_path, chan
 def test_provision_handoff_uses_one_fixture_for_both_subjects(monkeypatch, tmp_path):
     sentinel = (tmp_path / "acceptance.lock", {"registered": "unit test only"})
     calls = []
-    monkeypatch.setattr(gate, "APPROVED_DEPENDENCIES", sentinel)
-    monkeypatch.setattr(gate, "provision_locked", lambda *args: calls.append(args))
+    capability = gate.Authorization(object(), "{}", gate._AUTHORIZED)
+    monkeypatch.setattr(gate, "authorized_inputs", lambda _: sentinel)
+    monkeypatch.setattr(gate, "provision_locked", lambda *args, **kwargs: calls.append(args))
     for label, sha in (("baseline", gate.BASELINE), ("candidate", gate.CANDIDATE)):
-        gate.provision(tmp_path / label, sha, tmp_path, label)
+        gate.provision(tmp_path / label, sha, tmp_path, label, authorization=capability)
     assert [call[-2:] for call in calls] == [sentinel, sentinel]
     assert [call[1] for call in calls] == [gate.BASELINE, gate.CANDIDATE]
 
@@ -128,7 +129,7 @@ def test_real_cold_baseline_and_candidate_provisioning(tmp_path, monkeypatch):
                 "subject_root": str(root), "cache_absent": not cache.exists(),
                 "venv_absent": not (root / ".venv").exists(),
             })
-            gate.provision_locked(root, sha, evidence, label, fixture, expected)
+            gate.prepare_locked(root, sha, evidence, label, fixture, expected)
             assert hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest() == expected["lock_sha256"]
             assert json.loads((evidence / f"{label}-freeze-diff.json").read_text())["actual"] == expected["freeze"]
             inventory = json.loads((evidence / f"{label}-build-inventory.json").read_text())

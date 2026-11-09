@@ -43,7 +43,7 @@ def sources():
     """Bind qualification to all current #1250 tooling and preparation test bytes."""
     files = sorted(HERE.glob("*.py")) + sorted((ROOT / "tests/unit").glob("test_issue_1250*.py"))
     files += sorted((ROOT / ".github/workflows").glob("issue-1250*.yml"))
-    files += [HERE / "hosted-policy.json", HERE / "hosted-receipt.pending.json"]
+    files += [HERE / "hosted-policy.json", HERE / "hosted-receipt.pending.json", HERE / "reviewer-policy.json"]
     return {str(path.relative_to(ROOT)): sha256(path) for path in files}
 
 
