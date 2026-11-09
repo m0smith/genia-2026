@@ -63,6 +63,24 @@ wheel are installed through hash-required direct requirements. Additional
 negative tests cover real uv hash rejection, backend/install failure propagation,
 RECORD corruption, requirements/backend-path and subject/environment mismatches.
 
+## Prepared hosted qualification (unexecuted)
+
+[Hosted qualification infrastructure](issue-1250-hosted-qualification-preparation.md)
+adds a separate manual-only workflow, immutable official toolchain/action pins,
+API-bound run/artifact retrieval, safe read-only ZIP snapshots and an independent
+receipt contract. No hosted workflow was executed or registered by this phase.
+The old self-attested hosted validator is now content validation only; the public
+hosted boundary additionally requires a verifier-issued API-backed snapshot.
+An arbitrary artifact directory or GITHUB_* claim cannot establish hosted trust.
+
+The receipt remains pending/absent. The old activation patch remains unapplied
+and is not a usable hosted activation recipe. Final staged executable/workflow
+code must be reviewed before collecting its exact commit/tree; any code change
+requires requalification. The external reviewer must approve a source/run/artifact-
+bound payload through an independently allowlisted API review identity. Same-account
+preparation COMMENT reviews do not become activation receipts. No active
+provisioning entry is wired to this new helper, and the sentinel remains None.
+
 ## Authorization and registration
 
 Registration, diagnostic smoke dispatch, and G0–G2 dispatch are three separate

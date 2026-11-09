@@ -230,3 +230,16 @@ old outcomes. No historical 22 failures, old digest/freeze/registration, previou
 runtime/build fixtures/manifests, test oracles, workflow or authority docs changed.
 No acceptance/G0/G1/G2/CI dispatch, merge, closure or executor-A/#1316 work.
 Stop after the verified handoff; future activation requires separate authorization.
+
+
+## Subsequent hosted infrastructure preparation
+
+Independent iteration-3 review 5828975752 approved registration preparation only.
+[Hosted infrastructure preparation](issue-1250-hosted-qualification-preparation.md)
+subsequently addresses its API provenance/extraction/receipt gaps without changing
+these historical registration/evidence files or applying the patch above. The
+public hosted qualifier now requires independently API-verified read-only evidence;
+its earlier bare-path CLI invocation cannot grant hosted trust. The immutable old
+activation patch is retained as history, not an operational activation recipe.
+New staged code/workflows must be final before a future exact-SHA hosted collection;
+receipts remain pending and no hosted execution or baseline activation occurred.

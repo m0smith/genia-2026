@@ -1,0 +1,40 @@
+{
+  "status": "PROPOSED_NOT_APPROVED",
+  "repository": "m0smith/genia-2026",
+  "workflow_path": ".github/workflows/issue-1250-qualification.yml",
+  "job_name": "Cold dependency qualification",
+  "actions": {
+    "checkout": "11d5960a326750d5838078e36cf38b85af677262",
+    "upload-artifact": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+  },
+  "python": {
+    "version": "3.12.14",
+    "release": "3.12.14-31661455385",
+    "asset_id": 512394035,
+    "url": "https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-24.04-x64.tar.gz",
+    "sha256": "5a03168292516f6dd6dcf630f4bf5369b108abd7c699a7e1db37f1e622257fff"
+  },
+  "uv": {
+    "version": "0.13.5",
+    "url": "https://files.pythonhosted.org/packages/3a/ad/3c2a81d66d1839063662e5b6c0002ec31f8ee987dbc5295747627ca6160a/uv-0.13.5-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "wheel_sha256": "fa8d26e08e34c29c0c4e820cf3181757086d547240b4f4d31ff1d8bd810ca946",
+    "binary_sha256": "8a70db72685b7138121bfcda71fa1a00cb709ed9f1fdc4ecf1dd871e8e167e52"
+  },
+  "provenance": "GitHub authoritative REST run/job/workflow/artifact metadata plus server artifact SHA-256; no candidate-issued attestation trusted",
+  "require_attestation": false,
+  "attestation_limitation": "A policy requiring cryptographic attestations is unsupported and rejects; no signature verification is claimed.",
+  "expiry_hours": 24,
+  "archive_limits": {
+    "compressed_bytes": 33554432,
+    "uncompressed_bytes": 67108864,
+    "member_bytes": 8388608,
+    "entries": 256,
+    "ratio": 200
+  },
+  "metadata_sources": [
+    "https://api.github.com/repos/actions/checkout/git/ref/tags/v4",
+    "https://api.github.com/repos/actions/upload-artifact/git/ref/tags/v4",
+    "https://api.github.com/repos/actions/python-versions/releases/tags/3.12.14-31661455385",
+    "https://pypi.org/pypi/uv/0.13.5/json"
+  ]
+}
