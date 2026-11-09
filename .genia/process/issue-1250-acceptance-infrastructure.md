@@ -65,6 +65,12 @@ RECORD corruption, requirements/backend-path and subject/environment mismatches.
 
 ## Prepared hosted qualification (unexecuted)
 
+Iteration 5 is [blocked before final activation wiring](issue-1250-activation-staging-blocker.md)
+at the explicit trust-model review stop. The verifier's process-local capability
+and credential-free acceptance process have no approved transfer/caller boundary.
+The additive assessment records alternatives and read-only readiness evidence;
+it does not supersede the pending receipt or approve provisioning.
+
 [Hosted qualification infrastructure](issue-1250-hosted-qualification-preparation.md)
 adds a separate manual-only workflow, immutable official toolchain/action pins,
 API-bound run/artifact retrieval, safe read-only ZIP snapshots and an independent
