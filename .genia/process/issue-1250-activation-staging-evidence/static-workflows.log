@@ -1,0 +1,3 @@
+.github/workflows/issue-1250-acceptance.yml: YAML parsed; 15 bash blocks syntax-only checked
+.github/workflows/issue-1250-qualification.yml: YAML parsed; 7 bash blocks syntax-only checked
+actionlint/shellcheck unavailable; no workflow or run block executed.
