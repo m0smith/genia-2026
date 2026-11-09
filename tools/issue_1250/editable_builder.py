@@ -49,7 +49,11 @@ def build(inputs, root, output, report):
             requirement = Requirement(text)
             if requirement.marker and not requirement.marker.evaluate({"extra": ""}):
                 continue
-            if requirement.url or not requirement.specifier.contains(metadata.version(requirement.name)):
+            try:
+                version = metadata.version(requirement.name)
+            except metadata.PackageNotFoundError as error:
+                raise RuntimeError(f"missing pinned build requirement: {text}") from error
+            if requirement.url or not requirement.specifier.contains(version):
                 raise RuntimeError(f"unsatisfied pinned build requirement: {text}")
 
     project = tomllib.loads((root / "pyproject.toml").read_text())
@@ -73,6 +77,44 @@ def build(inputs, root, output, report):
     }, indent=2) + "\n")
 
 
+def verify_record(record):
+    """Validate installed RECORD structure, unique safe paths and SHA-256/size pairs.
+
+    uv's evidenced wheel install uses SHA-256 for every entry except RECORD's
+    own empty pair. Relative console-script paths may climb within the venv;
+    missing files, paths outside it, ambiguous rows or bad hashes/sizes reject.
+    Return parsed rows only after every entry has verified, without mutation.
+    """
+    try:
+        environment = Path(sys.prefix).resolve()
+        if not record.resolve().is_relative_to(environment):
+            raise ValueError("RECORD outside target environment")
+        with record.open(newline="") as stream:
+            rows = list(csv.reader(stream, strict=True))
+        seen = set()
+        self_name = record.parent.name + "/RECORD"
+        for row in rows:
+            if len(row) != 3 or not row[0] or row[0] in seen or Path(row[0]).is_absolute():
+                raise ValueError("invalid/duplicate RECORD row")
+            seen.add(row[0])
+            target = (record.parent.parent / row[0]).resolve(strict=True)
+            if not target.is_relative_to(environment) or not target.is_file():
+                raise ValueError("RECORD path escaped target")
+            if row[0] == self_name:
+                if row[1:] != ["", ""]:
+                    raise ValueError("invalid RECORD self-row")
+                continue
+            content = target.read_bytes()
+            digest = base64.urlsafe_b64encode(hashlib.sha256(content).digest()).rstrip(b"=").decode()
+            if row[1] != "sha256=" + digest or row[2] != str(len(content)):
+                raise ValueError("RECORD hash/size mismatch")
+        if self_name not in seen:
+            raise ValueError("missing RECORD self-row")
+        return rows
+    except (OSError, ValueError, csv.Error) as error:
+        raise RuntimeError("invalid installed RECORD: " + str(error)) from error
+
+
 def record_editable(root):
     """Apply frontend-owned PEP 610 editable metadata and maintain installed RECORD.
 
@@ -86,16 +128,17 @@ def record_editable(root):
     if len(records) != 1:
         raise RuntimeError("installed Genia RECORD missing or ambiguous")
     record = Path(dist.locate_file(records[0]))
+    rows = verify_record(record)
     direct = record.parent / "direct_url.json"
     content = (json.dumps({"url": root.as_uri(), "dir_info": {"editable": True}}) + "\n").encode()
     direct.write_bytes(content)
     relative = record.parent.name + "/direct_url.json"
-    with record.open(newline="") as stream:
-        rows = [row for row in csv.reader(stream) if row[0] != relative]
+    rows = [row for row in rows if row[0] != relative]
     digest = base64.urlsafe_b64encode(hashlib.sha256(content).digest()).rstrip(b"=").decode()
     rows.append([relative, "sha256=" + digest, str(len(content))])
     with record.open("w", newline="") as stream:
         csv.writer(stream).writerows(rows)
+    verify_record(record)
     print(direct.read_text().strip())
 
 

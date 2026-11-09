@@ -85,8 +85,10 @@ def install_editable(root, evidence, label, command, inputs):
         if hashlib.sha256(wheel.read_bytes()).hexdigest() != built["wheel_sha256"]:
             raise RuntimeError("editable wheel modified after build")
         target_python = root / ".venv/bin/python"
+        wheel_requirements = evidence / f"{label}-project-requirements.txt"
+        wheel_requirements.write_text(f"genia @ {wheel.as_uri()} --hash=sha256:{built['wheel_sha256']}\n")
         command(["uv", "--no-config", "pip", "install", "--python", str(target_python),
-                 "--no-deps", "--no-index", "--reinstall", str(wheel)],
+                 "--no-deps", "--no-index", "--require-hashes", "--reinstall", "-r", str(wheel_requirements)],
                 root, evidence, label + "-project-install")
         command([str(target_python), "-I", str(BUILDER), "record", str(root)],
                 root, evidence, label + "-editable-metadata")

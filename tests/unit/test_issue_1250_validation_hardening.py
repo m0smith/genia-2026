@@ -150,8 +150,12 @@ def test_real_uv_rejects_corrupt_hash_pinned_backend_wheel(tmp_path, corruption)
     if corruption == "wrong-hash":
         expected = "0" * 64
     else:
-        with wheel.open("ab") as stream:
-            stream.write(b"changed after registration")
+        with zipfile.ZipFile(wheel) as archive:
+            entries = {name: archive.read(name) for name in archive.namelist()}
+        entries["unit_backend.py"] = b"value = 2  # changed after registration\n"
+        with zipfile.ZipFile(wheel, "w") as archive:
+            for name, content in entries.items():
+                archive.writestr(name, content)
     requirements = tmp_path / "requirements.txt"
     requirements.write_text(f"unit-backend @ {wheel.as_uri()} --hash=sha256:{expected}\n")
     environment = tmp_path / "empty"

@@ -3,7 +3,6 @@
 from datetime import datetime, timedelta, timezone
 import importlib
 import json
-from pathlib import Path
 
 import pytest
 
@@ -117,3 +116,33 @@ def test_future_approval_requires_complete_fresh_success(qualification, change):
 def test_missing_bundle_rejected_without_execution(tmp_path):
     with pytest.raises(RuntimeError, match="qualification rejected"):
         validator().require_qualification(tmp_path / "missing", "0" * 64, "github-hosted-ubuntu-24.04")
+
+
+def test_registration_proposal_is_exact_and_inactive():
+    from tools.issue_1250 import run as gate
+    module = validator()
+    proposed = json.loads(module.PROPOSAL.read_text())
+    assert proposed["status"] == "PROPOSED_NOT_APPROVED"
+    assert len(proposed["runtime"]["freeze"]) == 42
+    assert "pymdown-extensions==13.0" in proposed["runtime"]["freeze"]
+    assert "pymdown-extensions==12.3" in gate.REGISTRATION["freeze"]
+    assert gate.APPROVED_DEPENDENCIES is None
+    assert len(proposed["build"]["inventory"]) == 7
+    assert module.inputs()["scope"] == proposed["scope"]
+
+
+def test_capture_records_real_failure_and_preserves_exception(tmp_path):
+    module = validator()
+    with pytest.raises(ValueError, match="injected integration failure"):
+        with module.capture(tmp_path):
+            raise ValueError("injected integration failure")
+    assert json.loads((tmp_path / "integration.json").read_text())["outcome"] == "FAIL"
+    assert (tmp_path / "manifest.json").is_file()
+
+
+def test_incomplete_capture_cannot_self_report_pass(tmp_path):
+    module = validator()
+    with pytest.raises(RuntimeError, match="qualification rejected"):
+        with module.capture(tmp_path):
+            pass  # No real subjects/commands: a successful body alone cannot qualify.
+    assert json.loads((tmp_path / "integration.json").read_text())["outcome"] == "FAIL"

@@ -20,6 +20,7 @@ from tools.issue_1250 import run as gate
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github/workflows/issue-1250-acceptance.yml"
 SHA = "a" * 40
+REAL_INSTALL_EDITABLE = gate.build_backend.install_editable
 
 
 def record(label="G2", boot="g2", mode="acceptance"):
@@ -351,3 +352,33 @@ def test_missing_build_evidence_stops_provisioning_and_records_failure(locked_su
     gate.finalize(evidence, [root], "smoke", caught.value)
     assert json.loads((evidence / "summary.json").read_text())["outcome"] == "FAIL"
     assert not (root.parent / "calls").exists()
+
+
+@pytest.mark.parametrize("failure", ["build-editable", "project-install"])
+def test_actual_provision_wrapper_propagates_backend_and_install_failures(locked_subject, monkeypatch, failure):
+    """Exercise wrapper -> locked helper -> real build coordinator with injected IO failure."""
+    root, sha, evidence, fixture, expected = locked_subject
+    monkeypatch.setattr(gate, "APPROVED_DEPENDENCIES", (fixture, expected))
+    monkeypatch.setattr(gate.build_backend, "install_editable", REAL_INSTALL_EDITABLE)
+
+    def command(argv, cwd, output, label):
+        """Model installer subprocess failures while retaining the real error contract."""
+        rc = 1 if label.endswith(failure) else 0
+        gate.write_json(output / (label + ".json"), {"argv": argv, "rc": rc})
+        (output / (label + ".log")).write_text("injected unit failure" if rc else "unit setup")
+        if rc:
+            raise RuntimeError(label + " failed; see retained log")
+        if label.endswith("build-editable"):
+            wheel = Path(argv[-2]) / "genia-0.1.14-py3-none-any.whl"
+            wheel.write_bytes(b"unit editable wheel")
+            Path(argv[-1]).write_text(json.dumps({"wheel": wheel.name,
+                "wheel_sha256": hashlib.sha256(wheel.read_bytes()).hexdigest()}))
+        return ""
+
+    monkeypatch.setattr(gate, "command", command)
+    with pytest.raises(RuntimeError, match=failure) as caught:
+        gate.provision(root, sha, evidence, "wrapper")
+    gate.finalize(evidence, [root], "smoke", caught.value)
+    assert json.loads((evidence / "summary.json").read_text())["outcome"] == "FAIL"
+    assert json.loads((evidence / ("wrapper-" + failure + ".json")).read_text())["rc"] == 1
+    assert not list(evidence.glob("*-build-env-*"))

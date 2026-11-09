@@ -15,6 +15,7 @@ import sys
 import pytest
 
 from tools.issue_1250 import run as gate
+from tools.issue_1250 import approval_validation
 
 ROOT = Path(__file__).resolve().parents[2]
 PROPOSAL = ROOT / "tools/issue_1250/dependencies/proposed-2026-11-08"
@@ -112,42 +113,50 @@ def test_real_cold_baseline_and_candidate_provisioning(tmp_path, monkeypatch):
     build_inputs, _ = module.load_evidence()
     evidence_root = Path(os.environ.get("ISSUE1250_BUILD_EVIDENCE", tmp_path / "evidence"))
     evidence_root.mkdir(parents=True, exist_ok=True)
-    inventories = []
-    for label, sha in (("baseline", gate.BASELINE), ("candidate", gate.CANDIDATE)):
-        root, evidence = tmp_path / label, evidence_root / label
-        evidence.mkdir()
-        subprocess.run(["git", "clone", "--shared", "--no-checkout", str(ROOT), str(root)], check=True)
-        subprocess.run(["git", "-C", str(root), "checkout", "--detach", sha], check=True)
-        monkeypatch.setenv("UV_CACHE_DIR", str(tmp_path / (label + "-cold-cache")))
-        assert not Path(os.environ["UV_CACHE_DIR"]).exists()
-        gate.provision_locked(root, sha, evidence, label, fixture, expected)
-        assert hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest() == expected["lock_sha256"]
-        assert json.loads((evidence / f"{label}-freeze-diff.json").read_text())["actual"] == expected["freeze"]
-        inventory = json.loads((evidence / f"{label}-build-inventory.json").read_text())
-        inventories.append(inventory["actual"])
-        assert inventory["actual"] == sorted(f"{p['name']}=={p['version']}" for p in build_inputs["packages"])
-        python = root / ".venv/bin/python"
-        installed = gate.command([str(python), "-I", "-c",
-            "import genia, importlib.metadata as m; "
-            "print(list(genia.__path__)); print(m.distribution('genia').read_text('direct_url.json'))"],
-            tmp_path, evidence, label + "-installed-project")
-        assert str(root / "src/genia") in installed
-        assert '"editable": true' in installed
-        assert (root / ".venv/bin/genia").is_file()
-        # Frontend metadata must agree with installed RECORD, not just freeze.
-        gate.command([str(python), "-I", "-c",
-            "import base64,csv,hashlib; from importlib import metadata; "
-            "d=metadata.distribution('genia'); "
-            "r=next(d.locate_file(f) for f in d.files if str(f).endswith('.dist-info/RECORD')); "
-            "p=r.parent/'direct_url.json'; "
-            "row=next(x for x in csv.reader(r.open()) if x[0].endswith('/direct_url.json')); "
-            "assert row[1]=='sha256='+base64.urlsafe_b64encode(hashlib.sha256(p.read_bytes()).digest()).rstrip(b'=').decode(); "
-            "assert int(row[2])==len(p.read_bytes()); print('editable RECORD verified')"],
-            tmp_path, evidence, label + "-editable-record")
-        assert not list(evidence.glob("*-build-env-*"))
-        gate.clean(root, sha)
-        gate.manifest(evidence)
-    assert inventories[0] == inventories[1]
+    with approval_validation.capture(evidence_root) as qualification:
+        inventories = []
+        for label, sha in (("baseline", gate.BASELINE), ("candidate", gate.CANDIDATE)):
+            root, evidence = tmp_path / label, evidence_root / label
+            evidence.mkdir()
+            subprocess.run(["git", "clone", "--shared", "--no-checkout", str(ROOT), str(root)], check=True)
+            subprocess.run(["git", "-C", str(root), "checkout", "--detach", sha], check=True)
+            cache = tmp_path / (label + "-cold-cache")
+            monkeypatch.setenv("UV_CACHE_DIR", str(cache))
+            assert not cache.exists() and not (root / ".venv").exists()
+            gate.write_json(evidence / f"{label}-cold-start.json", {
+                "run_id": qualification["run_id"], "sha": sha, "cache": str(cache),
+                "subject_root": str(root), "cache_absent": not cache.exists(),
+                "venv_absent": not (root / ".venv").exists(),
+            })
+            gate.provision_locked(root, sha, evidence, label, fixture, expected)
+            assert hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest() == expected["lock_sha256"]
+            assert json.loads((evidence / f"{label}-freeze-diff.json").read_text())["actual"] == expected["freeze"]
+            inventory = json.loads((evidence / f"{label}-build-inventory.json").read_text())
+            inventories.append(inventory["actual"])
+            assert inventory["actual"] == sorted(f"{p['name']}=={p['version']}" for p in build_inputs["packages"])
+            python = root / ".venv/bin/python"
+            installed = gate.command([str(python), "-I", "-c",
+                "import genia, importlib.metadata as m; "
+                "print(list(genia.__path__)); print(m.distribution('genia').read_text('direct_url.json'))"],
+                tmp_path, evidence, label + "-installed-project")
+            assert str(root / "src/genia") in installed
+            assert '"editable": true' in installed
+            assert (root / ".venv/bin/genia").is_file()
+            # Frontend metadata must agree with installed RECORD, not just freeze.
+            gate.command([str(python), "-I", "-c",
+                "import base64,csv,hashlib; from importlib import metadata; "
+                "d=metadata.distribution('genia'); "
+                "r=next(d.locate_file(f) for f in d.files if str(f).endswith('.dist-info/RECORD')); "
+                "p=r.parent/'direct_url.json'; "
+                "row=next(x for x in csv.reader(r.open()) if x[0].endswith('/direct_url.json')); "
+                "assert row[1]=='sha256='+base64.urlsafe_b64encode(hashlib.sha256(p.read_bytes()).digest()).rstrip(b'=').decode(); "
+                "assert int(row[2])==len(p.read_bytes()); print('editable RECORD verified')"],
+                tmp_path, evidence, label + "-editable-record")
+            assert not list(evidence.glob("*-build-env-*"))
+            gate.clean(root, sha)
+            gate.manifest(evidence)
+        assert inventories[0] == inventories[1]
+
 
 
 @pytest.mark.parametrize("override", ["UV_INDEX_URL", "PIP_INDEX_URL", "UV_NO_VERIFY_HASHES", "UV_PROJECT_ENVIRONMENT"])
