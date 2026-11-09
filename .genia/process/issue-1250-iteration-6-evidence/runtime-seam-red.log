@@ -1,0 +1,50 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_______ test_locked_acceptance_entry_requires_snapshot_before_subject_io _______
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-7/test_locked_acceptance_entry_r0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f0117879e80>
+
+    def test_locked_acceptance_entry_requires_snapshot_before_subject_io(tmp_path, monkeypatch):
+        """The acceptance entry may not reuse the offline packaging seam unsealed."""
+        def unexpected(*args, **kwargs):
+            """Expose any subject access before a live snapshot was required."""
+            raise AssertionError("subject IO before VerifiedSnapshot check")
+        monkeypatch.setattr(run, "clean", unexpected)
+        with pytest.raises(RuntimeError, match="VerifiedSnapshot"):
+>           run.provision_locked(tmp_path, run.BASELINE, tmp_path, "blocked", tmp_path / "lock", {})
+
+tests/unit/test_issue_1250_controller.py:595: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/issue_1250/run.py:290: in provision_locked
+    clean(root, sha)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (PosixPath('/tmp/pytest-of-agent/pytest-7/test_locked_acceptance_entry_r0'), '0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5')
+kwargs = {}
+
+    def unexpected(*args, **kwargs):
+        """Expose any subject access before a live snapshot was required."""
+>       raise AssertionError("subject IO before VerifiedSnapshot check")
+E       AssertionError: subject IO before VerifiedSnapshot check
+
+tests/unit/test_issue_1250_controller.py:592: AssertionError
+____________ test_legacy_sentinel_mutation_is_not_runtime_authority ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-7/test_legacy_sentinel_mutation_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f0117a2a0c0>
+
+    def test_legacy_sentinel_mutation_is_not_runtime_authority(tmp_path, monkeypatch):
+        """Only live controller authority can enter acceptance provisioning."""
+        calls = []
+        monkeypatch.setattr(run, "APPROVED_DEPENDENCIES", (tmp_path / "lock", {}))
+        monkeypatch.setattr(run, "provision_locked", lambda *a, **k: calls.append(a))
+>       with pytest.raises(RuntimeError, match="independent dependency baseline approval"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RuntimeError
+
+tests/unit/test_issue_1250_controller.py:603: Failed
+=========================== short test summary info ============================
+FAILED tests/unit/test_issue_1250_controller.py::test_locked_acceptance_entry_requires_snapshot_before_subject_io
+FAILED tests/unit/test_issue_1250_controller.py::test_legacy_sentinel_mutation_is_not_runtime_authority
+2 failed, 63 deselected in 0.27s
