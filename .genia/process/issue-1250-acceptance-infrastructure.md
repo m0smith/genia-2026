@@ -43,7 +43,25 @@ The original default-isolation installation evidence remains immutable and does
 not identify its backend versions. Additive corrected cold-cache baseline and
 candidate packaging evidence names and hashes the actual backend inputs. It
 supersedes only the earlier installation reproducibility claim. Hosted execution,
-acceptance and independent approval remain unperformed.
+acceptance remain unperformed. Independent review approved the build-backend
+correction only; baseline activation is still unapproved.
+
+## Mandatory future dependency qualification
+
+[Registration preparation](issue-1250-registration-preparation.md) defines the
+inactive registration proposal and exact unapplied activation wiring. The
+read-only approval_validation module rejects missing/stale/skipped/failed or
+wrong-source/input/environment evidence. Future activation wiring must call it
+with a separately approved manifest receipt before any provisioning. A normal
+unit run may omit integration; explicit future qualification cannot. Local
+Debian evidence never supplies hosted Ubuntu qualification. No current workflow
+or sentinel was changed to activate this behavior.
+
+The frontend now validates the existing installed RECORD before modification and
+all updated hashes/sizes afterward. Both backend wheels and the built editable
+wheel are installed through hash-required direct requirements. Additional
+negative tests cover real uv hash rejection, backend/install failure propagation,
+RECORD corruption, requirements/backend-path and subject/environment mismatches.
 
 ## Authorization and registration
 

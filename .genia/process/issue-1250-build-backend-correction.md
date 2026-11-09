@@ -182,3 +182,15 @@ no author PASS substitutes for it. Draft remains NOT APPROVED — DO NOT MERGE.
 APPROVED_DEPENDENCIES remains None. No CI/acceptance dispatch, G0/G1/G2,
 executor-A/#1316 investigation, merge or closure. Rollback by reverting correction
 commits only; retain all additive failure evidence and original22 unchanged.
+
+
+## Subsequent registration preparation
+
+Independent review 5828336713 approved the correction at d3bf5b73 for the next
+separately authorized gate only. [Registration preparation and hardening](issue-1250-registration-preparation.md)
+subsequently adds the remaining negative tests, strict pre/post RECORD checks,
+hash-required editable installation and mandatory future qualification. Its
+registration metadata and wiring diff remain inactive; original correction
+fixtures and their manifest stay immutable. Baseline/activation review remains
+separate and pending. The local 73-test evidence above is historical; the new
+preparation record reports its own exact tested source and 127-test result.
