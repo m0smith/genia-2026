@@ -1,0 +1,21 @@
+{
+  "actual": [
+    "editables==0.6",
+    "hatchling==1.33.0",
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.7.0",
+    "tomlkit==0.15.2",
+    "trove-classifiers==2026.9.21.13"
+  ],
+  "static_requires": [
+    "hatchling"
+  ],
+  "dynamic_requires": [
+    "editables~=0.3"
+  ],
+  "wheel": "genia-0.1.14-py3-none-any.whl",
+  "wheel_sha256": "ff38bbd543eefaaef3410e42b8617fd006894fb0f94c72e356523c4348fee4ee",
+  "source": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/candidate",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+}

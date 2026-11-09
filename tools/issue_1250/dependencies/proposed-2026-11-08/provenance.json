@@ -1,0 +1,44 @@
+{
+  "started_utc": "2026-11-08T17:39:13.345732+00:00",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "uv_version": "uv 0.13.5 (x86_64-unknown-linux-gnu)",
+  "uv_path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/uv",
+  "uv_sha256": "8a70db72685b7138121bfcda71fa1a00cb709ed9f1fdc4ecf1dd871e8e167e52",
+  "os_release": "PRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\nNAME=\"Debian GNU/Linux\"\nVERSION_ID=\"13\"\nVERSION=\"13 (trixie)\"\nVERSION_CODENAME=trixie\nDEBIAN_VERSION_FULL=13.6\nID=debian\nHOME_URL=\"https://www.debian.org/\"\nSUPPORT_URL=\"https://www.debian.org/support\"\nBUG_REPORT_URL=\"https://bugs.debian.org/\"\n",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "index": "https://pypi.org/simple (default; no UV_/PIP_ overrides; no user/system uv/pip config found)",
+  "subject_sha": "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5",
+  "candidate_sha": "e3562f620020023ea39c44273068872d6bc73fe6",
+  "pyproject_sha256": "cf461c7b683126d7064f5473a7dadfb6d2561c677d5dd514668eed07b56fbfdc",
+  "command": [
+    "uv",
+    "lock",
+    "--no-python-downloads",
+    "--python",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3"
+  ],
+  "cwd": "/workspace/1250-proposed/subject",
+  "classification": "PROPOSED_NOT_APPROVED; isolated preparation only; no acceptance tests",
+  "install_started_utc": "2026-11-08T17:39:27.649768+00:00",
+  "sync_command": [
+    "uv",
+    "sync",
+    "--dev",
+    "--locked",
+    "--no-python-downloads",
+    "--python",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3"
+  ],
+  "freeze_command": [
+    "uv",
+    "pip",
+    "freeze"
+  ],
+  "venv": "/workspace/1250-proposed/subject/.venv",
+  "lock_sha256": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf",
+  "sync_rc": 0,
+  "freeze_rc": 0,
+  "install_finished_utc": "2026-11-08T17:39:29.545711+00:00",
+  "post_sync_lock_sha256": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf"
+}

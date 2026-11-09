@@ -1,0 +1,927 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF                             [100%]
+=================================== FAILURES ===================================
+_______________ test_policy_is_from_main_and_requires_dispatcher _______________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 16, 988807, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+
+    def test_policy_is_from_main_and_requires_dispatcher(authority):
+        expected, api, _, digest = authority
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:59: AttributeError
+_______________ test_policy_and_contributors_fail_closed[digest] _______________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y..., 21, 18, 17, 18650, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'digest'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+______________ test_policy_and_contributors_fail_closed[encoding] ______________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y..., 21, 18, 17, 34356, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'encoding'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+________________ test_policy_and_contributors_fail_closed[blob] ________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y..., 21, 18, 17, 44268, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'blob'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+_________ test_policy_and_contributors_fail_closed[unknown-dispatcher] _________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y..., 21, 18, 17, 55901, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'unknown-dispatcher'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+_______________ test_policy_and_contributors_fail_closed[rerun] ________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y..., 21, 18, 17, 66997, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'rerun'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+____________ test_policy_and_contributors_fail_closed[wrong-source] ____________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y..., 21, 18, 17, 78218, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'wrong-source'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+___________ test_policy_and_contributors_fail_closed[wrong-workflow] ___________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y..., 21, 18, 17, 89570, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'wrong-workflow'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+_____________ test_policy_and_contributors_fail_closed[wrong-base] _____________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 102630, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'wrong-base'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+_____________ test_policy_and_contributors_fail_closed[truncated] ______________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 114065, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'truncated'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+__________ test_policy_and_contributors_fail_closed[ambiguous-author] __________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 143931, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'ambiguous-author'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+________ test_policy_and_contributors_fail_closed[ambiguous-committer] _________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 155407, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'ambiguous-committer'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+______________ test_policy_and_contributors_fail_closed[diverged] ______________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 167860, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'diverged'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+_____________ test_policy_and_contributors_fail_closed[malformed] ______________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 179232, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'malformed'
+
+    @pytest.mark.parametrize('change', ['digest', 'encoding', 'blob', 'unknown-dispatcher', 'rerun',
+                                      'wrong-source', 'wrong-workflow', 'wrong-base', 'truncated',
+                                      'ambiguous-author', 'ambiguous-committer', 'diverged', 'malformed'])
+    def test_policy_and_contributors_fail_closed(authority, change):
+        expected, api, _, digest = authority
+        dispatch = api.values[PREFIX + '/actions/runs/55']
+        compare = api.values[PREFIX + f"/compare/{BASE}...{expected['commit_sha']}?per_page=100&page=1"]
+        if change == 'digest': digest = '0' * 64
+        elif change == 'encoding': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['encoding'] = 'utf-8'
+        elif change == 'blob': api.values[PREFIX + '/contents/tools/issue_1250/reviewer-policy.json?ref=main']['sha'] = '0' * 40
+        elif change == 'unknown-dispatcher': dispatch['triggering_actor']['id'] = 999
+        elif change == 'rerun': dispatch['run_attempt'] = 2
+        elif change == 'wrong-source': dispatch['head_sha'] = '0' * 40
+        elif change == 'wrong-workflow': dispatch['path'] = 'other.yml'
+        elif change == 'wrong-base': api.values[PREFIX + '/pulls/1318']['base']['sha'] = '0' * 40
+        elif change == 'truncated': compare['total_commits'] = 2
+        elif change == 'ambiguous-author': compare['commits'][0]['author'] = None
+        elif change == 'ambiguous-committer': compare['commits'][0]['committer'] = None
+        elif change == 'diverged': compare['behind_by'] = 1
+        elif change == 'malformed': api.values[PREFIX + '/actions/runs/55'] = []
+        with pytest.raises(RuntimeError, match='authority rejected'):
+>           trust.verify_authority(api, digest, 55, expected['commit_sha'])
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:86: AttributeError
+_________________________ test_numeric_review_approval _________________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 190908, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+
+    def test_numeric_review_approval(authority):
+        expected, api, now, digest = authority
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:103: AttributeError
+___________________ test_numeric_review_rejections[wrong-id] ___________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 202035, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'wrong-id'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+____________________ test_numeric_review_rejections[author] ____________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 217273, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'author'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+__________________ test_numeric_review_rejections[committer] ___________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 230320, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'committer'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+__________________ test_numeric_review_rejections[dispatcher] __________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 243254, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'dispatcher'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+__________________ test_numeric_review_rejections[collector] ___________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 259885, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'collector'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+_____________ test_numeric_review_rejections[triggering-collector] _____________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 277380, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'triggering-collector'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+__________________ test_numeric_review_rejections[commented] ___________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 292084, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'commented'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+__________________ test_numeric_review_rejections[dismissed] ___________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 311915, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'dismissed'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+____________________ test_numeric_review_rejections[marker] ____________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 341122, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'marker'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+____________________ test_numeric_review_rejections[commit] ____________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 356482, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'commit'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+___________________ test_numeric_review_rejections[pending] ____________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 368976, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'pending'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+___________________ test_numeric_review_rejections[expired] ____________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 380341, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'expired'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+___________________ test_numeric_review_rejections[missing] ____________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 392068, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'missing'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+_______________ test_numeric_review_rejections[login-allowlist] ________________
+
+authority = ({'repository': 'm0smith/genia-2026', 'workflow_id': 5, 'workflow_path': '.github/workflows/issue-1250-qualification.y... 21, 18, 17, 407752, tzinfo=datetime.timezone.utc), '6f7e50c4a36705cdb96b9d377717f0100fcd61a086ad60b954f937041accecc5')
+change = 'login-allowlist'
+
+    @pytest.mark.parametrize('change', ['wrong-id', 'author', 'committer', 'dispatcher', 'collector',
+                                      'triggering-collector', 'commented', 'dismissed', 'marker',
+                                      'commit', 'pending', 'expired', 'missing', 'login-allowlist'])
+    def test_numeric_review_rejections(authority, change):
+        expected, api, now, digest = authority
+        receipt = receipt_fixture(expected, api, now)
+>       policy = trust.verify_authority(api, digest, 55, expected['commit_sha'])
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.hosted_trust' has no attribute 'verify_authority'
+
+tests/unit/test_issue_1250_controller.py:114: AttributeError
+___________________ test_missing_or_malformed_stdin_token[] ____________________
+
+value = ''
+
+    @pytest.mark.parametrize('value', ['', '\n', 'bad token\n', 'x\ny\n', 'x' * 8193])
+    def test_missing_or_malformed_stdin_token(value):
+        with pytest.raises(RuntimeError, match='stdin credential'):
+>           run.read_token(io.StringIO(value))
+            ^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.run' has no attribute 'read_token'
+
+tests/unit/test_issue_1250_controller.py:139: AttributeError
+__________________ test_missing_or_malformed_stdin_token[\n] ___________________
+
+value = '\n'
+
+    @pytest.mark.parametrize('value', ['', '\n', 'bad token\n', 'x\ny\n', 'x' * 8193])
+    def test_missing_or_malformed_stdin_token(value):
+        with pytest.raises(RuntimeError, match='stdin credential'):
+>           run.read_token(io.StringIO(value))
+            ^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.run' has no attribute 'read_token'
+
+tests/unit/test_issue_1250_controller.py:139: AttributeError
+______________ test_missing_or_malformed_stdin_token[bad token\n] ______________
+
+value = 'bad token\n'
+
+    @pytest.mark.parametrize('value', ['', '\n', 'bad token\n', 'x\ny\n', 'x' * 8193])
+    def test_missing_or_malformed_stdin_token(value):
+        with pytest.raises(RuntimeError, match='stdin credential'):
+>           run.read_token(io.StringIO(value))
+            ^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.run' has no attribute 'read_token'
+
+tests/unit/test_issue_1250_controller.py:139: AttributeError
+________________ test_missing_or_malformed_stdin_token[x\ny\n] _________________
+
+value = 'x\ny\n'
+
+    @pytest.mark.parametrize('value', ['', '\n', 'bad token\n', 'x\ny\n', 'x' * 8193])
+    def test_missing_or_malformed_stdin_token(value):
+        with pytest.raises(RuntimeError, match='stdin credential'):
+>           run.read_token(io.StringIO(value))
+            ^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.run' has no attribute 'read_token'
+
+tests/unit/test_issue_1250_controller.py:139: AttributeError
+_ test_missing_or_malformed_stdin_token[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] _
+
+value = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+
+    @pytest.mark.parametrize('value', ['', '\n', 'bad token\n', 'x\ny\n', 'x' * 8193])
+    def test_missing_or_malformed_stdin_token(value):
+        with pytest.raises(RuntimeError, match='stdin credential'):
+>           run.read_token(io.StringIO(value))
+            ^^^^^^^^^^^^^^
+E           AttributeError: module 'tools.issue_1250.run' has no attribute 'read_token'
+
+tests/unit/test_issue_1250_controller.py:139: AttributeError
+_________________ test_token_is_read_once_and_stdin_is_closed __________________
+
+    def test_token_is_read_once_and_stdin_is_closed():
+        stream = io.StringIO('github-token-canary\n')
+>       assert run.read_token(stream) == 'github-token-canary'
+               ^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.run' has no attribute 'read_token'
+
+tests/unit/test_issue_1250_controller.py:144: AttributeError
+____________________ test_executable_hash_mismatch[python] _____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-0/test_executable_hash_mismatch_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa1c05dde20>
+binary = 'python'
+
+    @pytest.mark.parametrize('binary', ['python', 'uv'])
+    def test_executable_hash_mismatch(tmp_path, monkeypatch, binary):
+        python, uv = tmp_path / 'python', tmp_path / 'uv'
+        python.write_bytes(b'python')
+        uv.write_bytes(b'uv')
+        monkeypatch.setattr(run.sys, 'executable', str(python))
+        monkeypatch.setattr(run.shutil, 'which', lambda name: str(uv))
+        record = {'environment': {'python_sha256': hashlib.sha256(b'python').hexdigest(),
+                                  'uv_sha256': hashlib.sha256(b'uv').hexdigest()}}
+>       run.verify_toolchain(record)
+        ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.run' has no attribute 'verify_toolchain'
+
+tests/unit/test_issue_1250_controller.py:157: AttributeError
+______________________ test_executable_hash_mismatch[uv] _______________________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-0/test_executable_hash_mismatch_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa1c05da690>
+binary = 'uv'
+
+    @pytest.mark.parametrize('binary', ['python', 'uv'])
+    def test_executable_hash_mismatch(tmp_path, monkeypatch, binary):
+        python, uv = tmp_path / 'python', tmp_path / 'uv'
+        python.write_bytes(b'python')
+        uv.write_bytes(b'uv')
+        monkeypatch.setattr(run.sys, 'executable', str(python))
+        monkeypatch.setattr(run.shutil, 'which', lambda name: str(uv))
+        record = {'environment': {'python_sha256': hashlib.sha256(b'python').hexdigest(),
+                                  'uv_sha256': hashlib.sha256(b'uv').hexdigest()}}
+>       run.verify_toolchain(record)
+        ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.issue_1250.run' has no attribute 'verify_toolchain'
+
+tests/unit/test_issue_1250_controller.py:157: AttributeError
+__________ test_subprocess_canary_has_no_token_env_argv_files_or_fds ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-0/test_subprocess_canary_has_no_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa1c05d9790>
+
+    def test_subprocess_canary_has_no_token_env_argv_files_or_fds(tmp_path, monkeypatch):
+        monkeypatch.setenv('GITHUB_TOKEN', 'credential-canary')
+        monkeypatch.setenv('GH_TOKEN', 'credential-canary')
+        monkeypatch.setenv('UNRELATED_SECRET', 'credential-canary')
+        read_fd, write_fd = os.pipe()
+        os.set_inheritable(read_fd, True)
+        os.write(write_fd, b'credential-canary')
+        try:
+            script = "import os,sys,json; print(json.dumps({'env':dict(os.environ),'argv':sys.argv,'fds':os.listdir('/proc/self/fd'),'stdin':sys.stdin.read()}))"
+            value = json.loads(run.command([sys.executable, '-c', script], tmp_path, tmp_path, 'canary'))
+>           assert all('credential-canary' not in str(v) for v in value.values())
+E           assert False
+E            +  where False = all(<generator object test_subprocess_canary_has_no_token_env_argv_files_or_fds.<locals>.<genexpr> at 0x7fa1c0711700>)
+
+tests/unit/test_issue_1250_controller.py:173: AssertionError
+----------------------------- Captured stdout call -----------------------------
+canary: rc=0
+___________________ test_forged_capability_cannot_provision ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-0/test_forged_capability_cannot_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa1c05dac30>
+
+    def test_forged_capability_cannot_provision(tmp_path, monkeypatch):
+        calls = []
+        monkeypatch.setattr(run, 'provision_locked', lambda *a, **k: calls.append(a))
+        for capability in (None, {}, {'verified': True}, object()):
+            with pytest.raises(RuntimeError):
+>               run.provision(tmp_path, 'a' * 40, tmp_path, 'blocked', authorization=capability)
+E               TypeError: provision() got an unexpected keyword argument 'authorization'
+
+tests/unit/test_issue_1250_controller.py:187: TypeError
+___________ test_verification_failure_precedes_all_subject_activity ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-0/test_verification_failure_prec0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa1c04fe3f0>
+
+    def test_verification_failure_precedes_all_subject_activity(tmp_path, monkeypatch):
+        calls = []
+        monkeypatch.setattr(run.os, 'getpid', lambda: 1)
+        def reject(*a, **k):
+            raise RuntimeError('verification deliberately failed')
+>       monkeypatch.setattr(run, 'authorize', reject)
+E       AttributeError: <module 'tools.issue_1250.run' from '/workspace/work/issue-1250-i6/tools/issue_1250/run.py'> has no attribute 'authorize'
+
+tests/unit/test_issue_1250_controller.py:196: AttributeError
+_________________ test_api_errors_are_redacted_and_closed[403] _________________
+
+code = 403
+
+    @pytest.mark.parametrize('code', [403, 429, 'malformed'])
+    def test_api_errors_are_redacted_and_closed(code):
+        client = trust.GitHubReadOnly('credential-canary')
+        class Broken:
+            def open(self, *a, **k):
+                raise RuntimeError(f'{code}: credential-canary')
+        client._opener = Broken()
+        with pytest.raises(RuntimeError, match='metadata read failed') as caught:
+            client.json(PREFIX)
+        assert 'credential-canary' not in str(caught.value)
+>       client.close()
+        ^^^^^^^^^^^^
+E       AttributeError: 'GitHubReadOnly' object has no attribute 'close'
+
+tests/unit/test_issue_1250_controller.py:215: AttributeError
+_________________ test_api_errors_are_redacted_and_closed[429] _________________
+
+code = 429
+
+    @pytest.mark.parametrize('code', [403, 429, 'malformed'])
+    def test_api_errors_are_redacted_and_closed(code):
+        client = trust.GitHubReadOnly('credential-canary')
+        class Broken:
+            def open(self, *a, **k):
+                raise RuntimeError(f'{code}: credential-canary')
+        client._opener = Broken()
+        with pytest.raises(RuntimeError, match='metadata read failed') as caught:
+            client.json(PREFIX)
+        assert 'credential-canary' not in str(caught.value)
+>       client.close()
+        ^^^^^^^^^^^^
+E       AttributeError: 'GitHubReadOnly' object has no attribute 'close'
+
+tests/unit/test_issue_1250_controller.py:215: AttributeError
+______________ test_api_errors_are_redacted_and_closed[malformed] ______________
+
+code = 'malformed'
+
+    @pytest.mark.parametrize('code', [403, 429, 'malformed'])
+    def test_api_errors_are_redacted_and_closed(code):
+        client = trust.GitHubReadOnly('credential-canary')
+        class Broken:
+            def open(self, *a, **k):
+                raise RuntimeError(f'{code}: credential-canary')
+        client._opener = Broken()
+        with pytest.raises(RuntimeError, match='metadata read failed') as caught:
+            client.json(PREFIX)
+        assert 'credential-canary' not in str(caught.value)
+>       client.close()
+        ^^^^^^^^^^^^
+E       AttributeError: 'GitHubReadOnly' object has no attribute 'close'
+
+tests/unit/test_issue_1250_controller.py:215: AttributeError
+_____________ test_workflow_constrained_permissions_pins_and_stdin _____________
+
+    def test_workflow_constrained_permissions_pins_and_stdin():
+        workflow = yaml.load((Path(run.HERE).parents[1]/'.github/workflows/issue-1250-acceptance.yml').read_text(), Loader=yaml.BaseLoader)
+        permissions = {'contents': 'read', 'actions': 'read', 'pull-requests': 'read'}
+>       assert workflow['permissions'] == permissions
+E       AssertionError: assert {'contents': 'read'} == {'contents': ...ests': 'read'}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Right contains 2 more items:
+E         {'actions': 'read', 'pull-requests': 'read'}
+E         Use -v to get more diff
+
+tests/unit/test_issue_1250_controller.py:224: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_is_from_main_and_requires_dispatcher
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[digest]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[encoding]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[blob]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[unknown-dispatcher]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[rerun]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[wrong-source]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[wrong-workflow]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[wrong-base]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[truncated]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[ambiguous-author]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[ambiguous-committer]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[diverged]
+FAILED tests/unit/test_issue_1250_controller.py::test_policy_and_contributors_fail_closed[malformed]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_approval
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[wrong-id]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[author]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[committer]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[dispatcher]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[collector]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[triggering-collector]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[commented]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[dismissed]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[marker]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[commit]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[pending]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[expired]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[missing]
+FAILED tests/unit/test_issue_1250_controller.py::test_numeric_review_rejections[login-allowlist]
+FAILED tests/unit/test_issue_1250_controller.py::test_missing_or_malformed_stdin_token[]
+FAILED tests/unit/test_issue_1250_controller.py::test_missing_or_malformed_stdin_token[\n]
+FAILED tests/unit/test_issue_1250_controller.py::test_missing_or_malformed_stdin_token[bad token\n]
+FAILED tests/unit/test_issue_1250_controller.py::test_missing_or_malformed_stdin_token[x\ny\n]
+FAILED tests/unit/test_issue_1250_controller.py::test_missing_or_malformed_stdin_token[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+FAILED tests/unit/test_issue_1250_controller.py::test_token_is_read_once_and_stdin_is_closed
+FAILED tests/unit/test_issue_1250_controller.py::test_executable_hash_mismatch[python]
+FAILED tests/unit/test_issue_1250_controller.py::test_executable_hash_mismatch[uv]
+FAILED tests/unit/test_issue_1250_controller.py::test_subprocess_canary_has_no_token_env_argv_files_or_fds
+FAILED tests/unit/test_issue_1250_controller.py::test_forged_capability_cannot_provision
+FAILED tests/unit/test_issue_1250_controller.py::test_verification_failure_precedes_all_subject_activity
+FAILED tests/unit/test_issue_1250_controller.py::test_api_errors_are_redacted_and_closed[403]
+FAILED tests/unit/test_issue_1250_controller.py::test_api_errors_are_redacted_and_closed[429]
+FAILED tests/unit/test_issue_1250_controller.py::test_api_errors_are_redacted_and_closed[malformed]
+FAILED tests/unit/test_issue_1250_controller.py::test_workflow_constrained_permissions_pins_and_stdin
+44 failed in 0.88s

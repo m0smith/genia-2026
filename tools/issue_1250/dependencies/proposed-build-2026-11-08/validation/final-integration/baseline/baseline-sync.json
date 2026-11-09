@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "uv",
+    "--no-config",
+    "sync",
+    "--dev",
+    "--locked",
+    "--no-python-downloads",
+    "--no-install-project",
+    "--no-build",
+    "--python",
+    "/workspace/1250-proposed/subject/.venv/bin/python"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline",
+  "rc": 0
+}

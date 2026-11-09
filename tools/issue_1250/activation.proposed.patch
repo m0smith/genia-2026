@@ -1,0 +1,73 @@
+--- a/tools/issue_1250/run.py
++++ b/tools/issue_1250/run.py
+@@ -24,9 +24,10 @@
+ 
+ # Direct-script workflow entry and package-imported preparation tests share one helper.
+ if __package__:
+-    from . import build_backend
++    from . import build_backend, approval_validation
+ else:
+     import build_backend
++    import approval_validation
+ 
+ BASELINE = "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5"
+ CANDIDATE = "e3562f620020023ea39c44273068872d6bc73fe6"
+@@ -104,7 +105,12 @@
+ 
+ # Independent approval must replace this sentinel in a separately reviewed change.
+ # The proposed fixture is deliberately unreachable from every acceptance caller.
+-APPROVED_DEPENDENCIES = None
++# PROPOSED FUTURE WIRING ONLY: this file is not modified by preparing the patch.
++DEPENDENCY_REGISTRATION = json.loads((HERE / "registration-proposal.json").read_text())
++APPROVED_DEPENDENCIES = (
++    HERE / DEPENDENCY_REGISTRATION["runtime"]["lock_file"],
++    DEPENDENCY_REGISTRATION["runtime"],
++)
+ 
+ 
+ def provision(root, sha, evidence, label):
+@@ -118,6 +124,13 @@
+             "outcome": "BLOCKED", "reason": "independent dependency baseline approval required",
+         })
+         raise RuntimeError("independent dependency baseline approval required")
++    # A separate reviewed receipt and fresh exact-source hosted evidence are mandatory.
++    receipt = json.loads((HERE / "approved-qualification.json").read_text())
++    if receipt["status"] != "APPROVED":
++        raise RuntimeError("independent dependency qualification approval required")
++    qualification = Path(os.environ["ISSUE1250_DEPENDENCY_QUALIFICATION"])
++    approval_validation.require_qualification(
++        qualification, receipt["manifest_sha256"], "github-hosted-ubuntu-24.04")
+     provision_locked(root, sha, evidence, label, *APPROVED_DEPENDENCIES)
+ 
+ 
+--- /dev/null
++++ b/tools/issue_1250/approved-qualification.json
+@@ -0,0 +1,6 @@
++{
++  "status": "PENDING_INDEPENDENT_APPROVAL",
++  "manifest_sha256": null,
++  "required_environment_class": "github-hosted-ubuntu-24.04",
++  "note": "A future separately reviewed activation must replace this pending receipt with the independently approved fresh exact-source hosted bundle digest. No such evidence or approval exists in this preparation."
++}
+--- a/.github/workflows/issue-1250-acceptance.yml
++++ b/.github/workflows/issue-1250-acceptance.yml
+@@ -101,6 +101,11 @@
+         with:
+           pattern: issue-1250-serial-*-attempt-1
+           path: upstream
++      # Future task must download the independently reviewed immutable validation
++      # artifact here, by pinned run/artifact identity. Its receipt stays reviewed.
++      - name: Require independently approved dependency qualification artifact
++        shell: bash
++        run: test -r "$GITHUB_WORKSPACE/dependency-qualification/manifest.json"
+       - name: Run authorized phase in fresh non-reaping PID1 namespaces
+         id: gate
+         env:
+@@ -126,6 +131,7 @@
+               --setenv="GITHUB_RUN_ID=$GITHUB_RUN_ID" --setenv="GITHUB_RUN_ATTEMPT=$GITHUB_RUN_ATTEMPT" \
+               --setenv="GITHUB_JOB=$GITHUB_JOB" --setenv="GITHUB_WORKFLOW_REF=$GITHUB_WORKFLOW_REF" \
+               --setenv="GITHUB_WORKFLOW_SHA=$GITHUB_WORKFLOW_SHA" --setenv="WORKFLOW_SHA=$WORKFLOW_SHA" \
++              --setenv="ISSUE1250_DEPENDENCY_QUALIFICATION=$GITHUB_WORKSPACE/dependency-qualification" \
+               --setenv="DISPATCH_MODE=$DISPATCH_MODE" --setenv="ACCEPTANCE_ENVIRONMENT=$ENVIRONMENT" \
+               /usr/bin/unshare --pid --fork --mount-proc --mount \
+               /usr/bin/setpriv --reuid="$(/usr/bin/id -u)" --regid="$(/usr/bin/id -g)" --init-groups \

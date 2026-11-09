@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "uv",
+    "--no-config",
+    "pip",
+    "install",
+    "--python",
+    "/workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-env-4qlt3fy0/venv/bin/python",
+    "--no-deps",
+    "--require-hashes",
+    "--no-index",
+    "--only-binary",
+    ":all:",
+    "-r",
+    "/workspace/1250-backend-preparation/evidence/final-integration/baseline/baseline-build-requirements.txt"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline",
+  "rc": 0
+}

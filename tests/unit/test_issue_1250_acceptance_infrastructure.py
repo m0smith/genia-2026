@@ -5,6 +5,7 @@ All tests are offline; no hosted dispatch, acceptance subprocess or real timer w
 """
 
 from copy import deepcopy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ from tools.issue_1250 import run as gate
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github/workflows/issue-1250-acceptance.yml"
 SHA = "a" * 40
+REAL_INSTALL_EDITABLE = gate.build_backend.install_editable
 
 
 def record(label="G2", boot="g2", mode="acceptance"):
@@ -172,7 +174,9 @@ def test_smoke_only_provisions_baseline_and_runs_probe(monkeypatch, tmp_path):
     calls = []
     monkeypatch.setattr(gate.os, "getpid", lambda: 1)
     monkeypatch.setattr(gate, "provenance", lambda evidence: (current, {"test": {"cpu.max": "200000 100000", "memory.max": "8589934592"}}))
-    monkeypatch.setattr(gate, "provision", lambda root, sha, evidence, label: calls.append(("provision", sha)))
+    monkeypatch.setattr(gate, "authorize", lambda *args: object())
+    monkeypatch.setattr(gate, "prepare_subject", lambda *args: None)
+    monkeypatch.setattr(gate, "provision", lambda root, sha, evidence, label, **kw: calls.append(("provision", sha)))
     monkeypatch.setattr(gate, "run_nodes", lambda root, nodes, evidence, label, **kw: calls.append(("nodes", nodes, kw)))
     monkeypatch.setattr(gate, "clean", lambda *args: None)
     monkeypatch.setattr(gate, "git", lambda *args: gate.BASELINE)
@@ -187,7 +191,7 @@ def test_first_dispatch_step_fails_loudly_before_checkout(tmp_path, change):
     workflow = yaml.load(WORKFLOW.read_text(), Loader=yaml.BaseLoader)
     script = workflow["jobs"]["smoke"]["steps"][0]["run"]
     env = {**os.environ, "RUNNER_TEMP": str(tmp_path), "GITHUB_EVENT_NAME": "workflow_dispatch",
-           "GITHUB_REPOSITORY": "m0smith/genia-2026", "GITHUB_REF": "refs/heads/issue-1250-acceptance-infrastructure",
+           "GITHUB_REPOSITORY": "m0smith/genia-2026", "GITHUB_REF": "refs/heads/issue-1250-fresh-dependency-baseline",
            "GITHUB_SHA": SHA, "GITHUB_WORKFLOW_SHA": SHA, "GITHUB_RUN_ATTEMPT": "1",
            "AUTHORIZED": "true", "REQUESTED_SHA": SHA, "REQUESTED_MODE": "smoke",
            "STAGE": "smoke", "ENVIRONMENT": "smoke"}
@@ -205,7 +209,7 @@ def test_first_dispatch_step_fails_loudly_before_checkout(tmp_path, change):
 def test_workflow_dispatch_permissions_dependencies_and_privileged_paths():
     workflow = yaml.load(WORKFLOW.read_text(), Loader=yaml.BaseLoader)
     assert set(workflow["on"]) == {"workflow_dispatch"}
-    assert workflow["permissions"] == {"contents": "read"}
+    assert workflow["permissions"] == {"contents": "read", "actions": "read", "pull-requests": "read"}
     assert workflow["jobs"]["parallel"]["needs"] == "serial"
     for job in workflow["jobs"].values():
         assert 0 < int(job["timeout-minutes"]) <= 45
@@ -214,8 +218,8 @@ def test_workflow_dispatch_permissions_dependencies_and_privileged_paths():
         assert "/usr/bin/sudo /usr/bin/systemd-run" in body
         assert "/usr/bin/unshare" in body and "/usr/bin/setpriv" in body
         assert 'run_namespace smoke' in body
-    candidate = next(s for s in workflow["jobs"]["smoke"]["steps"] if s["name"].startswith("Checkout frozen candidate"))
-    assert candidate["if"] == "env.STAGE != 'smoke'"
+    # Subject clones moved into the verified controller; smoke still never uses candidate.
+    assert not any(s["name"].startswith("Checkout frozen candidate") for s in workflow["jobs"]["smoke"]["steps"])
 
 
 @pytest.mark.parametrize("command_outcome", ["success", "failure", "skipped"])
@@ -239,3 +243,151 @@ def test_absent_phase_is_not_run_and_cannot_report_pass(tmp_path):
     index = json.loads((tmp_path / "artifact-index.json").read_text())
     assert index["outcome"] == "FAIL"
     assert all(phase["outcome"] == "NOT RUN" for phase in index["phases"].values())
+
+
+@pytest.fixture
+def locked_subject(tmp_path, monkeypatch):
+    """Real throwaway git subject and fake uv; never installs or runs acceptance."""
+    root, evidence, binary = (tmp_path / name for name in ("subject", "evidence", "bin"))
+    for path in (root, evidence, binary):
+        path.mkdir()
+    (root / ".gitignore").write_text("uv.lock\n")
+    (root / "pyproject.toml").write_text("[project]\nname='unit-subject'\n")
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(root), "-c", "user.name=Unit", "-c", "user.email=unit@example.invalid",
+                    "commit", "-qm", "fixture"], check=True)
+    fixture = tmp_path / "acceptance.lock"
+    fixture.write_text("immutable unit lock\n")
+    expected = {"lock_sha256": hashlib.sha256(fixture.read_bytes()).hexdigest(),
+                "pyproject_sha256": hashlib.sha256((root / "pyproject.toml").read_bytes()).hexdigest(),
+                "freeze": ["example==1"]}
+    executable = binary / "uv"
+    executable.write_text("#!/usr/bin/env python3\n" +
+        "import json, os, sys\nfrom pathlib import Path\n" +
+        "with Path(os.environ['FAKE_CALLS']).open('a') as out: out.write(json.dumps(sys.argv[1:])+'\\n')\n" +
+        "if 'sync' in sys.argv[1:]:\n" +
+        "    if os.environ.get('FAKE_REWRITE'): Path('uv.lock').write_text('changed')\n" +
+        "    sys.exit(int(os.environ.get('FAKE_SYNC_RC', '0')))\n" +
+        "elif 'freeze' in sys.argv[1:]: print(os.environ.get('FAKE_FREEZE', 'example==1'))\n" +
+        "else: sys.exit('unexpected resolution/acceptance command')\n")
+    executable.chmod(0o755)
+    monkeypatch.setattr(gate.build_backend, "check_runtime", lambda *args: None)
+    monkeypatch.setattr(gate.build_backend, "install_editable", lambda *args: None)
+    monkeypatch.setenv("PATH", str(binary) + os.pathsep + os.environ["PATH"])
+    monkeypatch.setenv("FAKE_CALLS", str(tmp_path / "calls"))
+    original_environment = gate.child_environment
+    # Fake installer controls are test-only; production allowlist excludes them.
+    monkeypatch.setattr(gate, "child_environment", lambda: {
+        **original_environment(), **{k: v for k, v in os.environ.items() if k.startswith("FAKE_")}
+    })
+    return root, gate.git(root, "rev-parse", "HEAD"), evidence, fixture, expected
+
+
+@pytest.mark.parametrize("change", [None, "missing", "tamper", "existing", "symlink", "declarations",
+                                  "freeze-version", "freeze-missing", "freeze-extra", "freeze-backend", "sync", "rewrite", "dirty"])
+def test_shared_locked_provisioning_fails_closed(locked_subject, monkeypatch, change):
+    root, sha, evidence, fixture, expected = locked_subject
+    if change == "missing":
+        fixture.unlink()
+    elif change == "tamper":
+        fixture.write_text(fixture.read_text() + "x")
+    elif change == "existing":
+        (root / "uv.lock").write_text("different")
+    elif change == "symlink":
+        (root / "uv.lock").symlink_to(fixture)
+    elif change == "declarations":
+        expected["pyproject_sha256"] = "0" * 64
+    elif change and change.startswith("freeze-"):
+        monkeypatch.setenv("FAKE_FREEZE", {"freeze-version": "example==2", "freeze-missing": "",
+                                         "freeze-extra": "example==1\nextra==1",
+                                         "freeze-backend": "example==1\nhatchling==1.33.0"}[change])
+    elif change == "sync":
+        monkeypatch.setenv("FAKE_SYNC_RC", "1")
+    elif change == "rewrite":
+        monkeypatch.setenv("FAKE_REWRITE", "1")
+    elif change == "dirty":
+        (root / "untracked").touch()
+    if change:
+        with pytest.raises(RuntimeError):
+            gate.prepare_locked(root, sha, evidence, "unit", fixture, expected)
+    else:
+        gate.prepare_locked(root, sha, evidence, "unit", fixture, expected)
+        gate.clean(root, sha)
+        assert (root / "uv.lock").read_bytes() == fixture.read_bytes()
+    calls_path = root.parent / "calls"
+    calls = [json.loads(x) for x in calls_path.read_text().splitlines()] if calls_path.exists() else []
+    assert all(call[0] != "lock" for call in calls)
+    if calls:
+        assert calls[0][:7] == ["--no-config", "sync", "--dev", "--locked", "--no-python-downloads", "--no-install-project", "--no-build"]
+    if change in {"missing", "tamper", "existing", "symlink", "declarations", "dirty"}:
+        assert not calls
+    if calls and any("freeze" in call for call in calls):
+        freeze_call = next(call for call in calls if "freeze" in call)
+        assert freeze_call[-2:] == ["--python", str(root / ".venv/bin/python")]
+    if change and change.startswith("freeze-"):
+        assert json.loads((evidence / "unit-freeze-diff.json").read_text())["actual"] != expected["freeze"]
+
+
+def test_proposal_is_pinned_and_cannot_activate_acceptance(locked_subject):
+    root, sha, evidence, _, _ = locked_subject
+    proposal = ROOT / "tools/issue_1250/dependencies/proposed-2026-11-08"
+    expected = json.loads((proposal / "proposal.json").read_text())
+    assert expected["status"] == "PROPOSED_NOT_APPROVED"
+    assert hashlib.sha256((proposal / "acceptance.lock").read_bytes()).hexdigest() == expected["lock_sha256"]
+    assert gate.LOCK == "27ca5a9328ba8641ce18078782c7edecdc8a753aa6b4fd3ca57932a66d49f291"
+    assert len(gate.REGISTRATION["freeze"]) == 42
+    assert "pymdown-extensions==12.3" in gate.REGISTRATION["freeze"]
+    assert len(gate.REGISTRATION["original"]) == 22
+    assert gate.APPROVED_DEPENDENCIES is None
+    with pytest.raises(RuntimeError, match="independent dependency baseline approval"):
+        gate.provision(root, sha, evidence, "unit")
+    assert json.loads((evidence / "unit-dependency-gate.json").read_text())["outcome"] == "BLOCKED"
+    assert not (root / "uv.lock").exists()
+
+
+def test_missing_build_evidence_stops_provisioning_and_records_failure(locked_subject, monkeypatch):
+    root, sha, evidence, fixture, expected = locked_subject
+
+    def missing():
+        """Represent absent registered build evidence before any installer command."""
+        raise RuntimeError("missing build evidence")
+
+    monkeypatch.setattr(gate.build_backend, "load_evidence", missing)
+    with pytest.raises(RuntimeError, match="missing build evidence") as caught:
+        gate.prepare_locked(root, sha, evidence, "unit", fixture, expected)
+    gate.finalize(evidence, [root], "smoke", caught.value)
+    assert json.loads((evidence / "summary.json").read_text())["outcome"] == "FAIL"
+    assert not (root.parent / "calls").exists()
+
+
+@pytest.mark.parametrize("failure", ["build-editable", "project-install"])
+def test_actual_provision_wrapper_propagates_backend_and_install_failures(locked_subject, monkeypatch, failure):
+    """Exercise wrapper -> locked helper -> real build coordinator with injected IO failure."""
+    root, sha, evidence, fixture, expected = locked_subject
+    capability = gate.Authorization(object(), "{}", gate._AUTHORIZED)
+    monkeypatch.setattr(gate, "authorized_inputs", lambda _: (fixture, expected))
+    monkeypatch.setattr(gate, "provision_locked", lambda *args, **kw: gate.prepare_locked(*args))
+    monkeypatch.setattr(gate.build_backend, "install_editable", REAL_INSTALL_EDITABLE)
+
+    def command(argv, cwd, output, label):
+        """Model installer subprocess failures while retaining the real error contract."""
+        rc = 1 if label.endswith(failure) else 0
+        gate.write_json(output / (label + ".json"), {"argv": argv, "rc": rc})
+        (output / (label + ".log")).write_text("injected unit failure" if rc else "unit setup")
+        if rc:
+            raise RuntimeError(label + " failed; see retained log")
+        if label.endswith("build-editable"):
+            wheel = Path(argv[-2]) / "genia-0.1.14-py3-none-any.whl"
+            wheel.write_bytes(b"unit editable wheel")
+            Path(argv[-1]).write_text(json.dumps({"wheel": wheel.name,
+                "wheel_sha256": hashlib.sha256(wheel.read_bytes()).hexdigest()}))
+        return ""
+
+    monkeypatch.setattr(gate, "command", command)
+    with pytest.raises(RuntimeError, match=failure) as caught:
+        gate.provision(root, sha, evidence, "wrapper", authorization=capability)
+    gate.finalize(evidence, [root], "smoke", caught.value)
+    assert json.loads((evidence / "summary.json").read_text())["outcome"] == "FAIL"
+    assert json.loads((evidence / ("wrapper-" + failure + ".json")).read_text())["rc"] == 1
+    assert not list(evidence.glob("*-build-env-*"))

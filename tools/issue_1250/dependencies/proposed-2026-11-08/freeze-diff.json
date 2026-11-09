@@ -1,0 +1,11 @@
+{
+  "added": {},
+  "changed": {
+    "pymdown-extensions": {
+      "historical": "12.3",
+      "proposed": "13.0"
+    }
+  },
+  "removed": {},
+  "unchanged_count": 41
+}

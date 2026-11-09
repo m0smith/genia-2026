@@ -1,0 +1,90 @@
+{
+  "status": "PROPOSED_NOT_APPROVED",
+  "phase": "hosted qualification infrastructure preparation iteration 4",
+  "starting_sha": "bb63061af48f7169f79953e6fa5979798c0b124f",
+  "implementation_sha": "1bcf44297ff1b048ae24b32aaea0e76b8a753d16",
+  "recorded_utc": "2026-11-09T18:07:31.438314+00:00",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "tested_sources_sha256": {
+    "tools/issue_1250/approval_validation.py": "c319ea6bc30b0bd7100ff0aba47e13053e883be217b33f86a971de63a4960948",
+    "tools/issue_1250/build_backend.py": "275bb35e8ce85ba8bbfd214bb6e1ce167021d47494f51dedb11aa7fa72737abe",
+    "tools/issue_1250/editable_builder.py": "551db9cc3c6800f776016b41cf2c7a757f7197663b532beafdbed60578039c8c",
+    "tools/issue_1250/hosted_archive.py": "bca402d479b0ebf27707af29599563aa2e3421e1920e2c1918a2bb6eb5c7e0f0",
+    "tools/issue_1250/hosted_collection.py": "a93e1bef73b44dcf9e3e583b6d55de7dadeefa2492f3574270c7a493e5c01070",
+    "tools/issue_1250/hosted_trust.py": "637ba74635725eaf0370da7027c82d0488956331b03dcede15e166ec5d3a7e4a",
+    "tools/issue_1250/run.py": "8cac470281775e0068ea96a86bf7b7b429370f945231a0ddc48729d8a9c9da76",
+    "tests/unit/test_issue_1250_acceptance_infrastructure.py": "ac34e92486632a0f825560a5479ed51b1779372248ee62e5acf39a2ee8c718bb",
+    "tests/unit/test_issue_1250_approval_validation.py": "eda65d7e95e9644b474e4b1df0cec85dc68aca85be74521434f4b02aff14e8a5",
+    "tests/unit/test_issue_1250_build_backend.py": "5af248e4c2c69996caf8c548edefc5a6c8a4277a3e7ca61eefc47c898e80f5b4",
+    "tests/unit/test_issue_1250_hosted_archive.py": "a624f2ef204525e6363a1a41854745fd1567e7ae022f7ba6fb5e8f73bb5b208e",
+    "tests/unit/test_issue_1250_hosted_trust.py": "5ca97ef763fc0312e82f0e570f6fc00a39213de804c00d1e33f107261cff10f6",
+    "tests/unit/test_issue_1250_hosted_workflow.py": "0a13876218002129618f2d0d8a684e461a76dd00d4d21fd31491a902413b0799",
+    "tests/unit/test_issue_1250_validation_hardening.py": "8ee72b19236d58f8dc3ad2b932b681a50b288ea624915697102f9d462761ceac",
+    ".github/workflows/issue-1250-acceptance.yml": "2fd30c81e96fe162a9a77488519f196024c7d93e8e04109dda51343a2f410653",
+    ".github/workflows/issue-1250-qualification.yml": "25d819978bf6b9597e6b33375fdaaea88a9e5a23df7fff9bd1c4b67170c71acf",
+    "tools/issue_1250/hosted-policy.json": "bbf0346a24f7583ffbcae6fcf8cdc8b453fb1b461a808ec181c61f3ecef8608d",
+    "tools/issue_1250/hosted-receipt.pending.json": "8bfa2cde9d0f53043522e45e9e9330f665e03da1735e27c57ad5e83db2813319"
+  },
+  "workflow_sha256": "25d819978bf6b9597e6b33375fdaaea88a9e5a23df7fff9bd1c4b67170c71acf",
+  "policy_sha256": "bbf0346a24f7583ffbcae6fcf8cdc8b453fb1b461a808ec181c61f3ecef8608d",
+  "pending_receipt_sha256": "8bfa2cde9d0f53043522e45e9e9330f665e03da1735e27c57ad5e83db2813319",
+  "tests": {
+    "command": "UV_CACHE_DIR=/workspace/1250-proposed/test-cache uv run --project /workspace/1250-proposed/subject --no-sync pytest -n 0 -q tests/unit/test_issue_1250*.py",
+    "result": "226 passed, 1 skipped in 7.40s",
+    "skipped": "The existing opt-in real cold-cache integration was intentionally not run in this infrastructure-only phase. No hosted workflow, bootstrap installer or real qualification artifact retrieval was executed.",
+    "api_cases": "Mocked authoritative API-shaped fixtures only; not actual hosted verification.",
+    "red": {
+      "69a53919": "26 missing-extractor failures",
+      "3d6d918c": "39 missing-trust-interface failures",
+      "6c85f6d0": "8 missing-workflow failures; 5 deselected"
+    }
+  },
+  "checks": {
+    "ruff": "All checks passed",
+    "documentation": "10316 records; 2793 legacy gaps; 1 classified exclusions; 0 errors",
+    "compileall": "python3 -m compileall -q tools/issue_1250: exit 0",
+    "workflow_static": "YAML BaseLoader parse, source/pin/permission/trigger assertions and bash -n for all 7 run scripts passed; precheckout guard tested with synthetic environments.",
+    "unavailable_static_tools": "actionlint and shellcheck were not installed; neither was claimed to run.",
+    "whitespace": "git diff --check passed"
+  },
+  "live_operations": {
+    "hosted_dispatches": 0,
+    "hosted_qualifications": 0,
+    "real_qualification_artifact_downloads": 0,
+    "acceptance_executions": 0,
+    "baseline_activation": false
+  },
+  "metadata_reads": "Only official action-ref, CPython release/manifest and PyPI uv metadata were read live to select immutable toolchain pins; no qualification artifact was fetched.",
+  "pending_receipt": {
+    "repository": null,
+    "workflow_id": null,
+    "workflow_path": null,
+    "workflow_sha": null,
+    "workflow_sha256": null,
+    "commit_sha": null,
+    "tree_sha": null,
+    "run_id": null,
+    "attempt": null,
+    "artifact_id": null,
+    "artifact_name": null,
+    "artifact_sha256": null,
+    "manifest_sha256": null,
+    "proposal_sha256": null,
+    "build_evidence_sha256": null,
+    "require_attestation": null,
+    "reviewer": null,
+    "expires_utc": null,
+    "review": null,
+    "status": "PENDING_INDEPENDENT_APPROVAL",
+    "scope": "dependency-baseline-activation",
+    "runtime_lock_sha256": null,
+    "build_requirements_sha256": null
+  },
+  "scope_limits": [
+    "Toolchain archive installation/hosted job/real API artifact retrieval and attestation verification are unexecuted.",
+    "Default trust policy uses authoritative GitHub API metadata and server SHA-256; cryptographically required attestations reject as unsupported, never silently downgrade.",
+    "Existing same-account COMMENTED preparation reviews do not satisfy an independent activation receipt.",
+    "Future stage must finalize executable/workflow code before exact-SHA collection; old unapplied activation patch remains unused and cannot reuse old evidence.",
+    "Read-only file modes are not a boundary against owner/root; verifier must run independently outside the candidate/test process."
+  ]
+}

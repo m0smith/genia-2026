@@ -1,0 +1,22 @@
+{
+  "classification": "PREPARATION_ONLY_NO_ACCEPTANCE",
+  "red": {
+    "infrastructure_sha": "9f96c6d9369bc29b87d6f63a97b3f7ce89bb7e05",
+    "selected": "shared_locked_provisioning or proposal_is_pinned",
+    "result": "13 failed, 42 deselected; missing interface/approval gate"
+  },
+  "tests": {
+    "argv": "UV_CACHE_DIR=/workspace/1250-proposed/test-cache uv run --project /workspace/1250-proposed/subject --no-sync pytest -n 0 -q tests/unit/test_issue_1250_acceptance_infrastructure.py",
+    "result": "55 passed in 0.90s"
+  },
+  "ruff": "All checks passed",
+  "code_documentation": {
+    "base_ref": "9f96c6d9369bc29b87d6f63a97b3f7ce89bb7e05",
+    "result": "10186 records; 2793 legacy gaps; 1 classified exclusions; 0 errors"
+  },
+  "limitations": [
+    "fake uv tests prove guards, not hosted provisioning",
+    "initial isolated sync used default build isolation; prepared helper disables it",
+    "no acceptance, CI or full regression"
+  ]
+}

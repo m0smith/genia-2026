@@ -1,0 +1,239 @@
+FFFFFFF..s                                                               [100%]
+=================================== FAILURES ===================================
+_ test_backend_evidence_missing_or_modified_fails_before_install[missing-build-evidence.json] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-4/test_backend_evidence_missing_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f96146d5100>
+file = 'build-evidence.json', change = 'missing'
+
+    @pytest.mark.parametrize("file", ["build-evidence.json", "build-requirements.txt"])
+    @pytest.mark.parametrize("change", ["missing", "tamper"])
+    def test_backend_evidence_missing_or_modified_fails_before_install(tmp_path, monkeypatch, file, change):
+>       module = backend()
+                 ^^^^^^^^^
+
+tests/unit/test_issue_1250_build_backend.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/unit/test_issue_1250_build_backend.py:26: in backend
+    return importlib.import_module("tools.issue_1250.build_backend")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'tools.issue_1250.build_backend'
+import_ = <function _gcd_import at 0x7f96159ac0e0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'tools.issue_1250.build_backend'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_ test_backend_evidence_missing_or_modified_fails_before_install[missing-build-requirements.txt] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-4/test_backend_evidence_missing_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f96146908f0>
+file = 'build-requirements.txt', change = 'missing'
+
+    @pytest.mark.parametrize("file", ["build-evidence.json", "build-requirements.txt"])
+    @pytest.mark.parametrize("change", ["missing", "tamper"])
+    def test_backend_evidence_missing_or_modified_fails_before_install(tmp_path, monkeypatch, file, change):
+>       module = backend()
+                 ^^^^^^^^^
+
+tests/unit/test_issue_1250_build_backend.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/unit/test_issue_1250_build_backend.py:26: in backend
+    return importlib.import_module("tools.issue_1250.build_backend")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'tools.issue_1250.build_backend'
+import_ = <function _gcd_import at 0x7f96159ac0e0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'tools.issue_1250.build_backend'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_ test_backend_evidence_missing_or_modified_fails_before_install[tamper-build-evidence.json] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-4/test_backend_evidence_missing_2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f961468e1b0>
+file = 'build-evidence.json', change = 'tamper'
+
+    @pytest.mark.parametrize("file", ["build-evidence.json", "build-requirements.txt"])
+    @pytest.mark.parametrize("change", ["missing", "tamper"])
+    def test_backend_evidence_missing_or_modified_fails_before_install(tmp_path, monkeypatch, file, change):
+>       module = backend()
+                 ^^^^^^^^^
+
+tests/unit/test_issue_1250_build_backend.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/unit/test_issue_1250_build_backend.py:26: in backend
+    return importlib.import_module("tools.issue_1250.build_backend")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'tools.issue_1250.build_backend'
+import_ = <function _gcd_import at 0x7f96159ac0e0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'tools.issue_1250.build_backend'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_ test_backend_evidence_missing_or_modified_fails_before_install[tamper-build-requirements.txt] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-4/test_backend_evidence_missing_3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f961468c0e0>
+file = 'build-requirements.txt', change = 'tamper'
+
+    @pytest.mark.parametrize("file", ["build-evidence.json", "build-requirements.txt"])
+    @pytest.mark.parametrize("change", ["missing", "tamper"])
+    def test_backend_evidence_missing_or_modified_fails_before_install(tmp_path, monkeypatch, file, change):
+>       module = backend()
+                 ^^^^^^^^^
+
+tests/unit/test_issue_1250_build_backend.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/unit/test_issue_1250_build_backend.py:26: in backend
+    return importlib.import_module("tools.issue_1250.build_backend")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'tools.issue_1250.build_backend'
+import_ = <function _gcd_import at 0x7f96159ac0e0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'tools.issue_1250.build_backend'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+____ test_real_backend_inventory_rejects_absence_version_and_extra[missing] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-4/test_real_backend_inventory_re0')
+change = 'missing'
+
+    @pytest.mark.parametrize("change", ["missing", "version", "extra"])
+    def test_real_backend_inventory_rejects_absence_version_and_extra(tmp_path, change):
+        """Run the real isolated checker against an empty uv-created environment."""
+>       module = backend()
+                 ^^^^^^^^^
+
+tests/unit/test_issue_1250_build_backend.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/unit/test_issue_1250_build_backend.py:26: in backend
+    return importlib.import_module("tools.issue_1250.build_backend")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'tools.issue_1250.build_backend'
+import_ = <function _gcd_import at 0x7f96159ac0e0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'tools.issue_1250.build_backend'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+____ test_real_backend_inventory_rejects_absence_version_and_extra[version] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-4/test_real_backend_inventory_re1')
+change = 'version'
+
+    @pytest.mark.parametrize("change", ["missing", "version", "extra"])
+    def test_real_backend_inventory_rejects_absence_version_and_extra(tmp_path, change):
+        """Run the real isolated checker against an empty uv-created environment."""
+>       module = backend()
+                 ^^^^^^^^^
+
+tests/unit/test_issue_1250_build_backend.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/unit/test_issue_1250_build_backend.py:26: in backend
+    return importlib.import_module("tools.issue_1250.build_backend")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'tools.issue_1250.build_backend'
+import_ = <function _gcd_import at 0x7f96159ac0e0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'tools.issue_1250.build_backend'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_____ test_real_backend_inventory_rejects_absence_version_and_extra[extra] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-4/test_real_backend_inventory_re2')
+change = 'extra'
+
+    @pytest.mark.parametrize("change", ["missing", "version", "extra"])
+    def test_real_backend_inventory_rejects_absence_version_and_extra(tmp_path, change):
+        """Run the real isolated checker against an empty uv-created environment."""
+>       module = backend()
+                 ^^^^^^^^^
+
+tests/unit/test_issue_1250_build_backend.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/unit/test_issue_1250_build_backend.py:26: in backend
+    return importlib.import_module("tools.issue_1250.build_backend")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'tools.issue_1250.build_backend'
+import_ = <function _gcd_import at 0x7f96159ac0e0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'tools.issue_1250.build_backend'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED tests/unit/test_issue_1250_build_backend.py::test_backend_evidence_missing_or_modified_fails_before_install[missing-build-evidence.json]
+FAILED tests/unit/test_issue_1250_build_backend.py::test_backend_evidence_missing_or_modified_fails_before_install[missing-build-requirements.txt]
+FAILED tests/unit/test_issue_1250_build_backend.py::test_backend_evidence_missing_or_modified_fails_before_install[tamper-build-evidence.json]
+FAILED tests/unit/test_issue_1250_build_backend.py::test_backend_evidence_missing_or_modified_fails_before_install[tamper-build-requirements.txt]
+FAILED tests/unit/test_issue_1250_build_backend.py::test_real_backend_inventory_rejects_absence_version_and_extra[missing]
+FAILED tests/unit/test_issue_1250_build_backend.py::test_real_backend_inventory_rejects_absence_version_and_extra[version]
+FAILED tests/unit/test_issue_1250_build_backend.py::test_real_backend_inventory_rejects_absence_version_and_extra[extra]
+7 failed, 2 passed, 1 skipped in 0.13s

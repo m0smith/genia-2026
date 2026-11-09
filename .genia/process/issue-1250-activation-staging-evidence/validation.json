@@ -1,0 +1,31 @@
+{
+  "classification": "BLOCKED_TRUST_MODEL_REVIEW_NOT_FINAL_STAGING",
+  "observed_utc": "2026-11-09T18:46:32.431864+00:00",
+  "assessed_commit": "6f491c5edf8c6e6b0747c06b856de70d58712f2e",
+  "assessed_tree": "5badfa4c90290212c6320bb3bfc50fb19fdc7fe9",
+  "python": "Python 3.12.14",
+  "uv": "uv 0.13.5 (x86_64-unknown-linux-gnu)",
+  "tests": {
+    "command": "UV_CACHE_DIR=/workspace/1250-proposed/test-cache uv run --project /workspace/1250-proposed/subject --no-sync pytest -n 0 -q tests/unit/test_issue_1250*.py",
+    "passed": 226,
+    "skipped": 1,
+    "skipped_reason": "opt-in real cold-cache integration not requested",
+    "seconds": 6.9,
+    "new_caller_red_or_pass": false
+  },
+  "checks": {
+    "ruff": "PASS",
+    "maintained_documentation": "0 errors",
+    "static_yaml_bash_syntax": "PASS; no run blocks executed",
+    "git_diff_check": "PASS",
+    "actionlint": "unavailable",
+    "shellcheck": "unavailable"
+  },
+  "scope": "additive process documentation and read-only/preparation evidence only; no executable or test changes",
+  "baseline_active": false,
+  "APPROVED_DEPENDENCIES": null,
+  "independent_reviewer": "unresolved; no account enrolled",
+  "real_artifact_downloaded": false,
+  "hosted_or_acceptance_executed": false,
+  "ci_dispatched": false
+}

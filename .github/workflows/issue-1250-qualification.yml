@@ -1,0 +1,104 @@
+# Preparation only: registration and each exact-SHA dispatch require separate authorization.
+# Never push/PR-triggered. This collects dependency packaging evidence, not acceptance.
+name: Issue 1250 hosted dependency qualification
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact reviewed 40-character source AND workflow commit
+        type: string
+        required: true
+      authorized:
+        description: Separately authorized this exact hosted collection (never activation)
+        type: boolean
+        required: true
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: issue-1250-qualification-${{ inputs.source_sha }}
+  cancel-in-progress: false
+jobs:
+  qualification:
+    name: Cold dependency qualification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      REQUESTED_SHA: ${{ inputs.source_sha }}
+      AUTHORIZED: ${{ inputs.authorized }}
+      GITHUB_WORKFLOW_SHA: ${{ github.workflow_sha }}
+    steps:
+      - name: Reject unauthorized source before checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/issue1250-hosted/diagnostics"
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          e = os.environ
+          valid = (e.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
+                   and e.get('GITHUB_REPOSITORY') == 'm0smith/genia-2026'
+                   and e.get('AUTHORIZED') == 'true' and e.get('GITHUB_RUN_ATTEMPT') == '1'
+                   and re.fullmatch('[0-9a-f]{40}', e.get('REQUESTED_SHA', '')) is not None
+                   and e['REQUESTED_SHA'] == e.get('GITHUB_SHA') == e.get('GITHUB_WORKFLOW_SHA'))
+          record = {k: e.get(k) for k in ('GITHUB_REPOSITORY','GITHUB_SHA','GITHUB_WORKFLOW_SHA',
+                    'GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT','REQUESTED_SHA','AUTHORIZED')}
+          record['outcome'] = 'PASS' if valid else 'FAIL'
+          (Path(e['RUNNER_TEMP'])/'issue1250-hosted/diagnostics/dispatch.json').write_text(json.dumps(record,indent=2)+'\n')
+          if not valid: raise SystemExit('Hosted qualification dispatch not authorized for this exact source/attempt')
+          PY
+      - name: Checkout exact reviewed source and workflow
+        id: checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4, immutable reviewed pin
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install immutable official CPython 3.12.14 archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m tools.issue_1250.hosted_collection bootstrap-python --work "$RUNNER_TEMP/issue1250-hosted/python" > "$RUNNER_TEMP/issue1250-hosted/diagnostics/bootstrap.log" 2>&1
+      - name: Install hash-pinned uv 0.13.5 wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m tools.issue_1250.hosted_collection bootstrap-uv --work "$RUNNER_TEMP/issue1250-hosted" > "$RUNNER_TEMP/issue1250-hosted/diagnostics/uv-bootstrap.log" 2>&1
+      - name: Mandatory real cold-cache integration
+        id: collect
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m tools.issue_1250.hosted_collection collect --work "$RUNNER_TEMP/issue1250-hosted"
+      - name: Finalize outcome and manifests including failures
+        if: always() && steps.checkout.outcome == 'success'
+        env:
+          COLLECTION_OUTCOME: ${{ steps.collect.outcome }}
+        shell: bash
+        run: |
+          python3 -m tools.issue_1250.hosted_collection publish --work "$RUNNER_TEMP/issue1250-hosted" --step-outcome "$COLLECTION_OUTCOME"
+      - name: Preserve pre-checkout diagnostics if checkout was unavailable
+        if: always() && steps.checkout.outcome != 'success'
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/issue1250-hosted/qualification"
+          cp "$RUNNER_TEMP/issue1250-hosted/diagnostics/dispatch.json" "$RUNNER_TEMP/issue1250-hosted/qualification/dispatch.json"
+      - name: Upload qualification or failure evidence only
+        id: upload
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2, immutable pin
+        with:
+          name: issue-1250-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/issue1250-hosted/qualification/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 6
+      - name: Report server artifact identity (not independent approval)
+        if: always()
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+        shell: bash
+        run: |
+          printf 'artifact_id=%s\nartifact_digest=%s\n' "$ARTIFACT_ID" "$ARTIFACT_DIGEST" >> "$GITHUB_STEP_SUMMARY"

@@ -4,12 +4,16 @@ Run as PID 1 in a disposable Linux PID/mount namespace. Only direct subprocesses
 are waited for: adopted zombies deliberately remain observable until namespace
 exit. Subjects are separate frozen checkouts; mutations occur only in scratch
 clones. Any unexpected exit, count, skip, drift or failure aborts advancement.
-No network credentials, full environment dumps, G3–G5 or dispatch operations.
+The controller consumes a read-only job token over stdin before subject execution.
+No full environment dumps, G3–G5 or dispatch operations. Same-UID/root access
+is outside the accepted boundary; this is not a credential secrecy sandbox.
 """
 
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -21,6 +25,14 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
+
+# Direct-script workflow entry and package-imported preparation tests share one helper.
+if __package__:
+    from . import build_backend, hosted_trust
+else:
+    # Direct entry uses one canonical package instance, including its private seal.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from tools.issue_1250 import build_backend, hosted_trust
 
 BASELINE = "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5"
 CANDIDATE = "e3562f620020023ea39c44273068872d6bc73fe6"
@@ -49,10 +61,139 @@ def write_json(path, value):
     path.write_text(json.dumps(value, indent=2) + "\n")
 
 
+# Explicit process contract: no GitHub credentials, control inputs, Python startup
+# hooks, pytest plugins/options or arbitrary ambient secrets are inherited.
+CHILD_ENV_KEYS = (
+    "PATH", "HOME", "UV_CACHE_DIR", "LD_LIBRARY_PATH", "LANG", "LC_ALL", "TZ",
+    "TMPDIR", "CI", "SSL_CERT_FILE", "SSL_CERT_DIR",
+)
+_AUTHORIZED = object()
+
+
+@dataclass(frozen=True)
+class Authorization:
+    """Transient same-process approval capability, never loaded from external data."""
+
+    snapshot: hosted_trust.VerifiedSnapshot
+    receipt_json: str
+    _seal: object
+
+
+def child_environment():
+    """Return only declared noncredential runtime settings for subject children."""
+    return {key: os.environ[key] for key in CHILD_ENV_KEYS if key in os.environ}
+
+
+def read_token(stream):
+    """Consume one bounded token from stdin and close its descriptor on every path."""
+    try:
+        value = stream.read(8193)
+        token = value.removesuffix("\n")
+        if (not token or len(value) > 8192 or not re.fullmatch(r"[A-Za-z0-9_.-]+", token)):
+            raise RuntimeError("one bounded stdin credential required")
+        return token
+    finally:
+        stream.close()
+
+
+def verify_toolchain(record):
+    """Require the actual interpreter and uv executable bytes qualified by the bundle."""
+    environment = record["environment"]
+    uv = shutil.which("uv")
+    if not uv:
+        raise RuntimeError("qualified executable hash mismatch: uv absent")
+    for name, executable in (("python", sys.executable), ("uv", uv)):
+        expected = environment[name + "_sha256"]
+        if (not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected)
+                or hashlib.sha256(Path(executable).resolve().read_bytes()).hexdigest() != expected):
+            raise RuntimeError("qualified executable hash mismatch: " + name)
+
+
+def authorize(work, evidence):
+    """Verify from scratch before subject IO, then close/drop the job token client.
+
+    Nonsecret receipt and policy selectors originate in workflow dispatch inputs.
+    They convey no authority without main policy, GitHub provenance and a genuine
+    independent APPROVED review. No successful receipt is stored in the tree.
+    """
+    api = None
+    token = None
+    try:
+        receipt = json.loads(os.environ.get("ISSUE1250_RECEIPT", ""))
+        if not isinstance(receipt, dict) or receipt.get("status") != "APPROVED":
+            raise RuntimeError("independent dependency baseline approval required")
+        # Refuse env-delivered credentials, including accidental namespace forwarding.
+        if any(key in os.environ for key in ("GITHUB_TOKEN", "GH_TOKEN", "CONTROLLER_TOKEN")):
+            raise RuntimeError("credential must arrive only over stdin")
+        token = read_token(sys.stdin)
+        api = hosted_trust.GitHubReadOnly(token)
+        token = None
+        expected = {key: receipt[key] for key in hosted_trust.AUTH_FIELDS}
+        policy_digest = os.environ.get("ISSUE1250_POLICY_SHA256", "")
+        policy = hosted_trust.verify_authority(
+            api, policy_digest, int(os.environ["GITHUB_RUN_ID"]), expected["commit_sha"]
+        )
+        snapshot = hosted_trust.retrieve(api, expected, work / "verified-qualification", work / "verification-diagnostics")
+        approved = hosted_trust.require_approved_snapshot(api, receipt, snapshot, policy)
+        record = hosted_trust.qualification.require_qualification(
+            snapshot.root, expected["manifest_sha256"], "github-hosted-ubuntu-24.04", hosted_snapshot=snapshot
+        )
+        verify_toolchain(record)
+        # Detect revocation/policy edits during verification before dropping API access.
+        hosted_trust.policy_bytes(api, policy_digest)
+        hosted_trust.verify_receipt(api, receipt, snapshot.proof, policy)
+        return Authorization(snapshot, json.dumps(approved, sort_keys=True), _AUTHORIZED)
+    except Exception:
+        write_json(evidence / "authorization.json", {"outcome": "BLOCKED", "reason": "independent verification failed"})
+        raise RuntimeError("independent dependency baseline approval required: verification failed") from None
+    finally:
+        if api is not None:
+            api.close()
+        api = None
+        token = None
+        # The descriptor must not survive even failures before token intake.
+        if not sys.stdin.closed:
+            sys.stdin.close()
+
+
+def authorized_inputs(authorization):
+    """Recheck live capability, immutable snapshot, expiry and toolchain before use."""
+    if not isinstance(authorization, Authorization) or authorization._seal is not _AUTHORIZED:
+        raise RuntimeError("valid in-memory approval capability required")
+    snapshot = authorization.snapshot
+    if not isinstance(snapshot, hosted_trust.VerifiedSnapshot):
+        raise RuntimeError("valid in-memory VerifiedSnapshot required")
+    receipt = json.loads(authorization.receipt_json)
+    if datetime.now(timezone.utc) >= datetime.fromisoformat(receipt["expires_utc"].replace("Z", "+00:00")):
+        raise RuntimeError("approval expired before provisioning")
+    local = hosted_trust.checkout_identity()
+    if (local["commit_sha"] != snapshot.proof["commit_sha"]
+            or local["tree_sha"] != snapshot.proof["tree_sha"] or local["status"]):
+        raise RuntimeError("exact clean staged source required before provisioning")
+    record = hosted_trust.qualification.require_qualification(
+        snapshot.root, snapshot.proof["manifest_sha256"], "github-hosted-ubuntu-24.04", hosted_snapshot=snapshot
+    )
+    verify_toolchain(record)
+    inputs = hosted_trust.qualification.inputs()
+    if inputs["registration_sha256"] != snapshot.proof["proposal_sha256"]:
+        raise RuntimeError("qualified dependency proposal changed")
+    proposal = json.loads(hosted_trust.qualification.PROPOSAL.read_text())
+    return HERE / proposal["runtime"]["lock_file"], inputs["runtime"]
+
+
+def prepare_subject(root, sha, work, evidence, label):
+    """Clone a frozen subject only after controller verification and token disposal."""
+    if not root.exists():
+        command(["git", "clone", "--shared", "--no-checkout", str(HERE.parents[1]), str(root)], work, evidence, label + "-clone")
+        command(["git", "checkout", "--detach", sha], root, evidence, label + "-checkout")
+    clean(root, sha)
+
+
 def command(argv, cwd, evidence, label):
     """Run one preparation command, retaining argv, output and exit before raising."""
     result = subprocess.run(argv, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            text=True, check=False)
+                            text=True, check=False, env=child_environment(),
+                            stdin=subprocess.DEVNULL, close_fds=True)
     (evidence / f"{label}.log").write_text(result.stdout)
     write_json(evidence / f"{label}.json", {"argv": argv, "cwd": str(cwd), "rc": result.returncode})
     print(f"{label}: rc={result.returncode}", flush=True)
@@ -63,7 +204,8 @@ def command(argv, cwd, evidence, label):
 
 def git(root, *args):
     """Read a frozen checkout's identity/content; do not mutate its tracked files."""
-    return subprocess.check_output(["git", "-C", str(root), *args], text=True).strip()
+    return subprocess.check_output(["git", "-C", str(root), *args], text=True,
+                                   env=child_environment(), stdin=subprocess.DEVNULL, close_fds=True).strip()
 
 
 def clean(root, sha):
@@ -96,24 +238,95 @@ def context():
     return table
 
 
-def provision(root, sha, evidence, label):
-    """Solve locally, sync locked, and fail on historical dependency/lock drift."""
+# Historical baseline remains inactive. Only a transient independently verified
+# runtime Authorization opens the separate staged acceptance path.
+APPROVED_DEPENDENCIES = None
+
+
+def provision(root, sha, evidence, label, *, authorization=None):
+    """Reject provisioning until independent approval registers immutable evidence.
+
+    Baseline, candidate and scratch clones all enter here. External data alone
+    cannot activate a proposal: runtime use requires the live same-process
+    Authorization. Historical LOCK/registration and the None sentinel stay inert.
+    """
+    if authorization is not None:
+        try:
+            fixture, expected = authorized_inputs(authorization)
+            provision_locked(root, sha, evidence, label, fixture, expected,
+                             hosted_snapshot=authorization.snapshot)
+            return
+        except Exception:
+            write_json(evidence / f"{label}-dependency-gate.json", {
+                "outcome": "BLOCKED", "reason": "verification or provisioning failed",
+            })
+            raise
+    write_json(evidence / f"{label}-dependency-gate.json", {
+        "outcome": "BLOCKED", "reason": "independent dependency baseline approval required",
+    })
+    raise RuntimeError("independent dependency baseline approval required")
+
+
+def provision_locked(root, sha, evidence, label, fixture, expected, *, hosted_snapshot=None):
+    """Require the controller's live VerifiedSnapshot at the acceptance install entry."""
+    if not isinstance(hosted_snapshot, hosted_trust.VerifiedSnapshot):
+        raise RuntimeError("valid in-memory VerifiedSnapshot required for acceptance provisioning")
+    record = hosted_trust.qualification.require_qualification(
+        hosted_snapshot.root, hosted_snapshot.proof["manifest_sha256"],
+        "github-hosted-ubuntu-24.04", hosted_snapshot=hosted_snapshot
+    )
+    verify_toolchain(record)
+    prepare_locked(root, sha, evidence, label, fixture, expected)
+
+
+def prepare_locked(root, sha, evidence, label, fixture, expected):
+    """Install immutable packaging inputs for offline qualification or verified acceptance.
+
+    This internal packaging seam does not grant approval or run acceptance nodes.
+    Runtime acceptance calls it only through provision_locked's live snapshot
+    check. Preserve literal lock/declaration/freeze checks before and after sync;
+    the isolated hash-pinned build environment installs the editable project
+    without adding backend packages to the target runtime.
+    """
     clean(root, sha)
     started = time.monotonic()
-    command(["uv", "lock", "--no-python-downloads", "--python", sys.executable], root, evidence, label + "-lock")
-    lock_bytes = (root / "uv.lock").read_bytes()
+    try:
+        lock_bytes = fixture.read_bytes()
+    except OSError as error:
+        raise RuntimeError("missing dependency lock evidence") from error
     (evidence / f"{label}.lock").write_bytes(lock_bytes)
     digest = hashlib.sha256(lock_bytes).hexdigest()
-    command(["uv", "sync", "--dev", "--locked", "--no-python-downloads", "--python", sys.executable], root, evidence, label + "-sync")
-    freeze = command(["uv", "pip", "freeze"], root, evidence, label + "-freeze").splitlines()
+    if digest != expected["lock_sha256"]:
+        raise RuntimeError("dependency fixture lock digest mismatch")
+    if hashlib.sha256((root / "pyproject.toml").read_bytes()).hexdigest() != expected["pyproject_sha256"]:
+        raise RuntimeError("dependency declarations mismatch")
+    target = root / "uv.lock"
+    if target.is_symlink() or (target.exists() and target.read_bytes() != lock_bytes):
+        raise RuntimeError("pre-existing dependency lock mismatch")
+    inputs = build_backend.load_evidence()
+    build_backend.check_runtime(root, evidence, label, command)
+    target.write_bytes(lock_bytes)
+    command(["uv", "--no-config", "sync", "--dev", "--locked", "--no-python-downloads",
+             "--no-install-project", "--no-build", "--python", sys.executable], root, evidence, label + "-sync")
+    build_backend.install_editable(root, evidence, label, command, inputs)
+    after = target.read_bytes()
+    (evidence / f"{label}-after-sync.lock").write_bytes(after)
+    if hashlib.sha256(after).hexdigest() != digest:
+        raise RuntimeError("dependency lock modified during sync")
+    freeze = command(["uv", "--no-config", "--quiet", "pip", "freeze", "--python", str(root / ".venv/bin/python")], root, evidence, label + "-freeze").splitlines()
     actual = sorted(line.lower() for line in freeze if not line.startswith("-e "))
+    write_json(evidence / f"{label}-freeze-diff.json", {
+        "expected": expected["freeze"], "actual": actual,
+        "missing": sorted(set(expected["freeze"]) - set(actual)),
+        "extra": sorted(set(actual) - set(expected["freeze"])),
+    })
     write_json(evidence / f"{label}-identity.json", {
         "sha": sha, "tree": git(root, "rev-parse", "HEAD^{tree}"),
         "lock_sha256": digest, "seconds": time.monotonic() - started,
         "non_editable_count": len(actual), "status": git(root, "status", "--porcelain"),
     })
-    if digest != LOCK or actual != REGISTRATION["freeze"]:
-        raise RuntimeError("lock/freeze drift from approved evidence")
+    if actual != expected["freeze"]:
+        raise RuntimeError("installed freeze drift from dependency evidence")
     clean(root, sha)
 
 
@@ -187,7 +400,8 @@ def run_nodes(root, nodes, evidence, label, *, workers=0, defect=None,
     primary_error = None
     try:
         with (evidence / f"{label}.log").open("w") as log, (evidence / f"{label}-process.jsonl").open("w") as trace:
-            proc = subprocess.Popen(argv, cwd=root, stdout=log, stderr=subprocess.STDOUT)
+            proc = subprocess.Popen(argv, cwd=root, stdout=log, stderr=subprocess.STDOUT,
+                                    env=child_environment(), stdin=subprocess.DEVNULL, close_fds=True)
             last = None
             while True:
                 snapshot = context()
@@ -218,14 +432,15 @@ def run_nodes(root, nodes, evidence, label, *, workers=0, defect=None,
             print(f"result capture failed: {cleanup_error}", file=sys.stderr)
 
 
-def scratch(baseline, work, evidence, kind):
+def scratch(baseline, work, evidence, kind, *, authorization=None):
     """Create a disposable baseline clone and apply only the approved mutant."""
     root = work / kind
     command(["git", "clone", "--shared", "--no-checkout", str(baseline), str(root)], work, evidence, kind + "-clone")
     command(["git", "checkout", "--detach", BASELINE], root, evidence, kind + "-checkout")
-    provision(root, BASELINE, evidence, kind)
+    provision(root, BASELINE, evidence, kind, authorization=authorization)
     if kind == "without-r4":
-        patch = subprocess.check_output(["git", "-C", str(baseline), "show", R4, "--format=", "--", "tests/fixtures/r28_mcp_helpers.py"])
+        patch = subprocess.check_output(["git", "-C", str(baseline), "show", R4, "--format=", "--", "tests/fixtures/r28_mcp_helpers.py"],
+                                        env=child_environment(), stdin=subprocess.DEVNULL, close_fds=True)
         patch_path = evidence / "r4-original.patch"
         patch_path.write_bytes(patch)
         command(["git", "apply", "--reverse", "--check", str(patch_path)], root, evidence, kind + "-check")
@@ -245,11 +460,11 @@ def scratch(baseline, work, evidence, kind):
     return root
 
 
-def negative_controls(baseline, work, evidence):
+def negative_controls(baseline, work, evidence, *, authorization=None):
     """Require both reviewed mutants to fail at their exact registered observations."""
-    root = scratch(baseline, work, evidence, "without-r4")
+    root = scratch(baseline, work, evidence, "without-r4", authorization=authorization)
     run_nodes(root, [PROBE], evidence, "negative-r4", defect=expected_defect(PROBE))
-    root = scratch(baseline, work, evidence, "without-forwarding")
+    root = scratch(baseline, work, evidence, "without-forwarding", authorization=authorization)
     for index, node in enumerate(SIGNALS):
         run_nodes(root, [node], evidence, f"negative-signal-{index}",
                   defect=expected_defect(node))
@@ -460,11 +675,14 @@ def main(argv=None):
     os.environ["UV_CACHE_DIR"] = str(work / "uv-cache")
     Path(os.environ["HOME"]).mkdir(exist_ok=True)
     baseline = args.baseline.resolve()
-    roots = [baseline]
+    roots = []
     primary_error = None
     try:
         if os.getpid() != 1:
             raise RuntimeError("requires disposable non-reaping PID 1 namespace")
+        authorization = authorize(work, evidence)
+        roots.append(baseline)
+        prepare_subject(baseline, BASELINE, work, evidence, "baseline")
         record, values = provenance(evidence)
         if args.stage != "negative-validation":
             check_hosted(record, values)
@@ -474,7 +692,7 @@ def main(argv=None):
         nodes = registered_nodes()
         write_json(evidence / "registered.json", nodes)
         if args.stage in ("g0", "smoke", "negative-validation"):
-            provision(baseline, BASELINE, evidence, "baseline")
+            provision(baseline, BASELINE, evidence, "baseline", authorization=authorization)
             if args.stage == "smoke":
                 if args.candidate is not None:
                     raise RuntimeError("smoke forbids candidate checkout/use")
@@ -482,7 +700,7 @@ def main(argv=None):
             else:
                 run_nodes(baseline, [*SIGNALS, PROBE] if args.stage == "negative-validation" else nodes["g0"],
                           evidence, "g0-main", classification="DIAGNOSTIC_ONLY" if args.stage == "negative-validation" else "ACCEPTANCE")
-                negative_controls(baseline, work, evidence)
+                negative_controls(baseline, work, evidence, authorization=authorization)
             clean(baseline, BASELINE)
         else:
             if args.qualification is None or args.candidate is None:
@@ -491,7 +709,7 @@ def main(argv=None):
             qualify_previous(args.qualification, record)
             candidate = args.candidate.resolve()
             roots.append(candidate)
-            clean(candidate, CANDIDATE)
+            prepare_subject(candidate, CANDIDATE, work, evidence, "candidate")
             original = json.loads((candidate / ".genia/process/issue-1250-d2b-green-closeout-stop.json").read_text())["full_attempt"]["failed_nodes"]
             if original != nodes["original"]:
                 raise RuntimeError("frozen candidate original-node identity drift")
@@ -499,7 +717,7 @@ def main(argv=None):
                 if args.upstream is None:
                     raise RuntimeError("G2 requires both G1 artifacts")
                 independent_runners(args.upstream, record, evidence)
-            provision(candidate, CANDIDATE, evidence, "candidate")
+            provision(candidate, CANDIDATE, evidence, "candidate", authorization=authorization)
             if args.stage == "serial":
                 run_nodes(candidate, nodes["focused"], evidence, "g1-focused")
                 run_nodes(candidate, original, evidence, "g1-original")
@@ -512,6 +730,8 @@ def main(argv=None):
             clean(candidate, CANDIDATE)
     except BaseException as error:
         primary_error = error
+        if not roots:
+            write_json(evidence / "authorization.json", {"outcome": "BLOCKED", "reason": "independent verification failed"})
         raise
     finally:
         finalize(evidence, roots, args.stage, primary_error)

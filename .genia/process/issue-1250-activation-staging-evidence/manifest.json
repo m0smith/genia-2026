@@ -1,0 +1,14 @@
+{
+  "classification": "BLOCKED_TRUST_MODEL_REVIEW_NOT_FINAL_STAGING",
+  "sha256": {
+    ".genia/process/issue-1250-acceptance-infrastructure.md": "13d81a425b8b2546679a175054c5aca38dbf49b48d924d84c5143c895a550797",
+    ".genia/process/issue-1250-activation-staging-blocker.md": "ee2008385c6e977358d0b069e6e8007f39f71d5436d55063a4af54d8e02f1e74",
+    ".genia/process/issue-1250-activation-staging-evidence/documentation-check.log": "d533677839c53746788b6f51637f23f032173f3d80f9e8f769848f77d7e24a35",
+    ".genia/process/issue-1250-activation-staging-evidence/preparation-tests.log": "ef2f84b01b675fd2338a36121d3c2064bc73fb6f43c737ebb8d1218a7635e949",
+    ".genia/process/issue-1250-activation-staging-evidence/readonly-api-metadata.json": "2cd93ba5a643581cc3d95664aaa9aadd3a04e0c57fe8fea2686d8d8038cb2894",
+    ".genia/process/issue-1250-activation-staging-evidence/ruff.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+    ".genia/process/issue-1250-activation-staging-evidence/static-workflows.log": "bab07c159edc6b439eac33736f5c4bb9af11413d570e782437f925fd1994dc43",
+    ".genia/process/issue-1250-activation-staging-evidence/unchanged-inputs.json": "48f19056a12a726f1f0f5dd751f60a6bc34106d1789012b42bb9085eeef817e6",
+    ".genia/process/issue-1250-activation-staging-evidence/validation.json": "37d114bca248c9733a8e52ba3c45f2d9cf97de81a9cbed5328cf7e984c87d7b2"
+  }
+}

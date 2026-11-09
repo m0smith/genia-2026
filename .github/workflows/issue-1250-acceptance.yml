@@ -15,6 +15,14 @@ on:
         description: Exact 40-character workflow commit authorized in the issue ledger
         type: string
         required: true
+      receipt:
+        description: External receipt bound to a genuine independent APPROVED review
+        type: string
+        required: true
+      policy_sha256:
+        description: Independently authorized SHA-256 of reviewer-policy.json on main
+        type: string
+        required: true
       authorized:
         description: Maintainer authorized this mode at exactly workflow_sha
         type: boolean
@@ -23,12 +31,18 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
 
 jobs:
   smoke:
     # Mode selection alone may skip a job. Invalid modes reach serial's fail-loud guard.
     if: inputs.mode == 'smoke'
     name: Diagnostic smoke (never G0)
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -52,7 +66,7 @@ jobs:
                     'REQUESTED_SHA', 'REQUESTED_MODE', 'AUTHORIZED', 'STAGE', 'ENVIRONMENT')}
           valid = (e.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
                    and e.get('GITHUB_REPOSITORY') == 'm0smith/genia-2026'
-                   and e.get('GITHUB_REF') == 'refs/heads/issue-1250-acceptance-infrastructure'
+                   and e.get('GITHUB_REF') == 'refs/heads/issue-1250-fresh-dependency-baseline'
                    and e.get('AUTHORIZED') == 'true' and e.get('GITHUB_RUN_ATTEMPT') == '1'
                    and re.fullmatch('[0-9a-f]{40}', e.get('REQUESTED_SHA', '')) is not None
                    and e['REQUESTED_SHA'] == e.get('GITHUB_SHA') == e.get('GITHUB_WORKFLOW_SHA')
@@ -67,37 +81,27 @@ jobs:
           PY
       - name: Checkout authorized workflow implementation
         id: infrastructure
-        uses: actions/checkout@v6
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4, verified upstream
         with:
           ref: ${{ inputs.workflow_sha }}
           path: infrastructure
-          persist-credentials: false
-      - name: Checkout unchanged main control
-        uses: actions/checkout@v6
-        with:
-          ref: 0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5
-          path: baseline
           fetch-depth: 0
           persist-credentials: false
-      - name: Checkout frozen candidate (acceptance mode only)
-        if: env.STAGE != 'smoke'
-        uses: actions/checkout@v6
-        with:
-          ref: e3562f620020023ea39c44273068872d6bc73fe6
-          path: candidate
-          persist-credentials: false
-      - name: Set up CPython version (record actual GitHub build)
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12.14'
-      - name: Bootstrap pinned uv
+      - name: Install identical pinned CPython distribution
+        working-directory: infrastructure
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-input uv==0.13.5
+          python3 -m tools.issue_1250.hosted_collection bootstrap-python --work "$RUNNER_TEMP/issue1250-acceptance-python-$STAGE-$ENVIRONMENT"
+      - name: Install identical hash-pinned uv wheel
+        working-directory: infrastructure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m tools.issue_1250.hosted_collection bootstrap-uv --work "$RUNNER_TEMP/issue1250-acceptance-python-$STAGE-$ENVIRONMENT"
       - name: Download both successful G1 artifacts
         if: env.STAGE == 'parallel'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0, verified upstream
         with:
           pattern: issue-1250-serial-*-attempt-1
           path: upstream
@@ -106,6 +110,9 @@ jobs:
         env:
           WORKFLOW_SHA: ${{ inputs.workflow_sha }}
           DISPATCH_MODE: ${{ inputs.mode }}
+          CONTROLLER_TOKEN: ${{ github.token }}
+          ISSUE1250_RECEIPT: ${{ inputs.receipt }}
+          ISSUE1250_POLICY_SHA256: ${{ inputs.policy_sha256 }}
         shell: bash
         run: |
           set -euo pipefail
@@ -116,7 +123,9 @@ jobs:
           run_namespace() {
             local phase="$1"
             shift
-            /usr/bin/sudo /usr/bin/systemd-run --quiet --wait --pipe --collect \
+            # printf is a shell builtin: token has no process argv or file.
+            # systemd units receive only explicit --setenv entries, never this step env.
+            printf '%s\n' "$CONTROLLER_TOKEN" | /usr/bin/sudo /usr/bin/systemd-run --quiet --wait --pipe --collect \
               --property=CPUQuota=200% --property=MemoryMax=8G \
               --property="WorkingDirectory=$GITHUB_WORKSPACE" \
               --setenv="PATH=$PATH" --setenv="LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}" \
@@ -127,6 +136,7 @@ jobs:
               --setenv="GITHUB_JOB=$GITHUB_JOB" --setenv="GITHUB_WORKFLOW_REF=$GITHUB_WORKFLOW_REF" \
               --setenv="GITHUB_WORKFLOW_SHA=$GITHUB_WORKFLOW_SHA" --setenv="WORKFLOW_SHA=$WORKFLOW_SHA" \
               --setenv="DISPATCH_MODE=$DISPATCH_MODE" --setenv="ACCEPTANCE_ENVIRONMENT=$ENVIRONMENT" \
+              --setenv="ISSUE1250_RECEIPT=$ISSUE1250_RECEIPT" --setenv="ISSUE1250_POLICY_SHA256=$ISSUE1250_POLICY_SHA256" \
               /usr/bin/unshare --pid --fork --mount-proc --mount \
               /usr/bin/setpriv --reuid="$(/usr/bin/id -u)" --regid="$(/usr/bin/id -g)" --init-groups \
               "$python_executable" infrastructure/tools/issue_1250/run.py "$phase" \
@@ -159,7 +169,7 @@ jobs:
       - name: Preserve evidence including failures
         id: upload
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2, verified upstream
         with:
           name: issue-1250-${{ env.STAGE }}-${{ env.ENVIRONMENT }}-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/issue-1250-${{ env.STAGE }}-${{ env.ENVIRONMENT }}/evidence/
@@ -183,6 +193,10 @@ jobs:
   serial:
     if: inputs.mode != 'smoke'
     name: G0 then G1 (${{ matrix.environment }})
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
@@ -199,6 +213,10 @@ jobs:
     # Default success() dependency forbids G2 after any G0/G1 failure.
     needs: serial
     name: G0 then G2 (24 nodes, n=2)
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:

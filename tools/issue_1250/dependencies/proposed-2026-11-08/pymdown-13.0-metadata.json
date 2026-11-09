@@ -1,0 +1,39 @@
+{
+  "name": "pymdown-extensions",
+  "version": "13.0",
+  "requires_python": ">=3.11.5",
+  "requires_dist": [
+    "markdown>=3.6",
+    "pyyaml",
+    "pygments>=2.19.1; extra == \"extra\""
+  ],
+  "license": null,
+  "license_expression": "MIT",
+  "project_urls": {
+    "Homepage": "https://github.com/facelessuser/pymdown-extensions"
+  },
+  "artifacts": [
+    {
+      "filename": "pymdown_extensions-13.0-py3-none-any.whl",
+      "digests": {
+        "blake2b_256": "f647e96d2b3439b9fab6dc085747f25aee0cbae2bae16743e86ca60907bd0d59",
+        "md5": "c5fd4e9f738475d85577af62fd7db2a5",
+        "sha256": "c68f6e69b14604fb55227735bd0c4c4d3d1d9299a2d1314352190c48aa0d1040"
+      },
+      "upload_time_iso_8601": "2026-11-08T14:20:27.756832Z",
+      "yanked": false,
+      "url": "https://files.pythonhosted.org/packages/f6/47/e96d2b3439b9fab6dc085747f25aee0cbae2bae16743e86ca60907bd0d59/pymdown_extensions-13.0-py3-none-any.whl"
+    },
+    {
+      "filename": "pymdown_extensions-13.0.tar.gz",
+      "digests": {
+        "blake2b_256": "c6ef6496e7e9fb63427ace8636a481b3f8151e0dfaa6a76512e6b01f7c815a4b",
+        "md5": "6d7a38a0f14859bcca4d193f06327a3d",
+        "sha256": "092524bea4fb3e62891204495de9e56b98603912df167ddd90d4f91bf2cd0414"
+      },
+      "upload_time_iso_8601": "2026-11-08T14:20:29.437641Z",
+      "yanked": false,
+      "url": "https://files.pythonhosted.org/packages/c6/ef/6496e7e9fb63427ace8636a481b3f8151e0dfaa6a76512e6b01f7c815a4b/pymdown_extensions-13.0.tar.gz"
+    }
+  ]
+}

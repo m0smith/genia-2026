@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "uv",
+    "--no-config",
+    "--quiet",
+    "pip",
+    "freeze",
+    "--python",
+    "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline/.venv/bin/python"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline",
+  "rc": 0
+}

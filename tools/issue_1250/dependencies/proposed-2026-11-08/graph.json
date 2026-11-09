@@ -1,0 +1,911 @@
+{
+  "requires_python": ">=3.10",
+  "resolution_markers": [
+    "python_full_version >= '3.11.5'",
+    "python_full_version >= '3.11' and python_full_version < '3.11.5'",
+    "python_full_version < '3.11'"
+  ],
+  "packages": [
+    {
+      "name": "babel",
+      "version": "2.18.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "backrefs",
+      "version": "8.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version < '3.11'"
+      ]
+    },
+    {
+      "name": "backrefs",
+      "version": "8.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11.5'",
+        "python_full_version >= '3.11' and python_full_version < '3.11.5'"
+      ]
+    },
+    {
+      "name": "certifi",
+      "version": "2026.10.23",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "click",
+      "version": "8.5.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "colorama",
+      "version": "0.4.6",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "coverage",
+      "version": "7.16.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version < '3.11'"
+      ]
+    },
+    {
+      "name": "coverage",
+      "version": "7.17.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11.5'",
+        "python_full_version >= '3.11' and python_full_version < '3.11.5'"
+      ]
+    },
+    {
+      "name": "exceptiongroup",
+      "version": "1.3.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "typing-extensions"
+        }
+      ]
+    },
+    {
+      "name": "execnet",
+      "version": "2.1.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "genia",
+      "version": "0.1.14",
+      "source": {
+        "editable": "."
+      },
+      "dependencies": [
+        {
+          "name": "pyyaml"
+        }
+      ],
+      "dev-dependencies": {
+        "dev": [
+          {
+            "name": "mkdocs"
+          },
+          {
+            "name": "mkdocs-material",
+            "version": "9.7.7",
+            "source": {
+              "registry": "https://pypi.org/simple"
+            },
+            "marker": "python_full_version < '3.11'"
+          },
+          {
+            "name": "mkdocs-material",
+            "version": "9.8.1",
+            "source": {
+              "registry": "https://pypi.org/simple"
+            },
+            "marker": "python_full_version >= '3.11'"
+          },
+          {
+            "name": "pytest"
+          },
+          {
+            "name": "pytest-cov"
+          },
+          {
+            "name": "pytest-xdist"
+          },
+          {
+            "name": "ruff"
+          },
+          {
+            "name": "tree-sitter"
+          },
+          {
+            "name": "tree-sitter-bash"
+          },
+          {
+            "name": "tree-sitter-cpp"
+          },
+          {
+            "name": "tree-sitter-rust"
+          },
+          {
+            "name": "tree-sitter-typescript"
+          }
+        ]
+      },
+      "metadata": {
+        "requires-dist": [
+          {
+            "name": "pyyaml",
+            "specifier": ">=6.0"
+          }
+        ],
+        "requires-dev": {
+          "dev": [
+            {
+              "name": "mkdocs",
+              "specifier": ">=1.6"
+            },
+            {
+              "name": "mkdocs-material",
+              "specifier": ">=9.6"
+            },
+            {
+              "name": "pytest",
+              "specifier": ">=8.0"
+            },
+            {
+              "name": "pytest-cov",
+              "specifier": ">=5.0"
+            },
+            {
+              "name": "pytest-xdist",
+              "specifier": ">=3.6.1"
+            },
+            {
+              "name": "ruff",
+              "specifier": "==0.15.18"
+            },
+            {
+              "name": "tree-sitter",
+              "specifier": "==0.25.2"
+            },
+            {
+              "name": "tree-sitter-bash",
+              "specifier": "==0.25.1"
+            },
+            {
+              "name": "tree-sitter-cpp",
+              "specifier": "==0.23.4"
+            },
+            {
+              "name": "tree-sitter-rust",
+              "specifier": "==0.24.2"
+            },
+            {
+              "name": "tree-sitter-typescript",
+              "specifier": "==0.23.2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "ghp-import",
+      "version": "2.1.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "python-dateutil",
+          "version": "3.0.0",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version < '3.11'"
+        },
+        {
+          "name": "python-dateutil",
+          "version": "4.0.0",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version >= '3.11'"
+        }
+      ]
+    },
+    {
+      "name": "idna",
+      "version": "3.20",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "jinja2",
+      "version": "3.1.6",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "markupsafe"
+        }
+      ]
+    },
+    {
+      "name": "markdown",
+      "version": "3.10.3",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version < '3.11'"
+      ]
+    },
+    {
+      "name": "markdown",
+      "version": "3.11.3",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11.5'",
+        "python_full_version >= '3.11' and python_full_version < '3.11.5'"
+      ]
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.4",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "mergedeep",
+      "version": "1.3.4",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "mkdocs",
+      "version": "1.6.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "click"
+        },
+        {
+          "name": "colorama",
+          "marker": "sys_platform == 'win32'"
+        },
+        {
+          "name": "ghp-import"
+        },
+        {
+          "name": "jinja2"
+        },
+        {
+          "name": "markdown",
+          "version": "3.10.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version < '3.11'"
+        },
+        {
+          "name": "markdown",
+          "version": "3.11.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version >= '3.11'"
+        },
+        {
+          "name": "markupsafe"
+        },
+        {
+          "name": "mergedeep"
+        },
+        {
+          "name": "mkdocs-get-deps"
+        },
+        {
+          "name": "packaging"
+        },
+        {
+          "name": "pathspec"
+        },
+        {
+          "name": "pyyaml"
+        },
+        {
+          "name": "pyyaml-env-tag"
+        },
+        {
+          "name": "watchdog",
+          "version": "6.0.0",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version < '3.11'"
+        },
+        {
+          "name": "watchdog",
+          "version": "7.1.0",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version >= '3.11'"
+        }
+      ]
+    },
+    {
+      "name": "mkdocs-get-deps",
+      "version": "0.2.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "mergedeep"
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.12.4",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version < '3.11'"
+        },
+        {
+          "name": "platformdirs",
+          "version": "4.14.5",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version >= '3.11'"
+        },
+        {
+          "name": "pyyaml"
+        }
+      ]
+    },
+    {
+      "name": "mkdocs-material",
+      "version": "9.7.7",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version < '3.11'"
+      ],
+      "dependencies": [
+        {
+          "name": "babel"
+        },
+        {
+          "name": "backrefs",
+          "version": "8.1",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          }
+        },
+        {
+          "name": "colorama"
+        },
+        {
+          "name": "jinja2"
+        },
+        {
+          "name": "markdown",
+          "version": "3.10.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          }
+        },
+        {
+          "name": "mkdocs"
+        },
+        {
+          "name": "mkdocs-material-extensions"
+        },
+        {
+          "name": "paginate"
+        },
+        {
+          "name": "pygments"
+        },
+        {
+          "name": "pymdown-extensions",
+          "version": "12.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          }
+        },
+        {
+          "name": "requests"
+        }
+      ]
+    },
+    {
+      "name": "mkdocs-material",
+      "version": "9.8.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11.5'",
+        "python_full_version >= '3.11' and python_full_version < '3.11.5'"
+      ],
+      "dependencies": [
+        {
+          "name": "babel"
+        },
+        {
+          "name": "backrefs",
+          "version": "8.2",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          }
+        },
+        {
+          "name": "colorama"
+        },
+        {
+          "name": "jinja2"
+        },
+        {
+          "name": "markdown",
+          "version": "3.11.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          }
+        },
+        {
+          "name": "mkdocs"
+        },
+        {
+          "name": "mkdocs-material-extensions"
+        },
+        {
+          "name": "paginate"
+        },
+        {
+          "name": "pygments"
+        },
+        {
+          "name": "pymdown-extensions",
+          "version": "12.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version < '3.11.5'"
+        },
+        {
+          "name": "pymdown-extensions",
+          "version": "13.0",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version >= '3.11.5'"
+        },
+        {
+          "name": "requests"
+        }
+      ]
+    },
+    {
+      "name": "mkdocs-material-extensions",
+      "version": "1.3.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "paginate",
+      "version": "0.5.7",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "pathspec",
+      "version": "1.1.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.12.4",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version < '3.11'"
+      ]
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.14.5",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11.5'",
+        "python_full_version >= '3.11' and python_full_version < '3.11.5'"
+      ]
+    },
+    {
+      "name": "pluggy",
+      "version": "1.7.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "pygments",
+      "version": "2.21.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "pymdown-extensions",
+      "version": "12.3",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11' and python_full_version < '3.11.5'",
+        "python_full_version < '3.11'"
+      ],
+      "dependencies": [
+        {
+          "name": "markdown",
+          "version": "3.10.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version < '3.11' or python_full_version >= '3.11.5'"
+        },
+        {
+          "name": "markdown",
+          "version": "3.11.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version >= '3.11' and python_full_version < '3.11.5'"
+        },
+        {
+          "name": "pyyaml"
+        }
+      ]
+    },
+    {
+      "name": "pymdown-extensions",
+      "version": "13.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11.5'"
+      ],
+      "dependencies": [
+        {
+          "name": "markdown",
+          "version": "3.11.3",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          }
+        },
+        {
+          "name": "pyyaml"
+        }
+      ]
+    },
+    {
+      "name": "pytest",
+      "version": "9.2.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "colorama",
+          "marker": "sys_platform == 'win32'"
+        },
+        {
+          "name": "exceptiongroup",
+          "marker": "python_full_version < '3.11'"
+        },
+        {
+          "name": "iniconfig"
+        },
+        {
+          "name": "packaging"
+        },
+        {
+          "name": "pluggy"
+        },
+        {
+          "name": "pygments"
+        },
+        {
+          "name": "tomli",
+          "marker": "python_full_version < '3.11'"
+        }
+      ]
+    },
+    {
+      "name": "pytest-cov",
+      "version": "7.1.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "coverage",
+          "version": "7.16.2",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "extra": [
+            "toml"
+          ],
+          "marker": "python_full_version < '3.11'"
+        },
+        {
+          "name": "coverage",
+          "version": "7.17.2",
+          "source": {
+            "registry": "https://pypi.org/simple"
+          },
+          "marker": "python_full_version >= '3.11'"
+        },
+        {
+          "name": "pluggy"
+        },
+        {
+          "name": "pytest"
+        }
+      ]
+    },
+    {
+      "name": "pytest-xdist",
+      "version": "3.8.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "execnet"
+        },
+        {
+          "name": "pytest"
+        }
+      ]
+    },
+    {
+      "name": "python-dateutil",
+      "version": "3.0.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version < '3.11'"
+      ],
+      "dependencies": [
+        {
+          "name": "six"
+        },
+        {
+          "name": "tzdata"
+        }
+      ]
+    },
+    {
+      "name": "python-dateutil",
+      "version": "4.0.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11.5'",
+        "python_full_version >= '3.11' and python_full_version < '3.11.5'"
+      ],
+      "dependencies": [
+        {
+          "name": "tzdata"
+        }
+      ]
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "pyyaml-env-tag",
+      "version": "1.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "pyyaml"
+        }
+      ]
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "dependencies": [
+        {
+          "name": "certifi"
+        },
+        {
+          "name": "charset-normalizer"
+        },
+        {
+          "name": "idna"
+        },
+        {
+          "name": "urllib3"
+        }
+      ]
+    },
+    {
+      "name": "ruff",
+      "version": "0.15.18",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "tomli",
+      "version": "2.5.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "tree-sitter",
+      "version": "0.25.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "tree-sitter-cpp",
+      "version": "0.23.4",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "tree-sitter-rust",
+      "version": "0.24.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "tree-sitter-typescript",
+      "version": "0.23.2",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.16.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "tzdata",
+      "version": "2026.6",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "urllib3",
+      "version": "2.8.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      }
+    },
+    {
+      "name": "watchdog",
+      "version": "6.0.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version < '3.11'"
+      ]
+    },
+    {
+      "name": "watchdog",
+      "version": "7.1.0",
+      "source": {
+        "registry": "https://pypi.org/simple"
+      },
+      "resolution-markers": [
+        "python_full_version >= '3.11.5'",
+        "python_full_version >= '3.11' and python_full_version < '3.11.5'"
+      ]
+    }
+  ]
+}

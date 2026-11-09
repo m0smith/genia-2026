@@ -1,0 +1,22 @@
+{
+  ".github/workflows/issue-1250-acceptance.yml": "89ca5655434ab5adba6c1d032326b49d0666a60013b37c3d404fb1f25ef8f1f5",
+  ".github/workflows/issue-1250-qualification.yml": "25d819978bf6b9597e6b33375fdaaea88a9e5a23df7fff9bd1c4b67170c71acf",
+  "tests/unit/test_issue_1250_acceptance_infrastructure.py": "a2b95523c3d3109d61f1495381093e88095fdd6318dab87839e3132327fc75f2",
+  "tests/unit/test_issue_1250_approval_validation.py": "eda65d7e95e9644b474e4b1df0cec85dc68aca85be74521434f4b02aff14e8a5",
+  "tests/unit/test_issue_1250_build_backend.py": "9c9067641ba777657356310db5f4c61569419f709b1659f8bbe2a905d98ebf95",
+  "tests/unit/test_issue_1250_controller.py": "c4ad424fff83e8b01e7bcb756502389fb3615603610671e80a3b48ad0800a59c",
+  "tests/unit/test_issue_1250_hosted_archive.py": "a624f2ef204525e6363a1a41854745fd1567e7ae022f7ba6fb5e8f73bb5b208e",
+  "tests/unit/test_issue_1250_hosted_trust.py": "47aa9da8be4c0a380535c6f83e28749a170db7aa24838c621f395f7bc8ae077f",
+  "tests/unit/test_issue_1250_hosted_workflow.py": "0a13876218002129618f2d0d8a684e461a76dd00d4d21fd31491a902413b0799",
+  "tests/unit/test_issue_1250_validation_hardening.py": "8ee72b19236d58f8dc3ad2b932b681a50b288ea624915697102f9d462761ceac",
+  "tools/issue_1250/approval_validation.py": "8685a3f80a612e3454a6e7b581b7028400c8b41c41e04dcd8a2f1a6e581dfae3",
+  "tools/issue_1250/build_backend.py": "275bb35e8ce85ba8bbfd214bb6e1ce167021d47494f51dedb11aa7fa72737abe",
+  "tools/issue_1250/editable_builder.py": "551db9cc3c6800f776016b41cf2c7a757f7197663b532beafdbed60578039c8c",
+  "tools/issue_1250/hosted-policy.json": "bbf0346a24f7583ffbcae6fcf8cdc8b453fb1b461a808ec181c61f3ecef8608d",
+  "tools/issue_1250/hosted-receipt.pending.json": "8bfa2cde9d0f53043522e45e9e9330f665e03da1735e27c57ad5e83db2813319",
+  "tools/issue_1250/hosted_archive.py": "bca402d479b0ebf27707af29599563aa2e3421e1920e2c1918a2bb6eb5c7e0f0",
+  "tools/issue_1250/hosted_collection.py": "a93e1bef73b44dcf9e3e583b6d55de7dadeefa2492f3574270c7a493e5c01070",
+  "tools/issue_1250/hosted_trust.py": "e20cfde620ca85119450a198e399ef12a174caf212ae548bb6e943c50e309133",
+  "tools/issue_1250/reviewer-policy.json": "2c7de75abba17e864e85d11dc496d2543979a8dda99a141ce53519a55cbfa2cf",
+  "tools/issue_1250/run.py": "db425d85f80c031b590d1912e1fca40e9668da633c6dcf479bd47d3577b345c1"
+}

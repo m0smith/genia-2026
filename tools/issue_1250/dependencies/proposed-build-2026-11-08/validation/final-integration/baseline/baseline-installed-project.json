@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/baseline/.venv/bin/python",
+    "-I",
+    "-c",
+    "import genia, importlib.metadata as m; print(list(genia.__path__)); print(m.distribution('genia').read_text('direct_url.json'))"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0",
+  "rc": 0
+}

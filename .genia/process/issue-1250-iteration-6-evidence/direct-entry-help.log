@@ -1,0 +1,26 @@
+usage: run.py [-h] --baseline BASELINE [--candidate CANDIDATE]
+              [--qualification QUALIFICATION] [--upstream UPSTREAM] --work
+              WORK [--evidence EVIDENCE]
+              {g0,serial,parallel,smoke,negative-validation}
+
+Temporary #1250 G0–G2 orchestration; existing pytest nodes remain the oracle.
+Run as PID 1 in a disposable Linux PID/mount namespace. Only direct
+subprocesses are waited for: adopted zombies deliberately remain observable
+until namespace exit. Subjects are separate frozen checkouts; mutations occur
+only in scratch clones. Any unexpected exit, count, skip, drift or failure
+aborts advancement. The controller consumes a read-only job token over stdin
+before subject execution. No full environment dumps, G3–G5 or dispatch
+operations. Same-UID/root access is outside the accepted boundary; this is not
+a credential secrecy sandbox.
+
+positional arguments:
+  {g0,serial,parallel,smoke,negative-validation}
+
+options:
+  -h, --help            show this help message and exit
+  --baseline BASELINE
+  --candidate CANDIDATE
+  --qualification QUALIFICATION
+  --upstream UPSTREAM
+  --work WORK
+  --evidence EVIDENCE

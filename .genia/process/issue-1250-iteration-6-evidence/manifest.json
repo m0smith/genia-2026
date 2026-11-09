@@ -1,0 +1,16 @@
+{
+  "actionlint.log": "9d34cdaec053c6005199c08f2bac628bd8c087303faa26fd8ab58c3e22216ff5",
+  "code-documentation.log": "d9da4198290de7a4d13353b3d067858f478d2764f88410973589502b1d4dfb8e",
+  "direct-entry-help.log": "2a26aad1a0d9d9614158c947edf1481eac6abf0da74198e4a04cef07469a0190",
+  "intermediate-checks.tar.gz": "9add5940f8e18d9fb127796170b624592a85e91b5e33ecf86f666a3a977d9968",
+  "pass.log": "2eac847345caf8b6696e462f11ed573426e7f123edb2d82d1353c5be5b1fc06a",
+  "preserved-inputs.json": "cc51adf625c9e651ecd8e42a0c36a5cb2efd09ae4d716100cba79ac3c57db345",
+  "red.log": "69820d833d78ab5a5eaeb2fc2fe51a32e595474ce3181616a4a956ba5b59523f",
+  "root-doc-tests.log": "e41fd9debdf0719389f362bbd225846fe3334e5612e87e2c74d1d4a63895a128",
+  "ruff.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+  "runtime-seam-red.log": "8a11eddf0c453ccda3f59a2ade3378bdcbca05d9e4234fd496c0ec4f2f69a9e1",
+  "source-fingerprints.json": "58d36e44586480ce055717542ede2e796a8543737b3c0e148a43f762e92627fb",
+  "static-preservation.log": "c76f21d8ad5ae1f80746aae5591153aec6c15d92fbeabc9a25e726478817acc0",
+  "static_checks.py": "3e4bd0f96c90b5cda9c6e45c3ac20539f23146636a30adba13e26f910ff85e37",
+  "validation.json": "29ad610ee161e976d4d4a0fe2406bab7e9101a2dff036906f5b848c1cc4a42df"
+}

@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0/candidate/.venv/bin/python",
+    "-I",
+    "-c",
+    "import base64,csv,hashlib; from importlib import metadata; d=metadata.distribution('genia'); r=next(d.locate_file(f) for f in d.files if str(f).endswith('.dist-info/RECORD')); p=r.parent/'direct_url.json'; row=next(x for x in csv.reader(r.open()) if x[0].endswith('/direct_url.json')); assert row[1]=='sha256='+base64.urlsafe_b64encode(hashlib.sha256(p.read_bytes()).digest()).rstrip(b'=').decode(); assert int(row[2])==len(p.read_bytes()); print('editable RECORD verified')"
+  ],
+  "cwd": "/tmp/pytest-of-agent/pytest-10/test_real_cold_baseline_and_ca0",
+  "rc": 0
+}

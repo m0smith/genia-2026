@@ -1,0 +1,59 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_real_cold_baseline_and_candidate_provisioning ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-6/test_real_cold_baseline_and_ca0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f507baed070>
+
+    @pytest.mark.skipif(os.environ.get("ISSUE1250_BUILD_INTEGRATION") != "1",
+                        reason="explicit pinned-download preparation integration only")
+    def test_real_cold_baseline_and_candidate_provisioning(tmp_path, monkeypatch):
+        """Build/install both frozen projects, check exact freezes, then inject backend drift.
+    
+        Calls only the internal preparation seam. No acceptance nodes, main(),
+        activation or PID/signal tests. Each subject gets an empty private uv cache.
+        """
+        module = backend()
+        fixture = PROPOSAL / "acceptance.lock"
+        expected = json.loads((PROPOSAL / "proposal.json").read_text())
+        build_inputs, _ = module.load_evidence()
+        evidence_root = Path(os.environ.get("ISSUE1250_BUILD_EVIDENCE", tmp_path / "evidence"))
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        inventories = []
+        for label, sha in (("baseline", gate.BASELINE), ("candidate", gate.CANDIDATE)):
+            root, evidence = tmp_path / label, evidence_root / label
+            evidence.mkdir()
+            subprocess.run(["git", "clone", "--shared", "--no-checkout", str(ROOT), str(root)], check=True)
+            subprocess.run(["git", "-C", str(root), "checkout", "--detach", sha], check=True)
+            monkeypatch.setenv("UV_CACHE_DIR", str(tmp_path / (label + "-cold-cache")))
+            assert not Path(os.environ["UV_CACHE_DIR"]).exists()
+>           gate.provision_locked(root, sha, evidence, label, fixture, expected)
+
+tests/unit/test_issue_1250_build_backend.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/issue_1250/run.py:151: in provision_locked
+    build_backend.check_runtime(root, evidence, label, command)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/tmp/pytest-of-agent/pytest-6/test_real_cold_baseline_and_ca0/baseline')
+evidence = PosixPath('/workspace/1250-backend-preparation/evidence/real-integration/baseline')
+label = 'baseline', command = <function command at 0x7f507b960400>
+
+    def check_runtime(root, evidence, label, command):
+        """Enforce the evidenced Python/Linux/uv scope and reject config overrides."""
+        if (sys.version_info[:3] != (3, 12, 14) or platform.system() != "Linux"
+                or platform.machine() != "x86_64"):
+            raise RuntimeError("dependency provisioning requires CPython 3.12.14 Linux x86_64")
+        overrides = sorted(k for k in os.environ if k.startswith(("UV_", "PIP_")) and k != "UV_CACHE_DIR")
+        if overrides:
+>           raise RuntimeError("unregistered dependency configuration: " + ", ".join(overrides))
+E           RuntimeError: unregistered dependency configuration: UV_RUN_RECURSION_DEPTH
+
+tools/issue_1250/build_backend.py:47: RuntimeError
+----------------------------- Captured stderr call -----------------------------
+Cloning into '/tmp/pytest-of-agent/pytest-6/test_real_cold_baseline_and_ca0/baseline'...
+done.
+HEAD is now at 0b25d2b4 Merge pull request #1295 from m0smith/issue-1285-mcp-reaping-investigation
+=========================== short test summary info ============================
+FAILED tests/unit/test_issue_1250_build_backend.py::test_real_cold_baseline_and_candidate_provisioning
+1 failed in 0.34s

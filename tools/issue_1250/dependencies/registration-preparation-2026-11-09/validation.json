@@ -1,0 +1,135 @@
+{
+  "status": "PROPOSED_NOT_APPROVED",
+  "phase": "registration preparation and validation hardening",
+  "starting_sha": "d3bf5b73b57b0b314d4bbd40c217d5e588be536e",
+  "implementation_sha": "bbe34efb854117c7c463d76254e5acdd3bca938a",
+  "recorded_utc": "2026-11-09T16:09:27.754218+00:00",
+  "environment": {
+    "environment_class": "local-debian-13",
+    "python_implementation": "CPython",
+    "python_version": "3.12.14",
+    "python_executable": "/workspace/1250-proposed/subject/.venv/bin/python",
+    "python_sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "uv_path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/uv",
+    "uv_version": "uv 0.13.5 (x86_64-unknown-linux-gnu)",
+    "uv_sha256": "8a70db72685b7138121bfcda71fa1a00cb709ed9f1fdc4ecf1dd871e8e167e52",
+    "system": "Linux",
+    "machine": "x86_64",
+    "os_release": {
+      "ID": "debian",
+      "VERSION_ID": "13"
+    },
+    "hosted": {
+      "GITHUB_RUN_ID": null,
+      "GITHUB_RUN_ATTEMPT": null,
+      "GITHUB_SHA": null,
+      "GITHUB_WORKFLOW_REF": null,
+      "GITHUB_WORKFLOW_SHA": null,
+      "RUNNER_OS": null,
+      "ImageOS": null,
+      "ImageVersion": null
+    }
+  },
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "sources": {
+    "tools/issue_1250/approval_validation.py": "faf0beb4acdf7ea31bd0dee4478da1029b4ba7971f5195677503b1d1aae4537a",
+    "tools/issue_1250/build_backend.py": "275bb35e8ce85ba8bbfd214bb6e1ce167021d47494f51dedb11aa7fa72737abe",
+    "tools/issue_1250/editable_builder.py": "551db9cc3c6800f776016b41cf2c7a757f7197663b532beafdbed60578039c8c",
+    "tools/issue_1250/run.py": "8cac470281775e0068ea96a86bf7b7b429370f945231a0ddc48729d8a9c9da76",
+    "tests/unit/test_issue_1250_acceptance_infrastructure.py": "ac34e92486632a0f825560a5479ed51b1779372248ee62e5acf39a2ee8c718bb",
+    "tests/unit/test_issue_1250_approval_validation.py": "eda65d7e95e9644b474e4b1df0cec85dc68aca85be74521434f4b02aff14e8a5",
+    "tests/unit/test_issue_1250_build_backend.py": "5af248e4c2c69996caf8c548edefc5a6c8a4277a3e7ca61eefc47c898e80f5b4",
+    "tests/unit/test_issue_1250_validation_hardening.py": "a3ec65a411aa3c3cf326cab5f7905e0132ad997a388830eda83aa39f041480ac"
+  },
+  "registration_proposal_sha256": "daebb2c2383fe710126fd139a9d68da112c2c34b08cc35619cae1d1a23447c6c",
+  "unapplied_activation_patch_sha256": "3f3244842be8e130511cb593018acc8fb7776f02dd38af10d2781b4543dbd584",
+  "local_bundle_manifest_sha256": "8e3dd3efeedaea95ab7858b547cddc57d946c24e6b642d6cca3668f90924cfd1",
+  "local_bundle_archive_sha256": "98a636a40affe453d10b12c51d78cac46737bd74de27bc1d30dc02411629327b",
+  "local_bundle_outcome": "PASS",
+  "local_bundle_class": "local-debian-13",
+  "local_bundle_file_count": 62,
+  "final_test_command": "ISSUE1250_BUILD_INTEGRATION=1 ISSUE1250_BUILD_EVIDENCE=/workspace/1250-registration-preparation/final-qualified-cold-validation UV_CACHE_DIR=/workspace/1250-registration-preparation/test-cache uv run --project /workspace/1250-proposed/subject --no-sync pytest -n 0 -q tests/unit/test_issue_1250_acceptance_infrastructure.py tests/unit/test_issue_1250_build_backend.py tests/unit/test_issue_1250_validation_hardening.py tests/unit/test_issue_1250_approval_validation.py",
+  "final_tests": "127 passed in 16.57s; zero skipped",
+  "ruff": "All checks passed",
+  "documentation_checker": "10234 records; 2793 legacy gaps; 1 classified exclusions; 0 errors",
+  "other_checks": [
+    "git apply --check tools/issue_1250/activation.proposed.patch: exit 0, patch not applied",
+    "git diff --check: exit 0",
+    "python3 -m compileall -q tools/issue_1250: exit 0"
+  ],
+  "red_results": {
+    "310ba993": "10 failed, 13 passed; includes missing RECORD guards and one initial invalid-ZIP test-construction issue later corrected to a valid changed wheel",
+    "33323498": "missing approval-validation interface: 1 failed, 25 fixture errors"
+  },
+  "intermediate_results": [
+    "123 passed, 1 skipped with expensive integration omitted before final additions",
+    "125 passed in 11.95s; full bounded packaging, before explicit real-bundle assertion",
+    "125 passed in 14.54s; full packaging/verifier assertions",
+    "127 passed in 16.57s; collector now self-rejects incomplete/failed bundles"
+  ],
+  "artifact_packaging_note": "An initial sealing-script assertion omitted nested manifest.json entries from its computed map and correctly rejected the mismatch; corrected to exclude only the root manifest. Runtime evidence bytes were not modified.",
+  "subjects": {
+    "baseline": {
+      "identity": {
+        "sha": "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5",
+        "tree": "780ec50e3f9cd2864cb18f93f2df34e1fc650515",
+        "lock_sha256": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf",
+        "seconds": 6.993347858006018,
+        "non_editable_count": 42,
+        "status": ""
+      },
+      "build_inventory": [
+        "editables==0.6",
+        "hatchling==1.33.0",
+        "packaging==26.3",
+        "pathspec==1.1.1",
+        "pluggy==1.7.0",
+        "tomlkit==0.15.2",
+        "trove-classifiers==2026.9.21.13"
+      ],
+      "wheel_sha256": "886739727b4c32145bba226bee02166a28199b15af3952c35000405bc56cc68a",
+      "cold_start": {
+        "run_id": "d332a9ba-567b-4871-868a-d8cc564f5ddd",
+        "sha": "0b25d2b45722f4397fd712f2f4b8eb3ea294f6e5",
+        "cache": "/tmp/pytest-of-agent/pytest-18/test_real_cold_baseline_and_ca0/baseline-cold-cache",
+        "subject_root": "/tmp/pytest-of-agent/pytest-18/test_real_cold_baseline_and_ca0/baseline",
+        "cache_absent": true,
+        "venv_absent": true
+      }
+    },
+    "candidate": {
+      "identity": {
+        "sha": "e3562f620020023ea39c44273068872d6bc73fe6",
+        "tree": "5152ca5fc693fcaaab13faf615b2fc1013fdf068",
+        "lock_sha256": "2bb0f5f5a5b073539ba0df6e92820a461d3cfb5364ca8951a99717b3c684a8bf",
+        "seconds": 3.046491157001583,
+        "non_editable_count": 42,
+        "status": ""
+      },
+      "build_inventory": [
+        "editables==0.6",
+        "hatchling==1.33.0",
+        "packaging==26.3",
+        "pathspec==1.1.1",
+        "pluggy==1.7.0",
+        "tomlkit==0.15.2",
+        "trove-classifiers==2026.9.21.13"
+      ],
+      "wheel_sha256": "7cacd4a699b89129501ed76634cb0f819356ff0665cd59070f1e0e92c25bd9db",
+      "cold_start": {
+        "run_id": "d332a9ba-567b-4871-868a-d8cc564f5ddd",
+        "sha": "e3562f620020023ea39c44273068872d6bc73fe6",
+        "cache": "/tmp/pytest-of-agent/pytest-18/test_real_cold_baseline_and_ca0/candidate-cold-cache",
+        "subject_root": "/tmp/pytest-of-agent/pytest-18/test_real_cold_baseline_and_ca0/candidate",
+        "cache_absent": true,
+        "venv_absent": true
+      }
+    }
+  },
+  "limits": [
+    "Local Debian/Clang preparation evidence only; not hosted CI or independent approval",
+    "Future activation patch deliberately has pending receipt and no downloaded hosted artifact",
+    "Relevant source/proposal changes or age beyond 24h invalidate qualification",
+    "All original runtime/build evidence and historical original22 remain unchanged"
+  ]
+}

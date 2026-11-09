@@ -1,0 +1,19 @@
+Using CPython 3.12.14 interpreter at: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3
+Creating virtual environment at: .venv
+Resolved 55 packages in 2ms
+   Building genia @ file:///workspace/1250-backend-preparation/reproduce
+error: Failed to build `genia @ file:///workspace/1250-backend-preparation/reproduce`
+  cause: The build backend returned an error
+  cause: Call to `hatchling.build.build_editable` failed (exit status: 1)
+
+         [stderr]
+         Traceback (most recent call last):
+           File "<string>", line 8, in <module>
+         ModuleNotFoundError: No module named 'hatchling'
+
+hint: This error likely indicates that `genia@0.1.14` depends on `hatchling`, but doesn't declare it as a build dependency. If `genia` is a first-party package, consider adding `hatchling` to its `build-system.requires`. Otherwise, either add it to your `pyproject.toml` under:
+
+[tool.uv.extra-build-dependencies]
+genia = ["hatchling"]
+
+or `uv pip install hatchling` into the environment and re-run with `--no-build-isolation`.
