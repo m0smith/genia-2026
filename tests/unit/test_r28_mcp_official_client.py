@@ -13,6 +13,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -37,6 +38,11 @@ REQUIRED_STEPS = [
     "disconnect",
     "relaunch",
 ]
+
+
+def _harness_environment(**extra):
+    """Tell the Node test harness which pytest interpreter to pass to its filtered transport."""
+    return {**os.environ, **extra, "GENIA_MCP_TEST_PYTHON": sys.executable}
 
 
 def _harness_ready():
@@ -76,6 +82,7 @@ def test_the_official_client_completes_the_acceptance_scenario():
         text=True,
         timeout=300,
         check=False,
+        env=_harness_environment(),
     )
     assert done.returncode == 0, done.stdout + done.stderr
     report = json.loads(done.stdout.strip().splitlines()[-1])
@@ -105,7 +112,7 @@ def test_the_official_client_completes_the_scenario_on_every_negotiation_path(pa
         text=True,
         timeout=300,
         check=False,
-        env={**os.environ, "GENIA_ACCEPT_NEGOTIATION": path},
+        env=_harness_environment(GENIA_ACCEPT_NEGOTIATION=path),
     )
     assert done.returncode == 0, done.stdout + done.stderr
     report = json.loads(done.stdout.strip().splitlines()[-1])
@@ -126,6 +133,7 @@ def test_the_official_client_matrix_covers_cancel_disconnect_and_relaunch():
         text=True,
         timeout=300,
         check=False,
+        env=_harness_environment(),
     )
     report = json.loads(done.stdout.strip().splitlines()[-1])
     details = {step["name"]: step["detail"] for step in report["steps"]}
@@ -148,6 +156,7 @@ def test_version_negotiation_evidence_for_ledger_h36():
         text=True,
         timeout=300,
         check=False,
+        env=_harness_environment(),
     )
     assert done.returncode == 0, done.stdout + done.stderr
     report = json.loads(done.stdout.strip().splitlines()[-1])

@@ -673,9 +673,11 @@ def configured_command():
 
 
 def client_environment():
-    """Return the minimal client-style environment passed to stdio servers."""
+    """Keep client filtering, selecting this test interpreter without downloads or local pins."""
 
-    return {name: os.environ[name] for name in CLIENT_ENV_NAMES if name in os.environ}
+    env = {name: os.environ[name] for name in CLIENT_ENV_NAMES if name in os.environ}
+    env.update(UV_PYTHON=sys.executable, UV_PYTHON_DOWNLOADS="never")
+    return env
 
 
 def require_configured_launcher():
