@@ -1,5 +1,11 @@
 # D2b authorized TEST-ONLY oracle correction — review pending
 
+> Historical phase evidence, superseded for current implementation/status claims.
+> See [GENIA_STATE.md](../../../GENIA_STATE.md) for implemented behavior and the
+> [independent cumulative review](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6773392957)
+> for the current conditional-review disposition. Historical review/STOP wording
+> below describes its recorded phase; it does not grant D2b acceptance or parity.
+
 Authority: maintainer [6609232173](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6609232173),
 following independent Claude Code reconciliation
 [6609143905](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6609143905).
@@ -76,16 +82,16 @@ Selections are bounded: shared groups10/10/10/6, host16, transitioned Python4.
 Maximum observed failures in one invocation15; no threshold crossing, errors or
 skips. Expected RED exits are retained, not retried to overwrite failures.
 
-`before-partial.json`, `revised-red.json` and `revised-partial.json` include exact
-node selections, commands, source HEAD, raw logs and per-case outcomes. Source
-HEAD identifies the production tree; tests were the corrected overlay recorded
-by SHA256 in `inventory.json`. That same overlay was used on both trees.
+`before-partial.json`, `revised-red.json` and `revised-partial.json` retain exact
+commands, source HEADs, counts and per-case outcomes in compact form (see archive
+policy below). Source HEAD identifies the production tree; corrected test-overlay
+SHA256 values remain in inventory.json. The same overlay was used on both trees.
 
-Reproduce with `reproduce.py <worktree> <label>` using Python, after creating
-`/workspace/work/d2b-correction-runs` and supplying the documented uv environment.
-The helper delegates only to existing pytest tests; it does not replace R16 or
-write over the accepted original results. Apply this TEST-ONLY commit's test/spec
-delta to a detached partial1bbc63e4 worktree for comparison; never copy production.
+`reproduce.py` is retained as historical, nonportable sandbox tooling. Its hard-coded
+/workspace paths and original uv environment are not a clean-checkout or CI recipe.
+It delegated to existing pytest tests, without replacing R16 or transferring
+production between implementations. The recorded comparisons used the TEST-ONLY
+overlay on the original RED and partial1bbc63e4 production trees.
 
 Preservation on **each** implementation (`preservation.json`):
 - D1 completion/preparation, Slice C keys, private D2a core/dispatch/publication:
@@ -110,3 +116,12 @@ changes, old/new archives, no-renaming/dotted-alias meaning, snapshot identity,
 metadata channels and60000-step TCO. No acceptance is claimed here. PR1313 remains
 draft and unchanged by this separate correction branch; no production implementation
 resumes, merge, issue closure, Slice E or R29 work is authorized by these results.
+
+
+## Compact archive and history retention
+
+See the [archive format and mandatory history-retention policy](../model_b_d2b_red/README.md#compact-archive-and-history-retention).
+Per-case outcomes/diagnostics and exact run commands/return codes remain here;
+raw logs and duplicated case records are replaced by hashes, original-commit
+links and case-table indices. No outcome is reclassified. Do not squash away
+historical evidence without independently verified durable tags or restored logs.

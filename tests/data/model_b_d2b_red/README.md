@@ -1,5 +1,11 @@
 # D2b TEST ONLY — original RED archive and authorized oracle correction
 
+> Historical phase evidence, superseded for current implementation/status claims.
+> See [GENIA_STATE.md](../../../GENIA_STATE.md) for implemented behavior and the
+> [independent cumulative review](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6773392957)
+> for the current conditional-review disposition. Historical review/STOP wording
+> below describes its recorded phase; it does not grant D2b acceptance or parity.
+
 The original accepted RED is `b25b8f8c1904dc683f6634c4ef8c5f108d4f3eca`.
 Its failure logs, `results.json`, `historical_oracles.json` and C++ evidence remain
 unchanged. Their counts describe the original tests, not the corrected inventory.
@@ -11,10 +17,10 @@ authorized exactly seven test/evidence corrections, without production changes.
 
 Current correction evidence, inventory and old/new expectations:
 [`../model_b_d2b_correction/README.md`](../model_b_d2b_correction/README.md).
-Corrected tests are NOT independently accepted yet. A fresh Claude Code review
-of the correction SHA is required before GREEN resumes. No shipped D2b or parity
-claim is made. The following is the retained original phase narrative with this
-correction notice taking precedence; its original bytes are also archived in
+That correction-stage review request is historical and superseded by the linked
+independent cumulative review. Current implementation truth belongs to STATE;
+D2b acceptance and host parity are not established by this archive. The following
+is the retained original phase narrative; its original bytes are also archived in
 `../model_b_d2b_correction/original_test_and_specs.json`.
 
 ---
@@ -128,12 +134,12 @@ No dependency install; uv.lock remains absent. No full-suite or C++ parity claim
   source pin matches accepted-design host pin. Applicability gate rejects before
   module requests are sent; this is not proof of future C++ linking behavior.
 
-The preserved verify.py/final_verify.py scripts call existing pytest/R16 APIs to
-reproduce scoped evidence. Run from repo root with PYTHONPATH=src:. under uv.
-These are evidence helpers, not a new conformance system. They create scratch
-logs under work/d2b, requiring that directory first. final_verify.py stores exact
-pytest node selections in results.json. Ruff format/check applies to the two new
-Python test modules and preserves assertions. Initial lint failure is retained. Raw logs are losslessly wrapped as JSON under raw_log to avoid pytest trailing whitespace in committed text; json.load(file)["raw_log"] reconstructs the exact original log.
+The preserved verify.py/final_verify.py scripts are historical, nonportable
+sandbox tooling, not clean-checkout or CI reproduction commands: they depend on
+original /workspace paths and environments. Their recorded calls use existing
+pytest/R16 APIs; no new conformance system is defined. The exact selections remain
+in results.json. The original small log wrappers in this directory retain raw_log;
+json.load(file)["raw_log"] reconstructs those original logs.
 
 ## Failure classification / fixture defects
 
@@ -165,3 +171,26 @@ pending that required independent review. Supply the candidate SHA to Claude Cod
 for semantic/fixture/transition/portability review and publish its verdict on #1250.
 Any modified RED requires a new SHA, appropriate verification and re-review.
 STOP after RED; no D2b production, Slice E/R29, merges or issue closures.
+
+
+## Compact archive and history retention
+
+The seven correction/strength pytest dumps are compact outcome tables. Each keeps
+its original label, production source HEAD, Python version, counts and every case's
+class/name/status/failure. Each run keeps its exact command and return code;
+`case_indices` indexes the shared `cases` table in original order. Raw logs are
+replaced by their SHA256 hashes and the original file's commit/blob/SHA256 link.
+No historical failure, skip or unsupported outcome is reclassified as a pass.
+
+Full original dumps remain at [archive commit 6ae23288](https://github.com/m0smith/genia-2026/tree/6ae23288363c4e5effb0e56b6852dc33dd692ef8/tests/data).
+Semantic/test-history anchors are original RED `b25b8f8c1904dc683f6634c4ef8c5f108d4f3eca`,
+correction integration `d1be59c66a23c635e81f88d592d32a9bb6ac1b9d`, and strength integration
+`6230bd947e12b97d2a5d7d88bc8664da4f8e752a`. These are historical evidence, not
+new exact-head execution proof.
+
+**Retention requirement:** preserve the candidate's ancestry with a merge commit.
+Do not squash/rebase away these commits unless durable tags are created and
+independently verified first, or the omitted raw evidence is restored. A source
+URL alone does not guarantee retention of otherwise unreachable Git objects.
+The inventories, oracle/C++ evidence and both `.genia/process` STOP records are
+unchanged. Sandbox scripts are retained only as historical artifacts.

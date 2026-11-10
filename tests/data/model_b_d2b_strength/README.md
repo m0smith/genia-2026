@@ -1,5 +1,11 @@
 # Final D2b RED strength delta — independent review pending
 
+> Historical phase evidence, superseded for current implementation/status claims.
+> See [GENIA_STATE.md](../../../GENIA_STATE.md) for implemented behavior and the
+> [independent cumulative review](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6773392957)
+> for the current conditional-review disposition. Historical review/STOP wording
+> below describes its recorded phase; it does not grant D2b acceptance or parity.
+
 Base corrected RED: `69ac60aa5a769fb267558e8b8dbe91995aecfc04`.
 Partial production comparison: `1bbc63e4ef5d3a461542f6849d35aed33bfe9e17`.
 Authority: maintainer [6615005691](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6615005691),
@@ -79,14 +85,16 @@ not hidden or counted as genuine implementation defects.
 ## Reproduction / environment
 
 Python3.12.14, existing uv project environment with pytest9.2.0, explicit
-current-worktree `PYTHONPATH=src:.`. Focused JSONs contain exact commands/node IDs,
-source HEADs and raw logs. Source HEAD names the unchanged production tree;
+current-worktree `PYTHONPATH=src:.`. Focused JSONs retain exact commands/node IDs,
+source HEADs and per-case outcomes in compact form (see archive policy below). Source HEAD names the unchanged production tree;
 test-overlay SHA256 values in `inventory.json` identify this final test content.
-To reproduce, overlay the TEST-ONLY test/spec delta on a detached partial1bbc
-worktree and run the existing corrected-RED reproduction helper with the same
-bounded selections. No production should be transferred between the trees.
+The historical comparisons overlaid the TEST-ONLY test/spec delta on a detached
+partial1bbc worktree with the same bounded selections; no production was transferred
+between the trees. The corrected-RED reproduction helper is nonportable sandbox tooling.
 
-`mutation_probe.py red|partial` runs existing R16 execution and comparison APIs.
+`mutation_probe.py red|partial` is historical, nonportable sandbox tooling with
+hard-coded /workspace paths and original environment assumptions; it is not a
+clean-checkout or CI recipe. It used existing R16 execution and comparison APIs.
 It adds only an in-memory bootstrap to the existing interpreter subprocess,
 using a10-second deadline. M7 intercepts `IrOpenUse` evaluation only when literal
 lookup fails and splits the alias; M2 redirects the projection doc read to its
@@ -130,3 +138,12 @@ Do not self-approve RED or infer GREEN acceptance from58 focused passes.
 Production maintainability review, full regression/conformance/documentation
 gates remain a later authorized GREEN phase. PRs1314/1313 remain draft/unmerged;
 issue state and Slice E/R29 boundaries are unchanged.
+
+
+## Compact archive and history retention
+
+See the [archive format and mandatory history-retention policy](../model_b_d2b_red/README.md#compact-archive-and-history-retention).
+Per-case outcomes/diagnostics and exact run commands/return codes remain here;
+raw logs and duplicated case records are replaced by hashes, original-commit
+links and case-table indices. No outcome is reclassified. Do not squash away
+historical evidence without independently verified durable tags or restored logs.
