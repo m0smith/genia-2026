@@ -1,0 +1,839 @@
+{
+  "schema_version": 1,
+  "scope": "public process-lifecycle diagnosis only",
+  "classification": "MULTIPLE_CAUSES",
+  "baseline_source": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+  "approved_lock_sha256": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+  "python": "3.12.15",
+  "outer_and_controlled_nested_uv": "0.13.5",
+  "pid1_name": "tail",
+  "ordinary_reference_uv": {
+    "mode": "ordinary",
+    "supervisor_pid": 21655,
+    "subreaper_enabled": false,
+    "pid1": {
+      "name": "tail",
+      "pid": 1
+    },
+    "argv": [
+      "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+      "--no-config",
+      "run",
+      "--offline",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--showlocals",
+      "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind"
+    ],
+    "source_commit": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+    "lock_sha256": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+    "exit_code": 1,
+    "duration_seconds": 60.481503329996485,
+    "events": [
+      {
+        "t_seconds": 0.003038,
+        "pid": 21656,
+        "ppid": 21655,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "S",
+        "start_token": "10904512",
+        "role": "uv runner"
+      },
+      {
+        "t_seconds": 0.01774,
+        "pid": 21660,
+        "ppid": 21656,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "R",
+        "start_token": "10904513",
+        "role": "pytest-or-uv"
+      },
+      {
+        "t_seconds": 0.189774,
+        "pid": 21665,
+        "ppid": 21662,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "R",
+        "start_token": "10904530",
+        "role": "Genia launcher"
+      },
+      {
+        "t_seconds": 0.189779,
+        "pid": 21662,
+        "ppid": 21660,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "S",
+        "start_token": "10904530",
+        "role": "uv runner"
+      },
+      {
+        "t_seconds": 0.203091,
+        "pid": 21667,
+        "ppid": 21665,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "R",
+        "start_token": "10904532",
+        "role": "hosts.python.mcp_host"
+      },
+      {
+        "t_seconds": 0.427058,
+        "pid": 21665,
+        "ppid": 1,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "S",
+        "start_token": "10904530",
+        "role": "Genia launcher"
+      },
+      {
+        "t_seconds": 0.427065,
+        "pid": 21662,
+        "ppid": 21660,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "Z",
+        "start_token": "10904530",
+        "role": "other"
+      },
+      {
+        "t_seconds": 0.44013,
+        "pid": 21662,
+        "start_token": "10904530",
+        "state": "gone",
+        "role": "uv runner"
+      },
+      {
+        "t_seconds": 0.452166,
+        "pid": 21665,
+        "ppid": 1,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "Z",
+        "start_token": "10904530",
+        "role": "other"
+      },
+      {
+        "t_seconds": 0.452172,
+        "pid": 21667,
+        "start_token": "10904532",
+        "state": "gone",
+        "role": "hosts.python.mcp_host"
+      },
+      {
+        "t_seconds": 60.478495,
+        "pid": 21656,
+        "start_token": "10904512",
+        "state": "gone",
+        "role": "uv runner"
+      },
+      {
+        "t_seconds": 60.4785,
+        "pid": 21660,
+        "start_token": "10904513",
+        "state": "gone",
+        "role": "pytest-or-uv"
+      }
+    ],
+    "reaped": [
+      {
+        "pid": 21656,
+        "status": 1,
+        "t_seconds": 60.477843,
+        "main_child": true
+      }
+    ],
+    "remaining_captured_identities": [
+      {
+        "pid": 21665,
+        "ppid": 1,
+        "pgrp": 21656,
+        "sid": 21656,
+        "state": "Z",
+        "start_token": "10904530",
+        "role": "Genia launcher",
+        "waitpid_result": "ECHILD: tracer is not its parent"
+      }
+    ],
+    "trace_selection": "First observed state, reparenting, zombie and disappearance for Genia launcher/host and their parents; scheduling-only R/S transitions omitted.",
+    "raw_trace_sha256": "947c69c69e751e3d4b39970238c80a9781792f213064d33f7409b8f1a6bf5b22",
+    "raw_trace_bytes": 198701
+  },
+  "subreaper_reference_uv": {
+    "mode": "subreaper",
+    "supervisor_pid": 21870,
+    "subreaper_enabled": true,
+    "pid1": {
+      "name": "tail",
+      "pid": 1
+    },
+    "argv": [
+      "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+      "--no-config",
+      "run",
+      "--offline",
+      "--no-sync",
+      "pytest",
+      "-q",
+      "--showlocals",
+      "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind"
+    ],
+    "source_commit": "9d930d07bf1ecdb1f0b59ed76abf67ef002e7e90",
+    "lock_sha256": "02faf4e82e2f6f2ea9af3f5d39ce67390da55fcc2d93577a9affc273308aafe8",
+    "exit_code": 0,
+    "duration_seconds": 0.912314047003747,
+    "events": [
+      {
+        "t_seconds": 0.161695,
+        "pid": 21876,
+        "ppid": 21875,
+        "pgrp": 21871,
+        "sid": 21871,
+        "state": "S",
+        "start_token": "10910579",
+        "role": "uv runner"
+      },
+      {
+        "t_seconds": 0.173711,
+        "pid": 21879,
+        "ppid": 21876,
+        "pgrp": 21871,
+        "sid": 21871,
+        "state": "R",
+        "start_token": "10910579",
+        "role": "Genia launcher"
+      },
+      {
+        "t_seconds": 0.189898,
+        "pid": 21881,
+        "ppid": 21879,
+        "pgrp": 21871,
+        "sid": 21871,
+        "state": "R",
+        "start_token": "10910581",
+        "role": "hosts.python.mcp_host"
+      },
+      {
+        "t_seconds": 0.408207,
+        "pid": 21876,
+        "start_token": "10910579",
+        "state": "gone",
+        "role": "uv runner"
+      },
+      {
+        "t_seconds": 0.408208,
+        "pid": 21879,
+        "ppid": 21870,
+        "pgrp": 21871,
+        "sid": 21871,
+        "state": "S",
+        "start_token": "10910579",
+        "role": "Genia launcher"
+      },
+      {
+        "t_seconds": 0.420837,
+        "pid": 21881,
+        "start_token": "10910581",
+        "state": "gone",
+        "role": "hosts.python.mcp_host"
+      },
+      {
+        "t_seconds": 0.433767,
+        "pid": 21879,
+        "start_token": "10910579",
+        "state": "gone",
+        "role": "Genia launcher"
+      },
+      {
+        "t_seconds": 0.445987,
+        "pid": 21883,
+        "ppid": 21875,
+        "pgrp": 21871,
+        "sid": 21871,
+        "state": "S",
+        "start_token": "10910607",
+        "role": "uv runner"
+      },
+      {
+        "t_seconds": 0.445988,
+        "pid": 21886,
+        "ppid": 21883,
+        "pgrp": 21871,
+        "sid": 21871,
+        "state": "R",
+        "start_token": "10910607",
+        "role": "Genia launcher"
+      },
+      {
+        "t_seconds": 0.458086,
+        "pid": 21888,
+        "ppid": 21886,
+        "pgrp": 21871,
+        "sid": 21871,
+        "state": "R",
+        "start_token": "10910609",
+        "role": "hosts.python.mcp_host"
+      },
+      {
+        "t_seconds": 0.849083,
+        "pid": 21883,
+        "start_token": "10910607",
+        "state": "gone",
+        "role": "uv runner"
+      },
+      {
+        "t_seconds": 0.849084,
+        "pid": 21886,
+        "ppid": 21870,
+        "pgrp": 21871,
+        "sid": 21871,
+        "state": "S",
+        "start_token": "10910607",
+        "role": "Genia launcher"
+      },
+      {
+        "t_seconds": 0.861182,
+        "pid": 21888,
+        "start_token": "10910609",
+        "state": "gone",
+        "role": "hosts.python.mcp_host"
+      },
+      {
+        "t_seconds": 0.876064,
+        "pid": 21886,
+        "start_token": "10910607",
+        "state": "gone",
+        "role": "Genia launcher"
+      }
+    ],
+    "reaped": [
+      {
+        "pid": 21879,
+        "status": 0,
+        "t_seconds": 0.423815,
+        "main_child": false
+      },
+      {
+        "pid": 21886,
+        "status": 0,
+        "t_seconds": 0.861424,
+        "main_child": false
+      },
+      {
+        "pid": 21871,
+        "status": 0,
+        "t_seconds": 0.909728,
+        "main_child": true
+      }
+    ],
+    "remaining_captured_identities": [],
+    "trace_selection": "First observed state, reparenting, zombie and disappearance for Genia launcher/host and their parents; scheduling-only R/S transitions omitted.",
+    "raw_trace_sha256": "fe9b4b7ca93eec306be62be029abbf9fd06f48820351a6377a9bc5e27039eaee",
+    "raw_trace_bytes": 8372
+  },
+  "termination_controls": {
+    "configured_uv_path": "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+    "configured_uv_version": "uv 0.13.5 (x86_64-unknown-linux-gnu)",
+    "command": [
+      "uv",
+      "run",
+      "--no-project",
+      "--no-python-downloads",
+      "python",
+      "hosts/python/mcp_launch.py"
+    ],
+    "pid1_name": "tail",
+    "rows": [
+      {
+        "mode": "EOF",
+        "initial_tree": [
+          {
+            "pid": 21895,
+            "ppid": 21894,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910662",
+            "role": "uv runner"
+          },
+          {
+            "pid": 21898,
+            "ppid": 21895,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910662",
+            "role": "Genia launcher"
+          },
+          {
+            "pid": 21900,
+            "ppid": 21898,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910664",
+            "role": "Genia host"
+          }
+        ],
+        "parent_command_exit": 0,
+        "duration_seconds": 0.031530526001006365,
+        "events": [
+          {
+            "t_seconds": 0.03150874200218823,
+            "pid": 21898,
+            "state": "gone",
+            "role": "Genia launcher"
+          },
+          {
+            "t_seconds": 0.031525999002042226,
+            "pid": 21900,
+            "state": "gone",
+            "role": "Genia host"
+          }
+        ],
+        "final_children": [
+          {
+            "pid": 21898,
+            "state": "gone",
+            "role": "Genia launcher"
+          },
+          {
+            "pid": 21900,
+            "state": "gone",
+            "role": "Genia host"
+          }
+        ]
+      },
+      {
+        "mode": "SIGTERM",
+        "initial_tree": [
+          {
+            "pid": 21902,
+            "ppid": 21894,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910687",
+            "role": "uv runner"
+          },
+          {
+            "pid": 21905,
+            "ppid": 21902,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910688",
+            "role": "Genia launcher"
+          },
+          {
+            "pid": 21907,
+            "ppid": 21905,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910689",
+            "role": "Genia host"
+          }
+        ],
+        "parent_command_exit": 241,
+        "duration_seconds": 0.007357848997344263,
+        "events": [
+          {
+            "t_seconds": 0.007341563992667943,
+            "pid": 21905,
+            "state": "gone",
+            "role": "Genia launcher"
+          },
+          {
+            "t_seconds": 0.00735479399736505,
+            "pid": 21907,
+            "state": "gone",
+            "role": "Genia host"
+          }
+        ],
+        "final_children": [
+          {
+            "pid": 21905,
+            "state": "gone",
+            "role": "Genia launcher"
+          },
+          {
+            "pid": 21907,
+            "state": "gone",
+            "role": "Genia host"
+          }
+        ]
+      },
+      {
+        "mode": "SIGKILL",
+        "initial_tree": [
+          {
+            "pid": 21909,
+            "ppid": 21894,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910711",
+            "role": "uv runner"
+          },
+          {
+            "pid": 21912,
+            "ppid": 21909,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910712",
+            "role": "Genia launcher"
+          },
+          {
+            "pid": 21914,
+            "ppid": 21912,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910713",
+            "role": "Genia host"
+          }
+        ],
+        "parent_command_exit": -9,
+        "duration_seconds": 0.021702209996874444,
+        "events": [
+          {
+            "t_seconds": 0.0012242319935467094,
+            "pid": 21912,
+            "ppid": 1,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "S",
+            "start_token": "10910712",
+            "role": "Genia launcher"
+          },
+          {
+            "t_seconds": 0.0012598069879459217,
+            "pid": 21914,
+            "ppid": 21912,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "R",
+            "start_token": "10910713",
+            "role": "Genia host"
+          },
+          {
+            "t_seconds": 0.021672363000106998,
+            "pid": 21912,
+            "ppid": 1,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "Z",
+            "start_token": "10910712",
+            "role": "Genia launcher"
+          },
+          {
+            "t_seconds": 0.021695989998988807,
+            "pid": 21914,
+            "state": "gone",
+            "role": "Genia host"
+          }
+        ],
+        "final_children": [
+          {
+            "pid": 21912,
+            "ppid": 1,
+            "pgrp": 21647,
+            "sid": 21647,
+            "state": "Z",
+            "start_token": "10910712",
+            "role": "Genia launcher",
+            "waitpid": "ECHILD: tester is not its parent"
+          },
+          {
+            "pid": 21914,
+            "state": "gone",
+            "role": "Genia host"
+          }
+        ]
+      }
+    ]
+  },
+  "initial_path_trace_archive": {
+    "ordinary-original-path": {
+      "exit_code": 1,
+      "duration_seconds": 60.51949453500856,
+      "raw_trace_sha256": "511d6c756b7b7c1d94c031e89c4bc699d3a365689bba41e074b1b383b438756f",
+      "note": "Original PATH exploratory capture; later controls observed nested uv0.12.23. Reference-uv traces above are the controlled comparison."
+    },
+    "subreaper-original-path": {
+      "exit_code": 0,
+      "duration_seconds": 0.9126437759987311,
+      "raw_trace_sha256": "63997f72330de30e41a7846ccde4e7273eea3303bde1572c63f45ba194612b0d",
+      "note": "Original PATH exploratory capture; later controls observed nested uv0.12.23. Reference-uv traces above are the controlled comparison."
+    }
+  },
+  "red_regression_commit": "5b35386fd5d4d2b15e1afea346cac8371c741c63",
+  "implementation_commit": "38eb980ee5fc95bdad45f197543861c2c2eb6046",
+  "raw_logs": {
+    "ordinary.stdout": {
+      "sha256": "0dbd83cf6eeb8593902df2a9695e74afe89ef6493cfc55a629dece716dfe6fc2",
+      "bytes": 1844
+    },
+    "subreaper.stdout": {
+      "sha256": "b7b3aa92344a38bedb2ba74f765049f69319b8af87f14816cc3a4df38eeb870a",
+      "bytes": 98
+    },
+    "ordinary-original-path.stdout": {
+      "sha256": "0072499ac568eac9e36a20e9c08fb1216cb9220eab8e160ce3ec28cf511056dd",
+      "bytes": 1844
+    },
+    "subreaper-original-path.stdout": {
+      "sha256": "85a7532b40196fb821e4b3dfb1231181e8e280a2da477abec65674576186c6c1",
+      "bytes": 98
+    },
+    "red.stdout": {
+      "sha256": "ab9215d89a04ef992c6cc064b2c63d107d84485ac9b3a1af1518b94e6fdd783b",
+      "bytes": 2072
+    },
+    "red.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "green.stdout": {
+      "sha256": "39d23b36043cc648d591ca362ce65ac0cc9ca31f03012f754ecbf185d62452ce",
+      "bytes": 99
+    },
+    "green.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  },
+  "verification": [
+    {
+      "name": "target-repeat-1",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.8809221950068604,
+      "stdout_sha256": "0ee5888eac5501909c7d7da392d69c44baa7c918e85045cdb4f2eb4f722f4c68",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "target-repeat-2",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.8336111100070411,
+      "stdout_sha256": "41c3b06b1f0237013bf2a2d9555cfc394501d11435eed1ea4fe0a018aef42c2e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "target-repeat-3",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.8203221809962997,
+      "stdout_sha256": "bc4c2ff1a05d78db864338a871f51116604f720d25667467a47cb7c30039c666",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "target-repeat-4",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.8193061049969401,
+      "stdout_sha256": "bc4c2ff1a05d78db864338a871f51116604f720d25667467a47cb7c30039c666",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "target-repeat-5",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-q",
+        "tests/unit/test_r28_mcp_conformance_lifecycle.py::test_a_discover_probe_launch_followed_by_a_session_launch_leaves_nothing_behind"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.8510012330079917,
+      "stdout_sha256": "212504876166ec78d6893ba7cb632e14878599d119e4df02390a6a5464c97ea0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "documentation",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "python",
+        "-m",
+        "tools.code_documentation",
+        "--base-ref",
+        "25a9c07013d3ed1169f4b707b7756044256e0a58",
+        "--inventory",
+        "/workspace/work/issue-1285-reaping-diagnosis/code-documentation-inventory.json"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.9221254799922463,
+      "stdout_sha256": "ac7d036b7e7f49dcbf1e4b19ba255a1a23d147ce706fc75fb723819c2db5f9e8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "instructions",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "python",
+        "tools/validate_llm_instructions.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.023749744999804534,
+      "stdout_sha256": "6f757a248bd5c405b5909f9950536f37ce13ef00f97fff5816223048d4f7fe3a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "profile-check",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "python",
+        "tools/gen_mcp_language_profile.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.022300757002085447,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lint",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "ruff",
+        "check",
+        "tests/fixtures/r28_mcp_helpers.py",
+        "tests/unit/test_r28_mcp_fixture_teardown.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.010862609997275285,
+      "stdout_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "regression-not-loopback",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-n",
+        "auto",
+        "-q",
+        "-m",
+        "not loopback",
+        "--junitxml=/workspace/work/issue-1285-reaping-diagnosis/nonloop.xml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 415.9044511980028,
+      "stdout_sha256": "8f039805248cdf11f5275fca72f08843bf457ea13ce11e766fd969cb0458693d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "regression-loopback",
+      "argv": [
+        "/workspace/work/issue-1285-clean-replay/bootstrap/uv/bin/uv",
+        "--no-config",
+        "run",
+        "--offline",
+        "--no-sync",
+        "pytest",
+        "-n",
+        "auto",
+        "-q",
+        "-m",
+        "loopback",
+        "--junitxml=/workspace/work/issue-1285-reaping-diagnosis/loop.xml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 4.150319334992673,
+      "stdout_sha256": "845cfc96d6e373bce22be7e27831cc1581f4c585bf5184807ad3af7d6ab46fa2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "regression_subsets": {
+    "lifecycle": {
+      "tests": 23,
+      "failures": 0,
+      "separate_run": false
+    },
+    "mcp_conformance": {
+      "tests": 507,
+      "failures": 0,
+      "separate_run": false
+    }
+  },
+  "full_regression": {
+    "passed": 7136,
+    "skipped": 60,
+    "failed": 0,
+    "workers": 2
+  },
+  "maintainability_review": {
+    "reviewer": "independent skeptical_readiness agent",
+    "commit": "38eb980ee5fc95bdad45f197543861c2c2eb6046",
+    "verdict": "PASS",
+    "blocking_findings": 0
+  },
+  "gate": "GO for public frozen-runner preparation only; immutable image, independent custody and trials remain unverified/NO-GO"
+}

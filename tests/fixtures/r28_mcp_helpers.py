@@ -9,6 +9,7 @@ U+2028/U+2029 and would mask a framing defect).
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import subprocess
@@ -599,14 +600,23 @@ class LauncherSession:
         raise AssertionError("no governed worker process appeared within the timeout")
 
     def close(self):
-        """Close stdin, wait for launcher exit, then close captured streams."""
+        """Close stdin and reap the command, escalating within a 30-second wait budget.
+
+        Reserve five seconds for kill/reap if the normal 25-second grace expires;
+        the fixed Genia worker deadlines and zombie-detection assertions are unchanged.
+        """
 
         try:
             self.proc.stdin.close()
         except OSError:
             pass
         try:
-            self.proc.wait(timeout=30)
+            try:
+                self.proc.wait(timeout=25)
+            except subprocess.TimeoutExpired:
+                with contextlib.suppress(ProcessLookupError):
+                    self.proc.kill()
+                self.proc.wait(timeout=5)
         finally:
             for stream in (self.proc.stdout, self.proc.stderr):
                 try:
@@ -620,10 +630,11 @@ class LauncherSession:
         return self
 
     def __exit__(self, *exc):
-        """Kill any still-running launcher and release its pipes."""
+        """Let the client command unwind and reap descendants before closing its pipes."""
 
-        if self.proc.poll() is None:
-            self.proc.kill()
+        with contextlib.suppress(ProcessLookupError):
+            if self.proc.poll() is None:
+                self.proc.terminate()
         self.close()
 
 

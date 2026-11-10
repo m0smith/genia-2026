@@ -53,6 +53,15 @@ secret.
   chain; a SIGKILLed host leaves at most an orphan worker for 8 s and possibly an empty private temp
   directory.
 
+Python conformance client fixtures request SIGTERM before waiting for the configured
+command, so wrappers such as `uv` can reap their children. A noncooperative direct
+command is killed and waited for within the fixture's existing 30-second wait
+budget (25 seconds graceful, 5 seconds forced reap). Zombie detection is not
+disabled. For deliberate parent-SIGKILL experiments, use an init or subreaper that
+actually adopts and waits for orphans; a container PID 1 that merely keeps the
+container alive is insufficient. These are test-supervision requirements, not a
+new Genia lifecycle guarantee or a claim that a container image has been verified.
+
 ## Acceptance
 
 Automated: `tools/mcp_acceptance/` runs the official MCP TypeScript client against the command
