@@ -7,6 +7,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { clientEnvironment } from './client-environment.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..', '..');
@@ -45,9 +46,10 @@ const canon = (v) => Array.isArray(v) ? v.map(canon)
   : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])])) : v;
 const eq = (a, b, m) => need(JSON.stringify(canon(a)) === JSON.stringify(canon(b)), `${m}: ${JSON.stringify(a)} !== ${JSON.stringify(b)}`);
 
+/** Create a configured SDK session with the pytest interpreter and captured server stderr. */
 function newSession() {
   const transport = new StdioClientTransport({
-    command: entry.command, args: entry.args, cwd: repo, stderr: 'pipe',
+    command: entry.command, args: entry.args, cwd: repo, stderr: 'pipe', env: clientEnvironment(),
   });
   const session = { stderr: '', transport };
   transport.stderr?.on('data', (d) => { session.stderr += d; });

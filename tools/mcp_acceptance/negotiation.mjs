@@ -8,13 +8,15 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { clientEnvironment } from './client-environment.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..', '..');
 const entry = JSON.parse(readFileSync(resolve(repo, '.mcp.json'), 'utf8')).mcpServers.genia;
 
+/** Observe one negotiation path with the selected test interpreter; record connection errors. */
 async function attempt(label, negotiation) {
-  const transport = new StdioClientTransport({ command: entry.command, args: entry.args, cwd: repo, stderr: 'pipe' });
+  const transport = new StdioClientTransport({ command: entry.command, args: entry.args, cwd: repo, stderr: 'pipe', env: clientEnvironment() });
   const client = new Client({ name: 'genia-negotiation', version: '0.0.0' });
   if (negotiation !== undefined) client.setVersionNegotiation(negotiation);
   const report = { label, negotiation: negotiation ?? 'sdk-default', connected: false };

@@ -35,6 +35,7 @@ def _assert_selected(report):
 
 
 def test_python_client_selects_active_interpreter_with_a_mismatched_pin(tmp_path, monkeypatch):
+    monkeypatch.setenv('HOME', str(tmp_path))
     monkeypatch.setenv('UV_PYTHON', '/not-the-active-python')
     monkeypatch.setenv('GENIA_TEST_SECRET', 'must-not-reach-server')
     env = client_environment()
@@ -47,6 +48,7 @@ def test_python_client_selects_active_interpreter_with_a_mismatched_pin(tmp_path
 
 def test_official_sdk_selects_active_interpreter_with_a_mismatched_pin(tmp_path, monkeypatch):
     official._harness_ready()
+    monkeypatch.setenv('HOME', str(tmp_path))
     monkeypatch.setenv('UV_PYTHON', '/not-the-active-python')
     monkeypatch.setenv('GENIA_TEST_SECRET', 'must-not-reach-server')
     # Exercise the real SDK transport and the same environment helper used by both harnesses.
