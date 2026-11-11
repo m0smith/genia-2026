@@ -99,8 +99,15 @@ It states intended semantics. Closed publication is not implemented.
   the treatment of annotation names outside the ten listed here, need a further
   explicit maintainer decision before any committed RED test.
 
+**Scope of this ruling.** It lists annotation *names*. It does not restrict the keys
+of a map supplied through `@meta`. Native-test discovery and `send_annotated` select
+on metadata keys (`test`, `http_annotation`), which `@meta` or an annotated alias
+binding can also supply. How those consumers treat a closed callable is therefore
+part of the same undecided question and is **not** settled by the lists above.
+
 The exact validation point and error precedence are design matters, recorded in the
-[Slice E design](pre-r29-model-b-slice-e-closed-publication-design.md) §5.
+[Slice E design](pre-r29-model-b-slice-e-closed-publication-design.md) §5, together
+with the alternatives and proposed wording for the undecided points.
 
 ## 5. Ordinary metadata ownership, failure and linked-view projection
 
