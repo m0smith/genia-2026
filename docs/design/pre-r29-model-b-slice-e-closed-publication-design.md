@@ -1,6 +1,6 @@
 # Model B Slice E: closed-function publication (E1 + E2)
 
-Status: **DESIGN PROPOSED — awaiting independent review. Nothing here is implemented.**
+Status: **DESIGN PROPOSED, iteration 2 — awaiting independent re-review. Nothing here is implemented.**
 Python parses and lowers closed `f(pattern) =: expression` groups, and evaluation
 still rejects them with `model-b-not-implemented`. `GENIA_STATE.md` remains the only
 authority on implemented behavior. Phase record for
@@ -18,520 +18,933 @@ and the accepted [D2 linking design](pre-r29-model-b-d2-linking-design.md).
 
 This design authorizes no RED test, production code, capability, C++ change or R29 work.
 
+**Iteration 2** answers the independent review
+[FAIL — DESIGN CORRECTIONS REQUIRED](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6808189269)
+of iteration 1 (`426819a2735c76d8a6f7ba282a89b174a77bd8f7`).
+
+| Finding | Correction | Where |
+|---|---|---|
+| F1 thread-only admission | Admission needs an open transaction window **and** an unbroken synchronous lineage; host execution boundaries cut the lineage | §6 |
+| F2 commit not atomic | One linearization point; nothing visible is written before it; faults after it roll forward | §4.1–4.4 |
+| F3 closedness and raw records | Sealed callable, guarded clause records, clause append rejected by value, consumer audit | §3.1–3.2, §7.3 |
+| F4 `@test` versus the `test` metadata key | Names and keys separated; two coherent alternatives; decision pending | §5 |
+| F5 declaration result and oracle | Exact output and full inventory list | §10.4 |
+| F6 capability | Independent `closed_functions` capability recommended; decision pending | §9 |
+| F7 truth synchronization | Lands with E2, not after it | §11 |
+
 ## 1. Scope lock
 
 **Includes (Python reference host):** one closed callable and one immutable defining
 name per maximal consecutive same-name `=:` run; whole-group validation before any
-annotation runs; a provisional callable visible only to the declaring execution;
-ordered annotation evaluation with one atomic commit; the initializing, committed
-and failed states; failed values that can be passed around but not used; error
-precedence; REPL submission boundaries; exclusion from D2b linking.
+annotation runs; a provisional callable usable only by the declaration's own
+synchronous annotation calls; ordered annotation evaluation with one atomic
+publication; the initializing, committed and failed states; failed values that can
+be passed around but not used; error precedence; REPL submission boundaries;
+exclusion from D2b linking.
 
 **Excludes:** new syntax or `@closed`; changes to accepted D2b linking or R20
-dispatch; a new Core IR node or version; rollback or cancellation of external
-effects; server discovery of closed functions; C++ implementation or parity; R29.
+dispatch; a new Core IR node or version; a second dispatcher; rollback or
+cancellation of external effects; server discovery of closed functions; C++
+implementation or parity; R29.
 
-**Decisions this design needs from the maintainer before RED** are collected in §12.
+**Decisions this design needs from the maintainer before RED** are in §12.
 
 ## 2. Verified starting point
 
 | Fact | Evidence |
 |---|---|
-| A closed run parses to one `ClosedFuncDef` and lowers to one `IrClosedFuncDef` whose `declarations` are `IrFuncDef` or `IrPatternFuncDef`, each carrying its own annotations | `parser.py:442-527`, `lowering.py:249-250`, `ir.py:336`; probe: `@doc` on clause 1 and `@meta`, `@route` on clause 2 stay on their own clause |
-| Comments, blank lines and `;` do not end a run; another statement does (two groups result) | probe of 11 source variants |
-| `=` and `=:` clauses of one name side by side are a parse error | `parser.py:520-521`, `mixed-function-declaration-operators` |
+| A closed run parses to one `ClosedFuncDef` and lowers to one `IrClosedFuncDef` whose `declarations` are `IrFuncDef` or `IrPatternFuncDef`, each with its own annotations | `parser.py:442-527`, `lowering.py:249-250`, `ir.py:336`; probe |
+| Comments, blank lines and `;` do not end a run; another statement does | probe of 11 source variants |
+| `=` and `=:` clauses of one name side by side are a parse error | `parser.py:520-521` |
 | A closed form inside a block or lambda, a dotted name, or `->` is a parse error | probe |
-| Parser state does not survive a submission; a trailing `=:` keeps the REPL reading | `parse_program` at `parser.py:233-242`; `interpreter.py:157-191` |
 | Evaluation rejects every closed group | `evaluator.py:1407-1414` |
-| An ordinary declaration publishes its clause before its annotations run | `evaluator.py:1659-1712` (`define_function` at 1702, annotations after) |
-| An immutable `=:` bind publishes its value, then attaches metadata | `evaluator.py:1714-1735` |
-| `eval_annotations` evaluates in order, validates each value at once, and returns a private map | `evaluator.py:692-757` |
-| `commit_immutable_declaration` revalidates under the binding lock and accepts `metadata=` | `environment.py:453-474` |
-| `GeniaFunctionGroup.add_clause` works on a group that is not bound anywhere | `callable.py:314-337` |
-| D1 capture records every exported `GeniaFunctionGroup` whose `owner` is set | `ordinary_completion.py:148-151` |
-| A function value renders through its Python `repr` | `utf8.py:66-113`; probe prints `GeniaFunctionGroup(name='f', functions={1: <function f/1>}, …, metadata=<map 2>)` |
-| There is no construct that catches a runtime error inside one program | no `try`-like builtin or prelude function exists |
-| The host starts processes and cells on their own OS threads and uses no `asyncio`, signal handlers or finalizers | `values.py:609,713,773`; grep of `src/genia` |
+| An ordinary declaration publishes its clause before its annotations run and returns the clause record | `evaluator.py:1659-1712` |
+| `eval_annotations` evaluates in order, validates each value at once, returns a private map; `@meta` accepts any map | `evaluator.py:692-757` |
+| Command mode prints a non-nil final value with `format_debug`, which uses `repr` for a function | `interpreter.py:337-341, 668-675`; `utf8.py:151`; probe: `-c 'f(x) = x'` prints `<function f/1>` |
+| The shared `eval` runner executes a case through command mode (`-c`) | `hosts/python/exec_eval.py:25` |
+| Native-test discovery selects on the binding-metadata key `test`, not on the annotation name | `test_cli.py:175-209`; probe: an ordinary function with `@meta({test: "…"})`, an alias with `@test("…")` and an alias with `@meta({test: "…"})` are all discovered and run (3 PASS) |
+| `send_annotated` selects on the metadata key `http_annotation` of the function value and does not revalidate it | `http_annotation_binding.py:67-79` |
+| `define_function` appends to an existing group when its `owner` equals the declaring module and name | `environment.py:704-715` |
+| An annotated alias writes the merged map back to the group itself | `environment.py:750-752` |
+| `serve_http` dispatches each request to its handler on the thread that called `serve_http` | `builtins.py:5498-5502, 5544-5548` (a `handle_request` loop in the calling thread) |
+| Process and cell handlers run on their own threads | `values.py:609-648, 773-794` |
+| There is no construct that catches a runtime error inside one program | no `try`-like builtin or prelude function |
 
-The last two rows shape the evidence plan: within one file or command, a failed
-declaration ends the program, so a failed callable can only be used later in a
-REPL session or from another thread.
+Within one file or command a failed declaration ends the program. A failed callable
+can therefore be used only later in a REPL session, or by another execution that
+already holds it.
 
-## 3. Representation
+## 3. Representation (E1)
 
-### 3.1 `GeniaClosedFunction` (E1)
+### 3.1 The closed callable
 
 A closed callable is a new subclass `GeniaClosedFunction(GeniaFunctionGroup)` in
-`callable.py`. It stores its clauses as ordinary `GeniaFunction` records and
-dispatches through the inherited stratum and first-match logic, so recursion, tail
-calls, Outcome awareness and pattern/guard headers are the ordinary ones.
+`callable.py`. Dispatch is the inherited stratum and first-match logic, so recursion,
+tail calls, Outcome awareness and pattern/guard headers are the ordinary ones. No
+second dispatcher exists.
 
-It adds three private fields: `_state` (`initializing`, `committed` or `failed`),
-`_owner_thread` (the declaring thread object, cleared when the state leaves
-`initializing`), and `_closed_name`. It overrides `__call__`, `_dispatch_once`,
-`__repr__` and `__str__`. `owner` stays `(module identity, defining name)`.
+Private fields: `_state` (`building`, `initializing`, `committed`, `failed`) and
+`_txn` (its publication transaction, §6.1, cleared at a terminal state).
+
+The callable is **sealed**:
+- Only the private whole-group builder adds records, and only while the state is
+  `building`. `add_clause` on a sealed closed callable raises
+  `closed-function-not-extensible`.
+- Its metadata is written exactly once, by the publication protocol (§4.1).
+  `merge_metadata` on a closed callable raises, and the two writers that update a
+  group through a binding leave a closed callable untouched (§7.3).
+
+State changes are single stores, `building → initializing → committed | failed`.
+`committed` and `failed` are terminal.
 
 | Alternative | Verdict |
 |---|---|
-| A state flag on `GeniaFunctionGroup` | Rejected. Every ordinary call would pay for a state check, and the dataclass `repr` would have to change for ordinary groups. |
-| A class unrelated to `GeniaFunctionGroup` | Rejected. `GeniaFunctionGroup` is referenced on 50 lines in 12 source files, including at least 21 `isinstance` checks that handle dispatch, awareness and reflection. A second class means a second dispatcher, which the contract forbids (§6.1 item 2). |
-| **Subclass** | Chosen. Ordinary groups are untouched; every existing `isinstance` site keeps working. |
+| A state flag on `GeniaFunctionGroup` | Rejected. Every ordinary call would pay for a state check, and ordinary rendering would change. |
+| A class unrelated to `GeniaFunctionGroup` | Rejected. `GeniaFunctionGroup` is referenced on 50 lines in 12 source files, including at least 21 `isinstance` checks that handle dispatch, awareness and reflection. A second class means a second dispatcher. |
+| **Subclass** | Chosen. Ordinary groups are untouched. The subclass is not safe merely by passing `isinstance`; §7.2 and §7.3 list every site that needs a check. |
 
-Class-name checks were audited: `values.py:84` and `equality.py:128` compare class
-names, and both fall through to their `callable(value)` branch for the subclass.
-The results are unchanged: runtime type name `function`, equality by identity.
+Class-name comparisons at `values.py:84` and `equality.py:128` fall through to their
+`callable(value)` branch for the subclass: type name `function`, equality by identity.
 
-### 3.2 Self frame (E1 shape, E2 use)
+### 3.2 Guarded clause records
+
+Clause records of a closed callable are instances of a small subclass of
+`GeniaFunction` that holds a reference to its closed callable. Its `__call__` runs
+that callable's use check (§7.2) before anything else.
+
+Reason: several host consumers take a record out of a group and call it later
+(§7.3). A record that carries its callable keeps the state rule attached wherever
+the record goes, so safety does not depend on every present and future consumer
+remembering to check. Inside the trampoline a record is reached only through a
+`TailCall` produced by an entry point that has already checked.
+
+No evaluator or builtin path returns a clause record of a closed callable as a value.
+
+### 3.3 Self frame
 
 Each closed callable owns one private scope, the **self frame**:
-`Env(parent=declaring scope)` holding only the defining name bound to the callable,
-marked immutable. Every clause record uses the self frame as its closure.
+`Env(parent=declaring scope)` that holds only the defining name. Every clause record
+uses the self frame as its closure, and annotations are evaluated in it.
 
-A reference to the function's own name written inside a clause body therefore
-always resolves to this exact callable. It never resolves to a later declaration
-that reuses the name (contract §4.2). This also holds for a lambda created by a
-clause body that outlives a failed publication: calling the name from that lambda
-reaches the failed callable and is rejected.
+An **unshadowed** reference to the function's own name inside a clause body or an
+annotation therefore means this exact callable, never a later declaration that
+reuses the name (contract §4.2).
 
-Consequences that the implementation must handle:
-- At commit, the committed metadata map is also stored on the self frame, so
-  `doc`/`meta` called from inside a clause body see the same map as callers outside.
-- An assignment to the defining name from a clause body hits the immutable binding
-  in the self frame and is rejected with the existing immutable diagnostic.
-- The self frame inherits `module_identity()` and `unit_scope()` from its parent, so
-  provenance and module ownership are unchanged.
-- Debugger and inspection views gain one scope level between a clause frame and its
-  module. E1 pins what they show with a host-local test.
+The self frame is a parent scope. It is consulted only after the scopes below it:
+- A parameter or pattern binder with the function's own name, as in `f(f) =: f`,
+  binds in the clause frame and shadows the self frame. It keeps ordinary parameter
+  lookup and assignability.
+- A body assignment to the function's name with no local binding of that name
+  reaches the self frame and is rejected with the existing immutable-binding
+  diagnostic. This is the nearest-binding rule of contract §3; it does not create a
+  silent shadow.
+- Assignments to any other name pass through the self frame to the declaring scope
+  as before, because the self frame holds no other name.
+
+While the callable is `initializing`, the self frame holds the name as a guarded
+slot, not as an ordinary binding (§6.6). At a terminal state the slot becomes an
+ordinary immutable binding to the same callable. After a failed publication the self
+frame still names the failed callable, so a lambda that a clause body created and
+that escaped reaches the old failed callable even after the name is reused.
+
+The self frame inherits `module_identity()` and `unit_scope()`. Debugger and
+inspection views gain one scope level; E1 pins what they show.
 
 ## 4. Lifecycle transaction (E2)
 
-Evaluating one `IrClosedFuncDef` runs steps T0–T7 on the declaring thread. T0–T3
-evaluate no user code. Source and direct Core IR both enter at T0.
+Evaluating one `IrClosedFuncDef` runs these steps on one thread. T0–T3 evaluate no
+user code. Source and direct Core IR both enter at T0.
 
 | Step | Action | Failure |
 |---|---|---|
 | T0 | `assert_portable_core_ir([node])` (existing) | existing `ValueError` |
-| T1 | Name check in the declaring scope: not already bound, not reserved by another transaction, not runtime-owned (the `_check_declaration` rules, `environment.py:420-441`) | existing `ImmutableBindingError` texts |
-| T2 | Annotation permission scan (§5): every annotation name of every clause, in source order | `closed-function-annotation-not-permitted` |
-| T3 | Build the callable and self frame privately; add each clause record in source order with `add_clause` | existing duplicate-clause and conflicting-documentation errors |
-| T4 | **Provisional publication**, under the binding lock: repeat T1, reserve the name (§6), set `initializing` and the owner thread | as T1 |
-| T5 | Evaluate annotations in group order (clause 1's in source order, then clause 2's, …) in the self frame; fold each clause's map into one private map with the existing `_merge_metadata_maps` | the annotation's own error |
-| T6 | **Commit** in one lock hold (§4.1) | — |
-| T7 | **Failure**: on any exception leaving T5 or T6, including `BaseException`: set `failed`, then withdraw the reservation, then re-raise the original exception unchanged | — |
+| T1 | Name check in the declaring scope: not bound, not held by another transaction, not runtime-owned (`_check_declaration` rules, `environment.py:420-441`) | existing `ImmutableBindingError` texts |
+| T2 | Annotation permission scan (§5.1) over every annotation name of every clause, in source order | `closed-function-annotation-not-permitted` |
+| T3 | Build the callable, its records and self frame privately; add records in source order | existing duplicate-clause and conflicting-documentation errors |
+| T4 | **Provisional publication** under the binding lock: repeat T1, create the transaction, insert the two guarded slots (§6.6), set `initializing` | as T1 |
+| T5 | Open the admission window (§6.2); evaluate annotations in group order in the self frame, folding each clause's map into one private map with `_merge_metadata_maps`; close the window in a `finally` | the annotation's own error |
+| T6 | **Publish** (§4.1) | — |
+| T7 | **Fail** (§4.2), on any exception leaving T4, T5 or the pre-commit part of T6, including `BaseException`; then re-raise it unchanged | — |
 
-If T1–T3 fail, nothing was published and no value can have escaped. The whole group
-is validated before the first annotation runs, so an annotation on clause 1 does not
-run when clause 3 is a duplicate. This is the contract's "explicitly different
-atomic closed-publication rule": an ordinary declaration publishes clause by clause.
+The whole group is validated before the first annotation runs, so an annotation on
+clause 1 does not run when clause 3 is a duplicate. During T5 the callable already
+has all of its clauses, so an annotation on clause 1 may call the function and reach
+clause 2.
 
-During T5 the callable already has all of its clauses, so an annotation on clause 1
-may call the function and reach clause 2.
+The binding lock (`_BINDING_LOCK`, `environment.py:37`) is held only inside T4, T6
+and T7. It is never held while an annotation or a function body runs.
 
-The statement value of a successful closed declaration is the committed callable.
-An ordinary declaration returns its clause record (`evaluator.py:1712`); a closed
-declaration must never hand out a bare record, because records carry no state guard.
+### 4.1 Publication protocol (T6)
 
-### 4.1 Commit order
+**Staging, before the lock.** The transaction computes everything that can allocate
+or fail: the final metadata map (already folded during T5) and the replacement
+immutable-name sets for the declaring scope and the self frame. Nothing shared is
+written.
 
-All inside one hold of `_BINDING_LOCK` (`environment.py:37`), in this order:
-1. repeat the T1 name check;
-2. store the final metadata map on the callable and on the self frame;
-3. set the state to `committed` and clear the owner thread;
-4. store the declaring scope's binding metadata;
-5. mark the name immutable in the declaring scope;
-6. bind the name to the callable;
-7. remove the reservation.
+**Under one hold of the binding lock:**
 
-`Env.get` reads without the lock. With this order, any reader that finds the binding
-finds a committed callable with its metadata already in place. No reader can see a
-bound name whose callable is still initializing.
+| Step | Action | Visible to others? |
+|---|---|---|
+| C1 | Revalidate: the declaring scope's slot for the name still belongs to this transaction and the name is not bound | no |
+| C2 | Store the final metadata map on the callable | no: every reader of a closed callable's metadata goes through the use check, which still sees `initializing` |
+| **C3** | **`_state = committed`** — the linearization point | **yes, all at once** |
+| C4 | Declaring scope: binding metadata, immutable-name set, then the binding itself | already implied by C3 (see below) |
+| C5 | Self frame: the same three writes | same |
+| C6 | Remove both slots; decrement the open-slot count | no change in what readers see |
 
-Effects of annotations are never rolled back, on commit or on failure.
+**Why C3 alone is the linearization point.** While a slot exists, every lookup of the
+name and of its metadata, in the declaring scope or the self frame, is answered from
+the slot (§6.6) and decided by **one read** of the callable's state. Every use of an
+escaped reference is decided by the same single read (§7.2). The data a reader needs
+after seeing `committed` (records, metadata) was stored before C3 and never changes.
+So before C3 every observer sees an unpublished function, and from C3 on every
+observer sees a fully published one. C4–C6 only move the answer from the slot into
+the ordinary tables; they change no observable result.
 
-### 4.2 Metadata channels
+A reader that started before T4 and skipped the slot path (§6.6, fast path) reads the
+ordinary tables directly. It finds the binding absent until C4 writes it, and C4
+writes the binding last, after its metadata. Both outcomes are consistent with a
+lookup that took effect either before the declaration or after C3.
 
-Closed callables use the ordinary three observations unchanged: binding annotations
-(the committed map), inline documentation (the group docstring, merged at T3), and
-help (the existing `_describe_function_group`). Until commit, the private map exists
-only as a local value: it is not on the callable, the self frame or any scope. A
-failed callable therefore never carries partial metadata.
+### 4.2 Failure protocol (T7)
 
-## 5. Annotation permission (Q-C1)
+The admission window is already closed (T5's `finally`). Under one hold of the
+binding lock:
 
-The Q-C1 ruling fixes the two lists. This design fixes where the check runs.
-
-| Annotation on a closed clause | Result |
+| Step | Action |
 |---|---|
-| `@doc`, `@meta`, `@since`, `@deprecated`, `@category` | Permitted. Existing per-annotation validation applies at T5. |
-| `@route`, `@get`, `@post`, `@server`, `@cors` | Rejected at T2. |
-| `@test` | **Undecided** (§12, Q-C1b). This design recommends rejection at T2. |
-| Any other name | **Undecided** (§12, Q-C1b). This design recommends rejection at T2. |
+| F1 | If the state is `initializing`: **`_state = failed`** — the linearization point of failure |
+| F2 | Self frame: bind the name, immutable, to the failed callable |
+| F3 | Remove both slots; decrement the open-slot count |
 
-**Validation point.** T2 scans the annotation names of the whole group before any
-annotation expression is evaluated. Names are static in Core IR
-(`IrAnnotation.name`), so the scan runs no user code. The ruling prefers this
-pre-scan. It does not alter the §4.2 order of the contract: that order governs
-evaluation of permitted annotations, and it starts only after structural validation,
-of which "permitted metadata" is a listed part (contract §4.1).
+Nothing is written to the declaring scope, its metadata or its immutable-name set.
+The name is free for reuse. The private metadata map is dropped; it was never stored
+on the callable or in any scope.
 
-The scan runs at evaluation, not at parse or lowering. A direct Core IR caller then
-gets the same rejection as source, and statements before the declaration in the same
-program still run, as they do for every other evaluation-time declaration error.
+### 4.3 What each observer sees
 
-**Alternative considered:** reject a forbidden annotation only when evaluation
-reaches it. Rejected, because earlier annotations would already have run and a
-provisional callable could have escaped for a declaration that can never succeed.
+| Observation | Before C3 / F1 | After C3 | After F1 |
+|---|---|---|---|
+| Call through an escaped reference, not admitted | `closed-function-not-yet-published` | ordinary call | `closed-function-failed-publication` |
+| `doc`/`meta`/`help` through an escaped reference | `closed-function-not-yet-published` | final metadata | `closed-function-failed-publication` |
+| Name lookup in the declaring scope, not admitted | as if not declared | the callable | as if not declared |
+| Name lookup reaching the self frame, not admitted | `closed-function-not-yet-published` | the callable | the failed callable (a value; using it is rejected) |
+| A write to the name in the declaring scope | rejected as immutable | rejected as immutable | allowed |
+
+Assignment, passing, storing, comparing and rendering the value are allowed in every
+column.
+
+### 4.4 Faults inside the protocols
+
+A fault is any exception raised by a protocol step itself, for example an
+interrupt or an allocation failure. It is distinct from an annotation error.
+
+| Fault at | Result |
+|---|---|
+| T4 before the state becomes `initializing` | Slots removed, count restored. The callable was never reachable; it is discarded. |
+| T5, or closing the window | T7. |
+| C1 or C2 | T7. The state is still `initializing`; nothing visible was written. |
+| C3 | The handler reads the state. `committed`: roll forward. Otherwise: T7. |
+| C4, C5 or C6 | **Roll forward.** A `finally` inside the lock hold repeats C4–C6, which are idempotent stores and removals, until they are complete. The fault is then re-raised from the declaration statement. The function is published. |
+| F1 | The handler reads the state. Not yet `failed`: repeat F1. |
+| F2 or F3 | Roll forward to completed failure the same way. |
+
+Consequences:
+- **Committed never becomes failed.** F1 is conditional on `initializing`, and
+  after C3 the only path is forward.
+- **Every exit leaves a terminal state, no slot, and a balanced count.**
+- **What is rolled back:** only the transaction's own private bookkeeping (slots,
+  count). Nothing visible is written before C3, so there is nothing visible to undo.
+- **What is never rolled back:** effects of annotations (contract §4.2). They may
+  already have been observed by other executions or outside the program, and the
+  contract defines no cancellation.
+
+Fault injection covers one fault at each step. Several simultaneous faults are not
+covered and that limit is stated in the tests.
+
+### 4.5 Metadata channels
+
+Closed callables use the ordinary three observations: binding annotations (the
+committed map), inline documentation (the group docstring, merged at T3), and help
+(the existing `_describe_function_group`). Until C2 the private map is a local value
+of the transaction.
+
+## 5. Annotations, metadata keys and discovery
+
+### 5.1 Annotation names (Q-C1, approved) and where they are checked
+
+| Annotation **name** on a closed clause | Result |
+|---|---|
+| `@doc`, `@meta`, `@since`, `@deprecated`, `@category` | Permitted (ruled). Existing validation applies at T5. |
+| `@route`, `@get`, `@post`, `@server`, `@cors` | Rejected at T2 (ruled). |
+| `@test` | **PENDING MAINTAINER DECISION** (§5.2). |
+| Any other name | **PENDING MAINTAINER DECISION** (§12, Q-C1b). Today an unknown name on an ordinary function fails with `Unsupported annotation` only after its value expression has been evaluated (`evaluator.py:714-757`). Rejecting it at T2 changes that timing for closed declarations. |
+
+T2 scans the annotation names of the whole group before any annotation expression is
+evaluated. Names are static in Core IR (`IrAnnotation.name`), so the scan runs no
+user code. The ruling prefers this pre-scan. It does not change the order of
+contract §4.2: that order governs evaluation of permitted annotations and begins
+after structural validation, of which "permitted metadata" is a listed part (§4.1).
+
+The scan runs at evaluation, so a direct Core IR caller gets the same rejection as
+source, and statements before the declaration still run.
+
+**Names are not keys.** The ruling lists annotation names. It does not restrict the
+keys of a map given to `@meta`, and this design bans no key. `@meta({test: "x"})`,
+`@meta({route: …})` and `@meta({http_annotation: …})` are valid `@meta` uses on a
+closed declaration. What a *consumer* of such a key does with a closed callable is a
+separate question, answered in §5.2 and §5.3.
 
 **Server discovery is unchanged.** The three walkers still reject an entry program
-that contains any closed declaration with `model-b-not-implemented: server discovery
-is not available` (`server_route_binding.py:211-214`, `server_config_binding.py:218-221`,
-`server_cors_binding.py:182-185`). No registration mechanism is added.
+that contains any closed declaration (`server_route_binding.py:211-214`,
+`server_config_binding.py:218-221`, `server_cors_binding.py:182-185`). They select by
+annotation name in Core IR, so a `route` key inside `@meta` is not discovered.
 
-### 5.1 `@test`: inventory and recommendation
+### 5.2 Native-test discovery — PENDING MAINTAINER DECISION (Q-C1b)
 
-`genia test` evaluates the entry file, then `discover_annotated_test_units`
-(`test_cli.py:175-209`) scans the entry scope's bindings. For each binding whose
-metadata has a `test` key it requires a `GeniaFunctionGroup`, a non-empty string
-description and exactly arity 0. It then takes the group's single plain record with
-`single_plain_record()` and schedules that record as the test body. Imported modules
-are not scanned. The legacy registrar `test(name, body)` is a separate path that
-stores whatever value it is given.
+Iteration 1 recommended excluding `@test` and concluded that a closed function would
+then never be discovered. The review showed that conclusion is false, and a probe
+confirms it for ordinary functions today (§2): discovery reads the binding-metadata
+key `test`, which can come from three sources.
 
-**Recommendation: exclude `@test` from closed declarations in Slice E**, rejected at
-T2 like the HTTP family.
-1. Discovery executes a bare record, bypassing the callable. That is safe only
-   because a bound closed callable is always committed. Supporting `@test` makes that
-   invariant part of test-mode behavior.
-2. Support adds test-mode CLI behavior to Slice E's RED and evidence, with no
-   Model B semantics gained. A closed test function has no extension to prevent.
-3. Exclusion is reversible. Allowing `@test` later is additive; removing it after
-   release is a break.
+| Source of the `test` key | Example |
+|---|---|
+| The `@test` annotation on the declaration | `@test("adds")` above `t() =: …` |
+| A `test` key in `@meta` on the declaration | `@meta({test: "adds"})` above `t() =: …` |
+| An annotated alias binding | `@test("adds")` above `u = t` |
 
-**If the maintainer prefers support**, the cost is small in code (the subclass
-already passes discovery's `isinstance`) and is mostly evidence: shared `cli`
-test-mode cases for a passing closed test, a wrong-arity closed test, and a failed
-closed publication that must not be discovered; plus documentation of the discovery
-rule. The legacy registrar needs no decision: it calls its body as a value, so the
-state guard applies.
+Discovery then requires a function group with exactly arity 0 and one plain record,
+and runs that record (`test_cli.py:184-205`, `test_kernel.py:106-111`).
 
-## 6. Provisional name and admission (E2)
+**Alternative A — closed functions are discoverable tests.**
+`@test` joins the permitted names. Discovery treats a committed closed callable like
+an ordinary function with the same binding metadata, from any of the three sources,
+with the existing description, arity and unique-name rules. Discovery runs the
+callable's use check and schedules the **callable**, not a bare record, so the state
+rules hold at run time.
 
-### 6.1 Admission rule
+**Alternative B — closed functions are never discovered.**
+`@test` is rejected at T2. Discovery gets a type-aware rule: a binding whose value is
+a closed callable and whose metadata has a `test` key produces the discovery error
+`@test cannot select a closed function`. `@meta` keys stay unrestricted.
 
-> While a closed callable is `initializing`, an invocation is **admitted** if and
-> only if it runs on the declaring thread. Every other invocation, and every
-> callable-specific introspection on any thread, is rejected with
-> `closed-function-not-yet-published`.
+| | A | B |
+|---|---|---|
+| Fit with contract §4.1 ("preserve existing ordinary-compatible … annotations") | Follows it | An exception that must be justified |
+| New rules | None in discovery; one more permitted name | One T2 rejection, one discovery rule, one new error text |
+| The three sources behave alike | Yes | Yes, but only through the type-aware rule |
+| Alias of a closed function with `@test` | A test, as for an ordinary alias | A discovery error on a binding that is not itself a closed declaration |
+| Extends the approved five-name list | Yes, by `@test` | No |
+| Evidence | Shared `cli` test-mode cases | Shared `cli` test-mode cases |
 
-The declaring thread is blocked inside T5 for the whole `initializing` period.
-Everything that executes on that thread in that period is therefore inside the
-dynamic extent of the declaration's annotation evaluation: the annotations, the
-helpers they call, recursive calls, and lazy values they force. This is exactly the
-contract's "synchronous invocations arising from its declaration-owned annotation
-evaluation and their recursive calls". The rule needs no token passed through calls.
+**Recommendation: Alternative A.** It needs no special rule, it is what the
+ordinary-compatible principle already implies, and it treats the three sources
+alike. The earlier recommendation for B rested on a premise that is false. A does
+extend the approved list of permitted names, so it needs an explicit ruling; this
+design does not assume one.
 
-The host compares the thread **object** (`threading.current_thread() is owner`),
-not the numeric id, so id reuse cannot admit another thread.
+**Proposed contract wording, Alternative A (not approved):**
+> `@test` is permitted on a closed declaration under the validation that applies to
+> ordinary functions. Native-test discovery treats a committed closed callable as it
+> treats an ordinary function with the same binding metadata, whether that metadata
+> came from `@test`, from a `test` key in `@meta`, or from an annotated alias
+> binding. Discovery and execution go through the callable, so §4.2 applies; a
+> callable that is not committed is never run as a test.
 
-A process or cell handler runs on its own thread (`values.py:609`). It is never
-admitted, even when it holds the callable, because admission is a property of the
-executing thread and not of the value or of any inherited context.
+**Proposed contract wording, Alternative B (not approved):**
+> `@test` is rejected on a closed declaration like the annotations rejected above.
+> Native-test discovery never selects a closed callable: a binding whose value is a
+> closed callable and whose metadata has a `test` key is reported as a discovery
+> error, whether the key came from `@meta` or from an alias binding. The keys of an
+> `@meta` map are not restricted.
+
+Until the ruling, contract §4.3 keeps `@test` listed as undecided.
+
+### 5.3 The `http_annotation` key — PENDING MAINTAINER DECISION (Q-C1b)
+
+`send_annotated(fn)` reads the key `http_annotation` from the function value's
+metadata. `@get` and `@post` are rejected by name, but `@meta({http_annotation: …})`
+would put the same key on a closed callable.
+
+- **Ordinary-compatible:** `send_annotated` treats a committed closed callable like
+  an ordinary function carrying that key.
+- **Excluded:** `send_annotated` rejects a closed callable with its existing
+  `TypeError` text, whatever its metadata.
+
+**Recommendation: excluded.** The ruling already keeps the outbound-HTTP annotations
+off closed declarations; honoring the same descriptor through `@meta` would
+contradict it in effect. Under either choice the use check runs first.
+
+## 6. Admission and provisional names
+
+### 6.1 Rule
+
+> While a closed callable is `initializing`, an invocation is **admitted** only if
+> (1) its publication transaction's admission window is open, and (2) the invocation
+> runs inside the synchronous call chain that the declaration's own annotation
+> evaluation started, with no host execution boundary in between.
+> Every other invocation, and every callable-specific introspection, is rejected
+> with `closed-function-not-yet-published`.
+
+Running on the declaring thread is necessary and not sufficient.
+
+The **publication transaction** is a private host object created at T4. It is never
+a Genia value, so Genia code cannot obtain, copy or forge it. It records the
+callable, the declaring scope, the self frame, the thread that opened it and whether
+its window is open. The callable's `_txn` field is the only link from a value to its
+transaction.
+
+### 6.2 Window and lineage
+
+Each thread has a private **lineage stack**. It is thread-local host state and is
+not stored in a `contextvars` variable.
+
+| Event | Stack operation |
+|---|---|
+| T5 begins | set `window_open`; push the transaction |
+| T5 ends, normally or by exception (`finally`) | pop the transaction; clear `window_open` |
+| A host execution boundary begins running a callable (§6.3) | push a **barrier** |
+| That boundary's callable returns or raises (`finally`) | pop the barrier |
+
+An invocation of callable `c` is admitted when all of these hold:
+`c._txn.window_open` is true; the current thread is the transaction's thread; and
+the transaction is on the current thread's stack **above the most recent barrier**.
+
+How the required properties follow:
+- **Start and end of the window.** Authority exists only between the push at T5's
+  start and the pop in its `finally`. Between T4 and T5, and between the end of T5
+  and C3 or F1, nobody is admitted. No user code runs on the declaring thread in
+  those gaps.
+- **Entering and leaving the call chain.** The chain starts when the evaluator begins
+  an annotation expression inside the window and ends when that expression returns
+  or unwinds. Everything called in between is in the chain.
+- **Recursion.** A recursive call is made inside the chain, so the transaction is
+  still on the stack. Nothing is passed along.
+- **Synchronous host bridges.** A builtin that calls its callback before returning
+  neither pushes nor pops, so authority is unchanged. No builtin needs editing.
+- **Unrelated callbacks on the same thread.** They are started by a host execution
+  boundary, which pushes a barrier that hides every transaction below it.
+- **Copied contexts.** The stack is not in a context, so copying a context copies no
+  authority. Code run from a copied context is admitted exactly when the same code
+  called directly would be.
+- **New threads, tasks and processes.** A new thread starts with an empty stack. A
+  task run by a scheduler starts behind a barrier. An operating-system process
+  shares no values.
+- **Nesting.** Several transactions can be on one stack. Each callable is checked
+  against its own transaction only. A barrier hides all of them.
+- **Revocation.** The pop in T5's `finally` runs before T6 or T7 starts.
+
+A lazy value created during T5 and forced later is not special: by then the callable
+is committed or failed.
+
+### 6.3 Bridges and boundaries
+
+A **bridge** runs a callable because the current call asked for it and before that
+call returns: a callback argument, forcing a lazy value, pulling a Flow the caller
+consumes, a lifecycle scope the caller runs, loading a module the caller imports.
+A bridge needs no code.
+
+A **boundary** runs a callable on behalf of a requester other than the current
+synchronous call. It must push a barrier. The Python host has these today:
+
+| Boundary | Location | Same thread as its caller? |
+|---|---|---|
+| `serve_http` request dispatch | `builtins.py:5499-5502` | **yes** |
+| Native-test body execution | `test_kernel.py:106-111` | yes |
+| Entry `main` dispatch | `interpreter.py:513-529` | yes |
+| Process message handler | `values.py:794` | no |
+| Cell update | `values.py:648` | no |
+
+The last two are already excluded by their empty stacks; they push a barrier so the
+rule is uniform. Any future task scheduler, timer, or debugger-initiated evaluation
+is a boundary.
+
+**Host-boundary invariant.** Every host site that runs a Genia callable is either a
+bridge or a boundary, and every boundary pushes a barrier. A missed boundary would
+admit a call it should refuse, so E1 includes an inventory test that fails when a
+handler-dispatch or thread-start site exists without a classification (§10.1).
+
+### 6.4 Examples
+
+**Admitted: nested recursion.**
+```genia
+depth(0) =: 0
+@meta({probe: depth(2)})
+depth(n) =: 1 + depth(n - 1)
+```
+The annotation calls `depth(2)`, which calls `depth(1)`, which calls `depth(0)`. All
+three run inside the chain the annotation started, on the declaring thread, with the
+window open and no barrier. All are admitted. The same holds when the annotation
+calls a module-scope helper that calls `depth` by name (§6.6).
+
+**Rejected on the same thread: a request handler.**
+An annotation, directly or through a helper, stores the provisional callable in a
+Ref and calls `serve_http(handler)`. `handler` reads the Ref and calls the value
+when an HTTP request arrives. The handler runs on the declaring thread while the
+window is open, and iteration 1 would have admitted it. Here the request dispatch is
+a boundary: the barrier hides the transaction, and the call is rejected with
+`closed-function-not-yet-published`. The request was not started by the annotation's
+call chain; it only happened to be served during it.
+
+**Rejected: before and after the window.** A reference that reached another thread is
+called between T4 and T5, or after T5 returned and before C3. `window_open` is false
+in both gaps.
+
+**Rejected: a copied context.** A context copied inside the window is run later, or
+on another thread. Later, the window is closed. On another thread, the stack is
+empty.
+
+**Nested transactions.** An annotation of closed `a` causes a module to load, and the
+module declares closed `b`. While `b`'s annotations run, the stack holds `a`'s and
+`b`'s transactions. A call to `a` and a call to `b` are each admitted against their
+own transaction. A boundary inside `b`'s annotation hides both. When `b`'s window
+closes, only `a`'s authority remains.
+
+### 6.5 Alternatives
 
 | Alternative | Verdict |
 |---|---|
-| A `contextvars` token | Rejected. A context can be copied into another thread or task, which is the inheritance the portable design (§6.2) rules out. |
-| A token threaded through evaluator calls | Rejected. Host bridges call `fn(*args)` directly and would drop it, so legitimate synchronous calls through a builtin would be refused. |
-| **Declaring thread while `initializing`** | Chosen. Not inheritable, not forgeable from Genia code, no cost outside a transaction. |
+| Declaring thread only (iteration 1) | Rejected. It admits the request handler above and both gaps around T5. |
+| A `contextvars` token | Rejected. A context can be copied into a task that a same-thread scheduler runs inside the window. |
+| A token passed through evaluator calls | Rejected. Host bridges call `fn(*args)` and would drop it, refusing legitimate calls. |
+| Bridges opt in, everything else denied | Rejected. Every builtin that takes a callback would need marking, and a missed mark would refuse legitimate calls. |
+| **Window plus thread-local lineage with barriers at boundaries** | Chosen. |
 
-Portable statement for other hosts: admission belongs to the host's unit of
-synchronous execution. That is the OS thread here. A host that multiplexes tasks on
-one thread must use the task.
+Portable statement: admission requires the declaration's transaction and an unbroken
+synchronous lineage from its annotation evaluation. How a host represents lineage is
+its own matter; a thread-local stack is the Python realization only.
 
-A lazy value created during T5 and forced later is not special. By then the
-callable is committed or failed, and the ordinary state rule applies.
+### 6.6 Guarded name slots
 
-### 6.2 Name reservation
+A **slot** is an entry in a per-scope private table, `name → transaction`, with a
+policy. T4 inserts two for the defining name; C6 or F3 removes them.
 
-The self frame makes the name visible to clause bodies and to the annotation
-expressions themselves. It does not cover an annotation that calls a helper whose
-closure is the module scope and which refers to the function by name. For that case
-the declaring scope holds a **reservation** from T4 until T6 or T7.
+| Scope | Policy for a lookup that is not admitted |
+|---|---|
+| Declaring scope | **Fall through**: continue as if the name were not declared here. This serves the module-scope helper an annotation calls, and leaves all other code where it was before the declaration. |
+| Self frame | **Strict**: raise `closed-function-not-yet-published`. Code that reaches the self frame is lexically inside the declaration or is a closure such code created. The name can only mean this function, so falling through to an outer binding of the same name would be wrong. |
 
-- **Lookup.** `Env.get` (`environment.py:476-487`) resolves a reserved name to the
-  provisional callable only when the current thread is admitted. For any other
-  thread the reservation does not exist: the lookup continues to the parent scope
-  and ends as it would have before the declaration.
-- **Precedence.** The reservation is consulted at the declaring scope's own level,
-  before the walk moves to the parent. A module may declare a closed function whose
-  name also exists in the runtime scope, and the helper must find the provisional
-  callable, not the runtime one.
-- **Writes.** From T4 to T6 or T7 the declaring scope treats the reserved name as an
-  immutable binding for every writer on every thread: assignment, ordinary
-  declaration, import alias, `use`, another `=:`. Rejections use the existing
-  immutable diagnostics.
-- **Withdrawal.** T7 removes the reservation after marking the callable failed. The
-  name is then free; nothing was bound, so there is nothing to roll back.
-- **Cost.** `Env.get` is on every name lookup. The reservation table is consulted
-  only while a process-wide count of open transactions is non-zero; otherwise the
-  lookup path is the current one plus one integer test.
+"Admitted" is the §6.2 test, not thread identity. An escaped closure therefore cannot
+obtain the provisional callable by name, through either scope.
+
+**Lookup.** `Env.get` and `get_metadata` (`environment.py:476-487, 717-722`) consult
+the slot at a scope's own level before that scope's ordinary table and before moving
+to the parent. One read of the callable's state decides:
+
+| State read | Declaring scope | Self frame |
+|---|---|---|
+| `initializing`, admitted | the callable (metadata: not yet published) | the callable |
+| `initializing`, not admitted | fall through | `closed-function-not-yet-published` |
+| `committed` | the callable and its final metadata | the callable and its final metadata |
+| `failed` | fall through | the callable |
+
+Lookup at the declaring scope's own level comes before its parent, so a module that
+declares a closed function whose name also exists in the runtime scope resolves the
+provisional callable for an admitted helper.
+
+**Writes.** While a slot exists, its scope treats the name as its own immutable
+binding for every writer on every thread. Each of these must honor it:
+`check_assign_target` and `find_assign_target` (so the rejection precedes evaluation
+of the right-hand side and a write is never redirected to an outer binding of the
+same name), `_write_binding`, `set`, `assign`, `define_function`, `publish_view`,
+`_check_declaration`, `merge_binding_metadata`, import-alias and `use` binding, and
+autoload publication. Rejections use the existing immutable diagnostics. Only the
+owning transaction's C4 and C5 write the name.
+
+**Fast path.** A process-wide count of open slots is changed only under the binding
+lock: incremented before the slots are inserted, decremented after they are removed.
+When it is zero, lookups take the current path unchanged. The count is an
+optimization, never a source of authority: a reader that misses a slot because it
+read zero is, by construction, not the declaring thread inside its window.
 
 | Alternative | Verdict |
 |---|---|
-| Self frame only | Rejected. The module-scope helper case fails; the portable design (§6.2) names it explicitly. |
-| Bind the name in the declaring scope at T4 and rely on the state guard | Rejected. Every thread could then resolve the name, but the contract makes it available "only" to the admitted execution. Failure would also have to delete a binding. |
-| **Reservation with admitted lookup** | Chosen. |
-
-Transactions may nest on one thread, for example when an annotation triggers a
-module load that declares its own closed function. Each callable has its own owner
-thread and each scope its own reservation table. A second closed declaration of a
-name that is reserved in the same scope fails at T1.
+| Self frame only | Rejected. The module-scope helper case fails; the portable design (§6.2) names it. |
+| Bind the name in the declaring scope at T4 | Rejected. Every execution could resolve it, and failure would have to delete a binding. |
+| An ordinary binding in the self frame (iteration 1) | Rejected. An escaped closure resolved the provisional callable by name with no check. |
+| **Guarded slots in both scopes** | Chosen. |
 
 ## 7. Use rules and error precedence (E1)
 
 ### 7.1 State table
 
-| State | Invoke, declaring thread | Invoke, other thread | `doc`/`meta`/`help`; `extend`/`use` target | Assign, pass, return, store, compare, render |
+| State | Invoke, admitted | Invoke, not admitted | `doc`/`meta`/`help`; `extend`/`use` target; `send_annotated`; discovery | Assign, pass, return, store, compare, render |
 |---|---|---|---|---|
 | initializing | ordinary call | `closed-function-not-yet-published` | `closed-function-not-yet-published` | allowed |
-| committed | ordinary call | ordinary call | ordinary reflection; as a link target `open-function-target-not-open` | allowed |
+| committed | ordinary call | ordinary call | per that consumer's rules | allowed |
 | failed | `closed-function-failed-publication` | same | same | allowed |
 
-Introspection is refused during `initializing` on the declaring thread too. The
-contract admits invocations only; metadata does not exist yet.
+Introspection is refused during `initializing` for admitted callers as well. Contract
+§4.2 requires this: only invocations are admitted.
 
-### 7.2 Where the state is checked
+### 7.2 Where the use check runs
 
-One helper on the callable performs the check. It is called at exactly these points:
+One helper on the callable performs the check with one read of the state.
 
-| Entry point | Location | Why here |
+| Entry point | Location | Reason |
 |---|---|---|
-| `invoke_callable`, first statement | `callable.py:1552`, before `:1580` | `None`-argument propagation at 1580-1582 returns before any dispatch. The contract requires the state error first, so `failed(none)` is an error and not `none`. This also precedes the name-based Flow adapters, stratum selection and autoload. |
-| `GeniaClosedFunction.__call__` | override | Every host bridge that calls a value directly lands here: process and cell handlers, `apply_raw` (`builtins.py:4321`), builtins that take callbacks. The inherited fast path for simple groups calls a record without passing `_dispatch_once`. |
-| `GeniaClosedFunction._dispatch_once` | override | The trampoline calls this for a group reached through a `TailCall` (`callable.py:625`). |
+| `invoke_callable`, first statement | `callable.py:1552`, before `:1580` | `None`-argument propagation at 1580-1582 returns before dispatch. The contract requires the state error first. This also precedes the name-based Flow adapters, stratum selection and autoload. |
+| `GeniaClosedFunction.__call__` | override | Every host site that calls a value directly: handlers, callbacks, `apply_raw` after its own argument check. The inherited fast path would call a record without `_dispatch_once`. |
+| `GeniaClosedFunction._dispatch_once` | override | The trampoline calls it for a group reached through a `TailCall` (`callable.py:625`). |
+| Guarded clause record `__call__` | §3.2 | Any consumer that extracted a record. |
 | `_help_in_scope`, `_doc_in_scope`, `_meta_in_scope`, `_describe_function_group` | `builtins.py:3467, 3513, 3568, 3251` | After the name or value is resolved, before any metadata is read. |
-| `extend` and `use` target resolution | `evaluator.py:1603` and `:1625`, right after `get_export` | Before the completion-witness lookup. |
+| `extend` and `use` target resolution | `evaluator.py:1603`, `:1625`, right after `get_export` | Before the completion-witness lookup. |
+| `resolve_http_annotation` | `http_annotation_binding.py:67` | Before it reads the value's metadata. |
+| Native-test discovery | `test_cli.py:189` | Before it reads the group's shape. |
 
-Arity selection, pattern matching, guards and bodies all run after these points.
-The Outcome-awareness helpers (`callable.py:1430, 1493`) only read clause structure
-and are not guarded.
+Arity selection, pattern matching, guards and bodies run after these points. The
+Outcome-awareness helpers (`callable.py:1430, 1493`) only read clause structure and
+authorize nothing.
+
+**A bridge's own argument checks are not an invocation.** `apply_raw(f, "x")` fails
+on its second argument before `f` is invoked (`builtins.py:4321-4325`); that order
+stays.
+
+**Storage is not invocation.** `spawn(failed)`, building a lazy Flow stage from a
+failed callable, and registering it as a handler all succeed. The rejection happens
+when the callback is actually run. A stage that is never pulled, or an empty Flow,
+raises nothing.
 
 **Pipelines.** `eval_pipeline` (`evaluator.py:1135-1150`) returns a `none` or `err`
-stage value before the next stage is evaluated. That stage is never invoked, so
-nothing is rejected (contract §4.2, last sentence of the fourth paragraph). A stage
-that is reached goes through `invoke_callable`; its state error is wrapped by the
-existing pipeline-stage error text.
+stage value before the next stage is evaluated, so that stage is not invoked and
+nothing is rejected (contract §4.2). A stage that is reached goes through
+`invoke_callable`; its error is wrapped by the existing pipeline-stage text.
 
-**Records.** Clause records have no guard. Two rules keep them unreachable for a
-callable that is not committed:
-1. No evaluator or builtin path returns a record of a closed callable as a value.
-2. Host code that takes a record out of a group (`test_cli.py:196`,
-   `http_annotation_binding.py:63`, `server_route_binding.py:270`,
-   `interpreter.py:513-529`) reads the group from a **binding**, and only a
-   committed closed callable is ever bound.
+### 7.3 Closedness follows the value
 
-### 7.3 Transport and rendering
+Closedness belongs to the callable, not to a name. It holds when the value is
+assigned to another name, stored in a Ref or Cell, exported or re-exported, passed to
+a higher-order function, or bound again under its original spelling after a failed
+publication.
 
-Assignment, argument passing, return, storage in a Ref or collection, closure
-capture and equality need no check and get none. Equality stays identity
-(`equality.py:125-133`). A failed callable is equal only to itself.
+**No clause is ever appended.** `define_function` (`environment.py:664-715`) checks,
+after its existing immutable-name check and before its ownership check, whether the
+existing value is a closed callable in any state. If so it raises
+`closed-function-not-extensible`. The check does not look at `owner`. This closes
+the case the review found: after a failed publication, `f = ref_get(saved)` followed
+by an ordinary `f(x, y) = …` passed the ownership check, because the failed
+callable's owner still equals the declaring module and name. The sealed `add_clause`
+(§3.1) is the second line of defense.
 
-`spawn(failed)` succeeds, because creating a process does not invoke its handler
-(`builtins.py:3759-3762`). The rejection happens on the worker when it first calls.
+For the committed defining name, the existing immutable-name check still fires first
+with its existing text.
 
-Rendering uses the overridden `__repr__`/`__str__`, which every display path reaches
+**No metadata is written through a binding.** `merge_binding_metadata`
+(`environment.py:750-752`) and `define_function` (`:691, :713`) update a group's own
+metadata when a binding is annotated. For a closed callable they update only the
+binding's metadata. An annotated alias of a closed function has its own binding
+metadata and leaves the callable unchanged.
+
+**Consumers that reach inside a group:**
+
+| Consumer | What it takes | Design |
+|---|---|---|
+| Native-test discovery (`test_cli.py:184-205`) and execution (`test_kernel.py:106-111`) | shape; one record, run later | Per §5.2. Use check at discovery; under Alternative A the callable is scheduled, not the record. |
+| `send_annotated` (`http_annotation_binding.py:54-79`, `builtins.py:800`) | metadata, shape; invokes the value | Use check first; then per §5.3. |
+| Route handler shape (`server_route_binding.py:262-271`) | shape | Not reachable for closed declarations (§5.1). |
+| Entry `main` (`interpreter.py:513-529`) | records for arity 1 and 0, called directly | Per DQ-M. Use check first; the records are guarded. |
+| List-traversal fast-path stability test (`evaluator.py:922-940`) | reads records, invokes nothing | No check needed. Closed clauses are not optimized, so it does not apply to them. |
+| Help spans (`builtins.py:3228`) | reads spans | Behind help's use check. |
+| D1 completion capture (`ordinary_completion.py:139-166`) | records and closures | Closed values are skipped (§8). |
+| `invoke_callable` simple-group path | a record, as a `TailCall` | Behind the first-statement check. |
+
+### 7.4 Transport and rendering
+
+Assignment, argument passing, return, storage in a Ref, Cell or collection, closure
+capture and equality need no check. Equality stays identity
+(`equality.py:125-133`).
+
+Rendering uses overridden `__repr__` and `__str__`, which every display path reaches
 (`format_display` and `format_debug` fall back to `str`/`repr`; diagnostics that
-embed a value use `repr`). The markers show no arity, clause, metadata or closure
-content. Proposed literals are in §12 (DQ-L).
+embed a value use `repr`). Proposed literals (DQ-L):
+
+| State | Rendering |
+|---|---|
+| initializing, committed | `<closed-function NAME>`, for example `<closed-function f>` |
+| failed | `<closed-function failed>` — no name |
+
+No marker shows arity, clauses, metadata or closure content. Inside a list, map,
+pair, Outcome, Ref or Cell the marker appears wherever a function value would, and
+the existing opaque markers for protected and represented values are unchanged. A
+protected value captured by a closed function's closure never appears in any
+rendering or diagnostic of that function. Serialization boundaries such as JSON keep
+their existing behavior for a function value; they are not callable use and raise no
+lifecycle error.
 
 ## 8. Interaction with accepted D2b and other consumers
 
 | Consumer | Design |
 |---|---|
-| D1 completion capture (`ordinary_completion.py:148-151`) | Skip `GeniaClosedFunction` explicitly. A closed export gets no completion witness. |
-| `extend`/`use` on a committed closed export | `completion_for` returns `None`, so the existing `open-function-target-not-open` is raised. No new identity. |
-| An ordinary clause declared through an alias of a closed callable (`a = f` then `a(0) = 1`) | `define_function` already raises `function-declaration-not-owner` because `owner` names the defining binding (`environment.py:705-712`). |
-| A later clause under the defining name (`f(2) = 3` or a second `=:` group) | Existing immutable-binding rejections (`environment.py:386-390, 420-441`). |
-| Entry `main` selection (`interpreter.py:513-529`) | A committed closed `main` is a simple group and is selected like an ordinary one. Recommended as ordinary-compatible; needs confirmation (§12, DQ-M). |
-| Server discovery | Unchanged rejection (§5). |
-| `genia test` discovery | Per Q-C1b. With exclusion, a closed function is never a discovered test. |
-| Optimizer | `optimize_program` rewrites only top-level `IrFuncDef` (`optimizer.py:64-70`). Closed clauses are not optimized in Slice E; behavior is the same, only without that fast path. |
-| Name-based Flow adapters and prelude-name awareness | Apply to a closed callable exactly as to an ordinary group of that name, after the state check. |
+| D1 completion capture (`prepare_module_completions`, `ordinary_completion.py:139-166`) | Skip every closed value at the top of the loop, whether exported under its own name, an alias or a re-export. No completion witness is created for it. Ordinary originals and re-exports keep their witnesses. |
+| `extend`/`use` naming a committed closed export | `completion_for` returns `None`; the existing `open-function-target-not-open`. A target that is not committed gets the state error first. |
+| An ordinary clause declared onto a closed callable through any binding | `closed-function-not-extensible` (§7.3). |
+| A later clause under the committed defining name | Existing immutable-binding rejections. |
+| Entry `main` selection | DQ-M (§12). |
+| Server discovery | Unchanged rejection (§5.1). |
+| Optimizer | `optimize_program` rewrites only top-level `IrFuncDef` (`optimizer.py:64-70`). Closed clauses are not optimized in Slice E; behavior is the same without that fast path. |
+| Name-based Flow adapters and prelude-name awareness | Apply to a closed callable as to an ordinary group of that name, after the use check. |
 
 Combined D+E integration acceptance stays with
 [#1251](https://github.com/m0smith/genia-2026/issues/1251). The link-target cases
-above are part of Slice E because they prove the capture exclusion.
+are part of Slice E because they prove the capture exclusion.
 
 ## 9. Portability analysis (`docs/process/run-change.md`)
 
 1. **Observable semantics.** Group boundary; validation before effects; ordered
-   annotation effects; self-call during annotation; the two state errors and their
-   precedence; failed-value transport, equality and rendering; REPL name reuse.
-   Thread admission is observable only with process primitives.
+   annotation effects; self-call during annotation; the state errors and their
+   precedence; failed-value transport, equality and rendering; REPL name reuse;
+   the declaration's value. Thread and boundary admission are observable only with
+   process or server primitives. The thread-local stack is a host detail and is not
+   portable semantics.
 2. **Core IR and runtime boundary.** `IrClosedFuncDef` already carries the atomic
-   group. No new node, field or version. State, reservation and admission are
-   private runtime state.
-3. **Shared executable conformance.** §10. The existing `ir` cases
-   `model-b-a-closed`, `model-b-a-closed-run` and `model-b-a-closed-grouped` are
-   unchanged.
-4. **Capability applicability.** Reuse `immutable_bindings` and
-   `default_open_functions`, adding `repl`, `refs`, `process_primitives` or
-   `multi_file_eval` only on cases that use them. No new capability is proposed.
-   Known limit: capabilities are claimed whole, so a host that later claims both
-   prerequisites without closed publication would fail these cases. That event,
-   not this slice, is the point at which a `closed_functions` capability should be
-   proposed for approval.
-5. **Host claims.** Python reference host only. The bounded C++ host declares
-   neither prerequisite, so every closed case reports unsupported, never pass.
-   [genia-cpp#50](https://github.com/m0smith/genia-cpp/issues/50) (parser and
-   lowering) remains open. No parity claim.
-6. **Gap recording.** At E2, add the new case ids to the `immutable_bindings`
-   (#1261) and `default_open_functions` (#1269) entries of
-   `spec/known_host_gaps.json` with their removal conditions. Owner: #1250,
-   `@m0smith` until reassigned.
-7. **Documentation and MCP.** After verified GREEN only: `GENIA_STATE.md`,
-   `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`,
+   group. No new node, field or version. Transaction, slots and lineage are private
+   runtime state.
+3. **Shared executable conformance.** §10.
+4. **Capability applicability — PENDING MAINTAINER DECISION (DQ-C).**
+   Recommendation: a new optional capability **`closed_functions`**.
+   - *Why.* `immutable_bindings` covers `name =: expr`; `default_open_functions`
+     covers ordinary default-open clauses and pattern/guard headers. Neither implies
+     closed publication. The Python host is the proof: it claims both today and
+     rejects every closed declaration. Gating closed cases on those two would make a
+     host that correctly implements both fail cases about a feature it never
+     claimed.
+   - *Boundary.* Evaluation of `IrClosedFuncDef`: group publication, the three
+     states, the state errors, failed-value behavior, and the closed-specific
+     rejections. Parsing and lowering of closed forms stay under the required
+     `parser` and `ast_lowering`.
+   - *Applicability.* Every closed case requires `closed_functions`, plus
+     `default_open_functions` when it uses a pattern or guard header or ordinary
+     clauses, `immutable_bindings` when it uses `name =: expr`, and `repl`, `refs`,
+     `cell_primitives`, `process_primitives`, `multi_file_eval`, `open_functions` or
+     `doc_help` only where used.
+   - *Synchronization at E2, not now:* `spec/manifest.json` (the vocabulary; the
+     runner and the parity gate derive theirs from it),
+     `hosts/python/protocol_adapter.py` (the Python claim),
+     `spec/known_host_gaps.json` (a new issue-backed C++ entry with its removal
+     condition, which the parity gate requires for an optional capability a host
+     does not support), and `docs/host-interop/HOST_CAPABILITY_MATRIX.md`. RED
+     follows the Slice C staging precedent: the adapter advertises the capability
+     as unsupported until GREEN.
+   - *Alternative:* redefine `default_open_functions` to include closed publication.
+     Rejected: it changes the meaning of a claim the Python host already makes and
+     that existing evidence was collected against.
+   - Capability gating is never used to hide a regression in ordinary behavior:
+     no existing case gains this requirement except the one transition in §10.4.
+5. **Host claims.** Python reference host only, and only at E2 GREEN. The bounded
+   C++ host would not declare `closed_functions`, so every closed case reports
+   unsupported, never pass. [genia-cpp#50](https://github.com/m0smith/genia-cpp/issues/50)
+   (parser and lowering) remains open. No parity claim.
+6. **Gap recording.** At E2: the `closed_functions` entry above, owner #1250,
+   `@m0smith` until reassigned. The transitioned case also joins the
+   `default_open_functions` entry (§10.4).
+7. **Documentation and MCP.** Synchronized **in the E2 change itself** (§11):
+   `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`,
    `docs/contract/semantic_facts.json`, the MCP idiom text in `apps/mcp/mcp.genia`
-   with its golden file, the host capability matrix, and this document's status.
-   Until then every one of them keeps saying closed publication is not implemented.
+   with its golden file, the host capability matrix, the contract's status line and
+   this document's status. Until E2 merges, all of them keep saying closed
+   publication is not implemented.
 
-## 10. RED evidence plan (inventory only; no test is written here)
+## 10. RED evidence plan (inventory only; no test is written or changed here)
 
 Proposed ids name observations; literals are locked at RED against §12.
-`I` = `immutable_bindings`, `D` = `default_open_functions`.
+`C` = `closed_functions` (if DQ-C is approved; otherwise `immutable_bindings` and
+`default_open_functions`). `D` = `default_open_functions`.
 
 ### 10.1 E1 — host-local only
 
 E1 has no source activation, so nothing is observable through R16. This follows the
-accepted D2a precedent (private machinery, host-local RED, no shared spec). Tests
-construct `GeniaClosedFunction` values through the private constructor.
+accepted D2a precedent. Tests build closed callables, transactions and windows
+through the private constructors.
 
 | Id | Observation |
 |---|---|
-| E1-01 | Whole-group build: duplicate key, conflicting inline documentation and the T1/T2/T3 order with multiple simultaneous errors; a sentinel proves no annotation, guard or body ran |
-| E1-02 | Each §7.2 entry point rejects an `initializing` callable (other thread) and a `failed` one: direct call, `invoke_callable`, tail call, `apply_raw`, matcher use, callback through a builtin |
-| E1-03 | Precedence: a failed callable called with `none`, with `err`, with the wrong arity, and with a failing guard gives the state error each time; sentinel proves nothing else ran |
-| E1-04 | Introspection and link-target rejection in both non-committed states, including on the declaring thread |
-| E1-05 | Transport: assignment, collection, Ref, closure, identity equality; markers contain no arity, metadata, source or protected sentinel |
-| E1-06 | Self frame: lexical self-reference, immutable defining name, metadata mirror, debugger scope listing, inherited module identity |
-| E1-07 | D1 capture skips a closed export; alias extension raises `function-declaration-not-owner` |
-| E1-08 | Non-activation: every closed source form still raises `model-b-not-implemented`; full existing regression unchanged |
+| E1-01 | Whole-group build: duplicate key, conflicting inline documentation; with several simultaneous errors the order is name, annotation permission, clause structure; a sentinel proves no annotation, guard or body ran |
+| E1-02 | Use check at each §7.2 entry point, for `initializing` not admitted and for `failed`: direct call, `invoke_callable`, tail call, `apply_raw`, matcher use, callback through a builtin, extracted record |
+| E1-03 | Precedence: a failed callable called with `none`, with `err`, with the wrong arity and with a failing guard gives the state error each time; a sentinel proves nothing else ran |
+| E1-04 | Admission: admitted inside an open window; refused before the window opens, after it closes, behind a barrier on the same thread, on a new thread, and from a context copied inside the window and run after it or on another thread |
+| E1-05 | Nested transactions on one stack: each callable admitted only against its own; a barrier hides both; closing the inner window leaves the outer |
+| E1-06 | Bridges keep authority: an admitted call through a callback-taking builtin, a forced lazy value, a pulled Flow |
+| E1-07 | Boundary inventory: every handler-dispatch and thread-start site in the host is classified, and each boundary pushes and pops a barrier, also when its callable raises |
+| E1-08 | Introspection and link-target rejection in both non-committed states, including for an admitted caller |
+| E1-09 | Sealing: `add_clause` and `merge_metadata` refused; a clause declared through an alias, through a re-export and through the restored original spelling after failure raises `closed-function-not-extensible`; an annotated alias leaves the callable's metadata unchanged |
+| E1-10 | Transport through assignment, collection, Ref and Cell; identity equality; markers nested in list, map, pair and Outcome; no arity, metadata, source or protected sentinel in any rendering or diagnostic; JSON keeps its existing function behavior |
+| E1-11 | Storage is not invocation: `spawn`, a lazy Flow stage and a registered handler accept a failed callable; the error appears only when it is run; an unpulled stage raises nothing |
+| E1-12 | Self frame: unshadowed self-reference; a parameter and a pattern binder with the function's name shadow it and stay assignable; assignment to the name without a local binding is rejected; other names pass through; debugger scope listing; inherited module identity |
+| E1-13 | D1 capture skips closed exports, aliases and re-exports; ordinary originals and re-exports keep their witnesses |
+| E1-14 | Non-activation: every closed source form still raises `model-b-not-implemented`; the full existing regression is unchanged |
 
 ### 10.2 E2 — shared R16 cases
 
 | Proposed id (`model-b-closed-…`) | Category | Requires | Observation |
 |---|---|---|---|
-| `single-clause`, `multi-clause-order`, `pattern-guard-headers` | eval | I, D | Dispatch as ordinary; declaration value renders as the committed marker |
-| `self-recursion`, `deep-tail-call` | eval | I, D | Recursion; constant-stack tail call (Python only where depth requires it) |
-| `comments-blank-lines-one-group` | eval | I, D | One group |
-| `second-group-after-statement` | error | I, D | Second same-name group rejected; first still callable |
-| `ordinary-clause-after-closed`, `closed-after-ordinary` | error | I, D | Existing immutable or collision diagnostics; no effect of the rejected clause |
-| `mixed-operators` | error | I, D | Parse error; nothing runs |
-| `duplicate-key-no-effects`, `conflicting-docstring` | error | I, D | Existing diagnostics; annotation sentinel not printed |
-| `name-collision-import`, `name-reserved-runtime` | error | I, D (+`multi_file_eval`) | Rejected before any annotation effect |
-| `alias-mutable-name-immutable` | eval/error | I, D | Alias rebinds; defining name does not |
-| `alias-extension-rejected` | error | I, D | `function-declaration-not-owner` |
-| `annotation-permitted-set` | eval | I, D | `doc`/`meta` after commit show all five permitted kinds merged in order |
-| `annotation-forbidden-route` (+ `get`, `post`, `server`, `cors`) | error | I, D | Rejected at T2; an earlier permitted annotation's sentinel is not printed |
-| `annotation-self-call`, `annotation-helper-self-call` | eval | I, D | Annotation calls the function directly and through a module-scope helper |
-| `annotation-reaches-later-clause` | eval | I, D | Annotation on clause 1 dispatches to clause 2 |
-| `annotation-order-and-atomic-metadata` | eval | I, D | Effects in group order; `meta` sees the merged map only after the declaration |
-| `annotation-introspection-while-initializing` | error | I, D | `doc`/`meta` of own name inside an annotation: `closed-function-not-yet-published` |
-| `annotation-failure-effects-persist` | cli | I, D, `repl` | Effect before the failure is visible; name unbound afterwards |
-| `failed-escape-transport` | cli | I, D, `repl`, `refs` | Stored reference survives; renders as the failed marker; equal to itself only |
-| `failed-call`, `failed-call-none`, `failed-call-err`, `failed-call-wrong-arity`, `failed-apply-raw`, `failed-higher-order` | cli | I, D, `repl`, `refs` | `closed-function-failed-publication` each time |
-| `failed-pipeline-upstream-none-skips` | cli | I, D, `repl`, `refs` | Stage not invoked; result is the `none` |
-| `failed-introspection` | cli | I, D, `repl`, `refs` | `doc`/`meta`/`help` rejected |
-| `failed-inner-lambda-self-reference` | cli | I, D, `repl`, `refs` | Lambda created by a clause body still reaches the failed callable after name reuse |
-| `repl-name-reuse-new-identity` | cli | I, D, `repl`, `refs` | New declaration works; old reference stays failed and unequal |
-| `repl-later-submission-clause` | cli | I, D, `repl` | A clause in a later submission is rejected |
-| `committed-export-not-link-target`, `committed-export-callable` | error/eval | I, D, `multi_file_eval`, `open_functions` | `open-function-target-not-open`; plain cross-module call works |
-| `main-selection` | cli | I, D | Per DQ-M |
-| `model-b-c-stage-closed-rejected` | eval | changes from none to I, D | **Authorized transition** (§10.4) |
+| `single-clause`, `multi-clause-order` | eval | C | Dispatch as ordinary; the declaration's value prints as the committed marker |
+| `pattern-guard-headers` | eval | C, D | Pattern and guard headers dispatch as ordinary |
+| `self-recursion`, `deep-tail-call` | eval | C | Recursion; constant-stack tail call where the host supports it |
+| `comments-blank-lines-one-group` | eval | C | One group |
+| `parameter-shadows-own-name` | eval | C | `f(f) =: f` returns its argument |
+| `mixed-operators` | error | C | Parse error; nothing runs |
+| `duplicate-key-no-effects`, `conflicting-docstring` | error | C | Existing diagnostics; an annotation sentinel is not printed |
+| `name-collision-existing`, `name-reserved-runtime`, `name-collision-import` | error | C (+`multi_file_eval`) | Rejected before any annotation effect |
+| `validation-order` | error | C | With a name collision, a forbidden annotation and a duplicate key together, the name error is reported |
+| `alias-mutable-name-immutable` | cli | C, `repl` | The alias rebinds; the defining name does not; both observed after the rejection |
+| `second-group-after-statement`, `ordinary-clause-after-closed`, `repl-later-submission-clause` | cli | C, `repl` | Rejected; a later submission shows the first group still works |
+| `alias-clause-rejected`, `restored-name-clause-rejected` | cli | C, `repl`, `refs` | `closed-function-not-extensible` through an alias and through the original spelling restored after a failed publication |
+| `annotation-permitted-set` | eval | C, `doc_help` | The five permitted kinds merged in order |
+| `annotation-forbidden-route` (+ `get`, `post`, `server`, `cors`) | error | C | Rejected at T2; an earlier permitted annotation's sentinel is not printed |
+| `annotation-meta-keys-allowed` | eval | C | `@meta` with `route` and other keys is accepted as data |
+| `annotation-self-call`, `annotation-helper-self-call`, `annotation-recursion` | eval | C | The annotation calls the function directly, through a module-scope helper, and recursively |
+| `annotation-reaches-later-clause` | eval | C | An annotation on clause 1 dispatches to clause 2 |
+| `annotation-order-and-atomic-metadata` | eval | C, `doc_help` | Effects in group order; `meta` shows the merged map only after the declaration |
+| `annotation-introspection-while-initializing` | error | C, `doc_help` | `doc`/`meta` of its own name inside an annotation: `closed-function-not-yet-published` |
+| `annotation-effect-then-value-failure` | cli | C, `repl` | A permitted annotation's effect is visible; a later annotation's invalid value fails the declaration; the name is unbound and no metadata exists |
+| `failed-escape-transport-ref`, `failed-escape-transport-cell` | cli | C, `repl`, `refs` / `cell_primitives` | The stored reference survives; renders as the failed marker, also nested; equal to itself only |
+| `failed-call`, `failed-call-none`, `failed-call-err`, `failed-call-wrong-arity`, `failed-apply-raw`, `failed-higher-order`, `failed-matcher`, `failed-tail-call` | cli | C, `repl`, `refs` | `closed-function-failed-publication` each time |
+| `failed-pipeline-upstream-none-skips`, `failed-flow-not-pulled` | cli | C, `repl`, `refs` (+`flow_phase_1`) | The stage is not invoked; no error |
+| `failed-flow-pulled` | cli | C, `repl`, `refs`, `flow_phase_1` | The error appears at the pull |
+| `failed-introspection` | cli | C, `repl`, `refs`, `doc_help` | `doc`/`meta`/`help` rejected |
+| `failed-inner-lambda-self-reference` | cli | C, `repl`, `refs` | A lambda created by a clause body still reaches the failed callable after the name is reused |
+| `repl-name-reuse-new-identity` | cli | C, `repl`, `refs` | The new declaration works; the old reference stays failed and unequal to the new one |
+| `committed-export-not-link-target`, `reexported-closed-not-link-target` | error | C, `multi_file_eval`, `open_functions` | `open-function-target-not-open` |
+| `committed-export-callable`, `ordinary-linking-unaffected` | eval | C, `multi_file_eval`, `open_functions`, D | A plain cross-module call works; D2b linking of an ordinary function in the same program is unchanged |
+| `main-selection` | cli | C | Per DQ-M |
+| test-mode and `send_annotated` cases | cli / error | C | Per the Q-C1b rulings (§5.2, §5.3) |
+| `model-b-c-stage-closed-rejected` | eval | changes | **Authorized transition** (§10.4) |
 
-Failed-callable cases use the REPL because no other mode lets a program continue
-after the failing declaration (§2).
+Observations made *after* a rejection use the REPL, because a file or command stops
+at the first error (§2).
 
 ### 10.3 E2 — host-local
 
 | Id | Observation |
 |---|---|
-| E2-L1 | Admission: a second thread holding the callable is rejected during `initializing`, synchronized with barriers, no timing assumptions |
-| E2-L2 | A copied `contextvars` context and a freshly started thread are not admitted |
-| E2-L3 | Reservation: a non-admitted thread resolves the outer binding or gets the ordinary undefined-name error; writers are rejected on all threads |
-| E2-L4 | Commit atomicity: a concurrent reader never sees a bound name with a non-committed callable or without metadata |
-| E2-L5 | Failure by `BaseException` and by an injected commit fault leaves `failed`, no binding, no reservation |
-| E2-L6 | Nested transactions on one thread; a second declaration of a reserved name fails at T1 |
-| E2-L7 | Source and direct Core IR give identical results for a representative subset |
-| E2-L8 | No measurable change to `Env.get` outside a transaction (structural check on the fast path, not a timing test) |
+| E2-L1 | Barrier-synchronized second thread holding an escaped reference: refused during `initializing`; at each of C1–C6 it sees either the unpublished or the fully published function, never a mixture, for calls, `doc`/`meta`/`help`, name lookup and metadata lookup |
+| E2-L2 | A fault injected at each of T4, T5 (including `BaseException`), window close, C1, C2, C3, C4, C5, C6, F1, F2 and F3: the end result matches §4.4; afterwards there is a terminal state, no slot, a balanced count, and either a complete binding with metadata or none at all; the name is reusable after failure |
+| E2-L3 | No execution observes `committed` and later `failed` |
+| E2-L4 | Slots: an outer binding of the same name is resolved by non-admitted code and the provisional callable by admitted code; the self-frame slot refuses an escaped closure; a write to the name is rejected before its right-hand side runs and is never redirected to the outer binding; every writer listed in §6.6 is covered |
+| E2-L5 | The request-handler example of §6.4 with a real `serve_http` dispatch on the declaring thread |
+| E2-L6 | Nested transactions through a module load triggered by an annotation |
+| E2-L7 | Source and direct Core IR agree, for valid groups and for malformed IR, multiple simultaneous errors and forbidden annotations |
+| E2-L8 | The lookup fast path is structurally unchanged while no slot is open (not a timing test) |
+| E2-L9 | The binding lock is not held while an annotation or a function body runs |
 
-A shared twin of E2-L1 is added only if the portable process primitives can express
-a deterministic wait; they currently offer `spawn`, `send`, `process_alive?`,
-`process_failed?` and `process_error`, which do not. This is not assumed.
+A shared twin of E2-L1 is not assumed. The portable process primitives (`spawn`,
+`send`, `process_alive?`, `process_failed?`, `process_error`) have no deterministic
+wait, and shared cases must not claim concurrency evidence they cannot prove.
 
-### 10.4 Authorized oracle transition
+### 10.4 The authorized oracle transition and its inventory
 
-`spec/eval/model-b-c-stage-closed-rejected.yaml` today expects stdout `before`,
-stderr `Error: model-b-not-implemented: declaration evaluation is not available`
-and exit 1, with no `requires`. At E2 RED it changes, in a dedicated commit that
-records the old and new text, to: `before` printed, `child` not printed (the body is
-not run by declaring it), no error, exit 0, and `requires` I and D. Its entry moves
-from the guard list to the gated list in `tests/spec/test_model_b_slice_c_red.py`
-(53/90 becomes 52/91, total 143 unchanged) and is added to the known-gap entry. Host-local
-tests that assert `model-b-not-implemented` for closed forms get the same explicit
-transition.
+`spec/eval/model-b-c-stage-closed-rejected.yaml` has this source, which stays
+unchanged:
+```genia
+print("before")
+f(0) =: { print("child"); 0 }
+```
 
-### 10.5 Regressions to preserve
+| | Today | After the transition (with DQ-S and DQ-L as recommended) |
+|---|---|---|
+| stdout | `before` | `before` then `<closed-function f>` |
+| stderr | `Error: model-b-not-implemented: declaration evaluation is not available` | empty |
+| exit code | 1 | 0 |
+| `requires` | none | `closed_functions`, `default_open_functions` (the clause has a pattern header) |
 
-All existing D1/D2a/D2b suites, R20 open-function suites, Slice A/B/C inventories,
-annotation and lexical-assignment suites, REPL characterization, module isolation,
-Outcome, Flow and protected-value suites, and both regression partitions.
+The second stdout line follows from the design: the declaration is the last
+statement, its value is the committed callable, and command mode prints a non-nil
+final value (§2). The body is not run, so `child` is not printed. No fixture change
+is needed and no output-suppression rule is added. If DQ-S is decided as "no value",
+the second line is absent; if DQ-L changes the marker, the line changes with it.
+
+Every place that must change with it, in one dedicated commit that records the old
+and new text:
+
+| Location | Change |
+|---|---|
+| `spec/eval/model-b-c-stage-closed-rejected.yaml` | expected output, `requires`, notes |
+| `tests/spec/test_model_b_slice_c_red.py` | move the id from `SLICE_C_GUARD_IDS` to `SLICE_C_GATED_IDS`; `SLICE_C_REQUIRES` entry; literal counts 53 → 52 guards, 84 → 85 gated, 90 → 91 all gated (lines 354-355, 359, 388); 137 red cases and 143 total unchanged |
+| `tests/unit/test_model_b_slice_c_capability_evidence.py` | docstring "53 guards plus 90 gated" → "52 guards plus 91 gated" (line 9); `len(gated) == 90` → `91` (line 58); 143 unchanged (line 54) |
+| `docs/host-interop/HOST_CAPABILITY_MATRIX.md` | "53 existing-behavior guards plus 90 gated cases" → 52 and 91 (lines 135-136) |
+| `spec/known_host_gaps.json` | add the id to the `default_open_functions` entry, which the harness compares with the gated set |
+
+The literal counts, the id sets and the loaded-spec count stay three independent
+assertions. Host-local tests that assert `model-b-not-implemented` for closed forms
+get the same explicit, recorded transition.
+
+### 10.5 Rules for the RED commits
+
+- A shared case must fail because the feature is missing, not because a helper or
+  environment is missing.
+- A case that needs an observation after a failure is a REPL or host-local case.
+- Host-local constructor tests are the right tool for E1 internals. Deterministic
+  barriers belong in host-local tests where shared primitives cannot express the
+  ordering.
+- No existing oracle changes except §10.4, and none in this phase.
+
+### 10.6 Regressions to preserve
+
+All D1/D2a/D2b suites, R20 open-function suites, Slice A/B/C inventories, annotation
+and lexical-assignment suites, native-test and `send_annotated` suites, REPL
+characterization, module isolation, Outcome, Flow and protected-value suites, and
+both regression partitions.
 
 ## 11. Delivery
 
-Two implementation PRs, each with its own RED commit first, then an integration PR.
+Lifecycle phases (RED, implementation, review, audit) apply inside each
+code-bearing change. The table below is about **mergeable PR boundaries**.
 
-| Slice | Content | Files | RED gate |
+| PR | Content | Truth documents | RED gate |
 |---|---|---|---|
-| **E1** | `GeniaClosedFunction`, self frame, whole-group builder, the use check at all §7.2 points, markers, capture exclusion. No source activation: closed source still raises `model-b-not-implemented`. | `callable.py`, `evaluator.py` (builder only), `builtins.py`, `ordinary_completion.py`, new host-local tests | §10.1 |
-| **E2** | Transaction T0–T7, reservation and admitted lookup, commit and failure, source activation, the §10.4 transition, shared specs, known-gap entries. | `evaluator.py`, `environment.py`, `spec/`, `tests/`, `spec/known_host_gaps.json` | §10.2, §10.3 |
-| **E3** | Truth synchronization (§9 item 7), independent behavioral audit, distillation. | documentation and MCP files only | none (verification) |
+| **E1** | Sealed `GeniaClosedFunction`, guarded records, self-frame shape, whole-group builder, use check at every §7.2 point, lineage stack with barriers at the §6.3 boundaries, markers, sealing in `define_function` and the metadata writers, capture exclusion. **No source activation** and no `Env` lookup change: closed source still raises `model-b-not-implemented`. | One accurate sentence in `GENIA_STATE.md` at E1 GREEN: private closed-function machinery exists and is unreachable from source (the D2a precedent). | §10.1 |
+| **E2** | Transaction T0–T7, guarded slots and lookup, publication and failure protocols, source activation, shared specs, the §10.4 transition, the capability and gap entries, **and the full implemented-truth synchronization of §9 item 7**. | Updated in this PR, so `main` is never ahead of or behind its documents. | §10.2, §10.3 |
+| **E3** | Independent integration audit, distillation, remaining follow-ups. | Corrections only if the audit finds drift. | none (verification) |
 
-E1 is safe to merge alone because nothing in it is reachable from source. If the
-maintainer prefers fewer PRs, E1 and E2 may be combined; E3 stays separate.
+E1 can merge alone: nothing in it is reachable from source, and its additions to hot
+paths (one type test at the top of `invoke_callable`, a push and pop at five
+boundaries) are behavior-neutral for existing programs. If E1's RED cannot establish
+the admission and use invariants without the slots, E1 and E2 are combined instead;
+a half-defined state machine is not merged for the sake of the split.
 
-**Risks.** (1) `Env.get` is on the hottest path; the change must be a no-op outside
-a transaction (E2-L8). (2) The self frame adds a scope level; debugger and
-inspection output must be pinned (E1-06). (3) A guard point may be missed; E1-02
-enumerates entry points and the full regression backstops it. (4) Capability
-granularity (§9 item 4). (5) Free-threaded Python: admission uses thread identity
-and commit uses one lock hold, so neither depends on the GIL; E2-L4 covers it.
+**Risks.**
+1. A missed boundary admits a call it should refuse. Mitigation: E1-07.
+2. A missed use-check site. Mitigation: guarded records, E1-02, full regression.
+3. `Env.get` is on the hottest path. Mitigation: the count-gated fast path, E2-L8.
+4. `GENIA_STATE.md` is at 42,845 of its 43,000-word limit. E2's synchronization must
+   fit, or a distillation must precede it in the same change.
+5. Free-threaded Python. The protocols rely on single stores and one lock, not on
+   the GIL; E2-L1 should run on a free-threaded build where CI has one.
+6. Fault injection covers single faults only (§4.4).
 
-**Complexity: necessary.** One dispatcher is kept. The new parts are one subclass,
-one transaction function, one reservation table and one guard helper.
+**Complexity: necessary.** One dispatcher. The new parts are two small subclasses,
+one transaction object, one slot table, one thread-local stack and one check helper.
 
 ## 12. Decisions required before RED
 
-| Id | Question | Recommendation |
-|---|---|---|
-| **Q-C1b** | Is `@test` permitted on closed declarations? Are annotation names outside the ten ruled ones rejected at T2? | Exclude `@test` (§5.1). Reject every name outside the five permitted ones at T2, with the same identity, so the permitted set is exhaustive. |
-| **DQ-L** | Literal texts | Errors: `closed-function-not-yet-published: <name> is not yet published`; `closed-function-failed-publication: closed function failed publication`; `closed-function-annotation-not-permitted: @<annotation> is not permitted on closed function <name>`. Markers: `<closed-function <name>>` for initializing and committed; `<closed-function failed>` for failed, with no name, as the strict reading of "sanitized opaque marker". |
-| **DQ-V** | Order of validation failures | T1 name, then T2 annotation permission, then T3 clause structure (§4). |
-| **DQ-S** | Statement value of a closed declaration | The committed callable (§4). |
-| **DQ-M** | Is a committed closed `main` selected as the entry function? | Yes, as for an ordinary simple group (§8). |
-| **DQ-I** | Introspection of its own name by an annotation during `initializing` | Rejected (§7.1). |
-| **DQ-C** | Capability | Reuse existing vocabulary; record the trigger for a future `closed_functions` capability (§9 item 4). |
+Each row is an observable choice. DQ-I is already fixed by the contract and is
+listed for confirmation only. None is assumed approved.
 
-Only Q-C1b concerns contract semantics. The others are design choices that become
-observable and are therefore listed for explicit approval.
+| Id | Contract requirement | Recommended choice | Compatibility effect | RED evidence |
+|---|---|---|---|---|
+| **Q-C1b** `@test`, `test` and `http_annotation` keys, alias discovery, other names | §4.3: five names permitted, five rejected; `@test` and other names undecided. §4.1: ordinary-compatible annotations | (a) `@test`: **Alternative A**, closed functions are discoverable through any of the three sources (§5.2). (b) `send_annotated`: closed callables excluded (§5.3). (c) Other names: rejected at T2 with `closed-function-annotation-not-permitted`. (d) No `@meta` key is banned. | None for existing programs; closed evaluation is rejected today. (a) extends the approved name list by one. (c) differs from ordinary functions in timing. | `cli` test-mode cases for the three sources, wrong arity and a failed publication; `send_annotated` rejection; unknown-name and `@meta`-key cases |
+| **DQ-L** literals | §4.2 fixes the two identities and a sanitized failed marker | `closed-function-not-yet-published: NAME is not yet published`; `closed-function-failed-publication: closed function failed publication`; `closed-function-annotation-not-permitted: @ANNOTATION is not permitted on closed function NAME`; `closed-function-not-extensible: cannot declare LABEL: NAME refers to a closed function`; markers per §7.4 | New texts only | Every error and rendering case in §10 |
+| **DQ-V** validation order | §4.1: validate before exposing anything; order among competing errors unspecified | T0 well-formedness, then name, then annotation permission, then clause structure; parse errors precede all of them for source | None | `validation-order`, E1-01, E2-L7 |
+| **DQ-S** declaration value | Not specified | The committed callable; never a clause record. The alternative is no value. | Determines the second stdout line of §10.4 and of every case that ends with a closed declaration | `single-clause`, §10.4 |
+| **DQ-M** closed `main` | Not specified | A committed closed `main` is selected exactly as an ordinary one: only a simple identifier-header group, `main/1` before `main/0`, the same modes, never in the REPL; through the use check and guarded records | A closed `main` would otherwise be silently ignored | `main-selection`, plus a pattern-header closed `main` that is not selected |
+| **DQ-I** introspection while initializing | **§4.2 requires rejection** | Rejected for every caller, admitted or not | — | `annotation-introspection-while-initializing`, E1-08 |
+| **DQ-C** capability | §6.1 item 4: reuse the vocabulary, never mislabel supported behavior; conformance obligation: add a capability only for an independently claimable surface | Add optional `closed_functions` (§9 item 4) | A conformance-contract addition; no existing claim changes meaning | The `requires` of every §10.2 case; adapter staging test |
 
-## 13. File plan and final check
+## 13. Process note, file plan and final check
 
-**New:** this document (KEEP, design record). At E1/E2: host-local test modules and
-shared specs listed in §10. **Modified now:** the Model B contract (§4.3 Q-C1
-clarification and a stale status phrase) and one pointer line in the portable
-design. **Removed:** none.
+**Branch name.** This work is on `claude/brave-babbage-qb2zvm`. `docs/process/run-change.md`
+and `scripts/check-genia-branch.sh` require `issue-<number>-<short-name>`, and this
+branch fails that check. The authoring session may push only to this branch, so it
+did not rename it. This is an open process item, not an accepted exception: before
+merge the maintainer either records an explicit exception or the commits are moved to
+a compliant branch.
 
-**Final check (docs/process/02-design.md):** the contract is changed only by the
-recorded Q-C1 ruling; no behavior is added beyond the contract and that ruling;
-every choice that the contract leaves open is either decided above with its
-alternatives or listed in §12; nothing here is described as implemented.
+**New:** this document (KEEP, design record). **Modified in this phase:** the Model B
+contract (§4.3 and a status phrase) and one pointer line in the portable design.
+**Removed:** none.
+
+**Final check (docs/process/02-design.md):** the contract text is changed only by the
+recorded Q-C1 ruling and a scope note that marks what is still undecided; no behavior
+is added beyond the contract and that ruling; every choice the contract leaves open
+is either decided above with its alternatives or listed in §12 as pending; nothing
+here is described as implemented.
