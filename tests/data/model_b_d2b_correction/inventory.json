@@ -1,0 +1,45 @@
+{
+  "accepted_red": "b25b8f8c1904dc683f6634c4ef8c5f108d4f3eca",
+  "red_production_equivalent_to": "c377b971b42682207d194aefb0e5182650d4ac10",
+  "partial_green_source": "1bbc63e4ef5d3a461542f6849d35aed33bfe9e17",
+  "test_overlay_sha256": {
+    "spec/error/model-b-link-ownership-declaration.yaml": "cb0c946ba7e1d06dbbd5d3e361874002df0859f25581097ef3a199119573371e",
+    "spec/error/model-b-link-view-not-target.yaml": "8fe852fb47ee451ab1b929f75138a74a5b0b7c5c61a680df3b5bed318f785b0a",
+    "spec/eval/model-b-link-alias-and-reexport.yaml": "8f3139a7f2de58425783ccde0470740a8390d778fd65fa2c11e08b395f5432a9",
+    "spec/eval/model-b-link-b1-slot-replaced.yaml": "55990dea7a99b1e30c228066f21a4557ce025d81290af8e6cf1ec87544510046",
+    "spec/eval/model-b-link-explicit-view-metadata-unchanged.yaml": "7cab528de88da0b61b133fcc3d29c9bfb9f2d97c8fc7d2ff15c35583c63399b6",
+    "spec/eval/model-b-link-key-true-vs-one.yaml": "7495a3e0d0383ebadfbbc46729677f3cce81ddd75d98cb57645170199bd865ff",
+    "spec/eval/model-b-link-meta-doc-channels.yaml": "07f4fdeb19823b794f3343382cab49dadf3f7728ba989457a85218432ceb24f1",
+    "spec/eval/model-b-link-order-independence.yaml": "7364715e629e6e287d590eb487c6c81c79cbac8700d35afcaa74748b7029ae2e",
+    "spec/eval/model-b-link-view-alias-no-overlay.yaml": "8427df2a4cca10d077582009f07252411d7dd6763e3f93b5ff3a1ed31a987149",
+    "tests/unit/test_model_b_d2b_public.py": "88dd7ed853e69a320eddbf727b814a92681eb4f6ceae7c617448f727b4101c0b"
+  },
+  "inventory": {
+    "shared": 36,
+    "host_original": 13,
+    "transitioned_python": 4,
+    "added_provenance": 2,
+    "added_dotted_alias": 1,
+    "total_behavioral": 56,
+    "original_behavioral": 53
+  },
+  "original_red_counts": {
+    "fail": 47,
+    "pass": 6,
+    "source": "accepted original results.json; not a fresh rerun"
+  },
+  "revised_original53_on_red": {
+    "fail": 45,
+    "pass": 8
+  },
+  "new3_on_red": {
+    "fail": 3,
+    "pass": 0
+  },
+  "gates": {
+    "lint": "ruff check and format --check PASS on two test modules",
+    "fixture_parse_lower": 101,
+    "threshold": "--maxfail=19 each selection, maximum15 failures observed",
+    "acceptance": "PENDING independent Claude Code review"
+  }
+}

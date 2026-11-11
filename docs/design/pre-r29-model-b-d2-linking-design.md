@@ -1,12 +1,13 @@
 # Model B D2: ordinary-base `extend` / `use` linking (D2a + D2b)
 
-Status: **PROPOSED DESIGN — NOT IMPLEMENTED.** No D2 code, test, spec or
-documentation change of implemented behavior exists. Phase: DESIGN for #1250,
+Status: **ACCEPTED DESIGN; Python D2 implementation candidate under review.**
+D1/D2a are accepted; D2b source activation and frozen reflection are implemented
+and focused-tested on the candidate, not release acceptance. Phase record for #1250,
 authorized by the maintainer decisions in
 [comment 6561255519](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6561255519)
 (Q1, Q2, A, Q3, B, Q4). `GENIA_STATE.md` remains the only authority on implemented
-behavior; until D2 GREEN is accepted, ordinary `extend`/`use` is rejected exactly as
-STATE describes. Governing sources: the maintainer-approved
+behavior; candidate implementation truth is recorded in STATE, while independent
+GREEN acceptance remains a separate gate. Governing sources: the maintainer-approved
 [Model B contract](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md)
 (§§2.1–2.3, 5.3–5.4), the [portable design](pre-r29-default-open-and-immutable-binding-design.md)
 (§§5.1–5.4, 7–10, 13.4), the [D1 design](pre-r29-model-b-d1-completion-design.md), and the
@@ -180,7 +181,10 @@ units is unchanged. Group-only extras do **not** apply to views (register Δ6).
 
 ## 5. Atomic linking transaction (D2a machinery, D2b activation)
 
-Phases of `use <local> from <alias>.<name> with c1, c2, …`:
+Phases of `use <name> from <alias> with c1, c2, …` (local = exported name;
+no renaming). The alias is a literal Env name, including dotted import aliases;
+`from base.f` is not split into module base/export f. In the steps below,
+`local` means that same exported name:
 1. **Precheck (unchanged):** `check_rebind_target(local)`; then resolve base
    module alias (non-module ⇒ `open-function-target-not-open`) and export.
 2. **Base eligibility:** explicit `GeniaOpenFunction` ⇒ explicit path; else
@@ -400,8 +404,10 @@ the identifier-header candidate/invoke branch and a base-kind union. Risks and c
 (4) lock misuse ⇒ pure builder, D2a-08; (5) id-keyed store ⇒ strong reference to G;
 (6) per-`use` copy cost ⇒ O(clauses), accepted; (7) Decision A text mapping ⇒ resolved in §6.3 with a costed rejected alternative; (8) group-only behavior absent
 from views ⇒ register Δ6/Δ7, pinned by tests.
-Gate: this design authorizes **no** RED test, production code, E or R29. Next gate: D2a
-RED (separate authorization) after design review acceptance.
+Historical original DESIGN gate: this design itself authorized **no** RED test,
+production code, E or R29; its next step was D2a RED after separate authorization.
+Current candidate acceptance and review gates are recorded on #1250, not inferred
+from this historical phase map.
 
 ## 13. File plan and final check (docs/process/02-design.md)
 

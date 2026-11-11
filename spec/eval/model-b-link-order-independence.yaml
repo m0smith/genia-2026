@@ -1,0 +1,39 @@
+{
+  "name": "model-b-link-order-independence",
+  "category": "eval",
+  "description": "D2b RED #1250: order-independence",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x,y,z)=0\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(0)=7\n"
+        },
+        {
+          "path": "other.genia",
+          "source": "import base\nextend base.f(1)=8\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport other\nimport ext\nuse f from base with other,ext\nx0=f(0)\nx1=f(1)\nuse f from base with ext,other\n[x0,x1,f(0),f(1)]\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "[7, 8, 7, 8]\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

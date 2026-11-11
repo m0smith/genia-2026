@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-key-true-vs-one",
+  "category": "eval",
+  "description": "D2b RED #1250: key-true-vs-one",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x,y)=0\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(true)=7\nextend base.f(1)=8\nextend base.f(1.0)=9\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\n[f(true),f(1),f(1.0)]\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "[7, 8, 8]\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

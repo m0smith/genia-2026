@@ -1,0 +1,139 @@
+{
+  "spec/error/model-b-c-own-extend-ordinary-rejected.yaml": {
+    "name": "model-b-c-own-extend-ordinary-rejected",
+    "id": "model-b-c-own-extend-ordinary-rejected",
+    "category": "error",
+    "description": "Slice C RED (#1269): D5",
+    "requires": [
+      "multi_file_eval",
+      "open_functions"
+    ],
+    "input": {
+      "modules": {
+        "entry": "main.genia",
+        "files": [
+          {
+            "path": "base.genia",
+            "source": "f(x) = x"
+          },
+          {
+            "path": "main.genia",
+            "source": "import base\nextend base.f(0) = 0"
+          }
+        ]
+      }
+    },
+    "expected": {
+      "stdout": "",
+      "stderr": "Error: open-function-target-not-open: 'base.f' is not an open function interface\n",
+      "exit_code": 1
+    },
+    "notes": "Kind: existing-behavior guard (passes on the Python reference host).\nOracle: observed (Python baseline main@79c073b).\nBaseline (Python main@79c073b, gate bypassed): stdout=\"\" stderr=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\" exit=1.\n"
+  },
+  "spec/error/model-b-c-own-use-ordinary-base-unchanged.yaml": {
+    "name": "model-b-c-own-use-ordinary-base-unchanged",
+    "id": "model-b-c-own-use-ordinary-base-unchanged",
+    "category": "error",
+    "description": "Slice C RED (#1269): D5",
+    "requires": [
+      "multi_file_eval",
+      "open_functions"
+    ],
+    "input": {
+      "modules": {
+        "entry": "main.genia",
+        "files": [
+          {
+            "path": "base.genia",
+            "source": "f(x) = x"
+          },
+          {
+            "path": "ext.genia",
+            "source": "import base\nvalue = 1"
+          },
+          {
+            "path": "main.genia",
+            "source": "import base\nimport ext\nuse f from base with ext"
+          }
+        ]
+      }
+    },
+    "expected": {
+      "stdout": "",
+      "stderr": "Error: open-function-target-not-open: 'base.f' is not an open function interface\n",
+      "exit_code": 1
+    },
+    "notes": "Kind: existing-behavior guard (passes on the Python reference host).\nOracle: observed (Python baseline main@79c073b).\nBaseline (Python main@79c073b, gate bypassed): stdout=\"\" stderr=\"Error: open-function-target-not-open: 'base.f' is not an open function interface\\n\" exit=1.\n"
+  },
+  "spec/error/model-b-d1-preserve-ordinary-extension-rejection.yaml": {
+    "name": "model-b-d1-preserve-ordinary-extension-rejection",
+    "category": "error",
+    "description": "Importing an ordinary module does not activate cross-module extension authority.",
+    "requires": [
+      "multi_file_eval",
+      "open_functions"
+    ],
+    "input": {
+      "modules": {
+        "entry": "main.genia",
+        "files": [
+          {
+            "path": "base.genia",
+            "source": "f(x)=x"
+          },
+          {
+            "path": "main.genia",
+            "source": "import base\nextend base.f(0)=0\n"
+          }
+        ]
+      }
+    },
+    "expected": {
+      "stdout": "",
+      "stderr": "Error: open-function-target-not-open: 'base.f' is not an open function interface\n",
+      "exit_code": 1
+    },
+    "notes": "Existing rejection must remain; not a capability downgrade or linking implementation."
+  },
+  "spec/error/error-r20-cross-module-overlapping-unit-ambiguity.yaml": {
+    "name": "error-r20-cross-module-overlapping-unit-ambiguity",
+    "category": "error",
+    "description": "R20 portable cross-module diagnostic \u2014 matching clauses from different selected units are ambiguous",
+    "input": {
+      "modules": {
+        "entry": "main.genia",
+        "files": [
+          {
+            "path": "base.genia",
+            "source": "open get(\"mem\", store, key) = \"mem:\" + key\n"
+          },
+          {
+            "path": "db_ext.genia",
+            "source": "import base\nextend base.get(\"db\", db, key) = \"db:\" + key\n"
+          },
+          {
+            "path": "cache_ext.genia",
+            "source": "import base\nextend base.get(\"cache\", c, key) = \"cache:\" + key\n"
+          },
+          {
+            "path": "db_ext2.genia",
+            "source": "import base\nextend base.get(\"db\", db, key) = \"db2:\" + key\n"
+          },
+          {
+            "path": "main.genia",
+            "source": "import base\nimport db_ext\nimport db_ext2\nuse get from base with db_ext, db_ext2\nget(\"db\", 1, \"k\")\n"
+          }
+        ]
+      }
+    },
+    "expected": {
+      "stdout": "",
+      "stderr": "Error: open-function-clause-ambiguity: get/3 matched clauses in more than one unit ['db_ext', 'db_ext2']\n",
+      "exit_code": 1
+    },
+    "requires": [
+      "open_functions",
+      "multi_file_eval"
+    ]
+  }
+}

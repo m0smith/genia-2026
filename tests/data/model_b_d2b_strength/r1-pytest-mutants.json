@@ -1,0 +1,26 @@
+[
+  {
+    "implementation": "red",
+    "command": [
+      "/workspace/work/slice-c-venv/bin/python",
+      "-c",
+      "\nfrom dataclasses import replace\nfrom genia.evaluator import Evaluator\nfrom genia.ir import IrOpenUse\noriginal_eval = Evaluator._eval_impl\ndef fallback(self, node):\n    if isinstance(node, IrOpenUse) and \".\" in node.target_module_alias:\n        try:\n            self.env.get(node.target_module_alias)\n        except NameError:\n            module_alias, target_name = node.target_module_alias.rsplit(\".\", 1)\n            node = replace(node, target_module_alias=module_alias, target_name=target_name)\n    return original_eval(self, node)\nEvaluator._eval_impl = fallback\n\nimport pytest\nraise SystemExit(pytest.main([\"-q\",\"--maxfail=19\",\"--tb=short\",\"tests/unit/test_model_b_d2b_public.py::test_public_use_does_not_treat_dotted_from_as_rename\"]))"
+    ],
+    "returncode": 1,
+    "stdout": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_____________ test_public_use_does_not_treat_dotted_from_as_rename _____________\ntests/unit/test_model_b_d2b_public.py:304: in test_public_use_does_not_treat_dotted_from_as_rename\n    with pytest.raises(NameError, match=r\"^Undefined name: base\\.f$\"):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   Failed: DID NOT RAISE NameError\n=========================== short test summary info ============================\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_use_does_not_treat_dotted_from_as_rename\n1 failed in 0.45s\n",
+    "stderr": "",
+    "classification": "expected M7 mutation killed by R1 alias-publication assertion"
+  },
+  {
+    "implementation": "partial",
+    "command": [
+      "/workspace/work/slice-c-venv/bin/python",
+      "-c",
+      "\nfrom dataclasses import replace\nfrom genia.evaluator import Evaluator\nfrom genia.ir import IrOpenUse\noriginal_eval = Evaluator._eval_impl\ndef fallback(self, node):\n    if isinstance(node, IrOpenUse) and \".\" in node.target_module_alias:\n        try:\n            self.env.get(node.target_module_alias)\n        except NameError:\n            module_alias, target_name = node.target_module_alias.rsplit(\".\", 1)\n            node = replace(node, target_module_alias=module_alias, target_name=target_name)\n    return original_eval(self, node)\nEvaluator._eval_impl = fallback\n\nimport pytest\nraise SystemExit(pytest.main([\"-q\",\"--maxfail=19\",\"--tb=short\",\"tests/unit/test_model_b_d2b_public.py::test_public_use_does_not_treat_dotted_from_as_rename\"]))"
+    ],
+    "returncode": 1,
+    "stdout": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_____________ test_public_use_does_not_treat_dotted_from_as_rename _____________\ntests/unit/test_model_b_d2b_public.py:304: in test_public_use_does_not_treat_dotted_from_as_rename\n    with pytest.raises(NameError, match=r\"^Undefined name: base\\.f$\"):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   Failed: DID NOT RAISE NameError\n=========================== short test summary info ============================\nFAILED tests/unit/test_model_b_d2b_public.py::test_public_use_does_not_treat_dotted_from_as_rename\n1 failed in 0.42s\n",
+    "stderr": "",
+    "classification": "expected M7 mutation killed by R1 alias-publication assertion"
+  }
+]

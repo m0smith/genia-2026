@@ -119,8 +119,10 @@ this source revision alone is not evidence of a passing workflow.
 Python D1 completion captures private detached ordinary clauses/provenance and
 three independent B1 metadata observations before atomic cache publication.
 Re-exports reuse exact original completion associations; escaped values without
-one remain normal exports. No public linking/introspection surface or capability
-is added. C++ gaps below are unchanged; private Python tests do not prove parity.
+one remain normal exports. Python D2 source `extend`/`use` selects frozen ordinary
+views via existing capabilities, with cross-unit validation and checked publication.
+Ordinary doc/meta/help use independent frozen channels; explicit-R20 reflection
+stays unchanged. C++ gaps remain; private Python tests do not prove parity.
 
 Python parses and lowers `=:` declarations, atomic closed groups and ordinary
 pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
@@ -131,7 +133,7 @@ capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`) and
 runner executes against the Python reference host); closed groups are rejected with
 `model-b-not-implemented`. Closed-function execution is not claimed. The Python
 protocol adapter advertises `default_open_functions` as `supported`, and the 143
-`model-b-c-*` cases (55 existing-behavior guards plus 88 gated cases) pass through that
+`model-b-c-*` cases (53 existing-behavior guards plus 90 gated cases) pass through that
 adapter; the 18 Python-host-only fixture/debug cases remain the only `unsupported`
 results of the external Python run.
 C++ does not claim `immutable_bindings` or `default_open_functions`: both are listed
@@ -163,5 +165,5 @@ Owner: m0smith integration owner and C++ implementer, tracked in
 The boundary is removed only after the bounded C++ parser/lowering implementation
 passes the affected shared cases at a current contract revision. Until then, no
 C++ conformance or parity for these new carriers is claimed. C++ does not implement
-default-open dispatch. Cross-module linking of ordinary functions and closed
-publication are not implemented on any host.
+default-open dispatch or ordinary cross-module linking; Python implements explicit
+ordinary linking. Closed publication remains unimplemented on all hosts.

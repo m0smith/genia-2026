@@ -1,0 +1,695 @@
+{
+  "accepted_red": "b25b8f8c1904dc683f6634c4ef8c5f108d4f3eca",
+  "authority": "https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6609232173",
+  "shared_changes": [
+    {
+      "path": "spec/eval/model-b-link-alias-and-reexport.yaml",
+      "before": {
+        "name": "model-b-link-alias-and-reexport",
+        "category": "eval",
+        "description": "D2b RED #1250: alias-and-reexport",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y)=x+y\na=f\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.a(0)=7\n"
+              },
+              {
+                "path": "relay.genia",
+                "source": "import base\nh=base.a\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import relay\nimport ext\nuse g from relay.h with ext\ng(0)\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "7\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-alias-and-reexport",
+        "category": "eval",
+        "description": "D2b RED #1250: alias-and-reexport",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y)=x+y\na=f\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.a(0)=7\n"
+              },
+              {
+                "path": "relay.genia",
+                "source": "import base\nh=base.a\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import relay\nimport ext\nuse h from relay with ext\nh(0)\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "7\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    },
+    {
+      "path": "spec/eval/model-b-link-b1-slot-replaced.yaml",
+      "before": {
+        "name": "model-b-link-b1-slot-replaced",
+        "category": "eval",
+        "description": "D2b RED #1250: b1-slot-replaced",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y)=x+y\na=f\nf=99\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.a(0)=7\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse g from base.a with ext\n[g(0),g(1,2),base.f]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[7, 3, 99]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-b1-slot-replaced",
+        "category": "eval",
+        "description": "D2b RED #1250: b1-slot-replaced",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y)=x+y\na=f\nf=99\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.a(0)=7\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse a from base with ext\n[a(0),a(1,2),base.f]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[7, 3, 99]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    },
+    {
+      "path": "spec/eval/model-b-link-order-independence.yaml",
+      "before": {
+        "name": "model-b-link-order-independence",
+        "category": "eval",
+        "description": "D2b RED #1250: order-independence",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y,z)=0\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(0)=7\n"
+              },
+              {
+                "path": "other.genia",
+                "source": "import base\nextend base.f(1)=8\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport other\nimport ext\nuse first from base.f with other,ext\nuse second from base.f with ext,other\n[first(0),first(1),second(0),second(1)]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[7, 8, 7, 8]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-order-independence",
+        "category": "eval",
+        "description": "D2b RED #1250: order-independence",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y,z)=0\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(0)=7\n"
+              },
+              {
+                "path": "other.genia",
+                "source": "import base\nextend base.f(1)=8\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport other\nimport ext\nuse f from base with other,ext\nx0=f(0)\nx1=f(1)\nuse f from base with ext,other\n[x0,x1,f(0),f(1)]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[7, 8, 7, 8]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    },
+    {
+      "path": "spec/error/model-b-link-view-not-target.yaml",
+      "before": {
+        "name": "model-b-link-view-not-target",
+        "category": "error",
+        "description": "D2b RED #1250: view-not-target",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y)=0\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(0)=7\n"
+              },
+              {
+                "path": "consumer.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\nimport consumer\nuse g from consumer.f with ext\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "",
+          "stderr": "Error: open-function-target-not-open: 'consumer.f' is not an open function interface\n",
+          "exit_code": 1
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-view-not-target",
+        "category": "error",
+        "description": "D2b RED #1250: view-not-target",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y)=0\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(0)=7\n"
+              },
+              {
+                "path": "consumer.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\nimport consumer\nuse f from consumer with ext\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "",
+          "stderr": "Error: open-function-target-not-open: 'consumer.f' is not an open function interface\n",
+          "exit_code": 1
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    },
+    {
+      "path": "spec/eval/model-b-link-meta-doc-channels.yaml",
+      "before": {
+        "name": "model-b-link-meta-doc-channels",
+        "category": "eval",
+        "description": "D2b RED #1250: meta-doc-channels",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions",
+          "doc_help"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "@doc \"canonical\"\nf(x)=\"inline\" x\n@category \"alias-category\"\na=f\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(x,y)=1\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n[doc(\"f\"),meta(\"f\")/doc]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[\"canonical\", \"canonical\"]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-meta-doc-channels",
+        "category": "eval",
+        "description": "D2b RED #1250: meta-doc-channels",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions",
+          "doc_help"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "@doc \"canonical\"\nf(x)=\"inline\" x\n@category \"alias-category\"\na=f\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(x,y)=1\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n[doc(\"f\"),map_get(meta(\"f\"), \"doc\")]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[\"canonical\", \"canonical\"]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    },
+    {
+      "path": "spec/eval/model-b-link-view-alias-no-overlay.yaml",
+      "before": {
+        "name": "model-b-link-view-alias-no-overlay",
+        "category": "eval",
+        "description": "D2b RED #1250: view-alias-no-overlay",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions",
+          "doc_help"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "@doc \"canonical\"\nf(x)=x\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(x,y)=1\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n@doc \"overlay\"\ng=f\n[doc(\"g\"),meta(\"g\")/doc]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[\"canonical\", \"canonical\"]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-view-alias-no-overlay",
+        "category": "eval",
+        "description": "D2b RED #1250: view-alias-no-overlay",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions",
+          "doc_help"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "@doc \"canonical\"\nf(x)=x\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(x,y)=1\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n@doc \"overlay\"\ng=f\n[doc(\"g\"),map_get(meta(\"g\"), \"doc\")]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[\"canonical\", \"canonical\"]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    },
+    {
+      "path": "spec/eval/model-b-link-explicit-view-metadata-unchanged.yaml",
+      "before": {
+        "name": "model-b-link-explicit-view-metadata-unchanged",
+        "category": "eval",
+        "description": "D2b RED #1250: explicit-view-metadata-unchanged",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions",
+          "doc_help"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "@doc \"interface\"\nopen f(0)=1\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(1)=2\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n[doc(\"f\"),meta(\"f\")/doc]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[\"interface\", \"interface\"]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-explicit-view-metadata-unchanged",
+        "category": "eval",
+        "description": "D2b RED #1250: explicit-view-metadata-unchanged",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions",
+          "doc_help"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "@doc \"interface\"\nopen f(0)=1\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(1)=2\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n[doc(\"f\"),map_get(meta(\"f\"), \"doc\")]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[\"interface\", \"interface\"]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    },
+    {
+      "path": "spec/error/model-b-link-ownership-declaration.yaml",
+      "before": {
+        "name": "model-b-link-ownership-declaration",
+        "category": "error",
+        "description": "D2b RED #1250: ownership-declaration",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x)=x\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(0,1)=7\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\ng=base.f\ng(a,b)=0\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "",
+          "stderr": "Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to function f/2 owned by module 'base'\n",
+          "exit_code": 1
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-ownership-declaration",
+        "category": "error",
+        "description": "D2b RED #1250: ownership-declaration",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x)=x\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(0,1)=7\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\ng=base.f\ng(a,b)=0\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "",
+          "stderr": "Error: function-declaration-not-owner: cannot declare g/2: 'g' refers to function 'f' owned by module 'base'\n",
+          "exit_code": 1
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    },
+    {
+      "path": "spec/eval/model-b-link-key-true-vs-one.yaml",
+      "before": {
+        "name": "model-b-link-key-true-vs-one",
+        "category": "eval",
+        "description": "D2b RED #1250: key-true-vs-one",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y)=0\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(true)=7\nextend base.f(1)=8\nextend base.f(1.0)=9\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n[f(true),f(1),f(1.0)]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[7, 8, 9]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      },
+      "after": {
+        "name": "model-b-link-key-true-vs-one",
+        "category": "eval",
+        "description": "D2b RED #1250: key-true-vs-one",
+        "requires": [
+          "multi_file_eval",
+          "open_functions",
+          "default_open_functions"
+        ],
+        "input": {
+          "modules": {
+            "entry": "main.genia",
+            "files": [
+              {
+                "path": "base.genia",
+                "source": "f(x,y)=0\n"
+              },
+              {
+                "path": "ext.genia",
+                "source": "import base\nextend base.f(true)=7\nextend base.f(1)=8\nextend base.f(1.0)=9\n"
+              },
+              {
+                "path": "main.genia",
+                "source": "import base\nimport ext\nuse f from base with ext\n[f(true),f(1),f(1.0)]\n"
+              }
+            ]
+          }
+        },
+        "expected": {
+          "stdout": "[7, 8, 8]\n",
+          "stderr": "",
+          "exit_code": 0
+        },
+        "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+      }
+    }
+  ],
+  "original_host_test": "\"\"\"Python-host D2b publication/metadata/TCO seams, complementary to shared R16 cases.\"\"\"\n\nimport pytest\nimport genia\nfrom genia import callable as callables\nfrom genia.environment import Env, ImmutableBindingError\nfrom tests.unit.model_b_d2a_support import base_world, frozen, linking\nfrom tests.unit.test_model_b_d2a_link_publish import snapshot, bounded_process\n\n\ndef public_world(tmp_path):\n    \"\"\"Load real ordinary target/contribution fixtures; import is not selection.\"\"\"\n    root, entry, module, group = base_world(tmp_path, \"f(x,y)=x+y\\n\")\n    (tmp_path / \"ext.genia\").write_text(\"import base\\nextend base.f(0)=7\\n\")\n    genia.run_source(\"import base\\nimport ext\", root, filename=entry)\n    return root, entry, module, group\n\n\ndef test_public_atomic_checked_writer_failure_and_retry(tmp_path, monkeypatch):\n    \"\"\"Injected writer failure preserves prior binding/tables; retry publishes a full view.\"\"\"\n    root, entry, module, group = public_world(tmp_path)\n    root.set_host(\"f\", 99, visibility=\"runtime-public\")\n    before = snapshot(root, module)\n    original = Env._write_binding\n\n    def fail(env, name, *args, **kwargs):\n        \"\"\"Fault the checked publication before any real mutation.\"\"\"\n        if env is root and name == \"f\":\n            raise RuntimeError(\"writer sentinel\")\n        return original(env, name, *args, **kwargs)\n\n    with monkeypatch.context() as patch:\n        patch.setattr(Env, \"_write_binding\", fail)\n        with pytest.raises(RuntimeError, match=\"writer sentinel\"):\n            genia.run_source(\"use f from base with ext\", root, filename=entry)\n    assert snapshot(root, module) == before\n    assert genia.run_source(\"use f from base with ext\\nf(0)\", root, filename=entry) == 7\n\n\ndef test_public_failed_selection_preserves_previous_view(tmp_path):\n    \"\"\"A duplicate selection cannot replace an already published view.\"\"\"\n    root, entry, module, group = public_world(tmp_path)\n    genia.run_source(\"use f from base with ext\", root, filename=entry)\n    prior = root.get(\"f\")\n    before = snapshot(root, module)\n    with pytest.raises(callables.OpenFunctionDuplicateSelectionError):\n        genia.run_source(\"use f from base with ext,ext\", root, filename=entry)\n    assert root.get(\"f\") is prior and snapshot(root, module) == before and prior(0) == 7\n\n\ndef test_public_view_nonretroactive_after_more_contributions(tmp_path):\n    \"\"\"An entry unit accumulates new records without modifying an earlier view.\"\"\"\n    root, entry, module, group = public_world(tmp_path)\n    genia.run_source(\"use f from base with ext\", root, filename=entry)\n    old = root.get(\"f\")\n    (tmp_path / \"extra.genia\").write_text(\"import base\\nextend base.f(1)=8\\n\")\n    genia.run_source(\"import extra\\nuse f from base with ext,extra\", root, filename=entry)\n    assert root.get(\"f\")(1) == 8 and old(0) == 7\n    with pytest.raises(callables.OpenFunctionNoMatchingCaseError):\n        old(1)\n\n\n@pytest.mark.parametrize(\"channel\", [\"doc\", \"meta\", \"help\"])\ndef test_frozen_three_channel_reflection_even_before_public_activation(tmp_path, channel, capsys):\n    \"\"\"D2b reflection must use the three distinct D1 channels, ignoring alias overlays.\"\"\"\n    root, entry, module, group = base_world(\n        tmp_path, '@doc \"canonical\"\\nf(x)=\"inline\" x\\n@category \"alias-category\"\\na=f\\n'\n    )\n    view = linking().link_view(frozen(module, group), [])\n    root.publish_view(\"v\", view)\n    genia.run_source('@doc \"overlay\"\\ng=v', root, filename=entry)\n    if channel == \"doc\":\n        assert genia.run_source('doc(\"g\")', root) == \"canonical\"\n    elif channel == \"meta\":\n        meta = genia.run_source('meta(\"g\")', root)\n        assert meta.get(\"doc\") == \"canonical\" and meta.get(\"category\", None) is None\n    else:\n        genia.run_source(\"help(g)\", root)\n        output = capsys.readouterr().out\n        assert \"f (linked ordinary function view)\" in output\n        assert \"inline\" in output and \"alias-category\" in output and \"base:2\" in output\n        assert str(tmp_path) not in output and \"overlay\" not in output\n\n\ndef test_public_self_tco_uses_published_view(tmp_path):\n    \"\"\"Source-selected view recurses through its defining closure without host stack growth.\"\"\"\n    root, entry, module, group = base_world(\n        tmp_path, \"f(n,acc)=(0,a)->a | (k,a)->walk(n-1,acc+1)\\n\"\n    )\n    (tmp_path / \"ext.genia\").write_text(\"import base\\nextend base.f()=0\\n\")\n    genia.run_source(\"import base\\nimport ext\\nuse walk from base.f with ext\", root, filename=entry)\n    group.records[0].closure.publish_view(\"walk\", root.get(\"walk\"))\n    assert genia.run_source(\"walk(60000,0)\", root, filename=entry) == 60000\n\n\ndef test_public_publication_overlaps_real_module_load(tmp_path):\n    \"\"\"Use executes while another loader is paused; process containment bounds deadlocks.\"\"\"\n    import threading\n\n    root, entry, module, group = public_world(tmp_path)\n\n    def race():\n        \"\"\"Hold user initialization outside the binding lock while public selection runs.\"\"\"\n        entered = threading.Event()\n        done = threading.Event()\n        errors = []\n\n        def pause():\n            \"\"\"Wait for selection to complete during module evaluation.\"\"\"\n            entered.set()\n            assert done.wait(3)\n\n        root.set_host(\"pause\", pause, visibility=\"runtime-public\")\n        (tmp_path / \"late.genia\").write_text(\"pause()\\nf(x)=x\\n\")\n\n        def load():\n            \"\"\"Collect loader failures for the supervising process.\"\"\"\n            try:\n                root.load_module(\"late\", entry)\n            except BaseException as e:\n                errors.append(e)\n\n        thread = threading.Thread(target=load, daemon=True)\n        thread.start()\n        assert entered.wait(3)\n        try:\n            assert genia.run_source(\"use f from base with ext\\nf(0)\", root, filename=entry) == 7\n        finally:\n            done.set()\n        thread.join(3)\n        assert not thread.is_alive() and not errors\n\n    bounded_process(race)\n\n\ndef test_public_use_cannot_replace_immutable_name(tmp_path):\n    \"\"\"Immutable-name precheck wins without replacing state or running a view.\"\"\"\n    root, entry, module, group = public_world(tmp_path)\n    genia.run_source(\"pinned =: 99\", root, filename=entry)\n    before = snapshot(root, module)\n    with pytest.raises(ImmutableBindingError):\n        genia.run_source(\"use pinned from base.f with ext\", root, filename=entry)\n    assert root.get(\"pinned\") == 99 and snapshot(root, module) == before\n\n\ndef test_escaped_failed_origin_has_no_public_extension_authority(tmp_path):\n    \"\"\"Same-spelling escaped G from a failed attempt never gains a completion witness.\"\"\"\n    root = genia.make_global_env([])\n    entry = str(tmp_path / \"main.genia\")\n    escaped = []\n    root.set_host(\"retain\", escaped.append, visibility=\"runtime-public\")\n    (tmp_path / \"origin.genia\").write_text(\"f(x)=x\\nretain(f)\\n1/0\\n\")\n    with pytest.raises(ZeroDivisionError):\n        root.load_module(\"origin\", entry)\n    root.set_host(\"escaped\", escaped[0], visibility=\"runtime-public\")\n    (tmp_path / \"relay.genia\").write_text(\"f=escaped\\n\")\n    with pytest.raises(callables.OpenFunctionTargetNotOpenError):\n        genia.run_source(\"import relay\\nextend relay.f(0)=1\", root, filename=entry)\n    assert \"origin\" not in root.loaded_modules\n\n\ndef test_public_use_holds_writer_lock_once(tmp_path, monkeypatch):\n    \"\"\"Source resolution/build precede one checked publication hold.\"\"\"\n    from genia import environment as environments\n    from tests.unit.test_model_b_d2a_link_publish import CountingLock\n\n    root, entry, module, group = public_world(tmp_path)\n    lock = CountingLock()\n    monkeypatch.setattr(environments, \"_BINDING_LOCK\", lock)\n    genia.run_source(\"use f from base with ext\", root, filename=entry)\n    assert lock.holds == 1\n    assert root.get(\"f\")(0) == 7\n\n\ndef test_two_public_use_writers_are_observed_during_publication(tmp_path):\n    \"\"\"Observe real source selections at checked-writer boundaries in a bounded worker.\"\"\"\n    import queue\n    import threading\n\n    root, entry, module, group = public_world(tmp_path)\n    (tmp_path / \"extra.genia\").write_text(\"import base\\nextend base.f(1)=8\\n\")\n    genia.run_source(\"import extra\\nuse v from base.f with ext\", root, filename=entry)\n\n    def race():\n        \"\"\"Synchronize two source writers and acknowledge every complete candidate.\"\"\"\n        barrier = threading.Barrier(3, timeout=3)\n        messages = queue.Queue()\n        errors = []\n        original = Env._write_binding\n\n        def observe(env, name, value, *args, **kwargs):\n            \"\"\"Pause before and after the real checked write, under its actual lock.\"\"\"\n            if env is root and name == \"v\":\n                for phase in (\"before\", \"after\"):\n                    if phase == \"after\":\n                        original(env, name, value, *args, **kwargs)\n                    acknowledged = threading.Event()\n                    messages.put(acknowledged)\n                    assert acknowledged.wait(3)\n            else:\n                original(env, name, value, *args, **kwargs)\n\n        def writer(unit):\n            \"\"\"Run independent parser/evaluator requests selecting one contribution.\"\"\"\n            try:\n                barrier.wait()\n                for _ in range(4):\n                    genia.run_source(\"use v from base.f with \" + unit, root, filename=entry)\n            except BaseException as error:\n                errors.append(error)\n\n        Env._write_binding = observe\n        threads = [\n            threading.Thread(target=writer, args=(unit,), daemon=True) for unit in (\"ext\", \"extra\")\n        ]\n        try:\n            for thread in threads:\n                thread.start()\n            barrier.wait()\n            for _ in range(16):\n                ack = messages.get(timeout=3)\n                try:\n                    current = root.get(\"v\")\n                    assert isinstance(current, callables.GeniaLinkedOpenFunction)\n                    assert current.base.group is group\n                    selected = [u.declaring_module_id for u in current.units]\n                    assert selected in ([\"ext\"], [\"extra\"])\n                    assert current(0 if selected == [\"ext\"] else 1) == (\n                        7 if selected == [\"ext\"] else 8\n                    )\n                finally:\n                    ack.set()\n            for thread in threads:\n                thread.join(timeout=3)\n            assert not errors and not any(t.is_alive() for t in threads)\n        finally:\n            Env._write_binding = original\n\n    bounded_process(race)\n\n\ndef test_public_views_keep_completed_base_after_live_group_mutation(tmp_path):\n    \"\"\"Both old and later selections use the original completion, while live calls can change.\"\"\"\n    from genia.ir import IrLiteral\n\n    root, entry, module, group = public_world(tmp_path)\n    genia.run_source(\"use f from base with ext\", root, filename=entry)\n    assert genia.run_source(\"f(1,2)\", root, filename=entry) == 3\n    group.records[0].body = IrLiteral(999)\n    assert group(1, 2) == 999\n    genia.run_source(\"use g from base.f with ext\", root, filename=entry)\n    assert genia.run_source(\"[f(1,2),g(1,2)]\", root, filename=entry) == [3, 3]\n",
+  "original_red_readme": "# D2b TEST ONLY \u2014 RED candidate, independent Claude Code review pending\n\nBaseline c377b971b42682207d194aefb0e5182650d4ac10 (merged #1312).\nAccepted D2 design: docs/design/pre-r29-model-b-d2-linking-design.md.\nNo production, authority-document, Core IR, protocol, capability vocabulary or\nimplementation changes. All proposed behaviors remain RED, not implemented truth.\n\n## Focused prerequisite / preflight delta\n\nThe baseline commit and full tree were reconstructed through GitHub connector\nobjects because executor git networking is broken. Verified commit hash and tree\n2009f6f5ae7d915dcb09372ce1c87cdc1ddecf7f. Branch issue-1250-d2b-red passes the branch\nchecker. D2a tests: 58 passed before the intentional public-boundary transitions.\nExact witness lookup, FrozenOrdinaryBase, shared-engine mixed dispatch, pure\ncanonical validator, both new error classes, Env.publish_view and inert private\nstores exist. Public evaluator branches still require GeniaOpenFunction; builtin\nreflection still assumes explicit bases. These are intended missing D2b seams,\nnot contradictions. D2a's module-cache capture is locked; future ordinary stores\nmust retain that synchronization when D2b populates them. No material prerequisite\ncontradiction was found. D2a acceptance issue comments 6591480398/6605246182 and\n6605268391 remain prior evidence, not fresh implementation certification.\n\n| Portability field | Delta assessment |\n| --- | --- |\n| Zone | Portable ordinary callable authority, explicit selection, validation, frozen views and metadata, Python first. |\n| Core IR | None; use existing IrOpenContribution/IrOpenUse and R16 modules. |\n| Capabilities | Existing multi_file_eval, open_functions, default_open_functions; doc_help for metadata. No invented capability. |\n| Shared evidence | 32 new model-b-link cases and four explicit approved historical transitions. Python host assertions supplement publication/races/TCO/internal snapshot identity only. |\n| Python host | Later two evaluator branches plus reflection routing; no implementation in this commit. |\n| Adapter/wire | Unchanged existing R16 load/execute/compare/applicability. No parallel runner, stderr comparator or request format. |\n| Other hosts | Pinned C++ fef41e58dcd3b80aaedcac98c92943fcfbfd1945 reports all 32 new cases UNSUPPORTED. Actual R16 gate results retained, never PASS. #1269 default-open and #1018 multi-file remain owned gaps. |\n\nMCP knowledge impact: D2b activation will change public language knowledge and\nrequires a GREEN-stage STATE/profile/semantic registry impact check; no client may\nbe told this RED behavior is implemented. Authority docs remain accurate unchanged.\nExisting gap inventory now lists proposed cases; Slice C inventory checks are\nrestricted to its own prefix so exactness is preserved across additional slices.\nThe formerly language-ungated two ordinary-target guards move from guard to gated\nsets (53/84, total137; with six G1 cases total143/90 gated). This is a capability\napplicability correction for the approved activation delta, not a skip mechanism.\n\n## Coverage\n\n- Shared R16: positive ordinary extend/use; import inertness and unselected base\n  isolation; alias/reexport/B1 replaced slot; duplicate aliases; import/selection\n  order; typed keys and nested guard shadowing; duplicate and disjoint shape\n  conflicts; same-unit mix; distinct-key/catchall ambiguities; varargs ambiguity;\n  contributor closure; consumer mid-init; Outcome awareness; doc/meta alias\n  precedence; explicit-view metadata; no authority for lambda/builtin/local lambda\n  alias/nonfunction/view/non-export; original-module declaration ownership.\n- Python: actual public checked-writer fault/retry, failed selection preserving\n  prior view/state, nonretroactive contribution selection, live-group mutation\n  without rewriting completed views, three-channel reflection (including help\n  category/provenance/path non-leakage), public TCO, immutable publication target,\n  failed-origin escaped G negative, bounded source publication/load race,\n  observed barrier-started two-writer race and single writer-lock hold.\n- Existing D2a private tests remain relevant. The two public nonactivation guards\n  intentionally transition at D2b, as does the historical explicit-R20 duplicate\n  unit test; no assertion is silently deleted to make activation pass.\n\n## Approved historical oracle changes (design \u00a78 \u03941/\u03942)\n\nFull original spec documents, expected values and notes are preserved as parsed values\nin historical_oracles.json; original source SHA is the baseline above.\n\n1. model-b-c-own-extend-ordinary-rejected and\n   model-b-d1-preserve-ordinary-extension-rejection: old exit1 and\n   `Error: open-function-target-not-open: 'base.f' is not an open function interface`;\n   new exit0 and existing final-value display `<open contribution <entry> -> f>`.\n   Explicit-open source analog was executed to verify the existing display shape.\n2. model-b-c-own-use-ordinary-base-unchanged: old target-not-open, new unchanged\n   incompatible-contribution category because ext declares no unit:\n   `Error: open-function-incompatible-contribution: expected a contribution targeting ('base', 'f'), got 'ext'`.\n3. error-r20-cross-module-overlapping-unit-ambiguity: old call-time\n   `Error: open-function-clause-ambiguity: get/3 matched clauses in more than one unit ['db_ext', 'db_ext2']`;\n   new selection-time `Error: open-function-cross-unit-duplicate-clause: get has an identical dispatch key in units 'db_ext' and 'db_ext2' shape=('fixed', 3) (first at db_ext:2, duplicate at db_ext2:2)`.\n   The associated Python selection tests do not call the function; failure must\n   occur at use. A new distinct-key overlap case retains runtime ambiguity proof.\n\nAuthorization: accepted design \u00a78, maintainer decision #1250 comment6561255519,\nand explicit D2b TEST ONLY authorization in this task. No other historical oracle\nvalue changes. This correction is not a claim that older oracles were defects.\n\n## Reproduction and actual results\n\nLinux6.18.57 x86_64, Python3.12.14, pytest9.1.1; existing uv project environment.\nAll pytest calls use `UV_CACHE_DIR=/workspace/work/uv-cache uv run --no-sync pytest`.\nNo dependency install; uv.lock remains absent. No full-suite or C++ parity claim.\n\n- Before authoring, the three D2a link modules: **58 passed**.\n- Final 53 behavioral selections: **47 failed, 6 passed**, retained in results.json\n  and final-0.log.json through final-4.log.json. Every invocation uses --maxfail=19; largest\n  selection has 16 failures, so no STOP threshold was exceeded.\n- New shared cases: 27 failed / 5 passed. Passing authority/ownership negatives are\n  existing-behavior controls. Four historical spec transitions fail as intended.\n- New host cases: 12 failed / 1 passed; passing failed-origin negative is a control.\n  Four historical Python-boundary transitions fail as intended.\n- Inventory/gap verification: **5 passed**, 145 unrelated tests deselected.\n- Unaffected D1/key/private D2a preservation:\n  `tests/unit/test_model_b_d1_completion.py tests/unit/test_model_b_d1_preparation_failures.py tests/unit/test_model_b_slice_c_keys.py tests/unit/test_model_b_d2a_link_core.py tests/unit/test_model_b_d2a_link_dispatch.py tests/unit/test_model_b_d2a_link_publish.py -k 'not d2b'`\n  **124 passed, 2 intentionally transitioned public guards deselected**. This is a\n  focused preservation selection, not full regression or masking the new RED.\n- All 101 logical module source fixtures parse/lower successfully.\n- C++: actual fetch_capabilities + execute_spec_via_host with unchanged default10s\n  deadline, sequential gate execution: **32 UNSUPPORTED / 0 PASS / 0 failure classes**.\n  Source/contract pins and declared capabilities retained in cpp_evidence.json;\n  source pin matches accepted-design host pin. Applicability gate rejects before\n  module requests are sent; this is not proof of future C++ linking behavior.\n\nThe preserved verify.py/final_verify.py scripts call existing pytest/R16 APIs to\nreproduce scoped evidence. Run from repo root with PYTHONPATH=src:. under uv.\nThese are evidence helpers, not a new conformance system. They create scratch\nlogs under work/d2b, requiring that directory first. final_verify.py stores exact\npytest node selections in results.json. Ruff format/check applies to the two new\nPython test modules and preserves assertions. Initial lint failure is retained. Raw logs are losslessly wrapped as JSON under raw_log to avoid pytest trailing whitespace in committed text; json.load(file)[\"raw_log\"] reconstructs the exact original log.\n\n## Failure classification / fixture defects\n\nMost immediate RED is existing OpenFunctionTargetNotOpenError at ordinary extend\nor use, before later assertions execute. Explicit Q1 tests fail because use\ncurrently accepts duplicates/shape conflicts. Metadata doc test observes overlay\ninstead of canonical; meta/help encounter missing FrozenOrdinaryBase metadata\nrouting. Exact per-case failures are retained in results.json. Public concurrency,\nTCO, retry and many semantic expectations behind missing activation have **not**\nexecuted; no activation shim or stub was supplied. They require independent review\nand real execution at GREEN, not a claim of verified downstream correctness now.\n\nDraft fixture defects found and corrected separately: varargs error wording used\n`from units` instead of existing `contributed by`; three metadata source fixtures\nused unsupported `.doc` suffix after a call (corrected to existing `/doc` named\naccess); two transitioned success specs initially forgot the existing final\ncontribution display. Parse-only checks and explicit-open analog exposed those\nissues without implementing D2b. No production failure is reclassified as a pass.\nInitial and final failures remain retained; repeated final selections reflect\nactual subsequent source/fixture/style changes, not retry-to-green.\n\n## Review and stop\n\nIndependent Claude Code review is REQUESTED, not completed: command -v claude\nreturns no executable and active-tool metadata exposes no Claude service. No Codex\nagent is substituted as Claude and the author does not approve these tests.\nThis candidate establishes executable RED, but RED acceptance remains BLOCKED\npending that required independent review. Supply the candidate SHA to Claude Code\nfor semantic/fixture/transition/portability review and publish its verdict on #1250.\nAny modified RED requires a new SHA, appropriate verification and re-review.\nSTOP after RED; no D2b production, Slice E/R29, merges or issue closures.\n"
+}

@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-positive-extend-use",
+  "category": "eval",
+  "description": "D2b RED #1250: positive-extend-use",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x,y)=x+y\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(0)=7\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\n[base.f(1,2), f(1,2), f(0)]\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "[3, 3, 7]\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

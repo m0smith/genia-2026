@@ -3267,6 +3267,23 @@ def make_global_env(
             lines.extend(metadata_lines)
         return "\n".join(lines)
 
+    def _describe_ordinary_view(target: "GeniaLinkedOpenFunction") -> str:
+        """Render frozen help-channel facts and canonical clause provenance, without paths."""
+        from genia.callable import _format_open_span
+
+        base = target.base
+        projection = base.projection
+        lines = [f"{base.name} (linked ordinary function view)", ""]
+        lines.append(render_markdown_docstring(projection.help_doc)
+                     if projection.help_doc is not None else "No documentation available.")
+        lines.extend(_metadata_summary_lines(projection.help_metadata))
+        for label, module_id, records in [("base", base.module_id, base.clauses),
+                *(("contribution", unit.declaring_module_id, unit.clauses) for unit in target.units)]:
+            lines.extend(["", f"{label} ({module_id}):"])
+            for ordinal, record in enumerate(records, start=1):
+                lines.append(f"  {ordinal}. {_format_open_span(record.span, record.closure.module_identity())}")
+        return "\n".join(lines)
+
     def _describe_open_function(target: "GeniaOpenFunction | GeniaLinkedOpenFunction") -> str:
         """R20 help/introspection (contract §7.3): interface name, callable
         shapes, effective documentation, declaration location, and every
@@ -3274,6 +3291,9 @@ def make_global_env(
         first, then contribution units ordered by declaring module identity,
         clauses within each unit by lexical ordinal. No host object address
         or provider-specific representation is exposed."""
+        from genia.function_linking import FrozenOrdinaryBase
+        if isinstance(target, GeniaLinkedOpenFunction) and isinstance(target.base, FrozenOrdinaryBase):
+            return _describe_ordinary_view(target)
         if isinstance(target, GeniaLinkedOpenFunction):
             open_fn = target.base
             units = target.units
@@ -3493,8 +3513,9 @@ def make_global_env(
     def _doc_in_scope(lookup_env: Env, *args: Any) -> Any:
         """Resolve documentation in the supplied lexical Env, including autoload.
 
-        Binding metadata precedes legacy docstrings; open interfaces own their
-        docs. Missing documentation returns the existing Outcome; invalid
+        Ordinary views use frozen projected doc before alias metadata. Otherwise
+        binding metadata precedes legacy docs; explicit interfaces own their docs.
+        Missing documentation returns the existing Outcome; invalid
         argument count or non-string names raise TypeError.
         """
         if len(args) != 1:
@@ -3509,6 +3530,11 @@ def make_global_env(
                 lookup_env.get(name)
             else:
                 return make_none("missing-doc", GeniaMap().put("name", name))
+        from genia.function_linking import FrozenOrdinaryBase
+        target = lookup_env.get(name)
+        if isinstance(target, GeniaLinkedOpenFunction) and isinstance(target.base, FrozenOrdinaryBase):
+            projected = target.base.projection.projected_doc
+            return projected if projected is not None else make_none("missing-doc", GeniaMap().put("name", name))
         metadata = lookup_env.get_metadata(name)
         doc_text = _metadata_doc(metadata)
         if doc_text is not None:
@@ -3532,7 +3558,9 @@ def make_global_env(
 
         Precedence is `@doc` binding metadata, then a function group's legacy
         docstring; an R20 open interface or linked view reports the interface's
-        own `@doc` (a view reports its base's). Raises TypeError for a wrong
+        own `@doc` (an explicit view reports its base's). Ordinary views instead
+        return their frozen projected-doc channel, ignoring alias overlays.
+        Raises TypeError for a wrong
         argument count or a non-string name. Autoloads a prelude name once.
         """
         return _doc_in_scope(env, *args)
@@ -3540,7 +3568,8 @@ def make_global_env(
     def _meta_in_scope(lookup_env: Env, *args: Any) -> Any:
         """Resolve metadata in the supplied lexical Env, including autoload.
 
-        Open views retain interface-owned metadata. Missing names return the
+        Ordinary views return frozen defining-slot metadata, ignoring alias
+        overlays; explicit views retain interface-owned metadata. Missing names return the
         existing Outcome; invalid argument count or names raise TypeError.
         """
         if len(args) != 1:
@@ -3556,6 +3585,9 @@ def make_global_env(
             else:
                 return make_none("missing-meta", GeniaMap().put("name", name))
         target = lookup_env.get(name)
+        from genia.function_linking import FrozenOrdinaryBase
+        if isinstance(target, GeniaLinkedOpenFunction) and isinstance(target.base, FrozenOrdinaryBase):
+            return target.base.projection.binding_metadata
         if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
             # R20 contract 7.2.1: interface metadata is owned by the interface.
             return (target.base if isinstance(target, GeniaLinkedOpenFunction) else target).metadata
@@ -3565,8 +3597,9 @@ def make_global_env(
         """`meta(name)`: the metadata map attached to the bound name, or `none("missing-meta")`.
 
         An R20 open interface or linked view returns the interface's own
-        metadata map (a view returns its base's); other names return their
-        binding metadata. Raises TypeError for a wrong argument count or a
+        metadata map (an explicit view returns its base's); ordinary views return
+        their frozen defining-slot channel. Other names return their binding
+        metadata. Raises TypeError for a wrong argument count or a
         non-string name. Autoloads a prelude name once.
         """
         return _meta_in_scope(env, *args)

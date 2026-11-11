@@ -1,28 +1,36 @@
-name: model-b-c-own-use-ordinary-base-unchanged
-id: model-b-c-own-use-ordinary-base-unchanged
-category: error
-description: "Slice C RED (#1269): D5"
-requires: [multi_file_eval, open_functions]
-input:
-  modules:
-    entry: main.genia
-    files:
-    - {path: base.genia, source: f(x) = x}
-    - path: ext.genia
-      source: |-
-        import base
-        value = 1
-    - path: main.genia
-      source: |-
-        import base
-        import ext
-        use f from base with ext
-expected:
-  stdout: ''
-  stderr: |
-    Error: open-function-target-not-open: 'base.f' is not an open function interface
-  exit_code: 1
-notes: |
-  Kind: existing-behavior guard (passes on the Python reference host).
-  Oracle: observed (Python baseline main@79c073b).
-  Baseline (Python main@79c073b, gate bypassed): stdout="" stderr="Error: open-function-target-not-open: 'base.f' is not an open function interface\n" exit=1.
+{
+  "name": "model-b-c-own-use-ordinary-base-unchanged",
+  "id": "model-b-c-own-use-ordinary-base-unchanged",
+  "category": "error",
+  "description": "Slice C RED (#1269): D5",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x) = x"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nvalue = 1"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: open-function-incompatible-contribution: expected a contribution targeting ('base', 'f'), got 'ext'\n",
+    "exit_code": 1
+  },
+  "notes": "Approved transition: D2 design \u00a78 \u03941/\u03942, maintainer comment 6561255519 and D2b RED authorization. Original full spec/oracle retained in tests/data/model_b_d2b_red/historical_oracles.json. Not implemented yet."
+}

@@ -1,18 +1,31 @@
-name: model-b-d1-preserve-ordinary-extension-rejection
-category: error
-description: Importing an ordinary module does not activate cross-module extension authority.
-requires: [multi_file_eval, open_functions]
-input:
-  modules:
-    entry: main.genia
-    files:
-      - {path: base.genia, source: 'f(x)=x'}
-      - path: main.genia
-        source: |
-          import base
-          extend base.f(0)=0
-expected:
-  stdout: ''
-  stderr: "Error: open-function-target-not-open: 'base.f' is not an open function interface\n"
-  exit_code: 1
-notes: Existing rejection must remain; not a capability downgrade or linking implementation.
+{
+  "name": "model-b-d1-preserve-ordinary-extension-rejection",
+  "category": "error",
+  "description": "Importing an ordinary module does not activate cross-module extension authority.",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(x)=x"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nextend base.f(0)=0\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "<open contribution <entry> -> f>\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Approved transition: D2 design \u00a78 \u03941/\u03942, maintainer comment 6561255519 and D2b RED authorization. Original full spec/oracle retained in tests/data/model_b_d2b_red/historical_oracles.json. Not implemented yet."
+}

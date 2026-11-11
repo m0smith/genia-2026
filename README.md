@@ -32,9 +32,12 @@ aliases share, a call selects the fixed or sole varargs shape and then the first
 matching clause, equal pattern/guard keys are duplicates, and declaring through
 an alias or imported binding is rejected with `function-declaration-not-owner`.
 Atomic closed-function clause groups (`f(...) =: body`) are accepted and
-lowered, but their evaluation fails with `model-b-not-implemented`; cross-module
-linking changes and closed publication remain unimplemented. Explicit R20 `open`
-retains its existing execution behavior. C++ supports guards inside ordinary grouped bodies (with header capture) and
+lowered, but their evaluation fails with `model-b-not-implemented`;
+closed publication remains unimplemented. Python supports explicit ordinary-base
+`extend`/`use` through completed-module witnesses; selection freezes clauses and
+metadata and validates cross-unit keys/shapes. Explicit R20 views share that
+validation and canonical contributor order; their reflection precedence is unchanged.
+C++ supports guards inside ordinary grouped bodies (with header capture) and
 local explicit-R20 clauses (whose grouped headers remain nonbinding), with
 guard-sensitive duplicate keys. It does not
 support ordinary pattern/guard headers, default-open functions or `=:`.
@@ -49,7 +52,8 @@ See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
 Python privately snapshots ordinary clauses/provenance and three B1 metadata
 channels at successful module completion. Live callables stay unchanged;
 re-exports reuse exact original completion witnesses. There is no public snapshot
-API, ordinary cross-module linking or closed-function publication.
+API. Explicit `use f from base with ext` selects frozen ordinary-base views;
+there is no rename-on-use, implicit contribution activation or closed publication.
 
 Start the REPL from a source checkout:
 
@@ -963,9 +967,12 @@ fact(5)
 - clauses whose pattern and guard are equal up to variable names are duplicates and
   rejected when declared; declaring a name that is an alias of, or imported from,
   another binding's function is rejected with `function-declaration-not-owner`
-- C++ does not support these forms (known gap `default_open_functions`); closed
-  `f(...) =: body` functions and cross-module linking of ordinary functions are not
-  implemented
+- Python links completed exported ordinary functions with explicit `extend`/`use`;
+  frozen selections retain closures and independent doc/meta/help channels.
+  Selection rejects equal keys or conflicting fixed/varargs shapes across units,
+  including explicit R20 views. No rename-on-use or import-driven activation.
+- C++ does not support these forms (known gaps `default_open_functions` and
+  `multi_file_eval`); closed `f(...) =: body` publication remains unimplemented.
 
 ### Open functions (Experimental, R20)
 

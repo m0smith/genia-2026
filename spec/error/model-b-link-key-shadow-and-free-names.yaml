@@ -1,0 +1,35 @@
+{
+  "name": "model-b-link-key-shadow-and-free-names",
+  "category": "error",
+  "description": "D2b RED #1250: key-shadow-and-free-names",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "f(a) ? ((a)->a)(1)>0 = 1\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(b) ? ((b)->b)(1)>0 = 2\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse f from base with ext\n\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: open-function-cross-unit-duplicate-clause: f has an identical dispatch key in units base[base] and 'ext' shape=('fixed', 1) (first at base:1, duplicate at ext:2)\n",
+    "exit_code": 1
+  },
+  "notes": "Proposed D2b behavior, not implemented at baseline c377b971. Accepted D2 design \u00a79.2; host gaps #1269/#1018. RED before production."
+}

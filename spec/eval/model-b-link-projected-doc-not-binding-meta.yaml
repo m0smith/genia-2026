@@ -1,0 +1,40 @@
+{
+  "name": "model-b-link-projected-doc-not-binding-meta",
+  "category": "eval",
+  "description": "R2: frozen projected doc differs from binding metadata after original slot replacement.",
+  "requires": [
+    "multi_file_eval",
+    "open_functions",
+    "default_open_functions",
+    "doc_help"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "other.genia",
+          "source": "v=1\n"
+        },
+        {
+          "path": "base.genia",
+          "source": "@doc \"original\"\nf(x,y)=\"G-inline\" x\na=f\nimport other as f\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.a(0)=7\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse a from base with ext\n[doc(\"a\"),map_has?(meta(\"a\"), \"doc\")]\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "[\"G-inline\", false]\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "notes": "Proposed D2b R2 guard authorized by #1250 comment6615005691; D2 section7 channels2 and1 differ deliberately. Baseline RED must reject ordinary extension; partial GREEN may satisfy the oracle without making D2b accepted. No C++ parity claimed; existing #1269/#1018 applicability."
+}

@@ -1,0 +1,34 @@
+{
+  "name": "error-r20-use-dotted-from-not-rename",
+  "category": "error",
+  "description": "R1: dotted from is a literal module alias, never rename-on-use or a split fallback.",
+  "requires": [
+    "multi_file_eval",
+    "open_functions"
+  ],
+  "input": {
+    "modules": {
+      "entry": "main.genia",
+      "files": [
+        {
+          "path": "base.genia",
+          "source": "open f(0)=1\n"
+        },
+        {
+          "path": "ext.genia",
+          "source": "import base\nextend base.f(1)=2\n"
+        },
+        {
+          "path": "main.genia",
+          "source": "import base\nimport ext\nuse walk from base.f with ext\n[walk(0),walk(1)]\n"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "stdout": "",
+    "stderr": "Error: Undefined name: base.f\n",
+    "exit_code": 1
+  },
+  "notes": "TEST-ONLY R1 guard authorized by #1250 comment6615005691, independently verified explicit-R20 fixture in6611014654. Trailing calls make accidental rename/splitting produce observable [1,2]; correct execution rejects before either call. Existing positive literal a.b alias test stays unchanged."
+}

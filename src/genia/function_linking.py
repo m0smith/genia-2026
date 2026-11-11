@@ -1,4 +1,4 @@
-"""Private D2a frozen views and pure validation; no evaluator/source activation.
+"""Frozen ordinary views and pure validation for explicitly selected D2b linking.
 
 Completion witnesses own the syntax. Each view receives detached invocation copies
 and captures selected unit clause lists. No matcher, guard, body, lookup or renderer

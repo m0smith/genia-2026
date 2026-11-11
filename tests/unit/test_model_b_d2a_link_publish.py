@@ -13,7 +13,6 @@ import pytest
 import genia
 from genia import callable as callables
 from genia import environment as environments
-from genia.callable import OpenFunctionTargetNotOpenError
 from genia.environment import ImmutableBindingError
 from tests.unit.f2_p2_support import separated_scopes
 from tests.unit.model_b_d2a_support import base_world, contributor, frozen, linking, no_runtime_calls
@@ -432,14 +431,12 @@ def test_d2a_08_module_load_overlaps_publication_and_both_finish(tmp_path):
 # --- D2a-10: non-activation ----------------------------------------------------------------
 
 
-def test_d2a_10_ordinary_targets_are_still_rejected_from_source(tmp_path):
-    root, entry, module, group = base_world(tmp_path, "f(x) = x\n")
-    (tmp_path / "ext.genia").write_text("import base\nextend base.f(0, 1) = 1\n", encoding="utf-8")
-    with pytest.raises(OpenFunctionTargetNotOpenError) as caught:
-        root.load_module("ext", entry)
-    assert "open-function-target-not-open" in str(caught.value)
-    with pytest.raises(OpenFunctionTargetNotOpenError):
-        genia.run_source("import base\nuse f from base with base", root, filename=entry)
+def test_d2a_10_ordinary_targets_become_explicit_source_targets_d2b(tmp_path):
+    """Approved Δ1: formerly rejected source activation now creates a selected view."""
+    root, entry, module, group = base_world(tmp_path, "f(x)=x\n")
+    (tmp_path / "ext.genia").write_text("import base\nextend base.f(0,1)=7\n")
+    assert root.load_module("ext", entry)._ordinary_contributions
+    assert genia.run_source("import base\nimport ext\nuse f from base with ext\nf(0,1)", root, filename=entry) == 7
 
 
 def test_d2a_10_inert_private_fields_exist_and_stay_empty_without_activation(tmp_path):

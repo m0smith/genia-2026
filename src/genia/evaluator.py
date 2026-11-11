@@ -1601,12 +1601,16 @@ class Evaluator:
             if not isinstance(target_module, ModuleValue):
                 raise OpenFunctionTargetNotOpenError(node.target_module_alias)
             target = target_module.get_export(node.target_name)
-            if not isinstance(target, GeniaOpenFunction):
+            from genia.ordinary_completion import completion_for
+            projection = completion_for(target_module, target)
+            if not isinstance(target, GeniaOpenFunction) and projection is None:
                 raise OpenFunctionTargetNotOpenError(f"{node.target_module_alias}.{node.target_name}")
             clauses = [
                 OpenClauseRecord(clause.pattern, clause.guard, clause.result, self.env, clause.span)
                 for clause in node.clauses
             ]
+            if projection is not None:
+                return self.env.add_ordinary_contribution(target, projection.provenance, clauses)
             existing = self.env.open_contributions.get(target.interface_key)
             if existing is not None:
                 clauses = [*existing.clauses, *clauses]
@@ -1619,7 +1623,12 @@ class Evaluator:
             if not isinstance(base_module, ModuleValue):
                 raise OpenFunctionTargetNotOpenError(node.target_module_alias)
             base = base_module.get_export(node.target_name)
-            if not isinstance(base, GeniaOpenFunction):
+            from genia.ordinary_completion import completion_for
+            from genia.function_linking import FrozenOrdinaryBase, link_view
+            projection = completion_for(base_module, base)
+            if projection is not None:
+                base = FrozenOrdinaryBase.from_projection(projection)
+            elif not isinstance(base, GeniaOpenFunction):
                 raise OpenFunctionTargetNotOpenError(f"{node.target_module_alias}.{node.target_name}")
             seen_unit_module_ids: set[str] = set()
             units: list[GeniaOpenContributionUnit] = []
@@ -1627,15 +1636,19 @@ class Evaluator:
                 contrib_module = self.env.get(contrib_alias)
                 if not isinstance(contrib_module, ModuleValue):
                     raise OpenFunctionIncompatibleContributionError(base.interface_key, contrib_alias)
-                unit = self._find_open_contribution_unit(contrib_module, base.interface_key)
+                if isinstance(base, FrozenOrdinaryBase):
+                    unit = next((candidate for candidate in contrib_module._ordinary_contributions
+                                 if candidate.target is base.group), None)
+                else:
+                    unit = self._find_open_contribution_unit(contrib_module, base.interface_key)
                 if unit is None:
                     raise OpenFunctionIncompatibleContributionError(base.interface_key, contrib_module.name)
                 if unit.declaring_module_id in seen_unit_module_ids:
                     raise OpenFunctionDuplicateSelectionError(base.interface_key, unit.declaring_module_id)
                 seen_unit_module_ids.add(unit.declaring_module_id)
                 units.append(unit)
-            linked = GeniaLinkedOpenFunction(base, tuple(units))
-            self.env.set(node.local_name, linked, assignable=True)
+            linked = link_view(base, units)
+            self.env.publish_view(node.local_name, linked)
             return linked
         if isinstance(node, IrCase):
             raise RuntimeError("Standalone case expressions are only valid as function bodies or final block expressions")

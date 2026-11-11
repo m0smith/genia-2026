@@ -181,7 +181,7 @@ class Env:
         # R20 contract 4.2: this module's contribution units, keyed by target
         # interface key. A table, not bindings, so units are never exports.
         self.open_contributions: dict[tuple[str, str], Any] = {}
-        # Private exact-G store; evaluator activation belongs to D2b.
+        # Exact-G contribution replacements synchronize with module capture below.
         self.ordinary_contributions: dict[int, Any] = {}
 
     def scope_bound(self, target: Any, build: Any) -> Any:
@@ -510,8 +510,26 @@ class Env:
         with _BINDING_LOCK:
             self._write_binding(name, value, assignable, metadata, preserve_metadata)
 
+    def add_ordinary_contribution(self, target: Any, interface_key: tuple[str, str], clauses: Any) -> Any:
+        """Atomically replace this unit's exact-G contribution with an accumulated unit.
+
+        Serialize read/build/write with module completion capture using the binding
+        lock. Records already own their closures; construction checks cached keys
+        without evaluating user code. A failing build leaves the old unit intact.
+        Strong target ownership prevents id reuse; published views keep old units.
+        """
+        from .callable import GeniaOpenContributionUnit
+
+        module_id = self.module_identity()
+        with _BINDING_LOCK:
+            previous = self.ordinary_contributions.get(id(target))
+            records = [*previous.clauses, *clauses] if previous is not None else list(clauses)
+            unit = GeniaOpenContributionUnit(interface_key, module_id, records, target=target)
+            self.ordinary_contributions[id(target)] = unit
+            return unit
+
     def publish_view(self, name: str, view: Any) -> None:
-        """Publish a fully built private view through one locked checked write.
+        """Publish a fully built linked view through one locked checked write.
 
         Route runtime-owned names before the lock; reject pruned/immutable names
         without mutation. Construction and validation are the caller's pure work.
