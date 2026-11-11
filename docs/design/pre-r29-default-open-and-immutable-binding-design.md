@@ -387,6 +387,9 @@ persist, later annotations never run. No partially merged map escapes.
 
 ### 6.2 Closed callable state machine
 
+The Python realization of this section is proposed in the
+[Slice E design](pre-r29-model-b-slice-e-closed-publication-design.md); it is not implemented.
+
 `structurally validated -> initializing -> committed | failed`.
 Validate the complete group's shapes, duplicate keys, mixing, inline-doc
 consistency, binding freshness and permitted annotations before provisional
