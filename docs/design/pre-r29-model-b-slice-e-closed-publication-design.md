@@ -1,6 +1,6 @@
 # Model B Slice E: closed-function publication (E1 + E2)
 
-Status: **DESIGN PROPOSED, iteration 2 — awaiting independent re-review. Nothing here is implemented.**
+Status: **DESIGN PROPOSED, iteration 3 — awaiting independent re-review. Nothing here is implemented.**
 Python parses and lowers closed `f(pattern) =: expression` groups, and evaluation
 still rejects them with `model-b-not-implemented`. `GENIA_STATE.md` remains the only
 authority on implemented behavior. Phase record for
@@ -31,6 +31,17 @@ of iteration 1 (`426819a2735c76d8a6f7ba282a89b174a77bd8f7`).
 | F5 declaration result and oracle | Exact output and full inventory list | §10.4 |
 | F6 capability | Independent `closed_functions` capability recommended; decision pending | §9 |
 | F7 truth synchronization | Lands with E2, not after it | §11 |
+
+**Iteration 3** answers the independent re-review
+[FAIL — DESIGN CORRECTIONS REQUIRED](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6809101867)
+of iteration 2 (`510d80ef3a4ae175aaee733f7a96d41874b592d7`). It changes only the
+three concurrency points below. The F3–F7 resolutions are unchanged.
+
+| Finding | Correction | Where |
+|---|---|---|
+| N1 immutable-name set staged outside the lock | The declaring scope's set is computed from its current value under the binding lock, before the linearization point; the self frame's set is fixed at construction | §4.1, §4.6 |
+| N2 cleanup not idempotent | The count is replaced by a set of open transactions; cleanup is four ownership-conditional steps that can be repeated | §4.1, §4.6, §6.6 |
+| N3 transaction cleared under a reader | The descriptor is assigned once and never cleared; the admission test reads only data that cannot change during the check | §3.1, §4.6, §6.2 |
 
 ## 1. Scope lock
 
@@ -84,7 +95,10 @@ tail calls, Outcome awareness and pattern/guard headers are the ordinary ones. N
 second dispatcher exists.
 
 Private fields: `_state` (`building`, `initializing`, `committed`, `failed`) and
-`_txn` (its publication transaction, §6.1, cleared at a terminal state).
+`_txn` (its publication transaction descriptor, §6.1). `_txn` is assigned exactly
+once, while the callable is `building` and unreachable, and is **never cleared or
+replaced**. `_state` is the only field that changes after the callable can be
+reached.
 
 The callable is **sealed**:
 - Only the private whole-group builder adds records, and only while the state is
@@ -95,7 +109,8 @@ The callable is **sealed**:
   group through a binding leave a closed callable untouched (§7.3).
 
 State changes are single stores, `building → initializing → committed | failed`.
-`committed` and `failed` are terminal.
+The two stores to a terminal state are made under the binding lock and only when the
+current state is `initializing`. `committed` and `failed` are therefore final.
 
 | Alternative | Verdict |
 |---|---|
@@ -123,8 +138,10 @@ No evaluator or builtin path returns a clause record of a closed callable as a v
 ### 3.3 Self frame
 
 Each closed callable owns one private scope, the **self frame**:
-`Env(parent=declaring scope)` that holds only the defining name. Every clause record
-uses the self frame as its closure, and annotations are evaluated in it.
+`Env(parent=declaring scope)` that holds only the defining name. Its immutable-name
+set contains that name from construction, while the frame is still private, and the
+publication protocols never store to that set again. Every clause record uses the
+self frame as its closure, and annotations are evaluated in it.
 
 An **unshadowed** reference to the function's own name inside a clause body or an
 annotation therefore means this exact callable, never a later declaration that
@@ -160,8 +177,8 @@ user code. Source and direct Core IR both enter at T0.
 | T0 | `assert_portable_core_ir([node])` (existing) | existing `ValueError` |
 | T1 | Name check in the declaring scope: not bound, not held by another transaction, not runtime-owned (`_check_declaration` rules, `environment.py:420-441`) | existing `ImmutableBindingError` texts |
 | T2 | Annotation permission scan (§5.1) over every annotation name of every clause, in source order | `closed-function-annotation-not-permitted` |
-| T3 | Build the callable, its records and self frame privately; add records in source order | existing duplicate-clause and conflicting-documentation errors |
-| T4 | **Provisional publication** under the binding lock: repeat T1, create the transaction, insert the two guarded slots (§6.6), set `initializing` | as T1 |
+| T3 | Build the callable, its records, its transaction descriptor and its self frame privately; add records in source order | existing duplicate-clause and conflicting-documentation errors |
+| T4 | **Provisional publication** under the binding lock, in this order: P1 repeat T1; P2 add the transaction to the open-transaction set (§6.6); P3 set `initializing`; P4 insert the declaring-scope slot; P5 insert the self-frame slot | as T1 |
 | T5 | Open the admission window (§6.2); evaluate annotations in group order in the self frame, folding each clause's map into one private map with `_merge_metadata_maps`; close the window in a `finally` | the annotation's own error |
 | T6 | **Publish** (§4.1) | — |
 | T7 | **Fail** (§4.2), on any exception leaving T4, T5 or the pre-commit part of T6, including `BaseException`; then re-raise it unchanged | — |
@@ -171,15 +188,18 @@ clause 1 does not run when clause 3 is a duplicate. During T5 the callable alrea
 has all of its clauses, so an annotation on clause 1 may call the function and reach
 clause 2.
 
+The state becomes `initializing` (P3) before any slot exists (P4, P5), so a reader
+that finds a slot never sees a `building` callable. The transaction joins the open
+set (P2) before any slot exists, which §4.6 relies on.
+
 The binding lock (`_BINDING_LOCK`, `environment.py:37`) is held only inside T4, T6
 and T7. It is never held while an annotation or a function body runs.
 
 ### 4.1 Publication protocol (T6)
 
-**Staging, before the lock.** The transaction computes everything that can allocate
-or fail: the final metadata map (already folded during T5) and the replacement
-immutable-name sets for the declaring scope and the self frame. Nothing shared is
-written.
+**Before the lock.** The only value prepared outside the lock is the final metadata
+map, which T5 already folded and which belongs to this transaction alone. Nothing
+that is derived from shared scope data is computed outside the lock.
 
 **Under one hold of the binding lock:**
 
@@ -187,10 +207,25 @@ written.
 |---|---|---|
 | C1 | Revalidate: the declaring scope's slot for the name still belongs to this transaction and the name is not bound | no |
 | C2 | Store the final metadata map on the callable | no: every reader of a closed callable's metadata goes through the use check, which still sees `initializing` |
-| **C3** | **`_state = committed`** — the linearization point | **yes, all at once** |
-| C4 | Declaring scope: binding metadata, immutable-name set, then the binding itself | already implied by C3 (see below) |
-| C5 | Self frame: the same three writes | same |
-| C6 | Remove both slots; decrement the open-slot count | no change in what readers see |
+| C2b | Compute the declaring scope's new immutable-name set as **its current set plus the name**, into a local value | no |
+| **C3** | **If the state is `initializing`, set `_state = committed`** — the linearization point | **yes, all at once** |
+| C4 | Declaring scope: binding metadata, then the set computed at C2b, then the binding itself | already implied by C3 (see below) |
+| C5 | Self frame: binding metadata, then the binding itself | same |
+| C6 | Run the close routine K1–K4 | no change in what readers see |
+
+**Close routine**, used by publication, failure and an aborted T4:
+
+| Step | Action |
+|---|---|
+| K1 | Remove the declaring-scope slot for the name **if it belongs to this transaction** |
+| K2 | Remove the self-frame slot for the name if it belongs to this transaction |
+| K3 | Discard this transaction from the open-transaction set (no effect if absent) |
+| K4 | Mark the transaction descriptor `closed` |
+
+Every K step is a conditional store that does nothing when its work is already done,
+and none touches anything that another transaction owns. The routine runs as "repeat
+K1–K4 until the descriptor is `closed`". Progress needs no separate record: each
+step's own condition is the record, and K4 is the single completion mark.
 
 **Why C3 alone is the linearization point.** While a slot exists, every lookup of the
 name and of its metadata, in the declaring scope or the self frame, is answered from
@@ -200,6 +235,10 @@ after seeing `committed` (records, metadata) was stored before C3 and never chan
 So before C3 every observer sees an unpublished function, and from C3 on every
 observer sees a fully published one. C4–C6 only move the answer from the slot into
 the ordinary tables; they change no observable result.
+
+C2b is the last step that can fail by allocation, and it comes before C3. The lock
+is held without interruption from C2b through C4, so no other writer can change the
+declaring scope's set between the computation and the store (§4.6, N1).
 
 A reader that started before T4 and skipped the slot path (§6.6, fast path) reads the
 ordinary tables directly. It finds the binding absent until C4 writes it, and C4
@@ -214,8 +253,8 @@ binding lock:
 | Step | Action |
 |---|---|
 | F1 | If the state is `initializing`: **`_state = failed`** — the linearization point of failure |
-| F2 | Self frame: bind the name, immutable, to the failed callable |
-| F3 | Remove both slots; decrement the open-slot count |
+| F2 | Self frame: bind the name to the failed callable (the name is already in that frame's immutable-name set) |
+| F3 | Run the close routine K1–K4 |
 
 Nothing is written to the declaring scope, its metadata or its immutable-name set.
 The name is free for reuse. The private metadata map is dropped; it was never stored
@@ -241,20 +280,24 @@ interrupt or an allocation failure. It is distinct from an annotation error.
 
 | Fault at | Result |
 |---|---|
-| T4 before the state becomes `initializing` | Slots removed, count restored. The callable was never reachable; it is discarded. |
+| P1 or P2 (state still `building`) | Close routine. The callable was never reachable; it is discarded. |
+| P3, P4 or P5 | T7. The state may already be `initializing`; F1 is conditional and the close routine removes whichever slots exist. |
 | T5, or closing the window | T7. |
-| C1 or C2 | T7. The state is still `initializing`; nothing visible was written. |
+| C1, C2 or C2b | T7. The state is still `initializing`; nothing visible was written. An allocation failure at C2b is this case. |
 | C3 | The handler reads the state. `committed`: roll forward. Otherwise: T7. |
-| C4, C5 or C6 | **Roll forward.** A `finally` inside the lock hold repeats C4–C6, which are idempotent stores and removals, until they are complete. The fault is then re-raised from the declaration statement. The function is published. |
+| C4 or C5 | **Roll forward.** A `finally` inside the lock hold repeats C4 and C5, which are plain stores of values that already exist, then runs the close routine. The fault is then re-raised from the declaration statement. The function is published. |
+| Between or after any of K1–K4 | The close routine is run again from K1. Steps already done do nothing (§4.6, N2). |
 | F1 | The handler reads the state. Not yet `failed`: repeat F1. |
-| F2 or F3 | Roll forward to completed failure the same way. |
+| F2 | Repeat F2, then the close routine. |
 
 Consequences:
 - **Committed never becomes failed.** F1 is conditional on `initializing`, and
   after C3 the only path is forward.
-- **Every exit leaves a terminal state, no slot, and a balanced count.**
-- **What is rolled back:** only the transaction's own private bookkeeping (slots,
-  count). Nothing visible is written before C3, so there is nothing visible to undo.
+- **Every exit leaves a terminal state (or a discarded, never-reachable callable), no
+  slot of this transaction, and this transaction absent from the open set.**
+- **What is rolled back:** only the transaction's own private bookkeeping (its slots
+  and its membership of the open set). Nothing visible is written before C3, so
+  there is nothing visible to undo.
 - **What is never rolled back:** effects of annotations (contract §4.2). They may
   already have been observed by other executions or outside the program, and the
   contract defines no cancellation.
@@ -268,6 +311,179 @@ Closed callables use the ordinary three observations: binding annotations (the
 committed map), inline documentation (the group docstring, merged at T3), and help
 (the existing `_describe_function_group`). Until C2 the private map is a local value
 of the transaction.
+
+### 4.6 Concurrency arguments (N1–N3)
+
+Each argument names its invariant, replays the failure found in iteration 2, and
+gives the corrected interleaving. Thread **O** owns closed function `f`.
+
+#### N1 — immutable-name membership
+
+**Ownership.** `Env._immutable` (`environment.py:129`). Its only existing writer is
+`commit_immutable_declaration` (`environment.py:473`), which stores
+`self._immutable | {name}` inside one hold of the binding lock. Step C2b and the
+store in C4 are the only new writers.
+
+**Invariant IM.** For every scope: the immutable-name set only grows, and every
+store to it is "the current set plus one name", read and stored within one
+uninterrupted hold of the binding lock.
+
+**Old failure (iteration 2).**
+
+| # | Thread O (`f`) | Thread W (`g =: 1`, same scope) | Set |
+|---|---|---|---|
+| 1 | stages `S ∪ {f}` outside the lock | | `S` |
+| 2 | | lock; store `S ∪ {g}`; bind `g`; unlock | `S ∪ {g}` |
+| 3 | lock; C1 passes; C4 stores the staged `S ∪ {f}` | | `S ∪ {f}` — **`g` lost** |
+
+**Corrected.**
+
+| # | Thread O (`f`) | Thread W (`g =: 1`) | Set |
+|---|---|---|---|
+| 1 | T5 ends; only the private metadata map is prepared | | `S` |
+| 2 | | lock; store `S ∪ {g}`; bind `g`; unlock | `S ∪ {g}` |
+| 3 | lock; C1; C2 | | `S ∪ {g}` |
+| 4 | C2b reads the current set: local `N = S ∪ {g, f}` | any writer waits for the lock | `S ∪ {g}` |
+| 5 | C3; C4 stores `N`; C5; C6; unlock | | `S ∪ {g, f}` |
+
+If W runs after step 5 instead, it reads `S ∪ {f}` and stores `S ∪ {f, g}`. If W
+arrives during steps 3–5 it waits for the lock and then does the same. In every
+order both names stay in the set, so committing `f` cannot make `g` writable.
+
+**Two closed publications** `f` and `h` in one scope are the same argument: each
+runs C2b through C4 inside its own lock hold, so the second reads the set the first
+stored.
+
+**Allocation failure.** C2b is the only allocation that depends on shared data. It
+runs before C3. If it fails, the state is still `initializing`, nothing visible was
+written, and T7 runs: `f` is failed and unbound, and the set is untouched. No step
+after C3 allocates a set.
+
+**Self frame.** Its set is built at T3, while the frame is private, and already
+contains the name. C5 and F2 do not store to it. Any later immutable declaration
+made in that frame goes through the existing writer and obeys IM.
+
+**Effect on F2.** The linearization argument is unchanged. The claim "nothing derived
+from shared data is computed outside the lock" replaces the staging paragraph.
+
+#### N2 — cleanup accounting
+
+**Ownership.** The per-scope slot tables and one module-level set of open
+transactions in `environment.py`, all written only under the binding lock; the
+`closed` mark on the descriptor.
+
+**Invariant R1.** If any slot owned by transaction X exists, X is in the open set.
+
+**Invariant R2.** Only X's own close routine removes X's slots or removes X from the
+set, and within one pass it removes the slots (K1, K2) before the set entry (K3).
+
+*R1 holds* because P2 adds X before P4 and P5 insert its slots, and because K3 runs
+after K1 and K2 in every pass. On a repeated pass K1 and K2 run again first; they do
+nothing only when X's slots are already gone. Discarding X never removes another
+transaction. So **an empty set implies that no transaction has a live slot**, and
+the fast path cannot be taken while another transaction still owns slots.
+
+**Old failure (iteration 2).** A and B are open; the count is 4.
+
+| # | Transaction A cleanup | Count | B's slots |
+|---|---|---|---|
+| 1 | removes its two slots; count 4 → 2 | 2 | live |
+| 2 | one interrupt before cleanup is recognized as complete | 2 | live |
+| 3 | the retry decrements again; 2 → 0 | **0** | live — **the fast path now skips them** |
+
+**Corrected.** The set is `{A, B}`.
+
+| # | Transaction A close routine | Open set | B's slots |
+|---|---|---|---|
+| 1 | K1, K2: remove A's own slots | `{A, B}` | live |
+| 2 | K3: discard A | `{B}` | live |
+| 3 | one interrupt before K4 | `{B}` | live |
+| 4 | repeat: K1, K2 find no slot of A; K3 finds A absent; K4 marks `closed` | `{B}` | live |
+
+The same holds for an interrupt after K1 (the repeat removes the second slot) or
+after K2 (the repeat discards A). For an aborted T4 the routine removes whichever of
+A's slots exist and discards A if it was added. In every case the set is non-empty
+exactly while B is open, so B's declaring thread still finds B's slot, and a write to
+B's name is still rejected.
+
+**Why no general framework.** The whole mechanism is one set, two conditional
+removals and one mark. Progress is read from the data itself: "is my slot still
+there", "am I still in the set", "am I marked closed".
+
+**Effect on F1 and F2.** Slot visibility, on which admission by name and the
+linearization argument depend, now follows from R1 and R2 instead of a balanced
+count. The fault rows for C6 and F3 are replaced by the K rows of §4.4.
+
+#### N3 — state and descriptor
+
+**Ownership.** `_state` and `_txn` on `GeniaClosedFunction` (`callable.py`), the
+descriptor's `window_open` flag, and the use-check helper (§7.2).
+
+**Invariant D1.** `_txn` is assigned once, at T3, before the callable can be reached
+by any other execution, and is never cleared or reassigned. Whenever the state is
+`initializing` or terminal, `_txn` is a valid descriptor.
+
+**Invariant D2.** After P3, `_state` changes only by the conditional stores C3 and
+F1, each under the binding lock and each only from `initializing`. A terminal state
+never changes.
+
+**Invariant D3.** The use check, and every slot lookup, reads `_state` exactly once
+and decides from that value. Only when it read `initializing` does it read `_txn`,
+and then it applies the two ordered tests of §6.2.
+
+**Old failure (iteration 2).**
+
+| # | Reader R (not the declaring thread) | Thread O |
+|---|---|---|
+| 1 | reads `_state`: `initializing` | |
+| 2 | | commits or fails; **clears `_txn`** |
+| 3 | reads `c._txn.window_open` — **dereferences nothing** | |
+
+**Corrected.**
+
+| # | Reader R (not the declaring thread) | Thread O |
+|---|---|---|
+| 1 | reads `_state` once: `initializing` | |
+| 2 | | window already closed; C3 or F1; C4–C6 or F2–F3. `_txn` is untouched |
+| 3 | reads `_txn`: the same valid descriptor (D1) | |
+| 4 | test 1: is the descriptor on **R's own** stack above a barrier? No | |
+| 5 | result: `closed-function-not-yet-published` | |
+
+R's result is correct for the moment of its state read, which is before C3 or F1. A
+later call by R reads the terminal state and behaves accordingly. Whether O commits
+or fails makes no difference to steps 3–5.
+
+**Why a reader that saw `initializing` can always finish.**
+- *R is not in the lineage.* Test 1 reads only R's own thread-local stack, which no
+  other thread writes. It is false and stays false. R never reaches test 2.
+- *R is in the lineage.* Then R is the declaring thread, running inside T5. O is the
+  same thread, so it cannot be in T6 or T7 at the same time: those start only after
+  T5 has unwound, which is after R's call has returned. The state and `window_open`
+  cannot change during R's check.
+
+So no execution can read `initializing`, be admitted, and run a body after the
+function was committed or failed by someone else.
+
+**A slot lookup** follows the same rule. It keeps the slot it fetched in a local
+value, reads the callable's state once, and decides. If K1 or K2 removes the slot
+from the table meanwhile, the local value is still valid, and the outcome is one of
+the two outcomes that §4.1 already shows to be consistent.
+
+**No committed-to-failed transition.** D2: C3 and F1 are both conditional on
+`initializing` and both under the lock, so whichever runs first is final, also when
+a handler repeats one of them.
+
+**What the descriptor keeps.** Lock-free readers use only its identity and
+`window_open`. Fields that only the owner uses under the lock, such as the private
+metadata map and the scope references, may be released by the owner after K4.
+
+**No lock during user code.** The use check takes no lock at all. The binding lock is
+still held only in T4, T6 and T7.
+
+**Effect on F1 and F2.** The admission rule of §6.1 is unchanged in meaning; its test
+order is now fixed and the thread comparison is dropped as redundant. The
+linearization argument already relied on one read of the state; D1 removes the one
+extra mutable field it had overlooked.
 
 ## 5. Annotations, metadata keys and discovery
 
@@ -388,11 +604,14 @@ contradict it in effect. Under either choice the use check runs first.
 
 Running on the declaring thread is necessary and not sufficient.
 
-The **publication transaction** is a private host object created at T4. It is never
-a Genia value, so Genia code cannot obtain, copy or forge it. It records the
-callable, the declaring scope, the self frame, the thread that opened it and whether
-its window is open. The callable's `_txn` field is the only link from a value to its
-transaction.
+The **publication transaction** is described by a private host object, the
+descriptor, created at T3. It is never a Genia value, so Genia code cannot obtain,
+copy or forge it. It records the callable, the declaring scope, the self frame,
+whether its window is open and whether it is closed. The callable's `_txn` field is
+the only link from a value to its descriptor, and that link never changes (§3.1).
+The descriptor does not need to record a thread: only the declaring thread ever
+pushes it on a lineage stack, so being on a thread's stack already identifies that
+thread.
 
 ### 6.2 Window and lineage
 
@@ -406,9 +625,16 @@ not stored in a `contextvars` variable.
 | A host execution boundary begins running a callable (§6.3) | push a **barrier** |
 | That boundary's callable returns or raises (`finally`) | pop the barrier |
 
-An invocation of callable `c` is admitted when all of these hold:
-`c._txn.window_open` is true; the current thread is the transaction's thread; and
-the transaction is on the current thread's stack **above the most recent barrier**.
+An invocation of callable `c` whose state was read as `initializing` is admitted
+when both of these hold, tested **in this order**:
+1. `c._txn` is on the current thread's lineage stack **above the most recent
+   barrier**;
+2. `c._txn.window_open` is true.
+
+Test 1 reads only the current thread's own stack. Test 2 is reached only by a thread
+that has the descriptor on its stack, which is the declaring thread, and that is the
+only thread that ever writes `window_open`. Neither value can be changed by another
+thread while the check runs (§4.6, N3).
 
 How the required properties follow:
 - **Start and end of the window.** Authority exists only between the push at T5's
@@ -487,8 +713,8 @@ a boundary: the barrier hides the transaction, and the call is rejected with
 call chain; it only happened to be served during it.
 
 **Rejected: before and after the window.** A reference that reached another thread is
-called between T4 and T5, or after T5 returned and before C3. `window_open` is false
-in both gaps.
+called between T4 and T5, or after T5 returned and before C3. In both gaps the
+descriptor is on no thread's stack and `window_open` is false.
 
 **Rejected: a copied context.** A context copied inside the window is run later, or
 on another thread. Later, the window is closed. On another thread, the stack is
@@ -551,11 +777,21 @@ same name), `_write_binding`, `set`, `assign`, `define_function`, `publish_view`
 autoload publication. Rejections use the existing immutable diagnostics. Only the
 owning transaction's C4 and C5 write the name.
 
-**Fast path.** A process-wide count of open slots is changed only under the binding
-lock: incremented before the slots are inserted, decremented after they are removed.
-When it is zero, lookups take the current path unchanged. The count is an
-optimization, never a source of authority: a reader that misses a slot because it
-read zero is, by construction, not the declaring thread inside its window.
+Every writer makes its final decision **under the binding lock**, where it sees the
+slot table directly; it never relies on the lock-free "set is empty" test. The
+existing lock-free pre-check that rejects an assignment before its right-hand side
+runs (`check_assign_target`, `environment.py:392-410`) only affects timing: if it
+ran just before P2 and saw nothing, the write itself is still rejected under the
+lock and is never redirected.
+
+**Fast path.** A process-wide **set of open transactions** is changed only under the
+binding lock. A transaction is added at P2, before its first slot is inserted, and
+discarded at K3, after its last slot is removed. Adding and discarding are
+idempotent, and discarding one transaction cannot remove another. When the set is
+empty, lookups take the current path unchanged; otherwise they consult slots. There
+is no counter to drift (§4.6, N2). The set is an optimization, never a source of
+authority: a reader that misses a slot because it read "empty" before P2 is, by
+construction, not the declaring thread inside its window.
 
 | Alternative | Verdict |
 |---|---|
@@ -722,9 +958,12 @@ are part of Slice E because they prove the capture exclusion.
      `hosts/python/protocol_adapter.py` (the Python claim),
      `spec/known_host_gaps.json` (a new issue-backed C++ entry with its removal
      condition, which the parity gate requires for an optional capability a host
-     does not support), and `docs/host-interop/HOST_CAPABILITY_MATRIX.md`. RED
-     follows the Slice C staging precedent: the adapter advertises the capability
-     as unsupported until GREEN.
+     does not support), `docs/host-interop/HOST_CAPABILITY_MATRIX.md`, the
+     capability catalog `docs/host-interop/capabilities.md` (a description, not a
+     second registry), and the independent literal capability-map size in
+     `tests/unit/test_model_b_slice_c_capability_evidence.py:36` (36 today), which
+     stays a literal and is updated deliberately. RED follows the Slice C staging
+     precedent: the adapter advertises the capability as unsupported until GREEN.
    - *Alternative:* redefine `default_open_functions` to include closed publication.
      Rejected: it changes the meaning of a claim the Python host already makes and
      that existing evidence was collected against.
@@ -761,10 +1000,10 @@ through the private constructors.
 | E1-01 | Whole-group build: duplicate key, conflicting inline documentation; with several simultaneous errors the order is name, annotation permission, clause structure; a sentinel proves no annotation, guard or body ran |
 | E1-02 | Use check at each §7.2 entry point, for `initializing` not admitted and for `failed`: direct call, `invoke_callable`, tail call, `apply_raw`, matcher use, callback through a builtin, extracted record |
 | E1-03 | Precedence: a failed callable called with `none`, with `err`, with the wrong arity and with a failing guard gives the state error each time; a sentinel proves nothing else ran |
-| E1-04 | Admission: admitted inside an open window; refused before the window opens, after it closes, behind a barrier on the same thread, on a new thread, and from a context copied inside the window and run after it or on another thread |
+| E1-04 | Admission: admitted inside an open window; refused before the window opens, after it closes, behind a barrier on the same thread, on a new thread, from a context copied inside the window and run after it or on another thread, and from a copied context run by a scheduler boundary on the same thread while the window is still open |
 | E1-05 | Nested transactions on one stack: each callable admitted only against its own; a barrier hides both; closing the inner window leaves the outer |
 | E1-06 | Bridges keep authority: an admitted call through a callback-taking builtin, a forced lazy value, a pulled Flow |
-| E1-07 | Boundary inventory: every handler-dispatch and thread-start site in the host is classified, and each boundary pushes and pops a barrier, also when its callable raises |
+| E1-07 | Boundary inventory: every actual handler-dispatch and thread-start site in the host is classified, and each boundary is exercised at its real dispatch site to show that it pushes a barrier and pops it again, also when its callable raises |
 | E1-08 | Introspection and link-target rejection in both non-committed states, including for an admitted caller |
 | E1-09 | Sealing: `add_clause` and `merge_metadata` refused; a clause declared through an alias, through a re-export and through the restored original spelling after failure raises `closed-function-not-extensible`; an annotated alias leaves the callable's metadata unchanged |
 | E1-10 | Transport through assignment, collection, Ref and Cell; identity equality; markers nested in list, map, pair and Outcome; no arity, metadata, source or protected sentinel in any rendering or diagnostic; JSON keeps its existing function behavior |
@@ -817,8 +1056,8 @@ at the first error (§2).
 
 | Id | Observation |
 |---|---|
-| E2-L1 | Barrier-synchronized second thread holding an escaped reference: refused during `initializing`; at each of C1–C6 it sees either the unpublished or the fully published function, never a mixture, for calls, `doc`/`meta`/`help`, name lookup and metadata lookup |
-| E2-L2 | A fault injected at each of T4, T5 (including `BaseException`), window close, C1, C2, C3, C4, C5, C6, F1, F2 and F3: the end result matches §4.4; afterwards there is a terminal state, no slot, a balanced count, and either a complete binding with metadata or none at all; the name is reusable after failure |
+| E2-L1 | Barrier-synchronized second thread holding an escaped reference: refused during `initializing`; paused at each of C1, C2, C2b, C3, C4, C5 and K1–K4, it sees either the unpublished or the fully published function, never a mixture: for a call through the reference, for `doc`/`meta`/`help`, and for a name lookup and a metadata lookup made immediately afterwards in the declaring scope and through the self frame |
+| E2-L2 | A fault injected at each of P1–P5, T5 (including `BaseException`), window close, C1, C2, C2b, C3, C4, C5, F1 and F2, and after each of K1, K2, K3 and K4 on both the publication and the failure path: the end result matches §4.4; afterwards there is a terminal state or a discarded callable, no slot of that transaction, the transaction absent from the open set, and either a complete binding with metadata or none at all; the name is reusable after failure |
 | E2-L3 | No execution observes `committed` and later `failed` |
 | E2-L4 | Slots: an outer binding of the same name is resolved by non-admitted code and the provisional callable by admitted code; the self-frame slot refuses an escaped closure; a write to the name is rejected before its right-hand side runs and is never redirected to the outer binding; every writer listed in §6.6 is covered |
 | E2-L5 | The request-handler example of §6.4 with a real `serve_http` dispatch on the declaring thread |
@@ -826,6 +1065,9 @@ at the first error (§2).
 | E2-L7 | Source and direct Core IR agree, for valid groups and for malformed IR, multiple simultaneous errors and forbidden annotations |
 | E2-L8 | The lookup fast path is structurally unchanged while no slot is open (not a timing test) |
 | E2-L9 | The binding lock is not held while an annotation or a function body runs |
+| E2-L10 (N1) | A hook pauses closed `f` after T5 and before it takes the lock. Another thread commits immutable `g` in the same scope. `f` resumes and commits. Both `f` and `g` reject assignment afterwards. Variants: two closed publications `f` and `h` interleaved at the same point, in both orders; `g` committed while `f` waits for the lock; an allocation failure injected at C2b leaves `f` failed and unbound, `g` still immutable, and the name `f` reusable |
+| E2-L11 (N2) | Two live transactions A and B. One fault is injected in A's close routine after K1, after K2 and after K3 (before K4), on the publication path, the failure path and an aborted T4. After A exits: A has no slot and is not in the open set; B is in the open set with both slots; lookups do not take the fast path; B's admitted helper resolves B's provisional function and not an outer binding of the same name; a write to B's name is still rejected. Then B completes and the set is empty |
+| E2-L12 (N3) | A hook pauses the use check on a non-declaring thread between its state read and its descriptor read, with the state read as `initializing`. The owner then reaches `committed`, and in a second run `failed`. The paused check resumes and returns `closed-function-not-yet-published`, with no other exception. A following call gives the terminal behavior. `_txn` is the same object before and after. The same pause is applied to a slot lookup after it has fetched the slot, in the declaring scope and in the self frame |
 
 A shared twin of E2-L1 is not assumed. The portable process primitives (`spawn`,
 `send`, `process_alive?`, `process_failed?`, `process_error`) have no deterministic
@@ -905,7 +1147,7 @@ a half-defined state machine is not merged for the sake of the split.
 **Risks.**
 1. A missed boundary admits a call it should refuse. Mitigation: E1-07.
 2. A missed use-check site. Mitigation: guarded records, E1-02, full regression.
-3. `Env.get` is on the hottest path. Mitigation: the count-gated fast path, E2-L8.
+3. `Env.get` is on the hottest path. Mitigation: the fast path taken while the open-transaction set is empty, E2-L8.
 4. `GENIA_STATE.md` is at 42,845 of its 43,000-word limit. E2's synchronization must
    fit, or a distillation must precede it in the same change.
 5. Free-threaded Python. The protocols rely on single stores and one lock, not on
