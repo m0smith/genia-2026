@@ -1,6 +1,6 @@
 # #1249 — Default-open function interfaces and immutable bindings: proposed semantic contract
 
-**Status: MAINTAINER-APPROVED SEMANTIC CONTRACT (2026-10-16) — PARTIALLY IMPLEMENTED (Python reference host: immutable bindings and ordinary default-open execution; Python explicit ordinary linking is implemented on the candidate; closed publication is not implemented).** Maintainer explicitly approved the consolidated Model B semantics in conversation on 2026-10-16. Independent Codex focused semantic review of revision `5060d52` returned **PASS** (no new blocker in that focused diff). The subsequent consolidation was checked for preservation of the reviewed semantic decisions; neither the focused PASS nor approval constitutes implementation or host parity evidence. `GENIA_STATE.md` remains the source of truth for what Genia currently implements.
+**Status: MAINTAINER-APPROVED SEMANTIC CONTRACT (2026-10-16) — PARTIALLY IMPLEMENTED (Python reference host: immutable bindings and ordinary default-open execution; Python explicit ordinary linking is implemented (Model B D2b); closed publication is not implemented).** Maintainer explicitly approved the consolidated Model B semantics in conversation on 2026-10-16. Independent Codex focused semantic review of revision `5060d52` returned **PASS** (no new blocker in that focused diff). The subsequent consolidation was checked for preservation of the reviewed semantic decisions; neither the focused PASS nor approval constitutes implementation or host parity evidence. `GENIA_STATE.md` remains the source of truth for what Genia currently implements.
 
 **B1 approval update:** §5.4 was accepted through maintainer merge of PR #1305
 at `24f26efabdd26011374a84accedef986717d9a31`, following focused independent
@@ -78,6 +78,29 @@ An escaped failed callable is a **transportable opaque value**. Ordinary assignm
 **Actual callable use**—direct, higher-order, trampoline/indirect invocation, `extend`/`use` targeting/linking, or callable-specific `doc`/`meta`/`help` inspection—rejects with normalized `closed-function-failed-publication`. On an *actual invocation*, this target-state rejection precedes target-specific `none`/`err` propagation, arity selection, pattern matching, guard or body evaluation. Thus invoking an escaped failed callable with `none` errors; an upstream Outcome/Flow stage that already skips invocation remains skipped.
 
 Synchronous declaration-owned calls complete before the annotation transaction commits or fails. Other in-flight invocations are never admitted while initializing; no cancellation semantics or rollback of arbitrary external effects is implied. A later permitted REPL name reuse creates a **new identity** and cannot redirect or resurrect escaped failed callables.
+
+### 4.3 Permitted annotations on closed declarations (Q-C1 clarification)
+
+**Approved by the maintainer on 2026-11-11** as a bounded clarification of the
+"permitted metadata" named in §4.1
+([#1249 ruling](https://github.com/m0smith/genia-2026/issues/1249#issuecomment-6803212555)).
+It states intended semantics. Closed publication is not implemented.
+
+- **Permitted:** `@doc`, `@meta`, `@since`, `@deprecated` and `@category`, under the
+  annotation validation that applies to ordinary functions and the ordered atomic
+  publication rules of §4.2.
+- **Rejected:** `@route`, `@get`, `@post`, `@server` and `@cors`. The rejection
+  happens before the forbidden annotation's expression is evaluated and before any
+  of its effects. Behavior of ordinary functions and of the existing server-discovery
+  walkers is unchanged; no server registration or discovery support for closed
+  functions is approved.
+- **Not yet decided:** `@test`, which drives native-test discovery and is therefore
+  not merely descriptive. It must not be treated as permitted. Its disposition, and
+  the treatment of annotation names outside the ten listed here, need a further
+  explicit maintainer decision before any committed RED test.
+
+The exact validation point and error precedence are design matters, recorded in the
+[Slice E design](pre-r29-model-b-slice-e-closed-publication-design.md) §5.
 
 ## 5. Ordinary metadata ownership, failure and linked-view projection
 
