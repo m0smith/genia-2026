@@ -77,7 +77,7 @@ if __package__ in (None, ""):
         DebugHooks,
         NOOP_DEBUG_HOOKS,
         GeniaFunction,
-        GeniaFunctionGroup,
+        GeniaFunctionGroup, GeniaClosedFunction,
         GeniaLinkedOpenFunction,
         GeniaOpenFunction,
     )
@@ -205,7 +205,7 @@ else:
         DebugHooks,
         NOOP_DEBUG_HOOKS,
         GeniaFunction,
-        GeniaFunctionGroup,
+        GeniaFunctionGroup, GeniaClosedFunction,
         GeniaLinkedOpenFunction,
         GeniaOpenFunction,
     )
@@ -3249,6 +3249,9 @@ def make_global_env(
         return lines
 
     def _describe_function_group(group: GeniaFunctionGroup) -> str:
+        """Describe ordinary metadata/shape after checking private closed-value state."""
+        if isinstance(group, GeniaClosedFunction):
+            group._check_use()
         shapes = _format_function_shapes(group)
         lines = [f"{group.name}/{shapes}"]
         span_text = _format_span(_group_span(group))
@@ -3467,7 +3470,8 @@ def make_global_env(
     def _help_in_scope(lookup_env: Env, *args: Any) -> None:
         """Render help using explicit lexical lookup while retaining captured runtime catalogue and output sink.
 
-        Accepts zero or one target; string lookup may autoload. Function and
+        Accepts zero or one target; string lookup may autoload. Private closed
+        values reject noncommitted use before description. Function and
         runtime-name rendering and misuse errors retain the public help contract.
         """
         if len(args) > 1:
@@ -3484,6 +3488,8 @@ def make_global_env(
                     else:
                         _emit_help(_describe_missing_help_name(target))
                         return
+            if isinstance(target, GeniaClosedFunction):
+                target._check_use()
             if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
                 _emit_help(_describe_open_function(target))
                 return
@@ -3513,6 +3519,7 @@ def make_global_env(
     def _doc_in_scope(lookup_env: Env, *args: Any) -> Any:
         """Resolve documentation in the supplied lexical Env, including autoload.
 
+        Private closed values must be committed, even with binding-owned docs.
         Ordinary views use frozen projected doc before alias metadata. Otherwise
         binding metadata precedes legacy docs; explicit interfaces own their docs.
         Missing documentation returns the existing Outcome; invalid
@@ -3532,6 +3539,8 @@ def make_global_env(
                 return make_none("missing-doc", GeniaMap().put("name", name))
         from genia.function_linking import FrozenOrdinaryBase
         target = lookup_env.get(name)
+        if isinstance(target, GeniaClosedFunction):
+            target._check_use()
         if isinstance(target, GeniaLinkedOpenFunction) and isinstance(target.base, FrozenOrdinaryBase):
             projected = target.base.projection.projected_doc
             return projected if projected is not None else make_none("missing-doc", GeniaMap().put("name", name))
@@ -3568,6 +3577,7 @@ def make_global_env(
     def _meta_in_scope(lookup_env: Env, *args: Any) -> Any:
         """Resolve metadata in the supplied lexical Env, including autoload.
 
+        Private closed values must be committed before any metadata is read.
         Ordinary views return frozen defining-slot metadata, ignoring alias
         overlays; explicit views retain interface-owned metadata. Missing names return the
         existing Outcome; invalid argument count or names raise TypeError.
@@ -3585,6 +3595,8 @@ def make_global_env(
             else:
                 return make_none("missing-meta", GeniaMap().put("name", name))
         target = lookup_env.get(name)
+        if isinstance(target, GeniaClosedFunction):
+            target._check_use()
         from genia.function_linking import FrozenOrdinaryBase
         if isinstance(target, GeniaLinkedOpenFunction) and isinstance(target.base, FrozenOrdinaryBase):
             return target.base.projection.binding_metadata

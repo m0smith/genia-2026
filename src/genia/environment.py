@@ -672,7 +672,11 @@ class Env:
         binding of this scope, and the group's own error for a duplicate arity
         shape. The ownership check and the group mutation share one critical
         section under the binding lock.
+        Closed groups reject by value before the ordinary owner check; immutable
+        binding rejection still precedes that closed-value check.
         """
+        from .callable import GeniaClosedFunction
+
         GeniaFunctionGroup = _interpreter_runtime().GeniaFunctionGroup
 
         home = self._entry_route(fn.name)
@@ -701,6 +705,8 @@ class Env:
                         "interface or linked view, which an ordinary definition cannot replace"
                     )
                 raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
+            if isinstance(existing, GeniaClosedFunction):
+                existing._reject_clause_addition(fn, binding_name=fn.name)
             owner = existing.owner
             if owner is not None and owner != (self.module_identity(), fn.name):
                 from . import callable as _callable
@@ -731,7 +737,11 @@ class Env:
         ImmutableBindingError, and an unbound name raises NameError. Owner lookup,
         the authority check and publication are one critical section under the
         binding lock, so they cannot interleave with an immutable commit.
+        Alias metadata stays binding-owned for closed values; their callable
+        metadata is never updated through this writer.
         """
+        from .callable import GeniaClosedFunction
+
         GeniaFunctionGroup = _interpreter_runtime().GeniaFunctionGroup
 
         with _BINDING_LOCK:
@@ -748,7 +758,7 @@ class Env:
                     merged = _merge_metadata_maps(env.binding_metadata.get(name), metadata)
                     env.binding_metadata[name] = merged
                     value = env.values[name]
-                    if isinstance(value, GeniaFunctionGroup):
+                    if isinstance(value, GeniaFunctionGroup) and not isinstance(value, GeniaClosedFunction):
                         value.metadata = merged
                     return
                 if env.parent is None:

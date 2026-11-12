@@ -24,7 +24,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from .callable import GeniaFunctionGroup
+from .callable import GeniaFunctionGroup, GeniaClosedFunction
 from .http_client import perform_http_send
 from .http_operation import construct_http_operation
 from .http_transport import HttpTransport
@@ -67,11 +67,16 @@ def _is_exact_zero_argument_handler(value: Any) -> bool:
 def resolve_http_annotation(fn: Any) -> GeniaMap:
     """Return attached HTTP metadata after checking its presence and fixed arity.
 
+    Checks private closed-value lifecycle first, then excludes even committed
+    closed values with the existing missing-annotation TypeError.
     Raises TypeError for a non-group, absent metadata or an incompatible arity.
     The descriptor payload is trusted from annotation validation, not revalidated
     here, and the function is never invoked during resolution.
     """
 
+    if isinstance(fn, GeniaClosedFunction):
+        fn._check_use()
+        raise TypeError("send_annotated expected a function annotated with @get or @post")
     if not isinstance(fn, GeniaFunctionGroup) or not fn.metadata.has(_HTTP_ANNOTATION_KEY):
         raise TypeError("send_annotated expected a function annotated with @get or @post")
     if not _is_exact_zero_argument_handler(fn):

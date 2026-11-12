@@ -46,7 +46,7 @@ if __package__ in (None, ""):
         make_none, symbol, truthy,
     )
     from genia.callable import (
-        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup, invoke_callable as _invoke_callable,
+        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup, GeniaClosedFunction, invoke_callable as _invoke_callable,
         _callable_explicitly_handles_some,
         GeniaLinkedOpenFunction, GeniaOpenContributionUnit, GeniaOpenFunction, OpenClauseRecord,
         OpenFunctionDuplicateSelectionError, OpenFunctionIncompatibleContributionError,
@@ -91,7 +91,7 @@ else:
         make_none, symbol, truthy,
     )
     from .callable import (
-        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup, invoke_callable as _invoke_callable,
+        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup, GeniaClosedFunction, invoke_callable as _invoke_callable,
         _callable_explicitly_handles_some,
         GeniaLinkedOpenFunction, GeniaOpenContributionUnit, GeniaOpenFunction, OpenClauseRecord,
         OpenFunctionDuplicateSelectionError, OpenFunctionIncompatibleContributionError,
@@ -1601,6 +1601,8 @@ class Evaluator:
             if not isinstance(target_module, ModuleValue):
                 raise OpenFunctionTargetNotOpenError(node.target_module_alias)
             target = target_module.get_export(node.target_name)
+            if isinstance(target, GeniaClosedFunction):
+                target._check_use()
             from genia.ordinary_completion import completion_for
             projection = completion_for(target_module, target)
             if not isinstance(target, GeniaOpenFunction) and projection is None:
@@ -1623,6 +1625,8 @@ class Evaluator:
             if not isinstance(base_module, ModuleValue):
                 raise OpenFunctionTargetNotOpenError(node.target_module_alias)
             base = base_module.get_export(node.target_name)
+            if isinstance(base, GeniaClosedFunction):
+                base._check_use()
             from genia.ordinary_completion import completion_for
             from genia.function_linking import FrozenOrdinaryBase, link_view
             projection = completion_for(base_module, base)

@@ -6,8 +6,8 @@ invoke_callable — the module-level dispatch entry point used by the evaluator.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from dataclasses import dataclass, field, fields
+from typing import Any, Callable, Iterable, Optional
 
 if __package__ in (None, ""):
     import sys
@@ -504,6 +504,132 @@ class GeniaFunctionGroup:
         raise TypeError(f"No matching function: {self.name}/{arity}. Available: {available}")
 
 
+class GeniaClosedFunction(GeniaFunctionGroup):
+    """Python-private sealed callable with state-checked use and opaque transport.
+
+    `_from_records` retains the construction seam's shared-record identity;
+    `_with_self_frame` builds owned guarded records for lifecycle consumers.
+    Neither publishes a declaring-scope binding or activates closed source syntax.
+    Host fixtures supply states; live annotation admission and atomic publication
+    remain E2. Until that protocol exists, only committed values may be used.
+    """
+
+    def __post_init__(self) -> None:
+        """Start privately in building state and reuse ordinary group indexing."""
+        self._state = "building"
+        super().__post_init__()
+
+    @classmethod
+    def _from_records(
+        cls, name: str, records: Iterable[GeniaFunction],
+    ) -> GeniaClosedFunction:
+        """Build a named group from nonempty existing records, without evaluating them.
+
+        Materialize the input before assembly. Empty input raises ValueError;
+        non-GeniaFunction elements raise TypeError. Ordinary clause insertion keeps
+        its duplicate-key/docstring checks and derives the group's arity index.
+        Record objects and their closures are shared; the input container is not.
+        Initial insertion uses the base implementation privately; the returned
+        group's public add_clause rejects even though `_state` remains building.
+        """
+        records = list(records)
+        if not records:
+            raise ValueError("closed group requires at least one record")
+        if any(not isinstance(record, GeniaFunction) for record in records):
+            raise TypeError("closed group requires GeniaFunction records")
+        group = cls(name)
+        for record in records:
+            GeniaFunctionGroup.add_clause(group, record)
+        return group
+
+    @classmethod
+    def _with_self_frame(
+        cls, name: str, records: Iterable[GeniaFunction], declaring_scope: Env,
+    ) -> GeniaClosedFunction:
+        """Build private guarded copies closed over one immutable self binding.
+
+        Reuses whole-group duplicate/doc validation before exposing any result.
+        Original records and closures are untouched; IR and debug settings retain
+        their ordinary meaning. The private frame inherits lexical/module lookup.
+        It is not an initializing slot or a declaration publication: those belong
+        to E2, as do transition ownership, annotation windows and lineage.
+        """
+        group = cls._from_records(name, records)
+        frame = Env(declaring_scope)
+        guarded = []
+        for record in group.records:
+            data = {item.name: getattr(record, item.name) for item in fields(GeniaFunction)}
+            data["params"] = list(record.params)
+            data["closure"] = frame
+            guarded.append(GeniaClosedFunctionRecord(**data, closed=group))
+        group.records = guarded
+        group.functions = {}
+        for record in guarded:
+            group.functions.setdefault(record.arity, record)
+        group.owner = (declaring_scope.module_identity(), name)
+        ticket = frame.prepare_immutable_declaration(name)
+        frame.commit_immutable_declaration(ticket, group)
+        return group
+
+    def _check_use(self) -> None:
+        """Reject noncommitted use before dispatch or introspection reads payloads.
+
+        Read state once. Failed diagnostics disclose no defining name. Building
+        and initializing values fail closed: E1 has no live annotation admission
+        authority. Transport and rendering never call this helper. E2 must supply
+        invocation-only lineage admission without admitting introspection.
+        """
+        state = self._state
+        if state == "committed":
+            return
+        if state == "failed":
+            raise RuntimeError("closed-function-failed-publication: closed function failed publication")
+        raise RuntimeError(f"closed-function-not-yet-published: {self.name} is not yet published")
+
+    def __call__(self, *args: Any) -> Any:
+        """Check lifecycle before ordinary arity selection, matching or body execution."""
+        self._check_use()
+        return super().__call__(*args)
+
+    def _dispatch_once(
+        self, args: tuple[Any, ...], debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS,
+        debug_mode: bool = False, label: str | None = None,
+    ) -> Any:
+        """Guard trampoline group entry, then reuse ordinary clause dispatch unchanged."""
+        self._check_use()
+        return super()._dispatch_once(args, debug_hooks, debug_mode, label)
+
+    def _reject_clause_addition(self, fn: GeniaFunction, binding_name: str | None = None) -> None:
+        """Reject append using the attempted binding, or defining name for host calls.
+
+        The label preserves the attempted header's arity/varargs shape. This is a
+        value-based rejection independent of owner or construction state.
+        """
+        name = self.name if binding_name is None else binding_name
+        kind, arity = _record_shape(fn)
+        label = f"{name}/{arity}{'+' if kind == 'varargs' else ''}"
+        raise TypeError(
+            f"closed-function-not-extensible: cannot declare {label}: "
+            f"{name} refers to a closed function"
+        )
+
+    def add_clause(self, fn: GeniaFunction) -> None:
+        """Reject external append, including while the preparatory state is building."""
+        self._reject_clause_addition(fn)
+
+    def merge_metadata(self, metadata: GeniaMap) -> None:
+        """Reject callable metadata merging; binding-owned alias metadata is separate."""
+        raise TypeError("closed function metadata cannot be merged")
+
+    def __repr__(self) -> str:
+        """Render an opaque marker; failed values disclose no defining name or payload."""
+        if self._state == "failed":
+            return "<closed-function failed>"
+        return f"<closed-function {self.name}>"
+
+    __str__ = __repr__
+
+
 def _clause_key(fn: Any) -> Any:
     """Dispatch key of a group record (identifier headers derive theirs from params/rest)."""
     key = getattr(fn, "dispatch_key", None)
@@ -586,6 +712,27 @@ class GeniaFunction:
         return f"<function {self.name}/{self.arity}+>"
 
 
+@dataclass(repr=False)
+class GeniaClosedFunctionRecord(GeniaFunction):
+    """Owned clause whose invocation keeps the enclosing closed value's use rule.
+
+    Only the self-frame builder constructs these copies. Direct calls and raw
+    trampoline entry check the owner before arity, matcher, guard or body work.
+    Records render like their opaque owner rather than exposing clause arity.
+    """
+
+    closed: GeniaClosedFunction = field(kw_only=True, repr=False)
+
+    def __call__(self, *args: Any) -> Any:
+        """Check the owner before entering the ordinary record trampoline."""
+        self.closed._check_use()
+        return super().__call__(*args)
+
+    def __repr__(self) -> str:
+        """Use the owner's safe marker, including failed-name sanitization."""
+        return repr(self.closed)
+
+
 @dataclass
 class TailCall:
     """Deferred callee/argument tuple for the next trampoline iteration.
@@ -621,6 +768,8 @@ def eval_with_tco(
     current_args = args
 
     while True:
+        if isinstance(current_fn, GeniaClosedFunctionRecord):
+            current_fn.closed._check_use()
         if isinstance(current_fn, GeniaFunctionGroup):
             result = current_fn._dispatch_once(current_args, debug_hooks, debug_mode)
         elif isinstance(current_fn, GeniaFunction) and (current_fn.pattern is not None or current_fn.guard is not None):
@@ -1560,6 +1709,8 @@ def invoke_callable(
 ) -> Any:
     """Dispatch a Genia callable value with evaluated args.
 
+    Closed values/owned records reject noncommitted use first, including before
+    None propagation and name-based Flow adaptation. Source activation is absent.
     Unless propagation is skipped or the callee is absence-aware, return the
     first None Outcome argument unchanged before resolution. This helper does
     not unwrap Some arguments or implement pipeline-wide Err propagation.
@@ -1576,6 +1727,10 @@ def invoke_callable(
     GeniaMap. Noncallables raise TypeError; callback/body/resolver failures
     propagate. Arguments have already been evaluated.
     """
+    if isinstance(fn, GeniaClosedFunction):
+        fn._check_use()
+    elif isinstance(fn, GeniaClosedFunctionRecord):
+        fn.closed._check_use()
     if not skip_none_propagation:
         first_none = next((arg for arg in args if is_none(arg)), None)
         if first_none is not None and not _callable_explicitly_handles_none(fn, len(args), callee_node):
@@ -1691,6 +1846,8 @@ def invoke_callable(
             if fn.stratum(arity, label, raise_missing=False) is None and autoload_resolver is not None and isinstance(callee_node, IrVar):
                 resolved = autoload_resolver(callee_node.name, arity)
                 if isinstance(resolved, GeniaFunctionGroup):
+                    if isinstance(resolved, GeniaClosedFunction):
+                        resolved._check_use()
                     fn = resolved
             if not fn.is_simple:
                 fn.stratum(arity, label)
@@ -1732,6 +1889,8 @@ def invoke_callable(
         if target is None and autoload_resolver is not None and isinstance(callee_node, IrVar):
             resolved = autoload_resolver(callee_node.name, arity)
             if resolved is not None:
+                if isinstance(resolved, GeniaClosedFunction):
+                    resolved._check_use()
                 fn = resolved
                 if isinstance(fn, GeniaFunctionGroup):
                     target = _resolve_target(fn, arity)
