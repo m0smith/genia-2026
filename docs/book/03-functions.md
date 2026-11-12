@@ -27,7 +27,9 @@ clauses/provenance and B1's separate defining-slot map/doc and callable help.
 Re-exports reuse only exact original completion witnesses. This does not freeze
 live callable values or expose a snapshot API. Python explicit `extend`/`use`
 selects frozen ordinary views, validating cross-unit keys/shapes before checked
-publication; no rename-on-use. Closed publication and C++ support remain unimplemented.
+publication; no rename-on-use. Private Python E2.2 slots enforce provisional lookup and immutable reservations;
+self frames start reserved and unbound. Closed publication and C++ support remain
+unimplemented.
 
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new

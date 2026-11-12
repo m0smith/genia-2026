@@ -742,14 +742,16 @@ Pattern/guard declarations execute as default-open clauses (`default_open_functi
 `GENIA_RULES.md` 8.5.1): first match in declaration order, duplicate keys rejected,
 alias or imported declarations fail with `function-declaration-not-owner`. Closed `f(...) =: body` evaluation fails with
 `model-b-not-implemented` before initializer/annotation/guard/body effects.
-Successful module completion privately captures detached ordinary clauses/provenance,
-the original local-slot metadata/doc (G-inline fallback), and independent G help.
+Module completion privately captures detached ordinary clauses/provenance, defining-slot
+metadata/doc (G-inline fallback) and independent G help.
 Exact-callable witnesses preserve re-exports; incomplete origins confer none.
-Capture/cache publication synchronizes with writers; live calls stay unchanged.
-Python explicitly links completed ordinary interfaces (section 4.7); closed publication remains unimplemented.
-Private Python machinery adds guarded self-frames, opaque failed rendering and E2.1
-invocation-only admission; closed source and publication remain unavailable.
-Unfinished `=:` keeps REPL input incomplete; completed submissions end closed groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
+Capture/cache publication synchronizes with writers; live calls are unchanged.
+Python explicitly links completed ordinary interfaces (section 4.7).
+Private Python supports sealed callables/guarded records, opaque failed rendering,
+E2.1 invocation admission and E2.2 guarded slots, immutable-name reservations and an
+identity-based open-transaction set. Closed source, live annotations and publication
+remain unavailable.
+Unfinished `=:` keeps REPL input incomplete; completed submissions end groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch
 
