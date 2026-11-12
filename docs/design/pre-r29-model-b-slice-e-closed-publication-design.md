@@ -1,6 +1,8 @@
 # Model B Slice E: closed-function publication (E1 + E2)
 
-Status: **APPROVED DESIGN, iteration 3, with final semantic rulings reconciled for E1 RED. Nothing here is implemented.**
+Status: **APPROVED DESIGN, iteration 3. Private E1 construction, sealing, use guards,
+self-frame/guarded-record construction and rendering are implemented in Python;
+live annotation admission and publication remain E2 and unimplemented.**
 Python parses and lowers closed `f(pattern) =: expression` groups, and evaluation
 still rejects them with `model-b-not-implemented`. `GENIA_STATE.md` remains the only
 authority on implemented behavior. Phase record for

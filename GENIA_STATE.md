@@ -747,6 +747,9 @@ the original local-slot metadata/doc (G-inline fallback), and independent G help
 Exact-callable witnesses preserve re-exports; incomplete origins confer none.
 Capture/cache publication synchronizes with writers; live calls stay unchanged.
 Python explicitly links completed ordinary interfaces (section 4.7); closed publication remains unimplemented.
+Private Python E1 infrastructure supplies sealed closed groups, guarded record/self-frame
+construction, noncommitted-use rejection and opaque failed rendering. It is unreachable
+from closed source syntax; live annotation admission and atomic publication remain E2.
 Unfinished `=:` keeps REPL input incomplete; completed submissions end closed groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch
