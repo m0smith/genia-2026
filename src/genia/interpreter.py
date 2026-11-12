@@ -523,8 +523,8 @@ def _resolve_program_result(run_result: Any, env: Env) -> Any:
         return run_result
     main_with_args = main_group.get(1)
     if main_with_args is not None:
-        cli_args = env.get("argv")()
         with _publication_barrier():
+            cli_args = env.get("argv")()
             return _normalize_absence(main_with_args(cli_args))
     main_without_args = main_group.get(0)
     if main_without_args is not None:
