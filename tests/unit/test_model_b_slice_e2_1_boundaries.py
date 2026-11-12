@@ -47,10 +47,12 @@ def test_http_same_thread_real_request_dispatch(monkeypatch, raises):
     class Server:
         """No socket setup: drive the real request handler on the declaring thread."""
         def __init__(self, address, handler):
+            """Retain the real request-handler class without opening a socket."""
             self.server_address = address
             self.handler = handler
 
         def handle_request(self):
+            """Drive one HEAD request through the real _serve implementation."""
             request = object.__new__(self.handler)
             request.command = 'HEAD'
             request.path = '/'
@@ -62,6 +64,7 @@ def test_http_same_thread_real_request_dispatch(monkeypatch, raises):
             request._serve()
 
         def server_close(self):
+            """Record resource cleanup after request dispatch."""
             seen.append('closed')
 
     def handler(request):
@@ -92,9 +95,11 @@ def test_worker_dispatch_barrier_on_declaring_thread(monkeypatch, kind, raises):
     class Mailbox:
         """Deliver one real message, then terminate without swallowing test errors."""
         def __init__(self, message):
+            """Store exactly one message for the real dispatcher."""
             self.message = message
 
         def get(self):
+            """Return the message once, then stop the inline worker loop."""
             if self.message is None:
                 raise End
             message, self.message = self.message, None
@@ -137,7 +142,7 @@ def test_worker_dispatch_barrier_on_declaring_thread(monkeypatch, kind, raises):
 CALL_NAMES = {
     'invoke_callable', '_invoke_callable', '_invoke_from_builtin', 'eval_with_tco',
     'handler', '_handler', 'callback', 'update_fn', 'body', 'main_with_args',
-    'main_without_args', 'Thread', 'submit', 'call_soon', 'call_later', 'Timer',
+    'main_without_args', 'Thread', 'start', 'submit', 'call_soon', 'call_later', 'Timer',
 }
 
 
@@ -154,7 +159,7 @@ def callable_sites():
             if isinstance(node, ast.Call):
                 target = node.func
                 name = target.id if isinstance(target, ast.Name) else target.attr if isinstance(target, ast.Attribute) else ''
-                if name in CALL_NAMES:
+                if name in CALL_NAMES or name.endswith(('handler', 'callback')):
                     sites[f'{path.relative_to(root)}:{owner}:{name}'] += 1
             for child in ast.iter_child_nodes(node):
                 walk(child, owner)
@@ -193,17 +198,24 @@ EXPECTED_SITES = {'builtins.py:<module>.make_global_env._invoke_from_builtin:inv
  'evaluator.py:<module>.Evaluator.invoke_callable:_invoke_callable': 1,
  'evaluator.py:<module>.Evaluator.resolve_named_pattern:invoke_callable': 1,
  'gemini_rest.py:<module>.create_gemini_rest_model_provider:_handler': 1,
+ 'http_annotation_binding.py:<module>.resolve_http_annotation:_is_exact_zero_argument_handler': 1,
  'interpreter.py:<module>._resolve_program_result:main_with_args': 1,
  'interpreter.py:<module>._resolve_program_result:main_without_args': 1,
+ 'interpreter.py:<module>._run_serve_file:assemble_route_handler': 1,
  'model.py:<module>.GeniaModelProvider._attempt:_handler': 1,
  'process_transport.py:<module>.launch_process:Thread': 2,
+ 'process_transport.py:<module>.launch_process:start': 2,
  'retrieval.py:<module>.GeniaEmbedProvider._attempt:_handler': 1,
  'retrieval.py:<module>.GeniaIndexProvider._attempt:_handler': 1,
  'retrieval.py:<module>.GeniaRerankProvider._attempt:_handler': 1,
  'retrieval.py:<module>.GeniaRetrieveProvider._attempt:_handler': 1,
+ 'server_route_binding.py:<module>.discover_route_bindings:_is_exact_one_argument_handler': 1,
  'test_kernel.py:<module>.run_test_unit:body': 1,
  'values.py:<module>.GeniaCell.__init__:Thread': 1,
+ 'values.py:<module>.GeniaCell.__init__:start': 1,
  'values.py:<module>.GeniaCell._run:update_fn': 1,
  'values.py:<module>.GeniaCell.restart:Thread': 1,
+ 'values.py:<module>.GeniaCell.restart:start': 1,
  'values.py:<module>.GeniaProcess.__init__:Thread': 1,
+ 'values.py:<module>.GeniaProcess.__init__:start': 1,
  'values.py:<module>.GeniaProcess._run:_handler': 1}

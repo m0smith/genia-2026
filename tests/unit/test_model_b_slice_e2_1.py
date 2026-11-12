@@ -257,9 +257,44 @@ def test_nonroot_owner_and_debugger_self_scope():
     class Hooks(c.DebugHooks):
         """Observe actual debugger frames rather than a synthetic scope listing."""
         def on_function_enter(self, name, args, env, span):
+            """Capture the actual lexical call frame for debugger inspection."""
             scopes.append(env)
 
     assert c.eval_with_tco(group.records[0], (7,), Hooks(), True) == 7
     assert scopes[0].parent is frame
     assert list(scopes[0].parent.inspection_bindings()) == ['f']
     assert scopes[0].parent.parent is module
+
+
+def test_each_invocation_and_introspection_site_has_its_own_correct_guard():
+    """Pin every redundant layer independently; downstream guards cannot hide omissions."""
+    import ast
+    from collections import Counter
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2] / 'src' / 'genia'
+    found = Counter()
+    for filename in ['callable.py', 'builtins.py', 'evaluator.py', 'http_annotation_binding.py', 'test_cli.py']:
+        def walk(node, owner=''):
+            """Associate a guard with its enclosing class/function, independent of lines."""
+            if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                owner += '.' + node.name
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                if node.func.attr in ('_check_use', '_check_invocation'):
+                    found[(filename, owner, node.func.attr)] += 1
+            for child in ast.iter_child_nodes(node):
+                walk(child, owner)
+        walk(ast.parse((root / filename).read_text()))
+    assert found == Counter({
+        ('callable.py', '.GeniaClosedFunction.__call__', '_check_invocation'): 1,
+        ('callable.py', '.GeniaClosedFunction._dispatch_once', '_check_invocation'): 1,
+        ('callable.py', '.GeniaClosedFunctionRecord.__call__', '_check_invocation'): 1,
+        ('callable.py', '.eval_with_tco', '_check_invocation'): 1,
+        ('callable.py', '.invoke_callable', '_check_invocation'): 4,
+        ('builtins.py', '.make_global_env._describe_function_group', '_check_use'): 1,
+        ('builtins.py', '.make_global_env._help_in_scope', '_check_use'): 1,
+        ('builtins.py', '.make_global_env._doc_in_scope', '_check_use'): 1,
+        ('builtins.py', '.make_global_env._meta_in_scope', '_check_use'): 1,
+        ('evaluator.py', '.Evaluator._eval_impl', '_check_use'): 2,
+        ('http_annotation_binding.py', '.resolve_http_annotation', '_check_use'): 1,
+        ('test_cli.py', '.discover_annotated_test_units', '_check_use'): 1,
+    })
