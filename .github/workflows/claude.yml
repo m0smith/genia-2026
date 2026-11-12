@@ -1,9 +1,8 @@
-name: Claude Code
-
 # Runs Claude Code when a collaborator tags @claude in a PR/issue comment or PR review.
 # Example: "@claude please do an independent review of this PR"
 # Requires the Claude GitHub App (https://github.com/apps/claude) and the
 # ANTHROPIC_API_KEY repository secret.
+name: Claude Code
 
 on:
   issue_comment:
