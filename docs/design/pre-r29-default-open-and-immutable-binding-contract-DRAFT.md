@@ -79,14 +79,16 @@ An escaped failed callable is a **transportable opaque value**. Ordinary assignm
 
 Synchronous declaration-owned calls complete before the annotation transaction commits or fails. Other in-flight invocations are never admitted while initializing; no cancellation semantics or rollback of arbitrary external effects is implied. A later permitted REPL name reuse creates a **new identity** and cannot redirect or resurrect escaped failed callables.
 
-### 4.3 Permitted annotations on closed declarations (Q-C1 clarification)
+### 4.3 Permitted annotations and discovery on closed declarations (Q-C1/Q-C1b)
 
 **Approved by the maintainer on 2026-11-11** as a bounded clarification of the
 "permitted metadata" named in §4.1
 ([#1249 ruling](https://github.com/m0smith/genia-2026/issues/1249#issuecomment-6803212555)).
-It states intended semantics. Closed publication is not implemented.
+The [final maintainer ruling](https://github.com/m0smith/genia-2026/issues/1249#issuecomment-6811083960)
+on 2026-11-12 UTC resolves Q-C1b and the observable choices below. These are
+approved intended semantics. Closed publication is not implemented.
 
-- **Permitted:** `@doc`, `@meta`, `@since`, `@deprecated` and `@category`, under the
+- **Permitted:** `@doc`, `@meta`, `@since`, `@deprecated`, `@category` and `@test`, under the
   annotation validation that applies to ordinary functions and the ordered atomic
   publication rules of §4.2.
 - **Rejected:** `@route`, `@get`, `@post`, `@server` and `@cors`. The rejection
@@ -94,20 +96,58 @@ It states intended semantics. Closed publication is not implemented.
   of its effects. Behavior of ordinary functions and of the existing server-discovery
   walkers is unchanged; no server registration or discovery support for closed
   functions is approved.
-- **Not yet decided:** `@test`, which drives native-test discovery and is therefore
-  not merely descriptive. It must not be treated as permitted. Its disposition, and
-  the treatment of annotation names outside the ten listed here, need a further
-  explicit maintainer decision before any committed RED test.
+- **Other unsupported annotation names:** rejected during whole-group annotation-name
+  prevalidation, before any annotation expression or its effects. This earlier
+  rejection is specific to closed declarations; ordinary behavior is unchanged.
 
 **Scope of this ruling.** It lists annotation *names*. It does not restrict the keys
-of a map supplied through `@meta`. Native-test discovery and `send_annotated` select
-on metadata keys (`test`, `http_annotation`), which `@meta` or an annotated alias
-binding can also supply. How those consumers treat a closed callable is therefore
-part of the same undecided question and is **not** settled by the lists above.
+of a map supplied through `@meta`. Native-test discovery supports a committed closed
+callable selected by `@test`, a `test` key in `@meta`, or an annotated alias binding,
+under existing native-test eligibility rules. Discovery and execution use the guarded
+callable, not an unguarded clause record. Callable metadata and binding-owned alias
+annotations remain distinct. Closed callables are excluded from `send_annotated`,
+regardless of an `http_annotation` key; the lifecycle use check precedes that exclusion.
+No key is banned merely because it resembles a rejected annotation name.
 
 The exact validation point and error precedence are design matters, recorded in the
 [Slice E design](pre-r29-model-b-slice-e-closed-publication-design.md) §5, together
-with the alternatives and proposed wording for the undecided points.
+with the historical alternatives and the approved selections.
+
+### 4.4 Approved observable literals (DQ-L)
+
+The final ruling approves these normalized error texts (capitalized placeholders
+denote the relevant name, annotation or declaration label):
+
+- `closed-function-not-yet-published: NAME is not yet published`
+- `closed-function-failed-publication: closed function failed publication`
+- `closed-function-annotation-not-permitted: @ANNOTATION is not permitted on closed function NAME`
+- `closed-function-not-extensible: cannot declare LABEL: NAME refers to a closed function`
+
+Initializing and committed values render opaquely as `<closed-function NAME>`.
+Failed values render as `<closed-function failed>`, without name, source, metadata,
+captures or protected content. This safe rendering is transport, not introspection.
+
+### 4.5 Approved validation, result, entry and applicability decisions
+
+- **DQ-V:** source parsing precedes evaluator checks. For source accepted by the
+  parser and direct Core IR alike: IR well-formedness, defining-name collision,
+  whole-group annotation-name permission, then clause structure, before annotation
+  effects. Dynamic validation of permitted annotations remains ordered (§4.2).
+- **DQ-S:** a successful closed declaration returns its committed callable, never a
+  bare clause record or nil. Command mode therefore prints the final callable when
+  the declaration is the final statement; no body is invoked by declaration alone.
+- **DQ-M:** eligible committed closed `main` participates in ordinary entry
+  selection: simple identifier-header groups, `main/1` before `main/0`, existing
+  mode/varargs rules, guarded invocation. Never auto-run it in the REPL or select a
+  pattern/guard-only group.
+- **DQ-I:** callable-specific initializing introspection is rejected for every
+  caller, including an admitted annotation caller, as already required by §4.2.
+- **DQ-C:** optional `closed_functions` independently covers closed evaluation and
+  publication. Existing `immutable_bindings` and `default_open_functions` meanings
+  stay unchanged; operation-specific requirements are additional. Vocabulary and
+  host claims synchronize at the authorized implementation stage. Approval does
+  not advertise Python support or C++ parity; unsupported runtime cases are never
+  passes.
 
 ## 5. Ordinary metadata ownership, failure and linked-view projection
 
