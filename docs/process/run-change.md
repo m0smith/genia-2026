@@ -10,74 +10,19 @@ completed, the work is not ready to implement. This is a project process
 control, not Genia runtime behavior, and does not apply retroactively to closed
 releases through R25.
 
-For work requiring pre-flight:
+## Risk-based gates
 
-**Phase handoffs:** For issue-tracked work, follow the [GitHub issue comment handoff contract](llm-prompts.md) for each phase below. Read preceding phase comments and linked evidence before proceeding. Post and verify the structured issue comment before declaring each phase complete; retain failing and intermediate evidence. A local temporary handoff file is optional scratch, never the authoritative record. If GitHub publication fails, mark the phase handoff BLOCKED and do not advance. Commit gates, independent review, explicit authorization, and semantic source-of-truth precedence remain unchanged.
+Classify the **semantic decision** separately from **execution of an already approved contract**. New language semantics, Core IR, cross-host observable behavior, concurrency, protected data and security boundaries remain high-risk even when the patch is small. An approved high-risk contract may be implemented as a medium-risk bounded slice. Promote the tier and STOP for new semantic decisions, scope growth, unforeseen failures or unapproved host gaps.
 
-1. Create branch: `issue-<number>-<short-name>`
-2. Run preflight prompt
-   - Pre-flight must include a completed PORTABILITY ANALYSIS block (section 3a).
-   - All seven portability fields must be answered before the contract phase begins.
-   - Incomplete portability analysis is grounds for blocking the contract step.
-   - If the change adds or changes portable observable behavior, complete the
-     executable semantic conformance obligation from
-     `docs/architecture/executable-semantic-conformance.md` before the contract
-     phase:
-     1. identify the portable authority and representation/boundary;
-     2. identify the shared executable spec evidence (or explicitly justify why
-        shared evidence is impossible without claiming unproved cross-host
-        conformance);
-     3. identify applicability using the existing `spec/manifest.json`
-        capability vocabulary, adding a capability only for a genuinely new,
-        independently claimable host surface;
-     4. identify the host capability claim/evidence impact;
-     5. identify implemented-truth documentation that must be synchronized
-        after implementation and verification.
-   - If an implementing host must inspect another host's implementation source
-     to determine observable Genia semantics, stop. Clarify the authoritative
-     contract and add or repair shared evidence before host implementation
-     resumes.
-   - This obligation reuses R16. Do not create a parallel runner, protocol,
-     evidence format, capability registry/profile system, semantic manifest, or
-     Core IR mechanism merely to satisfy this process gate.
-   - Answer the **MCP language-knowledge impact** question: does this change
-     affect knowledge an MCP client should know about Genia
-     (`genia_language_profile`)? If yes, the same change updates STATE, the
-     `mcp_language_profile` registry in `docs/contract/semantic_facts.json`, and the
-     generated block in `apps/mcp/mcp.genia`
-     (`tools/gen_mcp_language_profile.py`); if no, record why.
-   - Identify whether Python, C++, or both are affected. A semantic change must
-     land first as shared contract/conformance work; then both hosts must
-     implement it, or a temporary host gap must be documented before merge.
-     Add or update shared spec/conformance tests wherever applicable.
-   - Every temporary host gap recorded in `spec/known_host_gaps.json` must have
-     a GitHub issue reference, short reason, affected host, affected tests or
-     spec area, and removal condition. Do not add unowned skip-list entries.
-3. Commit preflight
-4. Run contract prompt
-5. Commit contract
-6. Run design prompt
-7. Commit design
-8. Run failing-test prompt
-9. Commit failing tests
-10. Run implementation prompt
-11. Commit implementation
-12. Run the **Code Quality & Maintainability Review** phase using
-    [`code-maintainability-review.md`](code-maintainability-review.md), inspecting
-    the implementation diff and affected call sites, not only the implementer's
-    summary. Record the reviewer, evidence, findings, verdict, and follow-ups.
-13. Resolve blocking maintainability findings and obtain a fresh review verdict;
-    commit any necessary focused fixes. Do not proceed with a FAIL verdict.
-14. Publish the maintainability-review handoff as a GitHub issue comment; commit any version-controlled review artifacts when applicable.
-15. Run docs prompt
-16. Commit docs
-17. Run audit prompt (independent behavioral/documentation truth audit;
-    maintainability review does not replace it)
-18. Commit audit or audit fixes
-19. Run the Doc Distillation prompt
-20. Commit the updated docs
+- **High risk (unsettled contract):** issue branch and R26+ pre-flight with all seven portability fields; separate contract/design acceptance; executable semantic conformance when applicable; independently reviewable failing tests and implementation; docs sync, independent audit and all host/CI/release gates. Do not combine a new semantic decision with execution.
+- **Medium risk (approved bounded slice):** one explicit maintainer authorization may cover sequential committed RED, observed failure, GREEN implementation citing RED SHA, focused docs/checks and one independent final review. Preserve independently auditable test and implementation commits. One consolidated, verified top-level issue comment records exact candidate SHA/tree, RED/GREEN evidence, tests, docs, portability and reviewer verdict; no interim approvals or microphase handoffs are needed inside that authorized slice. FAIL blocks merge and requires corrective work with fresh review.
+- **Low risk (nonsemantic):** concise prompt, targeted checks and normal PR review; issue handoff only when issue-tracked. Promote immediately if behavior or conformance impact appears.
 
-Do not merge until audit passes.
+High-risk pre-flight obligations remain: Python/C++ applicability; shared semantic authority and tests through the existing manifest/capability system; issue-backed host gaps and removal conditions; the MCP language-knowledge impact (does the change affect what an MCP client should know about Genia via `genia_language_profile`? If yes, the same change updates STATE, the `mcp_language_profile` registry in `docs/contract/semantic_facts.json` and the generated block in `apps/mcp/mcp.genia` via `tools/gen_mcp_language_profile.py`; if no, record why); truthful implemented-state docs; and applicable shared conformance. Do not add a parallel runner, registry, capability vocabulary or host-specific semantic authority. Review the pre-flight template and executable semantic conformance guide before such work.
+
+Before each authorized phase/slice, read relevant GitHub issue decisions, accepted handoffs and exact commit evidence. Keep RED observations and failed evidence; a consolidated handoff is not a license to overwrite history. External CI, full regression, host parity and release gates apply whenever otherwise required. The independent reviewer must inspect the actual diff and not be the implementation author. Comments do not supersede GENIA_STATE.md, contract/spec or commits.
+
+**Transition:** This policy is prospective after issue #1321's process PR merges. #1250 RED-C/GREEN-C still needs an explicit issue-specific authorization. No implicit merge, issue closure or R29 authorization.
 
 ## Full regression in socket-restricted environments
 
