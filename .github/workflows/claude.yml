@@ -1,0 +1,44 @@
+name: Claude Code
+
+# Runs Claude Code when a collaborator tags @claude in a PR/issue comment or PR review.
+# Example: "@claude please do an independent review of this PR"
+# Requires the Claude GitHub App (https://github.com/apps/claude) and the
+# ANTHROPIC_API_KEY repository secret.
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  claude:
+    # Only run when @claude is mentioned. The action itself additionally restricts
+    # triggering to users with write access to the repository.
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read # lets Claude read CI results on PRs
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Lets Claude read CI results on PRs (pairs with `actions: read` above).
+          # Claude reads CLAUDE.md, and through it AGENTS.md / GENIA_STATE.md, on its own.
+          additional_permissions: |
+            actions: read
