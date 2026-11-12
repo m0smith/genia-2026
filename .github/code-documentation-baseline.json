@@ -638,7 +638,6 @@
     "src/genia/builtins.py::binding::make_global_env._csv_malformed": "92769bc9f405cec39fff7bc48e679ccb3d3774d291d0e54dfdcbefa1f5539d97",
     "src/genia/builtins.py::binding::make_global_env._csv_parsed_context": "4d4152a7a7ac3fb952e19add462906ea1c8157f89297ae8fcb266ac718af53df",
     "src/genia/builtins.py::binding::make_global_env._describe_field_template": "cb9809ec38c230951a298313b02df993bb1da50d8301782ecb93be71d6e58a47",
-    "src/genia/builtins.py::binding::make_global_env._describe_function_group": "7fadda14f6b67e01b087d248ab6af80312a5e1787378beb53984eb7efc458d44",
     "src/genia/builtins.py::binding::make_global_env._describe_help_overview": "e2499dc813c63f3c99b9189b687e0210d5f3ac5df3021ffc0b1be4a3306572d5",
     "src/genia/builtins.py::binding::make_global_env._describe_missing_help_name": "1d4d804aa82adb48c4f9e564afac37e6abe0ab971fa61f4cf58176e1c3774522",
     "src/genia/builtins.py::binding::make_global_env._describe_runtime_name": "cc7af4b21c68d7f7fc75b24748a5633c78ce43e81d4af3e2b819c9ca0519f326",

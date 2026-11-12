@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .builtins import make_program_env
-from .callable import GeniaFunctionGroup
+from .callable import GeniaFunctionGroup, GeniaClosedFunction
 from .errors import GeniaQuietBrokenPipe
 from .native_test_lifecycle import validate_native_test_lifecycle
 from .test_kernel import TestUnit, run_test_suite, suite_exit_code
@@ -178,7 +178,8 @@ def discover_annotated_test_units(env: Any) -> list[TestUnit]:
     Covers the entry scope's own bindings and the runtime-owned names the entry
     declared (contract 16.1.4). `env` must already be the entry scope (the caller
     resolves it once, so a wrong accessor is not silently corrected here). Imported
-    module annotations are not entry tests; no bodies execute here.
+    module annotations are not entry tests; no bodies execute here. Private closed
+    values require committed state and schedule their guarded group, not a record.
     """
     test_units: list[TestUnit] = []
     for name, value in env.inspection_bindings().items():
@@ -189,6 +190,8 @@ def discover_annotated_test_units(env: Any) -> list[TestUnit]:
         if not isinstance(value, GeniaFunctionGroup):
             test_units.append(_discovery_error_test_unit(name, "@test must annotate a function"))
             continue
+        if isinstance(value, GeniaClosedFunction):
+            value._check_use()
         description = metadata.get("test")
         if not isinstance(description, str) or description == "":
             test_units.append(_discovery_error_test_unit(name, "@test description must be a non-empty string"))
@@ -200,7 +203,7 @@ def discover_annotated_test_units(env: Any) -> list[TestUnit]:
         test_units.append(
             TestUnit(
                 name,
-                body,
+                value if isinstance(value, GeniaClosedFunction) else body,
                 location=_span_location(getattr(body, "span", None), source="@test"),
                 metadata={"description": description},
             )
