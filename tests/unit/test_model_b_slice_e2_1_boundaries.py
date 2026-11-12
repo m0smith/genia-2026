@@ -219,3 +219,23 @@ EXPECTED_SITES = {'builtins.py:<module>.make_global_env._invoke_from_builtin:inv
  'values.py:<module>.GeniaProcess.__init__:Thread': 1,
  'values.py:<module>.GeniaProcess.__init__:start': 1,
  'values.py:<module>.GeniaProcess._run:_handler': 1}
+
+
+def test_entry_argument_provider_is_inside_the_same_boundary():
+    """User-replaced argv is callable work performed for entry dispatch too."""
+    import genia
+    env, group, txn = fixture()
+    seen = []
+
+    def argv():
+        """Attempt inherited admission during entry-argument preparation."""
+        refused(lambda: group(1))
+        seen.append('refused')
+        return []
+
+    env.set_host('argv', argv, visibility='runtime-public')
+    genia.run_source('main(x) = 7', env)
+    with window(txn):
+        assert interpreter._resolve_program_result(None, env) == 7
+        assert seen == ['refused']
+        assert group(2) == 2
