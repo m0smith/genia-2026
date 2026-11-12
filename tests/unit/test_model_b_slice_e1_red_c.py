@@ -289,3 +289,16 @@ def test_unshadowed_self_assignment_is_rejected_before_rhs():
     group._state = "committed"
     with pytest.raises(ImmutableBindingError, match="Cannot assign to immutable binding: f"):
         group(7)
+
+
+def test_autoload_replacement_checks_closed_state_before_selecting_a_record():
+    """An ordinary unresolved arity must not bypass the replacement value's guard."""
+    env, failed, effects = fixture("failed")
+    ordinary = c.GeniaFunctionGroup("g")
+    ordinary.add_clause(record(env, name="g", params=("x", "y")))
+    from genia.ir import IrVar
+    with pytest.raises(RuntimeError) as error:
+        c.invoke_callable(ordinary, [7], tail_position=False, callee_node=IrVar("g"),
+                          autoload_resolver=lambda name, arity: failed)
+    assert str(error.value) == ERRORS["failed"]
+    assert effects == []
