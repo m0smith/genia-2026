@@ -235,7 +235,8 @@ def test_private_self_frame_builder_and_extracted_record_guard():
     guarded = group.get(1)
     assert guarded is not original and original.closure is env
     frame = guarded.closure
-    assert frame.parent is env and frame.get("f") is group
+    assert frame.parent is env and frame.values == {}
+    assert frame.get("f") is ordinary  # building frame has no slot yet
     assert frame.immutable_names() == frozenset({"f"})
     assert frame.module_identity() == env.module_identity()
     assert frame.unit_scope() is env.unit_scope()
@@ -247,6 +248,8 @@ def test_private_self_frame_builder_and_extracted_record_guard():
                 invoke()
             assert str(error.value) == ERRORS[state]
     group._state = "committed"
+    # Controlled terminal fixture: E2.3 C5/F2 is not implemented.
+    group.records[0].closure.values["f"] = group
     assert guarded(7) == c.eval_with_tco(guarded, (7,)) == 7
     with pytest.raises(ImmutableBindingError):
         frame.assign("f", 9)
@@ -264,6 +267,8 @@ def test_self_frame_preserves_local_shadowing_and_other_name_writes(source, expe
     env, ordinary = bound_group(closed=False, source="outer = 0\n" + source)
     group = c.GeniaClosedFunction._with_self_frame("f", ordinary.records, env)
     group._state = "committed"
+    # Controlled terminal fixture: E2.3 C5/F2 is not implemented.
+    group.records[0].closure.values["f"] = group
     assert group([7] if "[f]" in source else 7) == expected
     assert env.get("outer") == (7 if "outer = x" in source else 0)
     assert env.get("f") is ordinary
@@ -274,6 +279,8 @@ def test_self_identity_survives_parent_reuse_and_failed_value_is_not_revived():
     env, ordinary = bound_group(closed=False, source="f(x) = [(y) -> f(y)]")
     group = c.GeniaClosedFunction._with_self_frame("f", ordinary.records, env)
     group._state = "committed"
+    # Controlled terminal fixture: E2.3 C5/F2 is not implemented.
+    group.records[0].closure.values["f"] = group
     escaped = group(7)[0]
     env.assign("f", 99)
     group._state = "failed"  # controlled host fixture, not a publication transition
@@ -287,6 +294,8 @@ def test_unshadowed_self_assignment_is_rejected_before_rhs():
     env, ordinary = bound_group(closed=False, source="f(x) = { f = missing_rhs(); x }")
     group = c.GeniaClosedFunction._with_self_frame("f", ordinary.records, env)
     group._state = "committed"
+    # Controlled terminal fixture: E2.3 C5/F2 is not implemented.
+    group.records[0].closure.values["f"] = group
     with pytest.raises(ImmutableBindingError, match="Cannot assign to immutable binding: f"):
         group(7)
 

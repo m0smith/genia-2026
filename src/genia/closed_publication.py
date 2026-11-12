@@ -5,7 +5,7 @@ inherit the current thread's lineage; independent host dispatchers cut it with a
 barrier. Context copies carry no authority. This is not a Python security boundary.
 """
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import threading
 from typing import Any, Iterator
 
@@ -20,16 +20,21 @@ class _PublicationTransaction:
 
     E2.1 window exit revokes window_open only; it never sets closed. Terminal
     cleanup and the closed write belong to the E2.3 publication transaction
-    (not implemented here). Scope/slot/publication ownership is deferred too.
+    (not implemented here). E2.2 records the two owning scopes for private slot
+    primitives; it performs no installation or lifecycle transition.
     """
     callable: Any
     window_open: bool = False
     closed: bool = False
+    declaring_scope: Any = field(init=False, default=None)
+    self_frame: Any = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         """Attach to an unreachable building callable; reject replacement descriptors."""
         if self.callable._state != 'building' or hasattr(self.callable, '_txn'):
             raise RuntimeError('publication descriptor requires a fresh building callable')
+        self.self_frame = getattr(self.callable, "_self_frame", None)
+        self.declaring_scope = self.self_frame.parent if self.self_frame is not None else None
         self.callable._txn = self
 
 

@@ -248,6 +248,8 @@ def test_nonroot_owner_and_debugger_self_scope():
     module._unit_scope = module
     group = c.GeniaClosedFunction._with_self_frame('f', [record(module)], module)
     group._state = 'committed'
+    # Controlled terminal fixture, standing in for future E2.3 C5.
+    group.records[0].closure.values['f'] = group
     assert group.owner == ('private-module', 'f')
     frame = group.records[0].closure
     assert frame.parent is module and frame.parent is not root
