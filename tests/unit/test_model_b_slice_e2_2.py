@@ -160,13 +160,13 @@ def test_every_writer_rejects_live_reservation(tmp_path, writer, target):
                 env.merge_binding_metadata('f', metadata, declaration=ticket if writer.endswith('ticket') else None)
             else:
                 source = {'import': 'import missing as f', 'use': 'use f from missing with ext',
-                          'open': 'open f', 'autoload': 'f = 99'}[writer]
+                          'open': 'open f(x) = x', 'autoload': 'f = 99'}[writer]
                 genia.run_source(source, env)
         with pytest.raises(e.ImmutableBindingError, match='immutable binding'):
             operation()
         assert root.get('f') == 41
         assert 'f' not in declaring.values
-        assert group.metadata == GeniaMap()
+        assert list(group.metadata.items()) == []
 
 
 def test_rejection_before_rhs_and_import_link_effects(monkeypatch):
@@ -292,8 +292,8 @@ def test_autoload_publication_honors_runtime_slot(tmp_path):
     root = e.Env()
     path = tmp_path / 'lazy.genia'
     path.write_text('f = 99', encoding='utf-8')
-    root.register_autoload('f', 0, str(path))
     with reserved(declaring=root):
+        root.register_autoload('f', 0, str(path))
         with pytest.raises(e.ImmutableBindingError):
             root.try_autoload('f', 0)
         assert 'f' not in root.values
