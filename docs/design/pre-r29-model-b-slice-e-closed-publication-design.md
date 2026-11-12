@@ -627,6 +627,10 @@ The descriptor does not need to record a thread: only the declaring thread ever
 pushes it on a lineage stack, so being on a thread's stack already identifies that
 thread.
 
+E2.1 window exit revokes admission only. Terminal cleanup and writing the
+descriptor's `closed` flag are owned by the later E2.3 publication transaction
+(K4), not E2.2 slots; they remain unimplemented in E2.1.
+
 ### 6.2 Window and lineage
 
 Each thread has a private **lineage stack**. It is thread-local host state and is

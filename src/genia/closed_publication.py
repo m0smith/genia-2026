@@ -18,8 +18,9 @@ _BARRIER = object()
 class _PublicationTransaction:
     """Stable callable descriptor, attached once while building and never removed.
 
-    Window/closed flags are owner-written host state. Scope/slot/publication
-    ownership is deliberately absent until the later publication slice.
+    E2.1 window exit revokes window_open only; it never sets closed. Terminal
+    cleanup and the closed write belong to the E2.3 publication transaction
+    (not implemented here). Scope/slot/publication ownership is deferred too.
     """
     callable: Any
     window_open: bool = False
