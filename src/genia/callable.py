@@ -7,7 +7,7 @@ invoke_callable — the module-level dispatch entry point used by the evaluator.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 if __package__ in (None, ""):
     import sys
@@ -502,6 +502,35 @@ class GeniaFunctionGroup:
             raise TypeError(f"Ambiguous function resolution: {self.name}/{arity}. Matching varargs: {candidates}")
         available = ", ".join(f"{self.name}/{n}" for n in self.sorted_arities())
         raise TypeError(f"No matching function: {self.name}/{arity}. Available: {available}")
+
+
+class GeniaClosedFunction(GeniaFunctionGroup):
+    """Python-private construction seam, not yet a sealed or lifecycle-guarded value.
+
+    Source evaluation never constructs this type. GREEN-A only assembles existing
+    records using ordinary group machinery; behavioral E1 support is deferred.
+    """
+
+    @classmethod
+    def _from_records(
+        cls, name: str, records: Iterable[GeniaFunction],
+    ) -> GeniaClosedFunction:
+        """Build a named group from nonempty existing records, without evaluating them.
+
+        Materialize the input before assembly. Empty input raises ValueError;
+        non-GeniaFunction elements raise TypeError. Ordinary clause insertion keeps
+        its duplicate-key/docstring checks and derives the group's arity index.
+        Record objects and their closures are shared; the input container is not.
+        """
+        records = list(records)
+        if not records:
+            raise ValueError("closed group requires at least one record")
+        if any(not isinstance(record, GeniaFunction) for record in records):
+            raise TypeError("closed group requires GeniaFunction records")
+        group = cls(name)
+        for record in records:
+            group.add_clause(record)
+        return group
 
 
 def _clause_key(fn: Any) -> Any:
