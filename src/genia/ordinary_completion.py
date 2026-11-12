@@ -9,7 +9,7 @@ from types import MappingProxyType
 from typing import Any
 
 from . import ast_nodes, ir, pattern_match
-from .callable import GeniaFunction, GeniaFunctionGroup
+from .callable import GeniaClosedFunction, GeniaFunction, GeniaFunctionGroup
 from .lexer import SourceSpan
 from .values import GeniaMap
 
@@ -139,7 +139,8 @@ def _capture(group: GeniaFunctionGroup, module_env: Any) -> _Projection:
 def prepare_module_completions(module_env: Any, exports: dict) -> tuple:
     """Build private exact-identity associations before the loader publishes a cache entry.
 
-    Only a group actually declared in this module attempt is captured. Re-exports
+    Closed values are excluded, including aliases and re-exports. Only an ordinary
+    group actually declared in this module attempt is captured. Re-exports
     require a prior exact-G completion witness; missing/failed origins and old
     escaped identities remain normal exports with no projection or new error.
     No alias hashing/equality, global registry, view construction or user code.
@@ -147,6 +148,8 @@ def prepare_module_completions(module_env: Any, exports: dict) -> tuple:
     associations = []
     seen = set()
     for value in exports.values():
+        if isinstance(value, GeniaClosedFunction):
+            continue
         if not isinstance(value, GeniaFunctionGroup) or id(value) in seen or value.owner is None:
             continue
         seen.add(id(value))

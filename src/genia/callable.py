@@ -505,11 +505,17 @@ class GeniaFunctionGroup:
 
 
 class GeniaClosedFunction(GeniaFunctionGroup):
-    """Python-private construction seam, not yet a sealed or lifecycle-guarded value.
+    """Python-private sealed group with opaque rendering, without lifecycle guards.
 
-    Source evaluation never constructs this type. GREEN-A only assembles existing
-    records using ordinary group machinery; behavioral E1 support is deferred.
+    Source evaluation never constructs this type. Only the private factory inserts
+    initial clauses; records/closures remain shared. `_state` is construction data
+    only: no transitions, publication or invocation checks are implemented here.
     """
+
+    def __post_init__(self) -> None:
+        """Initialize the preparatory state field and reuse ordinary group indexing."""
+        self._state = "building"
+        super().__post_init__()
 
     @classmethod
     def _from_records(
@@ -521,6 +527,8 @@ class GeniaClosedFunction(GeniaFunctionGroup):
         non-GeniaFunction elements raise TypeError. Ordinary clause insertion keeps
         its duplicate-key/docstring checks and derives the group's arity index.
         Record objects and their closures are shared; the input container is not.
+        Initial insertion uses the base implementation privately; the returned
+        group's public add_clause rejects even though `_state` remains building.
         """
         records = list(records)
         if not records:
@@ -529,8 +537,36 @@ class GeniaClosedFunction(GeniaFunctionGroup):
             raise TypeError("closed group requires GeniaFunction records")
         group = cls(name)
         for record in records:
-            group.add_clause(record)
+            GeniaFunctionGroup.add_clause(group, record)
         return group
+
+    def _reject_clause_addition(self, fn: GeniaFunction, binding_name: str | None = None) -> None:
+        """Reject append using the attempted binding, or defining name for host calls.
+
+        The label preserves the attempted header's arity/varargs shape. This is a
+        value-based rejection independent of owner or construction state.
+        """
+        name = self.name if binding_name is None else binding_name
+        kind, arity = _record_shape(fn)
+        label = f"{name}/{arity}{'+' if kind == 'varargs' else ''}"
+        raise TypeError(
+            f"closed-function-not-extensible: cannot declare {label}: "
+            f"{name} refers to a closed function"
+        )
+
+    def add_clause(self, fn: GeniaFunction) -> None:
+        """Reject external append, including while the preparatory state is building."""
+        self._reject_clause_addition(fn)
+
+    def merge_metadata(self, metadata: GeniaMap) -> None:
+        """Reject callable metadata merging; binding-owned alias metadata is separate."""
+        raise TypeError("closed function metadata cannot be merged")
+
+    def __repr__(self) -> str:
+        """Render only the defining name, without records, metadata or captures."""
+        return f"<closed-function {self.name}>"
+
+    __str__ = __repr__
 
 
 def _clause_key(fn: Any) -> Any:
