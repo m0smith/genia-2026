@@ -13,7 +13,7 @@ from tests.unit.test_model_b_slice_e2_1 import fixture, refused, window
 
 @pytest.mark.parametrize('raises', [False, True])
 def test_entry_main_boundary(raises):
-    env, group, txn = fixture('main', 'main(x) = x')
+    env, group, txn = fixture()
     seen = []
 
     def entry(arg):
@@ -24,7 +24,9 @@ def test_entry_main_boundary(raises):
             raise ValueError('main failure')
         return 7
 
-    group.functions[1] = entry
+    import genia
+    env.set_host('entry_probe', entry, visibility='runtime-public')
+    genia.run_source('main(x) = entry_probe(x)', env)
     with window(txn):
         assert group(1) == 1
         if raises:
@@ -51,6 +53,9 @@ def test_http_same_thread_real_request_dispatch(monkeypatch, raises):
         def handle_request(self):
             request = object.__new__(self.handler)
             request.command = 'HEAD'
+            request.path = '/'
+            request.headers = {}
+            request.client_address = ('127.0.0.1', 1)
             request.send_response = lambda status: seen.append(status)
             request.send_header = lambda *args: None
             request.end_headers = lambda: None
@@ -65,13 +70,12 @@ def test_http_same_thread_real_request_dispatch(monkeypatch, raises):
         seen.append('refused')
         if raises:
             raise ValueError('http failure')
-        return values.GeniaMap({'status': 200, 'body': 'ok'})
+        return values.GeniaMap().put('status', 200).put('body', 'ok')
 
     monkeypatch.setattr(builtins, 'HTTPServer', Server)
-    monkeypatch.setattr(builtins, '_http_request_map', lambda request: values.GeniaMap())
     with window(txn):
         assert group(1) == 1
-        env.get('serve_http')(values.GeniaMap({'max_requests': 1}), handler)
+        env.get('_serve_http')(values.GeniaMap().put('max_requests', 1), handler)
         assert seen == ['refused', 500 if raises else 200, 'closed']
         assert group(2) == 2
 
@@ -162,4 +166,44 @@ def test_dispatch_inventory_requires_explicit_classification():
     assert callable_sites() == EXPECTED_SITES
 
 
-EXPECTED_SITES = {'builtins.py:<module>.make_global_env._invoke_from_builtin:invoke_callable': 1, 'builtins.py:<module>.make_global_env._invoke_raw_from_builtin:invoke_callable': 1, 'builtins.py:<module>.make_global_env.actor_call_update_fn:handler': 1, 'builtins.py:<module>.make_global_env.apply_raw_fn:invoke_callable': 1, 'builtins.py:<module>.make_global_env.cors_fn.cors_handler:_invoke_from_builtin': 1, 'builtins.py:<module>.make_global_env.flat_map_some_fn:_invoke_from_builtin': 1, 'builtins.py:<module>.make_global_env.keep_some_else_fn.iterator:_invoke_from_builtin': 2, 'builtins.py:<module>.make_global_env.map_some_fn:_invoke_from_builtin': 1, 'builtins.py:<module>.make_global_env.meta_host_apply_fn:invoke_callable': 1, 'builtins.py:<module>.make_global_env.or_else_with_fn:_invoke_from_builtin': 1, 'builtins.py:<module>.make_global_env.rules_kernel_fn.iterator:_invoke_from_builtin': 1, 'builtins.py:<module>.make_global_env.scan_fn.iterator:_invoke_from_builtin': 1, 'builtins.py:<module>.make_global_env.scan_fn:_invoke_from_builtin': 1, 'builtins.py:<module>.make_global_env.serve_http_fn._GeniaRequestHandler._serve:_invoke_from_builtin': 1, 'builtins.py:<module>.make_global_env.tick_fn.iterator:_invoke_from_builtin': 1, 'callable.py:<module>.GeniaFunction.__call__:eval_with_tco': 1, 'callable.py:<module>.GeniaFunctionGroup.__call__:eval_with_tco': 1, 'callable.py:<module>.GeniaLinkedOpenFunction.__call__:eval_with_tco': 1, 'callable.py:<module>.GeniaOpenFunction.__call__:eval_with_tco': 1, 'callable.py:<module>.invoke_callable:invoke_callable': 2, 'evaluator.py:<module>.Evaluator.call_matcher:invoke_callable': 1, 'evaluator.py:<module>.Evaluator.eval_binary:invoke_callable': 1, 'evaluator.py:<module>.Evaluator.eval_call:invoke_callable': 1, 'evaluator.py:<module>.Evaluator.eval_pipeline_stage.invoke_with_pipeline_option_lifting:invoke_callable': 2, 'evaluator.py:<module>.Evaluator.invoke_callable:_invoke_callable': 1, 'evaluator.py:<module>.Evaluator.resolve_named_pattern:invoke_callable': 1, 'gemini_rest.py:<module>.create_gemini_rest_model_provider:_handler': 1, 'interpreter.py:<module>._resolve_program_result:main_with_args': 1, 'interpreter.py:<module>._resolve_program_result:main_without_args': 1, 'model.py:<module>.GeniaModelProvider._attempt:_handler': 1, 'process_transport.py:<module>.launch_process:Thread': 2, 'retrieval.py:<module>.GeniaEmbedProvider._attempt:_handler': 1, 'retrieval.py:<module>.GeniaIndexProvider._attempt:_handler': 1, 'retrieval.py:<module>.GeniaRerankProvider._attempt:_handler': 1, 'retrieval.py:<module>.GeniaRetrieveProvider._attempt:_handler': 1, 'test_kernel.py:<module>.run_test_unit:body': 1, 'values.py:<module>.GeniaCell.__init__:Thread': 1, 'values.py:<module>.GeniaCell._run:update_fn': 1, 'values.py:<module>.GeniaCell.restart:Thread': 1, 'values.py:<module>.GeniaProcess.__init__:Thread': 1, 'values.py:<module>.GeniaProcess._run:_handler': 1}
+EXPECTED_SITES = {'builtins.py:<module>.make_global_env._invoke_from_builtin:invoke_callable': 1,
+ 'builtins.py:<module>.make_global_env._invoke_raw_from_builtin:invoke_callable': 1,
+ 'builtins.py:<module>.make_global_env.actor_call_update_fn:handler': 1,
+ 'builtins.py:<module>.make_global_env.apply_raw_fn:invoke_callable': 1,
+ 'builtins.py:<module>.make_global_env.cors_fn.cors_handler:_invoke_from_builtin': 1,
+ 'builtins.py:<module>.make_global_env.flat_map_some_fn:_invoke_from_builtin': 1,
+ 'builtins.py:<module>.make_global_env.keep_some_else_fn.iterator:_invoke_from_builtin': 2,
+ 'builtins.py:<module>.make_global_env.map_some_fn:_invoke_from_builtin': 1,
+ 'builtins.py:<module>.make_global_env.meta_host_apply_fn:invoke_callable': 1,
+ 'builtins.py:<module>.make_global_env.or_else_with_fn:_invoke_from_builtin': 1,
+ 'builtins.py:<module>.make_global_env.rules_kernel_fn.iterator:_invoke_from_builtin': 1,
+ 'builtins.py:<module>.make_global_env.scan_fn.iterator:_invoke_from_builtin': 1,
+ 'builtins.py:<module>.make_global_env.scan_fn:_invoke_from_builtin': 1,
+ 'builtins.py:<module>.make_global_env.serve_http_fn._GeniaRequestHandler._serve:_invoke_from_builtin': 1,
+ 'builtins.py:<module>.make_global_env.tick_fn.iterator:_invoke_from_builtin': 1,
+ 'callable.py:<module>.GeniaFunction.__call__:eval_with_tco': 1,
+ 'callable.py:<module>.GeniaFunctionGroup.__call__:eval_with_tco': 1,
+ 'callable.py:<module>.GeniaLinkedOpenFunction.__call__:eval_with_tco': 1,
+ 'callable.py:<module>.GeniaOpenFunction.__call__:eval_with_tco': 1,
+ 'callable.py:<module>.invoke_callable:invoke_callable': 2,
+ 'evaluator.py:<module>.Evaluator.call_matcher:invoke_callable': 1,
+ 'evaluator.py:<module>.Evaluator.eval_binary:invoke_callable': 1,
+ 'evaluator.py:<module>.Evaluator.eval_call:invoke_callable': 1,
+ 'evaluator.py:<module>.Evaluator.eval_pipeline_stage.invoke_with_pipeline_option_lifting:invoke_callable': 2,
+ 'evaluator.py:<module>.Evaluator.invoke_callable:_invoke_callable': 1,
+ 'evaluator.py:<module>.Evaluator.resolve_named_pattern:invoke_callable': 1,
+ 'gemini_rest.py:<module>.create_gemini_rest_model_provider:_handler': 1,
+ 'interpreter.py:<module>._resolve_program_result:main_with_args': 1,
+ 'interpreter.py:<module>._resolve_program_result:main_without_args': 1,
+ 'model.py:<module>.GeniaModelProvider._attempt:_handler': 1,
+ 'process_transport.py:<module>.launch_process:Thread': 2,
+ 'retrieval.py:<module>.GeniaEmbedProvider._attempt:_handler': 1,
+ 'retrieval.py:<module>.GeniaIndexProvider._attempt:_handler': 1,
+ 'retrieval.py:<module>.GeniaRerankProvider._attempt:_handler': 1,
+ 'retrieval.py:<module>.GeniaRetrieveProvider._attempt:_handler': 1,
+ 'test_kernel.py:<module>.run_test_unit:body': 1,
+ 'values.py:<module>.GeniaCell.__init__:Thread': 1,
+ 'values.py:<module>.GeniaCell._run:update_fn': 1,
+ 'values.py:<module>.GeniaCell.restart:Thread': 1,
+ 'values.py:<module>.GeniaProcess.__init__:Thread': 1,
+ 'values.py:<module>.GeniaProcess._run:_handler': 1}

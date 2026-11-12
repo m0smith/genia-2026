@@ -61,13 +61,13 @@ def test_admitted_invocation_every_layer_and_bridge():
     refused(lambda: group(7))
     with window(txn):
         assert group(7) == 7
-        assert group._dispatch_once((8,)) == 8
+        assert c.eval_with_tco(lambda: group._dispatch_once((8,)), ()) == 8
         assert group.records[0](9) == 9
         assert c.eval_with_tco(group.records[0], (10,)) == 10
         assert c.invoke_callable(group, [11], tail_position=False) == 11
         assert c.invoke_callable(group.records[0], [12], tail_position=False) == 12
         assert genia.run_source('[7] |> map(f)', env) == [7]
-        assert genia.run_source('force(lazy(f(13)))', env) == 13
+        assert genia.run_source('force(delay(f(13)))', env) == 13
         flow = GeniaFlow(lambda: iter([14]))
         env.set_host('input_flow', flow, visibility='entry-only')
         assert genia.run_source('input_flow |> map(f) |> collect', env) == [14]
@@ -130,7 +130,7 @@ def test_admitted_invocation_never_admits_reflection(expression):
 
 def test_admitted_does_not_admit_http_or_discovery():
     env, group, txn = fixture('f', 'f() = 1')
-    env.binding_metadata['f'] = GeniaMap({'test': 'private'})
+    env.binding_owner('f').binding_metadata['f'] = GeniaMap().put('test', 'private')
     with window(txn):
         assert group() == 1
         refused(lambda: resolve_http_annotation(group))
@@ -218,3 +218,48 @@ def test_extracted_record_state_precedes_none_and_missing_autoload_arity():
     genia.run_source('h(0) = 0', env)
     refused(lambda: c.invoke_callable(env.get('h'), [1, 2, 3], tail_position=False,
                                      callee_node=IrVar('h'), autoload_resolver=lambda *args: group))
+
+
+def test_descriptor_single_assignment_and_committed_fast_path(monkeypatch):
+    env = genia.make_global_env([])
+    group = c.GeniaClosedFunction._with_self_frame('f', [record(env)], env)
+    txn = c._PublicationTransaction(group)
+    with pytest.raises(RuntimeError, match='fresh building callable'):
+        c._PublicationTransaction(group)
+    assert group._txn is txn
+    group._state = 'committed'
+    original = c.GeniaClosedFunction.__getattribute__
+
+    def no_descriptor_read(self, name):
+        """A committed invocation must never consult its descriptor or lineage."""
+        assert name != '_txn'
+        return original(self, name)
+
+    monkeypatch.setattr(c.GeniaClosedFunction, '__getattribute__', no_descriptor_read)
+    assert group(7) == 7
+    group._check_use()
+
+
+def test_nonroot_owner_and_debugger_self_scope():
+    from genia.environment import Env
+    root = genia.make_global_env([])
+    module = Env(root)
+    module.module_id = 'private-module'
+    module._unit_scope = module
+    group = c.GeniaClosedFunction._with_self_frame('f', [record(module)], module)
+    group._state = 'committed'
+    assert group.owner == ('private-module', 'f')
+    frame = group.records[0].closure
+    assert frame.parent is module and frame.parent is not root
+    assert frame.unit_scope() is module
+    scopes = []
+
+    class Hooks(c.DebugHooks):
+        """Observe actual debugger frames rather than a synthetic scope listing."""
+        def on_function_enter(self, name, args, env, span):
+            scopes.append(env)
+
+    assert c.eval_with_tco(group.records[0], (7,), Hooks(), True) == 7
+    assert scopes[0].parent is frame
+    assert list(scopes[0].parent.inspection_bindings()) == ['f']
+    assert scopes[0].parent.parent is module
