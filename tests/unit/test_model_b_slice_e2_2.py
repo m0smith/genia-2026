@@ -26,7 +26,7 @@ def reserved(name='f', *, outer=41, source='f(x) = x', declaring=None):
     """Build genuine guarded records and install private data under the binding lock."""
     root = genia.make_global_env([]) if declaring is None else declaring.root()
     if declaring is None:
-        root.set(name, outer, metadata=GeniaMap().put('doc', 'outer'))
+        root.set_host(name, outer, visibility='runtime-public', metadata=GeniaMap().put('doc', 'outer'))
         declaring = e.Env(root, rebind_parent=False)
         declaring._unit_scope = declaring
         declaring.module_id = 'slot-module'
@@ -133,7 +133,7 @@ def test_every_writer_rejects_live_reservation(tmp_path, writer, target):
         ticket.committed = writer == 'metadata_ticket'
         path = tmp_path / 'lazy.genia'
         path.write_text('f = 99', encoding='utf-8')
-        root.register_autoload('f', 0, str(path))
+        root.register_host_autoload('f', 0, str(path), visibility='runtime-public')
         def operation():
             """Invoke the actual writer, taking the lock for lock-owned private seams."""
             if writer == 'check_assign':
@@ -145,7 +145,7 @@ def test_every_writer_rejects_live_reservation(tmp_path, writer, target):
                 with e._BINDING_LOCK:
                     env._write_binding('f', 99, True, None, False)
             elif writer == 'set':
-                env.set('f', 99)
+                env.set_host('f', 99, visibility='entry-only')
             elif writer == 'assign':
                 env.assign('f', 99)
             elif writer == 'function':
@@ -229,7 +229,7 @@ def test_transaction_identity_and_ownership_across_threads():
 def test_empty_set_fast_paths_are_unchanged_and_do_not_consult_slots(monkeypatch):
     assert not e._OPEN_TRANSACTIONS
     root, child = e.Env(), None
-    root.set('x', 7)
+    root.set_host('x', 7, visibility='runtime-public')
     child = e.Env(root)
     def forbidden(*args):
         """The empty-set branch must not perform slot or admission work."""
@@ -293,7 +293,7 @@ def test_autoload_publication_honors_runtime_slot(tmp_path):
     path = tmp_path / 'lazy.genia'
     path.write_text('f = 99', encoding='utf-8')
     with reserved(declaring=root):
-        root.register_autoload('f', 0, str(path))
+        root.register_host_autoload('f', 0, str(path), visibility='runtime-public')
         with pytest.raises(e.ImmutableBindingError):
             root.try_autoload('f', 0)
         assert 'f' not in root.values
