@@ -876,6 +876,15 @@ callable's owner still equals the declaring module and name. The sealed `add_cla
 For the committed defining name, the existing immutable-name check still fires first
 with its existing text.
 
+For `closed-function-not-extensible` only, `LABEL` is the attempted declaration
+header including arity, and `NAME` is the binding used for that attempt
+([B-1 ruling](https://github.com/m0smith/genia-2026/issues/1249#issuecomment-6814249982),
+contract §4.4). Thus declaring `a/2` through alias `a` of closed `f` reports exactly
+`closed-function-not-extensible: cannot declare a/2: a refers to a closed function`.
+This binding-sensitive diagnostic does not rename the underlying callable or change
+lifecycle-error naming or opaque markers; `<closed-function NAME>` still uses the
+callable's defining name.
+
 **No metadata is written through a binding.** `merge_binding_metadata`
 (`environment.py:750-752`) and `define_function` (`:691, :713`) update a group's own
 metadata when a binding is annotated. For a closed callable they update only the

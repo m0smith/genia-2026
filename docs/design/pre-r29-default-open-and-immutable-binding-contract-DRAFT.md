@@ -123,6 +123,15 @@ denote the relevant name, annotation or declaration label):
 - `closed-function-annotation-not-permitted: @ANNOTATION is not permitted on closed function NAME`
 - `closed-function-not-extensible: cannot declare LABEL: NAME refers to a closed function`
 
+For `closed-function-not-extensible` only, `LABEL` is the attempted declaration
+header including arity, and `NAME` is the binding spelling through which that
+declaration was attempted, not necessarily the closed callable's defining name
+([B-1 maintainer ruling](https://github.com/m0smith/genia-2026/issues/1249#issuecomment-6814249982)).
+Declaring `a/2` through alias `a` of closed `f` therefore reports exactly
+`closed-function-not-extensible: cannot declare a/2: a refers to a closed function`.
+This diagnostic rule changes neither callable identity nor naming in lifecycle
+errors or opaque rendering.
+
 Initializing and committed values render opaquely as `<closed-function NAME>`.
 Failed values render as `<closed-function failed>`, without name, source, metadata,
 captures or protected content. This safe rendering is transport, not introspection.
