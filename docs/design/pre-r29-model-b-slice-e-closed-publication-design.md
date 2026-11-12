@@ -2,7 +2,8 @@
 
 Status: **APPROVED DESIGN, iteration 3. Private E1 construction, sealing, use guards,
 self-frame/guarded-record construction and rendering are implemented in Python;
-live annotation admission and publication remain E2 and unimplemented.**
+E2.1 descriptor/lineage, invocation-only admission and boundary barriers are implemented
+as private machinery; live annotation evaluation and publication remain unimplemented.**
 Python parses and lowers closed `f(pattern) =: expression` groups, and evaluation
 still rejects them with `model-b-not-implemented`. `GENIA_STATE.md` remains the only
 authority on implemented behavior. Phase record for
@@ -625,6 +626,10 @@ the only link from a value to its descriptor, and that link never changes (§3.1
 The descriptor does not need to record a thread: only the declaring thread ever
 pushes it on a lineage stack, so being on a thread's stack already identifies that
 thread.
+
+E2.1 window exit revokes admission only. Terminal cleanup and writing the
+descriptor's `closed` flag are owned by the later E2.3 publication transaction
+(K4), not E2.2 slots; they remain unimplemented in E2.1.
 
 ### 6.2 Window and lineage
 

@@ -1,8 +1,10 @@
+"""Native test validation and isolated body execution with structured results."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Callable, ClassVar, Iterable
 
+from .closed_publication import _publication_barrier
 from .values import _runtime_type_name
 
 
@@ -90,6 +92,12 @@ def _metadata_discovery_error(test_unit: Any) -> str | None:
 
 
 def run_test_unit(test_unit: TestUnit) -> dict[str, Any]:
+    """Validate discovery metadata, then execute one body behind a lineage barrier.
+
+    Return pass/fail/error records; native assertion failures retain their
+    expected/actual fields. Other Exceptions become evaluation errors; interrupts
+    propagate after the barrier has restored the caller's lineage.
+    """
     if not isinstance(getattr(test_unit, "name", None), str) or test_unit.name == "":
         return _discovery_error(test_unit, "test unit name must be a non-empty string")
 
@@ -108,7 +116,8 @@ def run_test_unit(test_unit: TestUnit) -> dict[str, Any]:
         return _discovery_error(test_unit, "test unit body must be callable")
 
     try:
-        body()
+        with _publication_barrier():
+            body()
     except NativeTestFailure as failure:
         return _result(
             kind="fail",
