@@ -23,7 +23,7 @@ Rules:
 - Keep documentation truthful and current.
 - If behavior changes, update relevant tests and docs in the appropriate phase.
 - Do not work on `main`.
-- Do not continue into another phase.
+- Do not continue into another phase unless the prompt explicitly authorizes it. An explicitly authorized bounded implementation slice (see "Risk-based change execution" in `AGENTS.md`, `docs/process/run-change.md` and `docs/process/llm-prompts.md`) may sequence committed RED tests, GREEN implementation, focused docs sync and one independent final review; still STOP for a new semantic decision, scope expansion, an unaccounted failing test, an unapproved host gap or a blocking review finding.
 - Prefer minimal, precise, local changes.
 
 ## Handoff Files
@@ -37,7 +37,7 @@ Rules:
 - These are temporary LLM coordination artifacts.
 - They are NOT canonical documentation.
 - They must NOT be committed.
-- Each phase must read prior handoffs before starting.
+- Each phase must read prior handoffs before starting. An explicitly authorized bounded slice may use one consolidated, verified GitHub issue handoff instead of per-phase handoffs (`docs/process/llm-prompts.md`).
 - If required handoff files are missing → STOP and report.
 - Distillation must extract durable documentation into canonical docs, then remove or mark handoffs for deletion.
 

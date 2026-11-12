@@ -139,9 +139,17 @@ Prefer references over duplicated semantic rules.
 
 ---
 
+## Risk-based change execution (issue #1321)
+
+Classify **the semantic decision** separately from **implementation of an already approved contract**. High-impact new/changed language semantics, Core IR, protected-data boundaries, concurrency/distribution and cross-host guarantees still require an approved pre-flight, portable contract/design decisions, separately committed failing evidence, truthful implemented-state docs, applicable conformance/host-gap evidence and independent acceptance. Do not silently relabel such decisions medium-risk.
+
+Once those decisions are accepted, a maintainer may **explicitly authorize one bounded implementation slice** (including its RED test commit, GREEN implementation, focused docs sync, testing and final independent review) in one instruction. The agent must preserve the RED commit and failed run before implementation, preserve separate commits for independently auditable artifacts where appropriate, and STOP for a new semantic decision, scope expansion, unaccounted failing test, unapproved host gap or blocking review finding. This is **authorization to execute sequential tasks**, not permission to collapse contract/test/code into one unreviewable change. A single consolidated, verified, top-level GitHub handoff at slice completion can replace intermediate phase comments when the initial authorization names the slice and gates. Independent reviewer must not be the implementer, and must inspect actual code and tests. Any required external CI, portability or release acceptance still applies at merge/release gates.
+
+Low-risk nonsemantic docs/typo/tooling changes use a short prompt, targeted checks and normal PR review; medium-risk bounded work uses preserved RED evidence where behavior changes, focused testing and one independent final review; high-risk unsettled semantics retain separate decision gates. Risk escalates when actual changes exceed the classification. This process flexibility applies prospectively only after the process PR merges; earlier GitHub decisions and unapproved #1250 RED-C/GREEN-C gates are not retroactively waived. See [run-change](docs/process/run-change.md) and [prompt wrapper](docs/process/llm-prompts.md).
+
 ## Durable GitHub Phase Handoffs
 
-For an issue-tracked change, use the **task GitHub issue's top-level comments** as the canonical, append-only ledger for intermediate phase results across Claude, Codex, Copilot, ChatGPT and optional OpenClaw coordination. Before each phase, read relevant prior comments, acceptance criteria and linked commit/PR evidence; preserve the requirement for explicit authorization to proceed to subsequent phases. Before declaring a phase complete, publish a structured comment including the phase/iteration, agent/reviewer, verdict, exact candidate SHA, evidence, blockers and next authorized action. Explicitly link superseded phase comments on retries. If the comment cannot be published/verified, mark the handoff blocked; local temporary files are scratch only, not authoritative handoffs. Do not publish secrets or protected data. See [the shared prompt wrapper](docs/process/llm-prompts.md). Comments do not supersede `GENIA_STATE.md`, committed contract/spec/test artifacts, or independent review gates.
+For an issue-tracked change, use the **task GitHub issue's top-level comments** as the canonical, append-only ledger for intermediate phase results across Claude, Codex, Copilot, ChatGPT and optional OpenClaw coordination. Before each authorized phase or bounded slice, read relevant prior comments, acceptance criteria and linked commit/PR evidence; obtain explicit authorization for the phase or the complete bounded slice. Before declaring an authorized phase or bounded slice complete, publish and verify a structured comment including phase/slice and iteration, agent/reviewer, verdict, exact candidate SHA, RED evidence when applicable, checks, blockers and next authorized action. A specifically authorized bounded slice may use one consolidated handoff rather than microphase comments. Explicitly link superseded phase comments on retries. If the comment cannot be published/verified, mark the handoff blocked; local temporary files are scratch only, not authoritative handoffs. Do not publish secrets or protected data. See [the shared prompt wrapper](docs/process/llm-prompts.md). Comments do not supersede `GENIA_STATE.md`, committed contract/spec/test artifacts, or independent review gates.
 
 ## Token-Efficient Agent Workflow Pilot
 
@@ -663,7 +671,7 @@ Avoid:
 
 Genia is a **pattern-matching-first language**.
 
-Agents must not continue into the next phase unless explicitly prompted.
+Agents must not continue into a new semantic decision or an unauthorized phase/slice. An explicit bounded-slice authorization may permit sequential RED, GREEN, docs and review work under the risk-based policy.
 
 Commit prefixes must match the phase:
 
@@ -806,17 +814,7 @@ contract explicitly requires them.
 
 # 🧠 PROMPT DISCIPLINE
 
-Each prompt must perform ONE type of work:
-
-- Contract
-- Design
-- Implementation
-- Test
-- Docs
-- Audit
-- Distillation
-
-Never combine responsibilities.
+Prompts for undecided semantic contracts and designs must each perform one decision type (Contract, Design, etc.). For an explicitly approved bounded implementation slice, one orchestrated prompt may sequence Test → Implementation → Docs → independent Review; keep evidence and commits distinguishable and stop at semantic or scope changes. Distillation and release acceptance remain separate when required.
 
 ---
 

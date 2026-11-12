@@ -2,13 +2,15 @@
 
 This policy reduces avoidable AI-token and review effort. It is **subordinate** to `AGENTS.md`, `GENIA_STATE.md`, the established pre-flight/change process, and all required semantic, host, conformance, independent-review, and release gates. It authorizes **no** skipped required phase, weak oracle, reclassified failure, undocumented behavior, or unsupported host claim.
 
-## 1. Select the smallest sufficient work scope
+## 1. Risk-based gate selection
 
-- **Low risk:** isolated typo/prose changes without semantic, host, process, or conformance impact. Use a short prompt, inspect the diff, run relevant doc checks; follow existing documentation-only pre-flight exceptions where applicable.
-- **Medium risk:** bounded implementation, tooling, or fixture updates. Follow the full applicable process; use one implementer and focused independent review required by that process.
-- **High risk:** language/runtime/host behavior, cross-host contracts, security/protected data, Core IR, or release acceptance. Preserve complete pre-flight, contract, design, RED/GREEN, maintainability, docs, independent audit, distillation, and shared/host conformance obligations.
+Classify unsettled semantics separately from implementation of approved decisions. See AGENTS.md and docs/process/run-change.md. Risk tier now controls the *phase authorization boundary*, not just redundant investigation:
 
-**Risk tier changes the amount of redundant investigation, not the required quality gates.** Promote the tier if scope or evidence changes.
+- **Low risk:** isolated nonsemantic typo, prose and mechanical tooling changes: one prompt, targeted checks, normal PR review.
+- **Medium risk:** bounded implementation of an already approved contract, or bounded internal tooling/fixture work: a maintainer may authorize one slice from committed RED through GREEN, docs and one independent end-of-slice review. Preserve RED evidence, separate auditable commits and truthful docs; consolidate issue handoff.
+- **High risk:** new/changed language semantics, Core IR contract, host interoperability, security/protected values, concurrency/distribution or release acceptance: retain separately accepted preflight, semantic contract/design and shared conformance gates; then delegate implementation as an explicitly bounded slice when ready.
+
+Promote the risk tier and stop upon unapproved semantic choices, widening scope, novel host gaps, or failures that invalidate the approved design. Independent reviewer remains mandatory for code-bearing medium/high-risk slices. No CI, host-portability or release acceptance requirement is waived. This change takes effect only after issue #1321's process PR merges.
 
 ## 2. Read with purpose
 
@@ -18,14 +20,14 @@ At the beginning of each task, consult the latest `AGENTS.md` and the four autho
 
 - Link exact issue, commit/tree, command, environment, host pin, result and reviewer evidence instead of pasting large logs or repeating settled investigations.
 - Begin with changed paths and affected cases; run additional focused regressions as justified.
-- Complete **all full-suite, cross-host, CI, portability and release gates when the existing process requires them**, regardless of the incremental checks.
+- Complete **all full-suite, cross-host, CI, portability and release gates when required for merge/release**, regardless of the incremental checks; avoid repeating broad suites after each intermediate commit.
 - Evidence is valid only for its recorded SHA, tree, host version and execution envelope. If the candidate changes, identify what must be rerun; do not call earlier green runs exact-head proof.
 - Retain red runs, unsupported cases, timeouts and known gaps. Do not retry-to-green, silently reduce required coverage or raise deadlines to manufacture a pass.
 
 ## 4. Minimize agent and prompt overhead
 
 - Prefer concise prompts naming the issue, objective, exact candidate, changed scope, mandatory instructions and stop condition. Link existing acceptance criteria rather than restating them.
-- Default to **one implementer**. Add independent reviewers only to satisfy the project's process or when risk and uncertainty justify them; independence is never replaced by an implementer's self-report.
+- Default to **one implementer and one independent final reviewer** for bounded code-bearing medium/high-risk slices. Avoid duplicate mid-slice reviews unless semantic or safety uncertainty warrants escalation; independence is never replaced by an implementer's self-report.
 - Parallel agents only for non-overlapping worktrees and clearly separable tasks. Do not launch several agents to restate the same review.
 - Store comprehensive findings, test artifacts and provenance in the relevant GitHub issue/PR. Return a short decision summary: outcome, actual blockers, evidence link and next action. Logs remain accessible, not suppressed.
 - Prefer a lower-cost model for mechanical, well-bounded work when supported; use deeper reasoning for semantic uncertainty, architecture, root-cause analysis and independent skeptical audits. Model choice never relaxes acceptance criteria.
@@ -39,7 +41,7 @@ When OpenClaw is available:
 - **Single issue intake:** resolve the issue, current candidate SHA, relevant sections, scope/risk tier, acceptance gates and existing evidence once. Give each worker a small task-specific context and link the exact GitHub source; do not forward entire historical transcripts or repeated large documents by default.
 - **Explicit delegation:** default to one implementer. Route independent review to a separate agent/session when mandated; make independence, branch/worktree isolation and reviewer scope explicit. Prefer sequential handoffs to redundant simultaneous agents.
 - **Bounded concurrency:** cap simultaneous sessions and expensive builds to the machine's measured resource envelope. Avoid contention-induced timeouts; do not alter the conformance deadline or change results to green. Each worker records failures and exact run provenance.
-- **Durable handoff:** every issue-tracked phase publishes its structured, append-only handoff to the task GitHub issue as specified by `docs/process/llm-prompts.md`; the coordinator maintains a compact pointer to the latest valid issue comment (decision, commit/tree, host pins, test evidence links, blockers, owner, next step). A failed comment publication blocks advancing that phase. Local tmp files, OpenClaw memory, and session summaries are convenience caches only. GitHub comments coordinate phase decisions; committed repository files remain semantic and executable truth.
+- **Durable handoff:** each issue-tracked phase or explicitly authorized bounded slice publishes its structured, append-only verified handoff to the task GitHub issue as specified by docs/process/llm-prompts.md; the coordinator maintains a compact pointer to the latest valid issue comment (decision, commit/tree, host pins, test evidence links, blockers, owner, next step). A failed comment publication blocks advancing that phase. Local tmp files, OpenClaw memory, and session summaries are convenience caches only. GitHub comments coordinate phase decisions; committed repository files remain semantic and executable truth.
 - **Costs and limits:** account for coordinator tokens, each delegated session, cached/context tokens where provided, and repeated tool/test calls. Separate subscription-backed usage from API-billed usage where observable. Do not promise savings until a measured comparison shows them.
 - **Safety and authority:** use minimum necessary tool permissions; separate read-only review from code-writing and GitHub mutation; preserve explicit approvals and PR/CI gates. Do not delegate secrets or protected inputs unnecessarily. A coordinator must not merge, close an issue or authorize R29 merely because all workers report success.
 
