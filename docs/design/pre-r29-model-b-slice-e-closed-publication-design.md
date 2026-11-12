@@ -2,7 +2,8 @@
 
 Status: **APPROVED DESIGN, iteration 3. Private E1 construction, sealing, use guards,
 self-frame/guarded-record construction and rendering are implemented in Python;
-live annotation admission and publication remain E2 and unimplemented.**
+E2.1 descriptor/lineage, invocation-only admission and boundary barriers are implemented
+as private machinery; live annotation evaluation and publication remain unimplemented.**
 Python parses and lowers closed `f(pattern) =: expression` groups, and evaluation
 still rejects them with `model-b-not-implemented`. `GENIA_STATE.md` remains the only
 authority on implemented behavior. Phase record for
