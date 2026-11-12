@@ -168,6 +168,11 @@ def test_B8_B_31_site_inventory_classifies_all_raw_program_constructors():
             helpers.append((path, function, name))
             del unknown[(path, function, name)]
     assert len(helpers) <= 1, "§16.6.2 requires one construction helper"
+    # E1's one private self frame is lexical callable infrastructure, not a
+    # program/runtime/entry constructor. Pin its exact cardinality separately;
+    # keep the reviewed 18-site baseline and unknown-site rejection intact.
+    closed_self_frame = ("src/genia/callable.py", "_with_self_frame", "Env")
+    assert unknown.pop(closed_self_frame, 0) == 1, "E1 owns exactly one self frame constructor"
     assert not unknown, "A3 unclassified ownership/construction paths: " + repr(dict(unknown))
     assert not (approved - actual), "A3 non-program disposition changed; review inventory"
     unchanged = Counter((path, function) for path, function, name in tree_calls if name == "make_global_env" and (path, function) in program)
