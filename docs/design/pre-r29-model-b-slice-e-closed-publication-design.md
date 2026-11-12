@@ -1,6 +1,6 @@
 # Model B Slice E: closed-function publication (E1 + E2)
 
-Status: **DESIGN PROPOSED, iteration 3 — awaiting independent re-review. Nothing here is implemented.**
+Status: **APPROVED DESIGN, iteration 3, with final semantic rulings reconciled for E1 RED. Nothing here is implemented.**
 Python parses and lowers closed `f(pattern) =: expression` groups, and evaluation
 still rejects them with `model-b-not-implemented`. `GENIA_STATE.md` remains the only
 authority on implemented behavior. Phase record for
@@ -8,6 +8,15 @@ authority on implemented behavior. Phase record for
 design by [comment 6803222025](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6803222025),
 following the [Slice E preflight](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6802507721).
 Source line numbers refer to `main` at `2c9bb7c4d54f532521f680590dfb1bee2a310dc4`.
+
+Independent [iteration-3 review](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6810212238)
+returned PASS WITH NON-BLOCKING FINDINGS for `af8480a`. The
+[final semantic ruling](https://github.com/m0smith/genia-2026/issues/1249#issuecomment-6811083960)
+approves the selections in §12; this reconciliation records those selections and
+the allocation-wording follow-up, not a new algorithm or implemented behavior.
+[E1 TEST authorization](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6811094929)
+is bounded to private representation/use/rendering/capture RED. Lineage execution,
+reservations and publication remain E2, including their host-local test inventory.
 
 Governing sources: the maintainer-approved
 [Model B contract](pre-r29-default-open-and-immutable-binding-contract-DRAFT.md)
@@ -27,9 +36,9 @@ of iteration 1 (`426819a2735c76d8a6f7ba282a89b174a77bd8f7`).
 | F1 thread-only admission | Admission needs an open transaction window **and** an unbroken synchronous lineage; host execution boundaries cut the lineage | §6 |
 | F2 commit not atomic | One linearization point; nothing visible is written before it; faults after it roll forward | §4.1–4.4 |
 | F3 closedness and raw records | Sealed callable, guarded clause records, clause append rejected by value, consumer audit | §3.1–3.2, §7.3 |
-| F4 `@test` versus the `test` metadata key | Names and keys separated; two coherent alternatives; decision pending | §5 |
+| F4 `@test` versus the `test` metadata key | Names and keys separated; Alternative A subsequently approved | §5 |
 | F5 declaration result and oracle | Exact output and full inventory list | §10.4 |
-| F6 capability | Independent `closed_functions` capability recommended; decision pending | §9 |
+| F6 capability | Independent `closed_functions` capability subsequently approved; no host claim yet | §9 |
 | F7 truth synchronization | Lands with E2, not after it | §11 |
 
 **Iteration 3** answers the independent re-review
@@ -58,7 +67,8 @@ dispatch; a new Core IR node or version; a second dispatcher; rollback or
 cancellation of external effects; server discovery of closed functions; C++
 implementation or parity; R29.
 
-**Decisions this design needs from the maintainer before RED** are in §12.
+**Approved semantic decisions and their historical alternatives** are in §12.
+E1 RED does not authorize implementation or E2 RED.
 
 ## 2. Verified starting point
 
@@ -236,8 +246,10 @@ So before C3 every observer sees an unpublished function, and from C3 on every
 observer sees a fully published one. C4–C6 only move the answer from the slot into
 the ordinary tables; they change no observable result.
 
-C2b is the last step that can fail by allocation, and it comes before C3. The lock
-is held without interruption from C2b through C4, so no other writer can change the
+C2b completes the immutable-set allocation before C3. Inserting metadata or a new
+binding into a Python dictionary at C4/C5 can still allocate or resize storage;
+those post-C3 faults follow roll-forward, not failure or rollback. The lock
+is held continuously from C2b through C4, so no other writer can change the
 declaring scope's set between the computation and the store (§4.6, N1).
 
 A reader that started before T4 and skipped the slot path (§6.6, fast path) reads the
@@ -285,7 +297,7 @@ interrupt or an allocation failure. It is distinct from an annotation error.
 | T5, or closing the window | T7. |
 | C1, C2 or C2b | T7. The state is still `initializing`; nothing visible was written. An allocation failure at C2b is this case. |
 | C3 | The handler reads the state. `committed`: roll forward. Otherwise: T7. |
-| C4 or C5 | **Roll forward.** A `finally` inside the lock hold repeats C4 and C5, which are plain stores of values that already exist, then runs the close routine. The fault is then re-raised from the declaration statement. The function is published. |
+| C4 or C5 | **Roll forward.** A `finally` inside the lock hold repeats C4 and C5, including dictionary insertions which may allocate despite the values already existing, then runs the close routine. The fault is then re-raised from the declaration statement. The function is published. |
 | Between or after any of K1–K4 | The close routine is run again from K1. Steps already done do nothing (§4.6, N2). |
 | F1 | The handler reads the state. Not yet `failed`: repeat F1. |
 | F2 | Repeat F2, then the close routine. |
@@ -357,7 +369,8 @@ stored.
 **Allocation failure.** C2b is the only allocation that depends on shared data. It
 runs before C3. If it fails, the state is still `initializing`, nothing visible was
 written, and T7 runs: `f` is failed and unbound, and the set is untouched. No step
-after C3 allocates a set.
+after C3 allocates an immutable set; dictionary insertion may allocate and uses
+the post-C3 roll-forward protocol.
 
 **Self frame.** Its set is built at T3, while the frame is private, and already
 contains the name. C5 and F2 do not store to it. Any later immutable declaration
@@ -493,12 +506,12 @@ extra mutable field it had overlooked.
 |---|---|
 | `@doc`, `@meta`, `@since`, `@deprecated`, `@category` | Permitted (ruled). Existing validation applies at T5. |
 | `@route`, `@get`, `@post`, `@server`, `@cors` | Rejected at T2 (ruled). |
-| `@test` | **PENDING MAINTAINER DECISION** (§5.2). |
-| Any other name | **PENDING MAINTAINER DECISION** (§12, Q-C1b). Today an unknown name on an ordinary function fails with `Unsupported annotation` only after its value expression has been evaluated (`evaluator.py:714-757`). Rejecting it at T2 changes that timing for closed declarations. |
+| `@test` | Permitted by the final Q-C1b ruling; existing validation at T5 and guarded native discovery (§5.2). |
+| Any other unsupported name | Rejected at T2 before any annotation effects, as approved by Q-C1b. Ordinary unknown-name timing stays unchanged (`evaluator.py:714-757`). |
 
 T2 scans the annotation names of the whole group before any annotation expression is
 evaluated. Names are static in Core IR (`IrAnnotation.name`), so the scan runs no
-user code. The ruling prefers this pre-scan. It does not change the order of
+user code. The final ruling approves this pre-scan. It does not change the order of
 contract §4.2: that order governs evaluation of permitted annotations and begins
 after structural validation, of which "permitted metadata" is a listed part (§4.1).
 
@@ -516,7 +529,7 @@ that contains any closed declaration (`server_route_binding.py:211-214`,
 `server_config_binding.py:218-221`, `server_cors_binding.py:182-185`). They select by
 annotation name in Core IR, so a `route` key inside `@meta` is not discovered.
 
-### 5.2 Native-test discovery — PENDING MAINTAINER DECISION (Q-C1b)
+### 5.2 Native-test discovery — Alternative A APPROVED (Q-C1b)
 
 Iteration 1 recommended excluding `@test` and concluded that a closed function would
 then never be discovered. The review showed that conclusion is false, and a probe
@@ -532,14 +545,14 @@ key `test`, which can come from three sources.
 Discovery then requires a function group with exactly arity 0 and one plain record,
 and runs that record (`test_cli.py:184-205`, `test_kernel.py:106-111`).
 
-**Alternative A — closed functions are discoverable tests.**
+**Alternative A — APPROVED: closed functions are discoverable tests.**
 `@test` joins the permitted names. Discovery treats a committed closed callable like
 an ordinary function with the same binding metadata, from any of the three sources,
 with the existing description, arity and unique-name rules. Discovery runs the
 callable's use check and schedules the **callable**, not a bare record, so the state
 rules hold at run time.
 
-**Alternative B — closed functions are never discovered.**
+**Historical Alternative B — NOT SELECTED: closed functions are never discovered.**
 `@test` is rejected at T2. Discovery gets a type-aware rule: a binding whose value is
 a closed callable and whose metadata has a `test` key produces the discovery error
 `@test cannot select a closed function`. `@meta` keys stay unrestricted.
@@ -553,13 +566,11 @@ a closed callable and whose metadata has a `test` key produces the discovery err
 | Extends the approved five-name list | Yes, by `@test` | No |
 | Evidence | Shared `cli` test-mode cases | Shared `cli` test-mode cases |
 
-**Recommendation: Alternative A.** It needs no special rule, it is what the
-ordinary-compatible principle already implies, and it treats the three sources
-alike. The earlier recommendation for B rested on a premise that is false. A does
-extend the approved list of permitted names, so it needs an explicit ruling; this
-design does not assume one.
+**Approved selection: Alternative A.** The final maintainer ruling explicitly
+permits `@test` and discovery from all three sources. The alternatives above are
+retained as design history; Alternative B is not an implementation option.
 
-**Proposed contract wording, Alternative A (not approved):**
+**Approved contract wording, Alternative A:**
 > `@test` is permitted on a closed declaration under the validation that applies to
 > ordinary functions. Native-test discovery treats a committed closed callable as it
 > treats an ordinary function with the same binding metadata, whether that metadata
@@ -567,29 +578,29 @@ design does not assume one.
 > binding. Discovery and execution go through the callable, so §4.2 applies; a
 > callable that is not committed is never run as a test.
 
-**Proposed contract wording, Alternative B (not approved):**
+**Historical proposed wording, Alternative B (not selected):**
 > `@test` is rejected on a closed declaration like the annotations rejected above.
 > Native-test discovery never selects a closed callable: a binding whose value is a
 > closed callable and whose metadata has a `test` key is reported as a discovery
 > error, whether the key came from `@meta` or from an alias binding. The keys of an
 > `@meta` map are not restricted.
 
-Until the ruling, contract §4.3 keeps `@test` listed as undecided.
+Contract §4.3 now records the final ruling; this does not activate closed evaluation.
 
-### 5.3 The `http_annotation` key — PENDING MAINTAINER DECISION (Q-C1b)
+### 5.3 The `http_annotation` key — exclusion APPROVED (Q-C1b)
 
 `send_annotated(fn)` reads the key `http_annotation` from the function value's
 metadata. `@get` and `@post` are rejected by name, but `@meta({http_annotation: …})`
 would put the same key on a closed callable.
 
-- **Ordinary-compatible:** `send_annotated` treats a committed closed callable like
+- **Historical alternative, not selected:** `send_annotated` treats a committed closed callable like
   an ordinary function carrying that key.
-- **Excluded:** `send_annotated` rejects a closed callable with its existing
+- **Approved exclusion:** `send_annotated` rejects a closed callable with its existing
   `TypeError` text, whatever its metadata.
 
-**Recommendation: excluded.** The ruling already keeps the outbound-HTTP annotations
-off closed declarations; honoring the same descriptor through `@meta` would
-contradict it in effect. Under either choice the use check runs first.
+**Approved selection: excluded.** The final Q-C1b ruling explicitly decides the
+consumer exclusion as well as annotation-name permission. The use check runs first;
+no `@meta` key is banned.
 
 ## 6. Admission and provisional names
 
@@ -892,7 +903,7 @@ capture and equality need no check. Equality stays identity
 
 Rendering uses overridden `__repr__` and `__str__`, which every display path reaches
 (`format_display` and `format_debug` fall back to `str`/`repr`; diagnostics that
-embed a value use `repr`). Proposed literals (DQ-L):
+embed a value use `repr`). Approved literals (DQ-L):
 
 | State | Rendering |
 |---|---|
@@ -936,8 +947,8 @@ are part of Slice E because they prove the capture exclusion.
    group. No new node, field or version. Transaction, slots and lineage are private
    runtime state.
 3. **Shared executable conformance.** §10.
-4. **Capability applicability — PENDING MAINTAINER DECISION (DQ-C).**
-   Recommendation: a new optional capability **`closed_functions`**.
+4. **Capability applicability — APPROVED (DQ-C), not yet advertised.**
+   The independently optional capability is **`closed_functions`**.
    - *Why.* `immutable_bindings` covers `name =: expr`; `default_open_functions`
      covers ordinary default-open clauses and pattern/guard headers. Neither implies
      closed publication. The Python host is the proof: it claims both today and
@@ -985,15 +996,20 @@ are part of Slice E because they prove the capture exclusion.
 
 ## 10. RED evidence plan (inventory only; no test is written or changed here)
 
-Proposed ids name observations; literals are locked at RED against §12.
-`C` = `closed_functions` (if DQ-C is approved; otherwise `immutable_bindings` and
-`default_open_functions`). `D` = `default_open_functions`.
+Proposed ids name observations; approved literals are recorded in §12.
+`C` = the approved `closed_functions`. `D` = `default_open_functions`. No manifest
+or runtime claim is changed during E1 TEST.
 
 ### 10.1 E1 — host-local only
 
 E1 has no source activation, so nothing is observable through R16. This follows the
-accepted D2a precedent. Tests build closed callables, transactions and windows
-through the private constructors.
+accepted D2a precedent. The current E1 TEST authorization covers private callable
+construction, controlled lifecycle-state fixtures, guards, rendering, transport and
+capture exclusion. It does not authorize transactions, windows, reservations,
+`Env.get` changes or lineage behavior. The original E1-04 through E1-07 admission
+rows below are retained as future E2 inventory, not current E1 commitments. E1-01
+name/annotation validation and E1-12 live-slot checks likewise belong to E2; E1
+can cover pure clause construction and lexical-frame shape without activation.
 
 | Id | Observation |
 |---|---|
@@ -1028,7 +1044,7 @@ through the private constructors.
 | `alias-mutable-name-immutable` | cli | C, `repl` | The alias rebinds; the defining name does not; both observed after the rejection |
 | `second-group-after-statement`, `ordinary-clause-after-closed`, `repl-later-submission-clause` | cli | C, `repl` | Rejected; a later submission shows the first group still works |
 | `alias-clause-rejected`, `restored-name-clause-rejected` | cli | C, `repl`, `refs` | `closed-function-not-extensible` through an alias and through the original spelling restored after a failed publication |
-| `annotation-permitted-set` | eval | C, `doc_help` | The five permitted kinds merged in order |
+| `annotation-permitted-set` | eval | C, `doc_help` | The six permitted kinds, including `@test`, merged in order |
 | `annotation-forbidden-route` (+ `get`, `post`, `server`, `cors`) | error | C | Rejected at T2; an earlier permitted annotation's sentinel is not printed |
 | `annotation-meta-keys-allowed` | eval | C | `@meta` with `route` and other keys is accepted as data |
 | `annotation-self-call`, `annotation-helper-self-call`, `annotation-recursion` | eval | C | The annotation calls the function directly, through a module-scope helper, and recursively |
@@ -1058,6 +1074,7 @@ at the first error (§2).
 |---|---|
 | E2-L1 | Barrier-synchronized second thread holding an escaped reference: refused during `initializing`; paused at each of C1, C2, C2b, C3, C4, C5 and K1–K4, it sees either the unpublished or the fully published function, never a mixture: for a call through the reference, for `doc`/`meta`/`help`, and for a name lookup and a metadata lookup made immediately afterwards in the declaring scope and through the self frame |
 | E2-L2 | A fault injected at each of P1–P5, T5 (including `BaseException`), window close, C1, C2, C2b, C3, C4, C5, F1 and F2, and after each of K1, K2, K3 and K4 on both the publication and the failure path: the end result matches §4.4; afterwards there is a terminal state or a discarded callable, no slot of that transaction, the transaction absent from the open set, and either a complete binding with metadata or none at all; the name is reusable after failure |
+| E2-L2a (allocation follow-up) | Inject a single allocation failure at each actual C4/C5 metadata/binding dictionary insertion, including dict growth, before and after the insertion takes effect. Retry inside the same lock hold. The state stays committed; binding, metadata and immutable membership complete; K1–K4 remove only the owner's reservations. This is a single-fault model, not a progress guarantee under persistent OOM. |
 | E2-L3 | No execution observes `committed` and later `failed` |
 | E2-L4 | Slots: an outer binding of the same name is resolved by non-admitted code and the provisional callable by admitted code; the self-frame slot refuses an escaped closure; a write to the name is rejected before its right-hand side runs and is never redirected to the outer binding; every writer listed in §6.6 is covered |
 | E2-L5 | The request-handler example of §6.4 with a real `serve_http` dispatch on the declaring thread |
@@ -1082,7 +1099,7 @@ print("before")
 f(0) =: { print("child"); 0 }
 ```
 
-| | Today | After the transition (with DQ-S and DQ-L as recommended) |
+| | Today | After the E2 transition (DQ-S and DQ-L approved) |
 |---|---|---|
 | stdout | `before` | `before` then `<closed-function f>` |
 | stderr | `Error: model-b-not-implemented: declaration evaluation is not available` | empty |
@@ -1092,8 +1109,8 @@ f(0) =: { print("child"); 0 }
 The second stdout line follows from the design: the declaration is the last
 statement, its value is the committed callable, and command mode prints a non-nil
 final value (§2). The body is not run, so `child` is not printed. No fixture change
-is needed and no output-suppression rule is added. If DQ-S is decided as "no value",
-the second line is absent; if DQ-L changes the marker, the line changes with it.
+is needed and no output-suppression rule is added. DQ-S and DQ-L approve this
+result and marker. This oracle remains unchanged until the authorized E2 transition.
 
 Every place that must change with it, in one dedicated commit that records the old
 and new text:
@@ -1134,18 +1151,21 @@ code-bearing change. The table below is about **mergeable PR boundaries**.
 
 | PR | Content | Truth documents | RED gate |
 |---|---|---|---|
-| **E1** | Sealed `GeniaClosedFunction`, guarded records, self-frame shape, whole-group builder, use check at every §7.2 point, lineage stack with barriers at the §6.3 boundaries, markers, sealing in `define_function` and the metadata writers, capture exclusion. **No source activation** and no `Env` lookup change: closed source still raises `model-b-not-implemented`. | One accurate sentence in `GENIA_STATE.md` at E1 GREEN: private closed-function machinery exists and is unreachable from source (the D2a precedent). | §10.1 |
-| **E2** | Transaction T0–T7, guarded slots and lookup, publication and failure protocols, source activation, shared specs, the §10.4 transition, the capability and gap entries, **and the full implemented-truth synchronization of §9 item 7**. | Updated in this PR, so `main` is never ahead of or behind its documents. | §10.2, §10.3 |
+| **E1** | Sealed `GeniaClosedFunction`, guarded records, self-frame shape, whole-group builder, use check at every §7.2 point, markers, sealing in `define_function` and the metadata writers, capture exclusion. **No source activation** and no `Env` lookup change: closed source still raises `model-b-not-implemented`. | One accurate sentence in `GENIA_STATE.md` at E1 GREEN: private closed-function machinery exists and is unreachable from source (the D2a precedent). | §10.1 |
+| **E2** | Lineage stack/barriers and annotation windows, transaction T0–T7, guarded slots and lookup, publication and failure protocols, source activation, shared specs, the §10.4 transition, the capability and gap entries, **and the full implemented-truth synchronization of §9 item 7**. | Updated in this PR, so `main` is never ahead of or behind its documents. | §10.2, §10.3 |
 | **E3** | Independent integration audit, distillation, remaining follow-ups. | Corrections only if the audit finds drift. | none (verification) |
 
 E1 can merge alone: nothing in it is reachable from source, and its additions to hot
-paths (one type test at the top of `invoke_callable`, a push and pop at five
-boundaries) are behavior-neutral for existing programs. If E1's RED cannot establish
-the admission and use invariants without the slots, E1 and E2 are combined instead;
-a half-defined state machine is not merged for the sake of the split.
+paths (one type test at the top of `invoke_callable`) must be behavior-neutral for
+existing programs. E1 exercises non-admitted initializing use and terminal states
+through private host fixtures; active admission, lineage and slots remain E2.
+An inability to express meaningful E1 RED without implementation scaffolding is a
+blocker to report under the E1 TEST authorization, not permission to implement the
+scaffolding or expand into E2. A half-defined state machine is not merged for the
+sake of the split.
 
 **Risks.**
-1. A missed boundary admits a call it should refuse. Mitigation: E1-07.
+1. A missed boundary admits a call it should refuse. Mitigation: the E1-07 inventory deferred to E2.
 2. A missed use-check site. Mitigation: guarded records, E1-02, full regression.
 3. `Env.get` is on the hottest path. Mitigation: the fast path taken while the open-transaction set is empty, E2-L8.
 4. `GENIA_STATE.md` is at 42,845 of its 43,000-word limit. E2's synchronization must
@@ -1157,36 +1177,40 @@ a half-defined state machine is not merged for the sake of the split.
 **Complexity: necessary.** One dispatcher. The new parts are two small subclasses,
 one transaction object, one slot table, one thread-local stack and one check helper.
 
-## 12. Decisions required before RED
+## 12. Approved decisions before RED
 
-Each row is an observable choice. DQ-I is already fixed by the contract and is
-listed for confirmation only. None is assumed approved.
+The final maintainer ruling approves Q-C1b and DQ-L/V/S/M/C below and confirms
+DQ-I, which was already fixed by the contract. These are intended semantics, not
+implemented claims. E1 TEST alone is authorized; implementation and E2 require
+separate authorization.
 
-| Id | Contract requirement | Recommended choice | Compatibility effect | RED evidence |
+| Id | Contract requirement | Approved choice | Compatibility effect | RED evidence |
 |---|---|---|---|---|
-| **Q-C1b** `@test`, `test` and `http_annotation` keys, alias discovery, other names | §4.3: five names permitted, five rejected; `@test` and other names undecided. §4.1: ordinary-compatible annotations | (a) `@test`: **Alternative A**, closed functions are discoverable through any of the three sources (§5.2). (b) `send_annotated`: closed callables excluded (§5.3). (c) Other names: rejected at T2 with `closed-function-annotation-not-permitted`. (d) No `@meta` key is banned. | None for existing programs; closed evaluation is rejected today. (a) extends the approved name list by one. (c) differs from ordinary functions in timing. | `cli` test-mode cases for the three sources, wrong arity and a failed publication; `send_annotated` rejection; unknown-name and `@meta`-key cases |
+| **Q-C1b** `@test`, `test` and `http_annotation` keys, alias discovery, other names | §4.3: six names permitted, five names and all other unsupported names rejected; ordinary-compatible annotations | (a) `@test`: **Alternative A**, closed functions are discoverable through any of the three sources (§5.2). (b) `send_annotated`: closed callables excluded (§5.3). (c) Other unsupported names: rejected at T2 with `closed-function-annotation-not-permitted`. (d) No `@meta` key is banned. | None for existing programs; closed evaluation is rejected today. (a) extends the previously approved name list by one. (c) differs from ordinary functions in timing. | `cli` test-mode cases for the three sources, wrong arity and a failed publication; `send_annotated` rejection; unknown-name and `@meta`-key cases |
 | **DQ-L** literals | §4.2 fixes the two identities and a sanitized failed marker | `closed-function-not-yet-published: NAME is not yet published`; `closed-function-failed-publication: closed function failed publication`; `closed-function-annotation-not-permitted: @ANNOTATION is not permitted on closed function NAME`; `closed-function-not-extensible: cannot declare LABEL: NAME refers to a closed function`; markers per §7.4 | New texts only | Every error and rendering case in §10 |
 | **DQ-V** validation order | §4.1: validate before exposing anything; order among competing errors unspecified | T0 well-formedness, then name, then annotation permission, then clause structure; parse errors precede all of them for source | None | `validation-order`, E1-01, E2-L7 |
-| **DQ-S** declaration value | Not specified | The committed callable; never a clause record. The alternative is no value. | Determines the second stdout line of §10.4 and of every case that ends with a closed declaration | `single-clause`, §10.4 |
-| **DQ-M** closed `main` | Not specified | A committed closed `main` is selected exactly as an ordinary one: only a simple identifier-header group, `main/1` before `main/0`, the same modes, never in the REPL; through the use check and guarded records | A closed `main` would otherwise be silently ignored | `main-selection`, plus a pattern-header closed `main` that is not selected |
+| **DQ-S** declaration value | Contract §4.5 records the final ruling | The committed callable; never a clause record. The historical no-value alternative was not selected. | Determines the second stdout line of §10.4 and of every case that ends with a closed declaration | `single-clause`, §10.4 |
+| **DQ-M** closed `main` | Contract §4.5 records the final ruling | A committed closed `main` is selected exactly as an ordinary one: only a simple identifier-header group, `main/1` before `main/0`, the same modes and existing varargs rules, never in the REPL; through the use check and guarded records | A closed `main` would otherwise be silently ignored | `main-selection`, plus a pattern-header closed `main` that is not selected |
 | **DQ-I** introspection while initializing | **§4.2 requires rejection** | Rejected for every caller, admitted or not | — | `annotation-introspection-while-initializing`, E1-08 |
 | **DQ-C** capability | §6.1 item 4: reuse the vocabulary, never mislabel supported behavior; conformance obligation: add a capability only for an independently claimable surface | Add optional `closed_functions` (§9 item 4) | A conformance-contract addition; no existing claim changes meaning | The `requires` of every §10.2 case; adapter staging test |
 
 ## 13. Process note, file plan and final check
 
-**Branch name.** This work is on `claude/brave-babbage-qb2zvm`. `docs/process/run-change.md`
+**Branch name.** The original design PR #1320 uses `claude/brave-babbage-qb2zvm`. `docs/process/run-change.md`
 and `scripts/check-genia-branch.sh` require `issue-<number>-<short-name>`, and this
-branch fails that check. The authoring session may push only to this branch, so it
-did not rename it. This is an open process item, not an accepted exception: before
+branch fails that check. The original authoring session did not rename it. This is
+an open process item, not an accepted exception: before
 merge the maintainer either records an explicit exception or the commits are moved to
-a compliant branch.
+a compliant branch. The E1 TEST reconciliation uses the compliant
+`issue-1250-slice-e1-red` branch with the original design ancestry preserved; it
+does not modify or merge PR #1320 and grants no exception to that PR's branch.
 
 **New:** this document (KEEP, design record). **Modified in this phase:** the Model B
 contract (§4.3 and a status phrase) and one pointer line in the portable design.
 **Removed:** none.
 
-**Final check (docs/process/02-design.md):** the contract text is changed only by the
-recorded Q-C1 ruling and a scope note that marks what is still undecided; no behavior
-is added beyond the contract and that ruling; every choice the contract leaves open
-is either decided above with its alternatives or listed in §12 as pending; nothing
-here is described as implemented.
+**Final check (docs/process/02-design.md):** the contract text records Q-C1 and the
+final Q-C1b/DQ rulings. Every previously open choice is recorded with its
+alternatives and approved selection in §12. The dictionary-allocation correction
+retains the accepted roll-forward protocol. E1 TEST stage boundaries follow the
+explicit authorization. Nothing here is described as implemented.
