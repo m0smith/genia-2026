@@ -57,6 +57,7 @@ if __package__ in (None, ""):
     from genia.lowering import (
         lower_program as lower_program,
     )
+    from genia.closed_publication import _publication_barrier
     from genia.callable import (
         DebugHooks as DebugHooks,
         NOOP_DEBUG_HOOKS as NOOP_DEBUG_HOOKS,
@@ -101,6 +102,7 @@ else:
     from .lowering import (
         lower_program as lower_program,
     )
+    from .closed_publication import _publication_barrier
     from .callable import (
         DebugHooks as DebugHooks,
         NOOP_DEBUG_HOOKS as NOOP_DEBUG_HOOKS,
@@ -522,10 +524,12 @@ def _resolve_program_result(run_result: Any, env: Env) -> Any:
     main_with_args = main_group.get(1)
     if main_with_args is not None:
         cli_args = env.get("argv")()
-        return _normalize_absence(main_with_args(cli_args))
+        with _publication_barrier():
+            return _normalize_absence(main_with_args(cli_args))
     main_without_args = main_group.get(0)
     if main_without_args is not None:
-        return _normalize_absence(main_without_args())
+        with _publication_barrier():
+            return _normalize_absence(main_without_args())
     return run_result
 
 

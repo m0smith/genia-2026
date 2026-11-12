@@ -15,6 +15,12 @@ if __package__ in (None, ""):
     _src_root = Path(__file__).resolve().parents[1]
     if str(_src_root) not in sys.path:
         sys.path.insert(0, str(_src_root))
+    from genia.closed_publication import (
+        _PublicationTransaction as _PublicationTransaction,
+        _publication_window as _publication_window,
+        _publication_barrier as _publication_barrier,
+        _publication_admitted,
+    )
     from genia.ir import (
         IrBlock,
         IrCall,
@@ -45,6 +51,12 @@ if __package__ in (None, ""):
     from genia.lexer import SourceSpan
     from genia.structural_key import clause_shape, collect_pattern_binders, open_dispatch_key, structural_key
 else:
+    from .closed_publication import (
+        _PublicationTransaction as _PublicationTransaction,
+        _publication_window as _publication_window,
+        _publication_barrier as _publication_barrier,
+        _publication_admitted,
+    )
     from .ir import (
         IrBlock,
         IrCall,
@@ -510,8 +522,8 @@ class GeniaClosedFunction(GeniaFunctionGroup):
     `_from_records` retains the construction seam's shared-record identity;
     `_with_self_frame` builds owned guarded records for lifecycle consumers.
     Neither publishes a declaring-scope binding or activates closed source syntax.
-    Host fixtures supply states; live annotation admission and atomic publication
-    remain E2. Until that protocol exists, only committed values may be used.
+    Host fixtures supply states and descriptors. Private E2.1 windows admit
+    invocation only; atomic publication and source activation remain unavailable.
     """
 
     def __post_init__(self) -> None:
@@ -572,12 +584,11 @@ class GeniaClosedFunction(GeniaFunctionGroup):
         return group
 
     def _check_use(self) -> None:
-        """Reject noncommitted use before dispatch or introspection reads payloads.
+        """Reject introspection of unpublished values, including admitted callers.
 
-        Read state once. Failed diagnostics disclose no defining name. Building
-        and initializing values fail closed: E1 has no live annotation admission
-        authority. Transport and rendering never call this helper. E2 must supply
-        invocation-only lineage admission without admitting introspection.
+        Read state exactly once; failed diagnostics disclose no defining name.
+        Transport/rendering do not call this helper. Terminal behavior is shared
+        with invocation, but introspection never reads the descriptor or lineage.
         """
         state = self._state
         if state == "committed":
@@ -586,9 +597,26 @@ class GeniaClosedFunction(GeniaFunctionGroup):
             raise RuntimeError("closed-function-failed-publication: closed function failed publication")
         raise RuntimeError(f"closed-function-not-yet-published: {self.name} is not yet published")
 
+    def _check_invocation(self) -> None:
+        """Admit initializing calls only through their own synchronous window.
+
+        One state read determines the outcome even if an owner reaches a terminal
+        state meanwhile (N3). Read the stable descriptor only on initializing;
+        the E1 no-descriptor fixture remains fail-closed. Committed calls do no
+        lineage work. No user code, lock, or test hook runs on that path.
+        """
+        state = self._state
+        if state == "committed":
+            return
+        if state == "initializing" and _publication_admitted(getattr(self, "_txn", None)):
+            return
+        if state == "failed":
+            raise RuntimeError("closed-function-failed-publication: closed function failed publication")
+        raise RuntimeError(f"closed-function-not-yet-published: {self.name} is not yet published")
+
     def __call__(self, *args: Any) -> Any:
         """Check lifecycle before ordinary arity selection, matching or body execution."""
-        self._check_use()
+        self._check_invocation()
         return super().__call__(*args)
 
     def _dispatch_once(
@@ -596,7 +624,7 @@ class GeniaClosedFunction(GeniaFunctionGroup):
         debug_mode: bool = False, label: str | None = None,
     ) -> Any:
         """Guard trampoline group entry, then reuse ordinary clause dispatch unchanged."""
-        self._check_use()
+        self._check_invocation()
         return super()._dispatch_once(args, debug_hooks, debug_mode, label)
 
     def _reject_clause_addition(self, fn: GeniaFunction, binding_name: str | None = None) -> None:
@@ -725,7 +753,7 @@ class GeniaClosedFunctionRecord(GeniaFunction):
 
     def __call__(self, *args: Any) -> Any:
         """Check the owner before entering the ordinary record trampoline."""
-        self.closed._check_use()
+        self.closed._check_invocation()
         return super().__call__(*args)
 
     def __repr__(self) -> str:
@@ -769,7 +797,7 @@ def eval_with_tco(
 
     while True:
         if isinstance(current_fn, GeniaClosedFunctionRecord):
-            current_fn.closed._check_use()
+            current_fn.closed._check_invocation()
         if isinstance(current_fn, GeniaFunctionGroup):
             result = current_fn._dispatch_once(current_args, debug_hooks, debug_mode)
         elif isinstance(current_fn, GeniaFunction) and (current_fn.pattern is not None or current_fn.guard is not None):
@@ -1728,9 +1756,9 @@ def invoke_callable(
     propagate. Arguments have already been evaluated.
     """
     if isinstance(fn, GeniaClosedFunction):
-        fn._check_use()
+        fn._check_invocation()
     elif isinstance(fn, GeniaClosedFunctionRecord):
-        fn.closed._check_use()
+        fn.closed._check_invocation()
     if not skip_none_propagation:
         first_none = next((arg for arg in args if is_none(arg)), None)
         if first_none is not None and not _callable_explicitly_handles_none(fn, len(args), callee_node):
@@ -1847,7 +1875,7 @@ def invoke_callable(
                 resolved = autoload_resolver(callee_node.name, arity)
                 if isinstance(resolved, GeniaFunctionGroup):
                     if isinstance(resolved, GeniaClosedFunction):
-                        resolved._check_use()
+                        resolved._check_invocation()
                     fn = resolved
             if not fn.is_simple:
                 fn.stratum(arity, label)
@@ -1890,7 +1918,7 @@ def invoke_callable(
             resolved = autoload_resolver(callee_node.name, arity)
             if resolved is not None:
                 if isinstance(resolved, GeniaClosedFunction):
-                    resolved._check_use()
+                    resolved._check_invocation()
                 fn = resolved
                 if isinstance(fn, GeniaFunctionGroup):
                     target = _resolve_target(fn, arity)

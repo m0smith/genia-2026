@@ -73,6 +73,7 @@ if __package__ in (None, ""):
     from genia.model import construct_model
     from genia.retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
+    from genia.closed_publication import _publication_barrier
     from genia.callable import (
         DebugHooks,
         NOOP_DEBUG_HOOKS,
@@ -201,6 +202,7 @@ else:
     from .model import construct_model
     from .retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
+    from .closed_publication import _publication_barrier
     from .callable import (
         DebugHooks,
         NOOP_DEBUG_HOOKS,
@@ -5489,6 +5491,13 @@ def make_global_env(
         return cors_handler
 
     def serve_http_fn(config_value: Any, handler: Any) -> GeniaMap:
+        """Serve requests synchronously until max_requests, closing the socket on exit.
+
+        Validate map/host/port/limit and callable before binding. Each request
+        invokes the handler behind a publication-lineage barrier; handler or
+        response errors are logged and normalized to HTTP 500. Return bound
+        host/port and handled count. Request effects are not rolled back.
+        """
         if not isinstance(config_value, GeniaMap):
             raise TypeError("serve_http expected config to be a map")
         if not callable(handler):
@@ -5508,10 +5517,13 @@ def make_global_env(
             allow_reuse_address = True
 
         class _GeniaRequestHandler(BaseHTTPRequestHandler):
+            """Convert HTTP requests/results, isolating requester invocation authority."""
             def _serve(self) -> None:
+                """Dispatch behind a barrier; restore lineage before sending or logging."""
                 try:
                     request_value = _http_request_map(self)
-                    response_value = _invoke_from_builtin(handler, [request_value])
+                    with _publication_barrier():
+                        response_value = _invoke_from_builtin(handler, [request_value])
                     status, headers, payload = _http_response_triplet(response_value)
                 except Exception as exc:  # pragma: no cover - exercised through HTTP 500 behavior
                     stderr_sink.write_text(f"serve_http handler error: {exc}\n")

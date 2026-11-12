@@ -8,6 +8,7 @@ import weakref
 from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable, Iterator
 
+from .closed_publication import _publication_barrier
 from .errors import GeniaQuietBrokenPipe, format_exception_text
 from .numeric_runtime import GeniaDecimal, GeniaRational
 
@@ -593,6 +594,12 @@ def r25_await_runtime_idle() -> None:
 
 
 class GeniaCell:
+    """Serialize accepted state updates on a worker with staged actor effects.
+
+    Each update is an independent publication-lineage boundary. Exceptions mark
+    the generation failed; restart replaces its state/generation. Existing
+    mailbox ordering, state commit and staged-effect behavior are unchanged.
+    """
     _STOP = object()
 
     def __init__(self, state_ref: GeniaRef):
@@ -627,6 +634,11 @@ class GeniaCell:
             raise RuntimeError(f"Unknown cell action kind: {kind}")
 
     def _run(self) -> None:
+        """Drain updates behind admission barriers, committing only a live generation.
+
+        Always pop staged actions and the barrier on body exit. An Exception
+        marks the current generation failed and wakes idle waiters.
+        """
         while True:
             generation, sequence, update_fn = self._mailbox.get()
             if update_fn is GeniaCell._STOP:
@@ -645,7 +657,8 @@ class GeniaCell:
                 _push_cell_tx()
                 try:
                     current_state = self._state_ref.get()
-                    next_state = update_fn(current_state)
+                    with _publication_barrier():
+                        next_state = update_fn(current_state)
                 finally:
                     actions = _pop_cell_tx()
 
@@ -791,7 +804,8 @@ class GeniaProcess:
                     return
                 self._in_flight = True
             try:
-                self._handler(message)
+                with _publication_barrier():
+                    self._handler(message)
                 with self._lock:
                     self._in_flight = False
                     self._completed = max(self._completed, sequence)
