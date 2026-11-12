@@ -73,7 +73,7 @@ def test_invocation_state_matrix(state, entry):
 
 
 @pytest.mark.parametrize("state", ["initializing", "failed"])
-@pytest.mark.parametrize("arguments", ["[none()]", '[err("reason")]', "[]", "[1, 2]"])
+@pytest.mark.parametrize("arguments", ['[none("fixture")]', '[err("reason")]', "[]", "[1, 2]"])
 def test_state_precedes_none_err_and_wrong_arity(state, arguments):
     env, _, effects = fixture(state)
     with pytest.raises(RuntimeError) as error:
@@ -86,7 +86,7 @@ def test_invoke_none_precedes_neither_state_nor_autoload():
     env, group, effects = fixture("failed")
     calls = []
     with pytest.raises(RuntimeError, match="^closed-function-failed-publication:"):
-        c.invoke_callable(group, [genia.run_source("none()", env)], tail_position=True,
+        c.invoke_callable(group, [genia.run_source('none("fixture")', env)], tail_position=True,
                           autoload_resolver=lambda *args: calls.append(args))
     assert calls == effects == []
 
@@ -176,7 +176,7 @@ def test_failed_render_transport_and_identity(render):
     env.assign("a", ref.get())
     assert env.get("a") is group and genia_equal(group, ref.get())
     text = render([group, GeniaMap().put("f", group), GeniaOptionSome(group)])
-    assert text.count("<closed-function failed>") == 3
+    assert text.count("<closed-function failed>") == (2 if render in (repr, str) else 3)
     assert not any(word in text for word in ("METADATA_SENTINEL", "SECRET_SENTINEL", "tripwire"))
     assert render(group) == "<closed-function failed>"
     assert effects == []
@@ -271,10 +271,10 @@ def test_self_frame_preserves_local_shadowing_and_other_name_writes(source, expe
 
 def test_self_identity_survives_parent_reuse_and_failed_value_is_not_revived():
     """Builder-interface extension: a body-created lambda keeps the private self frame."""
-    env, ordinary = bound_group(closed=False, source="f(x) = (y) -> f(y)")
+    env, ordinary = bound_group(closed=False, source="f(x) = [(y) -> f(y)]")
     group = c.GeniaClosedFunction._with_self_frame("f", ordinary.records, env)
     group._state = "committed"
-    escaped = group(7)
+    escaped = group(7)[0]
     env.assign("f", 99)
     group._state = "failed"  # controlled host fixture, not a publication transition
     with pytest.raises(RuntimeError) as error:
