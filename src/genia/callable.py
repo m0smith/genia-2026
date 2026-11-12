@@ -1889,6 +1889,8 @@ def invoke_callable(
         if target is None and autoload_resolver is not None and isinstance(callee_node, IrVar):
             resolved = autoload_resolver(callee_node.name, arity)
             if resolved is not None:
+                if isinstance(resolved, GeniaClosedFunction):
+                    resolved._check_use()
                 fn = resolved
                 if isinstance(fn, GeniaFunctionGroup):
                     target = _resolve_target(fn, arity)
