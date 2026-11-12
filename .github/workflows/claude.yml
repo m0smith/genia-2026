@@ -1,7 +1,7 @@
 # Runs Claude Code when a collaborator tags @claude in a PR/issue comment or PR review.
 # Example: "@claude please do an independent review of this PR"
 # Requires the Claude GitHub App (https://github.com/apps/claude) and the
-# ANTHROPIC_API_KEY repository secret.
+# CLAUDE_CODE_OAUTH_TOKEN repository secret (generate with `claude setup-token`).
 name: Claude Code
 
 on:
@@ -36,7 +36,7 @@ jobs:
       - name: Run Claude Code
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Lets Claude read CI results on PRs (pairs with `actions: read` above).
           # Claude reads CLAUDE.md, and through it AGENTS.md / GENIA_STATE.md, on its own.
           additional_permissions: |
