@@ -116,6 +116,10 @@ this source revision alone is not evidence of a passing workflow.
 
 ### Model B declarations: parser/lowering, immutable-binding and default-open boundary
 
+Python-private E2.2 guarded provisional slots and name reservations have host-local
+tests only; they activate no closed source execution or publication and add no
+capability or cross-host claim.
+
 Python D1 completion captures private detached ordinary clauses/provenance and
 three independent B1 metadata observations before atomic cache publication.
 Re-exports reuse exact original completion associations; escaped values without

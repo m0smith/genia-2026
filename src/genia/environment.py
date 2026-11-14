@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import sys
 import threading
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
 
+from .closed_publication import _PublicationTransaction, _publication_admitted
 from .values import GeniaMap, ModuleValue, _merge_metadata_maps
 
 
@@ -35,6 +37,70 @@ class ImmutableBindingError(RuntimeError):
 # short check and table write, never across initializer, RHS or annotation
 # evaluation; code under it must not call another locking method.
 _BINDING_LOCK = threading.Lock()
+
+
+# Identity-hashed descriptors; membership is an optimization, never authority.
+# All membership/slot mutations require _BINDING_LOCK. No lifecycle transitions
+# or cleanup protocol is implemented here; E2.3 will compose these primitives.
+_OPEN_TRANSACTIONS: set[_PublicationTransaction] = set()
+_FALLTHROUGH = object()
+
+
+@dataclass(frozen=True)
+class _ProvisionalSlot:
+    """Private reservation owned by one descriptor; strict denotes its self frame."""
+
+    transaction: _PublicationTransaction
+    strict: bool
+
+    def resolve(self, *, metadata: bool) -> Any:
+        """Decide from one lifecycle read, retaining the slot across owner removal.
+
+        Unadmitted declaring lookups skip the local ordinary table too. Metadata
+        is never returned for an initializing/failed callable, even to its owner.
+        Only initializing reads consult the stable descriptor and local lineage.
+        """
+        callable = self.transaction.callable
+        state = callable._state
+        if state == 'committed':
+            return callable.metadata if metadata else callable
+        if state == 'failed':
+            if not self.strict:
+                return _FALLTHROUGH
+            if metadata:
+                raise RuntimeError('closed-function-failed-publication: closed function failed publication')
+            return callable
+        if state == 'initializing' and _publication_admitted(callable._txn):
+            if not metadata:
+                return callable
+        elif not self.strict:
+            return _FALLTHROUGH
+        raise RuntimeError(f'closed-function-not-yet-published: {callable.name} is not yet published')
+
+
+def _register_open_transaction(txn: _PublicationTransaction) -> None:
+    """Add the exact descriptor before installing slots; caller holds the lock.
+
+    Idempotent; does not change callable state, open a window or install a slot.
+    Closed descriptors cannot acquire reservations again.
+    """
+    if txn.closed:
+        raise RuntimeError('publication transaction is closed')
+    _OPEN_TRANSACTIONS.add(txn)
+
+
+def _unregister_open_transaction(txn: _PublicationTransaction) -> None:
+    """Discard only this descriptor after its slots are gone, under the lock.
+
+    Idempotent, including aborted installation. Refuse removal with live owned
+    slots so another transaction can never induce an incorrect empty-set path.
+    Does not write closed or perform E2.3's terminal cleanup protocol.
+    """
+    for env in (txn.declaring_scope, txn.self_frame):
+        if env is not None and env._provisional_slots:
+            if any(slot.transaction is txn for slot in env._provisional_slots.values()):
+                raise RuntimeError('publication transaction still owns live slots')
+    _OPEN_TRANSACTIONS.discard(txn)
 
 
 class DeclarationTicket:
@@ -127,6 +193,8 @@ class Env:
     # Names declared immutable (`=:`) in this scope's own table. Class-level empty
     # frozenset keeps ordinary frames free; commit replaces it, never mutates it.
     _immutable: frozenset[str] = frozenset()
+    # Allocated only on scopes participating in private closed publication.
+    _provisional_slots: dict[str, _ProvisionalSlot] | None = None
     entry_declared_runtime_owned: "set[str] | None" = None
     prelude_paths: frozenset[str] = frozenset()
     # F2/P2-D: evaluation-bound reflective callables created for this lexical scope,
@@ -383,9 +451,50 @@ class Env:
         """Names this scope itself has declared immutable (`=:`)."""
         return self._immutable
 
+    def _install_provisional_slot(
+        self, name: str, txn: _PublicationTransaction, *, strict: bool,
+    ) -> None:
+        """Reserve this transaction's name under the caller-held binding lock.
+
+        Membership must precede insertion. Only its declaring scope (fallthrough)
+        or reserved self frame (strict) is allowed. Repeated own insertion is
+        harmless; any collision rejects with the existing immutable diagnostic.
+        No state transition, ordinary binding or metadata is published here.
+        """
+        expected = txn.self_frame if strict else txn.declaring_scope
+        if self is not expected or name != txn.callable.name or txn not in _OPEN_TRANSACTIONS:
+            raise RuntimeError('slot requires its registered transaction and owning scope')
+        if txn.closed or txn.callable._state != 'initializing':
+            raise RuntimeError('slot requires an initializing transaction')
+        slots = self._provisional_slots
+        existing = slots.get(name) if slots else None
+        if existing is not None and existing.transaction is txn and existing.strict == strict:
+            return
+        if strict:
+            if name in self.values or existing is not None or name not in self._immutable:
+                raise ImmutableBindingError(f'Cannot rebind immutable binding: {name}')
+        else:
+            self._check_declaration(name)
+        if slots is None:
+            slots = self._provisional_slots = {}
+        slots[name] = _ProvisionalSlot(txn, strict)
+
+    def _remove_provisional_slot(self, name: str, txn: _PublicationTransaction) -> bool:
+        """Remove only an exact owner's slot under the caller-held binding lock.
+
+        Return whether removal occurred; repetition and foreign ownership are
+        no-ops. Membership and descriptor.closed are deliberately untouched.
+        """
+        slots = self._provisional_slots
+        slot = slots.get(name) if slots else None
+        if slot is None or slot.transaction is not txn:
+            return False
+        del slots[name]
+        return True
+
     def _reject_immutable_write(self, name: str, verb: str) -> None:
         """Raise when `name` is an immutable binding of this scope; `verb` is assign or rebind."""
-        if name in self._immutable:
+        if name in self._immutable or (self._provisional_slots and name in self._provisional_slots):
             phrase = "assign to" if verb == "assign" else verb
             raise ImmutableBindingError(f"Cannot {phrase} immutable binding: {name}")
 
@@ -402,8 +511,8 @@ class Env:
             return
         env: Env = home
         while True:
+            env._reject_immutable_write(name, "assign")
             if name in env.values:
-                env._reject_immutable_write(name, "assign")
                 return
             if env.parent is None or not env.rebind_parent:
                 return
@@ -431,7 +540,7 @@ class Env:
             raise ImmutableBindingError(
                 f"Cannot declare immutable binding {name}: name is reserved by the runtime"
             )
-        if name in self.values:
+        if name in self.values or (self._provisional_slots and name in self._provisional_slots):
             raise ImmutableBindingError(
                 f"Cannot declare immutable binding {name}: name is already bound in this scope"
             )
@@ -473,7 +582,36 @@ class Env:
             self._immutable = self._immutable | {name}
             ticket.committed = True
 
+    def _get_guarded(self, name: str, *, metadata: bool = False) -> Any:
+        """Walk slots before local bindings, using the §6.6 state/policy table.
+
+        The ordinary path remains in get/get_metadata while the open set is
+        empty. This path acquires no lock and never evaluates code under one.
+        A retained slot is valid even when the owner removes it concurrently.
+        """
+        env: Env | None = self
+        while env is not None:
+            slots = env._provisional_slots
+            slot = slots.get(name) if slots else None
+            if slot is not None:
+                value = slot.resolve(metadata=metadata)
+                if value is not _FALLTHROUGH:
+                    return value
+            elif name in env.values:
+                return env.binding_metadata.get(name, GeniaMap()) if metadata else env.values[name]
+            env = env.parent
+        if not metadata:
+            root = self.root()
+            if self.internal_access and name in root.internal_values:
+                return root.internal_values[name]
+            if root.try_autoload(name, 0) and name in root.values:
+                return root.values[name]
+        raise NameError(f"Undefined name: {name}")
+
     def get(self, name: str) -> Any:
+        """Resolve a lexical name, guarding private reservations while any are open."""
+        if _OPEN_TRANSACTIONS:
+            return self._get_guarded(name)
         env: Env | None = self
         while env is not None:
             if name in env.values:
@@ -547,8 +685,7 @@ class Env:
         self, name: str, value: Any, assignable: bool, metadata: GeniaMap | None, preserve_metadata: bool,
     ) -> None:
         """Policy-checked table write; the caller holds `_BINDING_LOCK`."""
-        if name in self._immutable:
-            raise ImmutableBindingError(f"Cannot rebind immutable binding: {name}")
+        self._reject_immutable_write(name, "rebind")
         self.values[name] = value
         if metadata is not None:
             self.binding_metadata[name] = metadata
@@ -651,9 +788,8 @@ class Env:
         """
         env: Env = self
         while True:
+            env._reject_immutable_write(name, "assign")
             if name in env.values:
-                if name in env._immutable:
-                    raise ImmutableBindingError(f"Cannot assign to immutable binding: {name}")
                 if name in env.assignable:
                     return env
                 raise NameError(f"Cannot assign to non-assignable name: {name}")
@@ -721,6 +857,9 @@ class Env:
             existing.add_clause(fn)
 
     def get_metadata(self, name: str) -> GeniaMap:
+        """Resolve binding metadata without exposing provisional callable metadata."""
+        if _OPEN_TRANSACTIONS:
+            return self._get_guarded(name, metadata=True)
         if name in self.values:
             return self.binding_metadata.get(name, GeniaMap())
         if self.parent is not None:
@@ -749,6 +888,8 @@ class Env:
             # critical section with immutable commit (review M2).
             env: Env = self
             while True:
+                if env._provisional_slots and name in env._provisional_slots:
+                    raise ImmutableBindingError(f"Cannot rebind immutable binding: {name}")
                 if name in env.values:
                     if name in env._immutable and not (
                         declaration is not None and declaration.committed

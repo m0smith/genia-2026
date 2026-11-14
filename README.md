@@ -45,6 +45,8 @@ Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
 See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
+Private Python E2.2 guarded slots reserve names and enforce admission/metadata
+visibility; they do not execute closed declarations or publish functions.
 
 
 ## Quick start

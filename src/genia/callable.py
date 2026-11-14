@@ -558,13 +558,14 @@ class GeniaClosedFunction(GeniaFunctionGroup):
     def _with_self_frame(
         cls, name: str, records: Iterable[GeniaFunction], declaring_scope: Env,
     ) -> GeniaClosedFunction:
-        """Build private guarded copies closed over one immutable self binding.
+        """Build private guarded copies over a reserved, initially unbound self frame.
 
         Reuses whole-group duplicate/doc validation before exposing any result.
         Original records and closures are untouched; IR and debug settings retain
         their ordinary meaning. The private frame inherits lexical/module lookup.
-        It is not an initializing slot or a declaration publication: those belong
-        to E2, as do transition ownership, annotation windows and lineage.
+        The immutable-name set is fixed while private. E2.3 must install the
+        strict slot at T4 and the terminal ordinary binding at C5/F2; this builder
+        publishes neither. The frame preserves module identity and debugger depth.
         """
         group = cls._from_records(name, records)
         frame = Env(declaring_scope)
@@ -579,8 +580,8 @@ class GeniaClosedFunction(GeniaFunctionGroup):
         for record in guarded:
             group.functions.setdefault(record.arity, record)
         group.owner = (declaring_scope.module_identity(), name)
-        ticket = frame.prepare_immutable_declaration(name)
-        frame.commit_immutable_declaration(ticket, group)
+        frame._immutable = frozenset({name})
+        group._self_frame = frame
         return group
 
     def _check_use(self) -> None:
