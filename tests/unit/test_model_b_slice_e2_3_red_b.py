@@ -6,10 +6,35 @@ only delegates existing operations, observes them or raises one fault; it
 never supplies lifecycle transitions. No multi-fault/persistent-OOM claim.
 T0-T3, public activation and shared portability evidence are out of scope.
 
-Coverage limits: step-local C1/C2b and a real HTTP dispatch are not claimed.
-Those need a separately reviewed reachable operation/fixture, not invented
-hooks. C2/C3/P3/K4 use existing attribute stores; C4/C5 use actual table writes;
-P2/P4/P5/K1-K3 use existing private primitive boundaries. No production edits.
+Instrumentation assumptions, NOT language/implementation requirements: the
+future driver dynamically resolves the patched environment registry/slot/lock
+operations and publication window. It stores attributes and uses ordinary
+table subscription/update/setdefault/|= operations. Cached import aliases,
+explicit dict.update(table, ...) or replacement tables can bypass observers.
+If those are used, adapt/review these tests; a missed injection is not a
+semantic defect. Wrappers bind actual signatures and delegate original calls.
+
+Requested maintainer deferrals (not accepted or waived by this module):
+- L2 P1/C1/C2b: no distinct operations at the raise-only seam; need reviewed
+  step-local instrumentation against the eventual real implementation.
+- L2 F1/F2 single faults and failure-path K1-K4: require additional recovery
+  harness for an annotation error plus one protocol fault, without imposing
+  unspecified secondary-exception precedence. No such coverage claimed here.
+- L2/L11 aborted-T4 cleanup faults and L11 failure variants: need a faithful
+  abort trigger plus one cleanup fault and verified competing-owner setup.
+  Success-path N2 below now uses shared and same-name nested namespaces only.
+- L1 pauses at C1/C2/C2b/C4/C5/K1-K4 and full doc/meta/help cross-product:
+  further test-only observers/step-local decision required; only C3/init now.
+- L5 actual serve_http dispatch: needs real same-thread HTTP fixture/permission.
+- L10/N1 two-closed/both-order/waiting-writer/C2b-OOM variants: further tests.
+- L12/N3 metadata/help pauses and free-threaded evidence: further tests/build.
+L4's full writer matrix remains earlier E2.2 evidence, not rerun here. L6 is
+a real module-load lineage bridge but its inner declaration is host-created
+in a separate scope, not module-owned source closed evaluation. L7/T0-T3 and
+public source/direct-IR activation remain outside this entry (later E2.4).
+P2/P4/P5, P3/C2/C3, C4/C5, window-close and success K faults are authored.
+All driver oracles remain unexecuted behind NotImplementedError. No hooks or
+production edits are authorized; these deferral requests need disposition.
 """
 
 import ast
@@ -32,14 +57,19 @@ NOT_READY = 'closed-function-not-yet-published: f is not yet published'
 FAILED = 'closed-function-failed-publication: closed function failed publication'
 
 
-def world(name='f', declaring=None):
+def world(name='f', declaring=None, source=None):
     """Build only T3 data, without any lifecycle stores or slot installation."""
     if declaring is None:
         root = genia.make_global_env([])
         root.set_host(name, 41, visibility='runtime-public',
                       metadata=GeniaMap().put('doc', 'outer'))
         declaring = e.Env(root, rebind_parent=False)
-    group = c.GeniaClosedFunction._with_self_frame(name, [record(declaring, name)], declaring)
+    records = [record(declaring, name)]
+    if source is not None:
+        scratch = e.Env(declaring)
+        genia.run_source(source, scratch)
+        records = scratch.get(name).records
+    group = c.GeniaClosedFunction._with_self_frame(name, records, declaring)
     txn = p._PublicationTransaction(group)
     assert group._state == 'building' and not txn.closed and not txn.window_open
     assert txn.self_frame.parent is declaring
@@ -71,8 +101,9 @@ def terminal(txn, state, metadata=None):
             group._check_use()
         with pytest.raises(RuntimeError, match=f'^{FAILED}$'):
             group(7)
-        with pytest.raises(RuntimeError, match=f'^{FAILED}$'):
-            frame.get_metadata(name)
+        # Once K removes the strict slot, raw Env metadata lookup uses normal
+        # tables. Callable-specific reflection/use guards own FAILED rejection;
+        # do not impose that error or private metadata erasure on raw lookup.
         with pytest.raises(e.ImmutableBindingError):
             frame.merge_binding_metadata(name, GeniaMap().put('doc', 'bad'))
         ticket = declaring.prepare_immutable_declaration(name)
@@ -109,8 +140,6 @@ def require_unpublished(operation):
 
 def test_l1_l4_l9_initializing_visibility_writers_and_unlocked_body():
     """Non-owner refuses use, owner resolves self; every user callback is unlocked."""
-    txn = world()
-    group, scope, frame = txn.callable, txn.declaring_scope, txn.self_frame
     metadata = GeniaMap().put('doc', 'final')
     effects = []
 
@@ -121,12 +150,9 @@ def test_l1_l4_l9_initializing_visibility_writers_and_unlocked_body():
         e._BINDING_LOCK.release()
         return 7
 
+    txn = world(source='f(x) = body_probe()')
+    group, scope = txn.callable, txn.declaring_scope
     scope.set_host('body_probe', check_lock, visibility='entry-only')
-    # Use a real body that calls the probe, not a monkeypatched dispatcher.
-    scratch = e.Env(scope)
-    genia.run_source('f(x) = body_probe()', scratch)
-    group = c.GeniaClosedFunction._with_self_frame('f', scratch.get('f').records, scope)
-    txn = p._PublicationTransaction(group)
     frame = txn.self_frame
     scope.set_host('effect', lambda: effects.append('rhs'), visibility='entry-only')
 
@@ -191,31 +217,48 @@ class SingleFault:
         raise self.error
 
 
+def patch_operation(monkeypatch, owner, name, selected, fault):
+    """Instrument the existing signature with arbitrary positional/keyword calls."""
+    original = getattr(owner, name)
+    signature = inspect.signature(original)
+
+    def delegated(*args, **kwargs):
+        """Bind for selection only, passing the original call through unchanged."""
+        bound = signature.bind(*args, **kwargs)
+        bound.apply_defaults()
+
+        def operation():
+            """Execute the existing primitive, never its test-side equivalent."""
+            return original(*args, **kwargs)
+
+        return fault.run(operation) if selected(bound.arguments) else operation()
+
+    monkeypatch.setattr(owner, name, delegated)
+
+
+def run_success_cleanup(txn, annotations, fault):
+    """Require recovery; K interrupt propagation itself is not fixed by section 4.4."""
+    try:
+        result = p._run_publication(txn, annotations)
+    except KeyboardInterrupt as caught:
+        assert caught is fault.error
+    else:
+        assert result is txn.callable
+    assert fault.hits == 1
+
+
 @pytest.mark.parametrize('step', ['register', 'declaring_slot', 'self_slot'])
 @pytest.mark.parametrize('after', [False, True])
 def test_l2_t4_primitive_faults(monkeypatch, step, after):
     """P2/P4/P5 single faults discard/fail and remove only this transaction."""
     txn, fault = world(), SingleFault(after, KeyboardInterrupt('T4 interrupt'))
     if step == 'register':
-        original = e._register_open_transaction
-
-        def register(candidate):
-            """Delegate the exact registry effect once, then inject."""
-            return fault.run(lambda: original(candidate)) if candidate is txn else original(candidate)
-
-        monkeypatch.setattr(e, '_register_open_transaction', register)
+        patch_operation(monkeypatch, e, '_register_open_transaction',
+                        lambda bound: bound['txn'] is txn, fault)
     else:
-        original = e.Env._install_provisional_slot
         target = txn.self_frame if step == 'self_slot' else txn.declaring_scope
-
-        def install(scope, name, candidate, *, strict):
-            """Instrument an actual slot insertion without installing a fake slot."""
-            def operation():
-                """Call through unchanged to the real installer."""
-                return original(scope, name, candidate, strict=strict)
-            return fault.run(operation) if scope is target and candidate is txn else operation()
-
-        monkeypatch.setattr(e.Env, '_install_provisional_slot', install)
+        patch_operation(monkeypatch, e.Env, '_install_provisional_slot',
+                        lambda bound: bound['self'] is target and bound['txn'] is txn, fault)
     with pytest.raises(KeyboardInterrupt) as caught:
         p._run_publication(txn, lambda frame: GeniaMap())
     assert caught.value is fault.error and fault.hits == 1
@@ -276,8 +319,6 @@ def test_l2_l3_state_and_metadata_store_faults(monkeypatch, field, value, state,
 def test_l2a_c4_c5_allocation_rolls_forward_under_same_lock(monkeypatch, which, after):
     """Actual dictionary insertions before/after effect; one MemoryError only."""
     txn, fault = world(), SingleFault(after)
-    scope = txn.self_frame if which.startswith('self') else txn.declaring_scope
-    attribute = 'binding_metadata' if which.endswith('metadata') else 'values'
     metadata = GeniaMap().put('doc', 'final')
     lock_observations = []
     real_lock = e._BINDING_LOCK
@@ -287,6 +328,8 @@ def test_l2a_c4_c5_allocation_rolls_forward_under_same_lock(monkeypatch, which, 
 
         def __init__(self):
             self.generation = 0
+            self.releases = 0
+            self.owner = None
 
         def __enter__(self):
             self.acquire()
@@ -300,11 +343,14 @@ def test_l2a_c4_c5_allocation_rolls_forward_under_same_lock(monkeypatch, which, 
             acquired = real_lock.acquire(*args, **kwargs)
             if acquired:
                 self.generation += 1
+                self.owner = threading.get_ident()
             return acquired
 
         def release(self):
             """Release exactly the original binding lock."""
             real_lock.release()
+            self.releases += 1
+            self.owner = None
 
         def locked(self):
             return real_lock.locked()
@@ -315,20 +361,54 @@ def test_l2a_c4_c5_allocation_rolls_forward_under_same_lock(monkeypatch, which, 
     class Writes(dict):
         """Delegate actual dict writes, including simulated allocating insertions."""
 
+        def __init__(self, contents, selected):
+            """Copy existing data only; identify the single injected table."""
+            super().__init__(contents)
+            self.selected = selected
+
         def __setitem__(self, key, value):
             """Observe continuous owner lock and invoke one allocation fault."""
             if key == 'f':
                 assert txn.callable._state == 'committed'
                 assert real_lock.locked()
-                lock_observations.append(observed_lock.generation)
-                return fault.run(lambda: super(Writes, self).__setitem__(key, value))
+                assert observed_lock.generation > 0, 'unobserved lock acquisition route'
+                assert observed_lock.owner == threading.get_ident()
+                lock_observations.append((observed_lock.generation, observed_lock.releases))
+                if self.selected:
+                    return fault.run(lambda: super(Writes, self).__setitem__(key, value))
             return super().__setitem__(key, value)
 
-    monkeypatch.setattr(scope, attribute, Writes(getattr(scope, attribute)))
+        def update(self, *args, **kwargs):
+            """Observe ordinary bound update calls without bypassing writes."""
+            if len(args) > 1:
+                return super().update(*args, **kwargs)
+            if args:
+                source = args[0]
+                pairs = ((key, source[key]) for key in source.keys()) if hasattr(source, 'keys') else source
+                for key, value in pairs:
+                    self[key] = value
+            for key, value in kwargs.items():
+                self[key] = value
+
+        def setdefault(self, key, default=None):
+            """Preserve existing-key behavior and observe actual insertions."""
+            if key not in self:
+                self[key] = default
+            return self[key]
+
+        def __ior__(self, other):
+            """Observe the regular mapping |= route as well."""
+            self.update(other)
+            return self
+
+    for label, scope in (('declaring', txn.declaring_scope), ('self', txn.self_frame)):
+        for suffix, attribute in (('metadata', 'binding_metadata'), ('values', 'values')):
+            table = Writes(getattr(scope, attribute), f'{label}_{suffix}' == which)
+            monkeypatch.setattr(scope, attribute, table)
     with pytest.raises(MemoryError) as caught:
         p._run_publication(txn, lambda frame: metadata)
     assert caught.value is fault.error and fault.hits == 1
-    assert len(lock_observations) >= 2 and len(set(lock_observations)) == 1
+    assert len(lock_observations) >= 4 and len(set(lock_observations)) == 1
     terminal(txn, 'committed', metadata)
 
 
@@ -338,39 +418,17 @@ def test_l2_cleanup_after_effect_is_idempotent(monkeypatch, step):
     txn, fault = world(), SingleFault(True, KeyboardInterrupt('cleanup'))
     metadata = GeniaMap().put('doc', 'final')
     if step in ('K1', 'K2'):
-        original = e.Env._remove_provisional_slot
         target = txn.declaring_scope if step == 'K1' else txn.self_frame
-
-        def remove(scope, name, candidate):
-            """Delegate conditional owner removal before raising once."""
-            def operation():
-                """Call through unchanged to the real remover."""
-                return original(scope, name, candidate)
-            return fault.run(operation) if scope is target and candidate is txn else operation()
-
-        monkeypatch.setattr(e.Env, '_remove_provisional_slot', remove)
+        patch_operation(monkeypatch, e.Env, '_remove_provisional_slot',
+                        lambda bound: bound['self'] is target and bound['txn'] is txn, fault)
     elif step == 'K3':
-        original = e._unregister_open_transaction
-
-        def unregister(candidate):
-            """Delegate registry discard before raising once."""
-            return fault.run(lambda: original(candidate)) if candidate is txn else original(candidate)
-
-        monkeypatch.setattr(e, '_unregister_open_transaction', unregister)
+        patch_operation(monkeypatch, e, '_unregister_open_transaction',
+                        lambda bound: bound['txn'] is txn, fault)
     else:
-        original = p._PublicationTransaction.__setattr__
-
-        def close(candidate, name, value):
-            """Observe the real K4 write, never close the descriptor ourselves."""
-            def operation():
-                """Perform only the actual descriptor write being instrumented."""
-                return original(candidate, name, value)
-            return fault.run(operation) if candidate is txn and name == 'closed' and value else operation()
-
-        monkeypatch.setattr(p._PublicationTransaction, '__setattr__', close)
-    with pytest.raises(KeyboardInterrupt) as caught:
-        p._run_publication(txn, lambda frame: metadata)
-    assert caught.value is fault.error and fault.hits == 1
+        patch_operation(monkeypatch, p._PublicationTransaction, '__setattr__',
+                        lambda bound: bound['self'] is txn and bound['name'] == 'closed'
+                        and bound['value'] is True, fault)
+    run_success_cleanup(txn, lambda frame: metadata, fault)
     terminal(txn, 'committed', metadata)
 
 
@@ -380,9 +438,10 @@ def test_l10_n1_same_scope_immutable_writer_after_t5(monkeypatch):
     original = p._publication_window
 
     @contextmanager
-    def window(candidate):
+    def window(*args, **kwargs):
         """Delegate admission/revocation, with an interleaving after real T5."""
-        with original(candidate):
+        candidate = inspect.signature(original).bind(*args, **kwargs).arguments['txn']
+        with original(*args, **kwargs):
             yield
         if candidate is txn:
             def writer():
@@ -401,7 +460,7 @@ def test_l10_n1_same_scope_immutable_writer_after_t5(monkeypatch):
 
 
 def test_l6_nested_transaction_through_real_module_load(tmp_path):
-    """A synchronous module bridge retains outer lineage around inner publication."""
+    """Host-created inner transaction via real load; not a module-owned declaration."""
     outer, inner = world(), world(name='h')
     root = outer.declaring_scope.root()
     metadata = GeniaMap().put('doc', 'final')
@@ -431,42 +490,45 @@ def test_l6_nested_transaction_through_real_module_load(tmp_path):
     terminal(outer, 'committed', metadata)
 
 
+@pytest.mark.parametrize('namespace', ['shared', 'same_name_nested'])
 @pytest.mark.parametrize('cleanup_step', ['K1', 'K2', 'K3'])
-def test_l11_n2_owner_cleanup_fault_keeps_other_transaction_live(monkeypatch, cleanup_step):
+def test_l11_n2_owner_cleanup_fault_keeps_other_transaction_live(monkeypatch, cleanup_step, namespace):
     """A single cleanup fault in inner A cannot remove outer B's reservations."""
-    active, closing = world(), world(name='h')
+    active = world()
+    if namespace == 'shared':
+        closing = world(name='h', declaring=active.declaring_scope)
+    else:
+        closing = world(declaring=e.Env(active.declaring_scope, rebind_parent=False))
     fault, metadata = SingleFault(True, KeyboardInterrupt('A cleanup')), GeniaMap()
     if cleanup_step == 'K3':
-        original = e._unregister_open_transaction
-
-        def unregister(candidate):
-            """Discard only the real closing owner, then interrupt once."""
-            return fault.run(lambda: original(candidate)) if candidate is closing else original(candidate)
-
-        monkeypatch.setattr(e, '_unregister_open_transaction', unregister)
+        patch_operation(monkeypatch, e, '_unregister_open_transaction',
+                        lambda bound: bound['txn'] is closing, fault)
     else:
-        original = e.Env._remove_provisional_slot
         target = closing.declaring_scope if cleanup_step == 'K1' else closing.self_frame
+        patch_operation(monkeypatch, e.Env, '_remove_provisional_slot',
+                        lambda bound: bound['txn'] is closing and bound['self'] is target, fault)
 
-        def remove(scope, name, candidate):
-            """Delegate the actual owner-specific conditional removal."""
-            def operation():
-                """Call the existing owner-conditional removal unchanged."""
-                return original(scope, name, candidate)
-            return fault.run(operation) if candidate is closing and scope is target else operation()
-
-        monkeypatch.setattr(e.Env, '_remove_provisional_slot', remove)
+    def inner_annotations(frame):
+        """Ensure both owners really compete in the intended slot namespace."""
+        assert frame.get(closing.callable.name) is closing.callable
+        if namespace == 'shared':
+            assert set(active.declaring_scope._provisional_slots) == {'f', 'h'}
+        else:
+            assert closing.declaring_scope.parent is active.declaring_scope
+            assert closing.declaring_scope._provisional_slots['f'].transaction is closing
+            assert active.declaring_scope._provisional_slots['f'].transaction is active
+        return metadata
 
     def annotations(frame):
         """Run A while B is live, inspecting B only after A has exited."""
-        with pytest.raises(KeyboardInterrupt) as caught:
-            p._run_publication(closing, lambda inner: metadata)
-        assert caught.value is fault.error and fault.hits == 1
+        run_success_cleanup(closing, inner_annotations, fault)
         terminal(closing, 'committed', metadata)
         assert active in e._OPEN_TRANSACTIONS and not active.closed
         assert active.declaring_scope._provisional_slots['f'].transaction is active
         assert frame._provisional_slots['f'].transaction is active
         assert frame.get('f') is active.declaring_scope.get('f') is active.callable
+        assert active.declaring_scope.root().get('f') == 41
+        assert set(active.declaring_scope._provisional_slots) == {'f'}
         with pytest.raises(e.ImmutableBindingError):
             active.declaring_scope.assign('f', 9)
         return metadata
@@ -577,6 +639,56 @@ def test_l1_c3_synchronized_reader_sees_one_complete_state(monkeypatch, after):
     assert p._run_publication(txn, lambda frame: metadata) is group
     assert seen == ['after' if after else 'before']
     terminal(txn, 'committed', metadata)
+
+
+@pytest.mark.parametrize('error_type', [MemoryError, KeyboardInterrupt])
+def test_l2_window_close_fault_enters_failure_protocol(monkeypatch, error_type):
+    """One fault after real window revocation must fail and clean both scopes."""
+    txn, error = world(), error_type('window close')
+    original = p._publication_window
+    closed = []
+
+    @contextmanager
+    def window(*args, **kwargs):
+        """Delegate genuine window behavior, injecting only after its close."""
+        candidate = inspect.signature(original).bind(*args, **kwargs).arguments['txn']
+        with original(*args, **kwargs):
+            yield
+        if candidate is txn and not closed:
+            assert not txn.window_open and not p._publication_admitted(txn)
+            closed.append(txn)
+            raise error
+
+    monkeypatch.setattr(p, '_publication_window', window)
+    with pytest.raises(error_type) as caught:
+        p._run_publication(txn, lambda frame: GeniaMap().put('doc', 'not published'))
+    assert caught.value is error and closed == [txn]
+    terminal(txn, 'failed')
+
+
+def test_existing_preconditions_without_lifecycle_simulation():
+    """Check real lexical/body/map prerequisites that would otherwise be hidden."""
+    txn = world(source='f(x) = body_probe()')
+    frame, scope = txn.self_frame, txn.declaring_scope
+    scope.set_host('body_probe', lambda: 7, visibility='entry-only')
+    ordinary = record(frame)
+    # Build an ordinary probe over the genuine private frame, without invoking
+    # or changing the building closed group, its descriptor or reservation.
+    scratch = e.Env(frame)
+    genia.run_source('probe(x) = body_probe()', scratch)
+    assert scratch.get('probe')(0) == 7 and ordinary(9) == 9
+    effects = []
+    scope.set_host('effect', lambda: effects.append('rhs'), visibility='entry-only')
+    for target in (frame, e.Env(frame)):
+        with pytest.raises(e.ImmutableBindingError):
+            genia.run_source('f = effect()', target)
+    assert effects == []
+    ticket = scope.prepare_immutable_declaration('f')
+    assert ticket.env is scope and not ticket.committed
+    metadata = GeniaMap().put('doc', 'probe')
+    assert metadata.get('doc') == 'probe' and dict(metadata.items()) == {'doc': 'probe'}
+    assert dict(frame.get_metadata('f').items()) == {'doc': 'outer'}
+    assert txn.callable._state == 'building' and not txn.closed and not txn.window_open
 
 
 def test_l8_empty_set_lookup_keeps_existing_structural_fast_path(monkeypatch):
