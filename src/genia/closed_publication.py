@@ -7,7 +7,12 @@ barrier. Context copies carry no authority. This is not a Python security bounda
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 import threading
-from typing import Any, Iterator
+from typing import TYPE_CHECKING, Any, Callable, Iterator
+
+if TYPE_CHECKING:
+    from .callable import GeniaClosedFunction
+    from .environment import Env
+    from .values import GeniaMap
 
 
 _LINEAGE = threading.local()
@@ -36,6 +41,19 @@ class _PublicationTransaction:
         self.self_frame = getattr(self.callable, "_self_frame", None)
         self.declaring_scope = self.self_frame.parent if self.self_frame is not None else None
         self.callable._txn = self
+
+
+def _run_publication(
+    txn: _PublicationTransaction,
+    evaluate_annotations: Callable[["Env"], "GeniaMap"],
+) -> "GeniaClosedFunction":
+    """Reserve the private driver seam; no lifecycle behavior is implemented.
+
+    The caller owns T0–T3 preparation. The future driver owns T4–T7, invokes
+    evaluate_annotations(self_frame) in T5, and returns the same committed
+    txn.callable. This scaffold only raises NotImplementedError.
+    """
+    raise NotImplementedError
 
 
 def _lineage_stack() -> list[Any]:
