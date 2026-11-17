@@ -747,10 +747,10 @@ metadata/doc (G-inline fallback) and independent G help.
 Exact-callable witnesses preserve re-exports; incomplete origins confer none.
 Capture/cache publication synchronizes with writers; live calls are unchanged.
 Python explicitly links completed ordinary interfaces (section 4.7).
-Private Python supports sealed callables/guarded records, opaque failed rendering,
-E2.1 invocation admission and E2.2 guarded slots, immutable-name reservations and an
-identity-based open-transaction set. Closed source, live annotations and publication
-remain unavailable.
+Private Python: sealed callables/guarded records, opaque failed markers,
+lineage admission, guarded reservations. A callback transaction publishes/fails
+prepared groups with terminal bindings and owner cleanup; post-commit faults roll forward.
+Closed-source evaluation/annotations remain unavailable.
 Unfinished `=:` keeps REPL input incomplete; completed submissions end groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch

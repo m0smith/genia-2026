@@ -18,7 +18,7 @@ matching clause, equal pattern/guard keys are duplicates, and declaring through
 an alias or imported binding is rejected with `function-declaration-not-owner`.
 Atomic closed-function clause groups (`f(...) =: body`) are accepted and
 lowered, but their evaluation fails with `model-b-not-implemented`;
-closed publication remains unimplemented. Python supports explicit ordinary-base
+source-level closed publication remains unimplemented. Python supports explicit ordinary-base
 `extend`/`use` through completed-module witnesses; selection freezes clauses and
 metadata and validates cross-unit keys/shapes. Explicit R20 views share that
 validation and canonical contributor order; their reflection precedence is unchanged.
@@ -30,8 +30,9 @@ Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
 See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
-Private Python E2.2 guarded slots reserve names and enforce admission/metadata
-visibility; they do not execute closed declarations or publish functions.
+Private Python slots enforce admission/reservations. A callback-driven transaction
+publishes or fails prepared groups with terminal self bindings and owner cleanup;
+post-commit faults roll forward. Source closed declarations remain unwired.
 
 
 ## Run

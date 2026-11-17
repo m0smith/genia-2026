@@ -17,7 +17,7 @@ aliases share, a call selects the fixed or sole varargs shape and then the first
 matching clause, equal pattern/guard keys are duplicates, and declaring through
 an alias or imported binding is rejected with `function-declaration-not-owner`.
 Atomic closed-function clause groups (`f(...) =: body`) are accepted and
-lowered, but their evaluation fails with `model-b-not-implemented`; closed publication remains unimplemented. Python
+lowered, but their evaluation fails with `model-b-not-implemented`; source-level closed publication remains unimplemented. Python
 supports explicit completed ordinary-base `extend`/`use`. Explicit R20 views
 share cross-unit validation and canonical ordering; reflection stays unchanged. C++ supports guards inside ordinary grouped bodies (with header capture) and
 local explicit-R20 clauses (whose grouped headers remain nonbinding), with
@@ -27,8 +27,9 @@ Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
 See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
-Private Python E2.2 guarded slots reserve names and enforce admission/metadata
-visibility; they do not execute closed declarations or publish functions.
+Private Python slots enforce admission/reservations. A callback-driven transaction
+publishes or fails prepared groups with terminal self bindings and owner cleanup;
+post-commit faults roll forward. Source closed declarations remain unwired.
 
 
 Python D1 module completion owns private detached ordinary clause/provenance
@@ -36,7 +37,7 @@ snapshots. B1 captures the original local-slot metadata/doc with the original
 callable's inline fallback, separately from its shared help. Exact original
 completion witnesses support re-export reuse; owner text alone confers none.
 D1 snapshots stay private; D2 explicitly selects ordinary linked views from
-these witnesses. Closed-function publication remains unimplemented.
+these witnesses. Closed-source publication remains unimplemented.
 
 ## 1) Expression vs case grammar separation
 

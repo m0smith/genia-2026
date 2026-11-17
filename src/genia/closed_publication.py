@@ -1,4 +1,4 @@
-"""Private closed-callable admission lineage; no evaluator/publication activation.
+"""Private closed-callable lineage and transactions; no evaluator activation.
 
 Only a declaration owner may open its transaction window. Synchronous bridges
 inherit the current thread's lineage; independent host dispatchers cut it with a
@@ -23,10 +23,9 @@ _BARRIER = object()
 class _PublicationTransaction:
     """Stable callable descriptor, attached once while building and never removed.
 
-    E2.1 window exit revokes window_open only; it never sets closed. Terminal
-    cleanup and the closed write belong to the E2.3 publication transaction
-    (not implemented here). E2.2 records the two owning scopes for private slot
-    primitives; it performs no installation or lifecycle transition.
+    Window exit revokes window_open only; terminal transaction cleanup writes
+    closed. The two owning scopes belong to the callable's reserved self frame
+    and its direct parent. The descriptor remains attached after either outcome.
     """
     callable: Any
     window_open: bool = False
@@ -47,13 +46,97 @@ def _run_publication(
     txn: _PublicationTransaction,
     evaluate_annotations: Callable[["Env"], "GeniaMap"],
 ) -> "GeniaClosedFunction":
-    """Reserve the private driver seam; no lifecycle behavior is implemented.
+    """Publish a prepared private group, or fail it without rolling back effects.
 
-    The caller owns T0–T3 preparation. The future driver owns T4–T7, invokes
-    evaluate_annotations(self_frame) in T5, and returns the same committed
-    txn.callable. This scaffold only raises NotImplementedError.
+    Caller owns T0–T3 validation/construction and supplies a fresh building txn.
+    This driver owns T4–T7. Its callback evaluates/folds annotations in the self
+    frame inside the admission window, outside the binding lock, returning a
+    private GeniaMap. Success returns the same committed callable. BaseException
+    exits before commitment fail/discard and release only this owner's slots;
+    exits after commitment finish both tables and cleanup under the same lock
+    before re-raising unchanged. Recovery covers single protocol faults, not
+    progress under persistent allocation failure. Source evaluation is unwired.
     """
-    raise NotImplementedError
+    # Runtime imports are lazy: environment/callable already depend on lineage.
+    from . import environment as env
+
+    group, scope, frame = txn.callable, txn.declaring_scope, txn.self_frame
+    name = group.name
+    if (txn.closed or txn.window_open or group._state != 'building'
+            or group._txn is not txn or frame is None or scope is None
+            or frame.parent is not scope):
+        raise RuntimeError('publication requires a fresh building transaction and owning scopes')
+
+    def close() -> None:
+        """Repeat ownership-conditional K1–K4 under the caller-held lock."""
+        while not txn.closed:
+            try:
+                scope._remove_provisional_slot(name, txn)
+                frame._remove_provisional_slot(name, txn)
+                env._unregister_open_transaction(txn)
+                txn.closed = True
+            except BaseException:
+                # Each step is its own progress record. Never clear other owners.
+                continue
+
+    def install_committed() -> None:
+        """Finish C4/C5 from already staged data; caller retains the T6 lock."""
+        scope.binding_metadata[name] = metadata
+        scope._immutable = immutable_names
+        scope.values[name] = group
+        frame.binding_metadata[name] = metadata
+        frame.values[name] = group
+
+    try:
+        with env._BINDING_LOCK:
+            scope._check_declaration(name)  # P1 repeats the caller's name check.
+            env._register_open_transaction(txn)
+            group._state = 'initializing'
+            scope._install_provisional_slot(name, txn, strict=False)
+            frame._install_provisional_slot(name, txn, strict=True)
+        with _publication_window(txn):
+            metadata = evaluate_annotations(frame)
+        with env._BINDING_LOCK:
+            try:
+                slot = (scope._provisional_slots or {}).get(name)
+                if slot is None or slot.transaction is not txn or name in scope.values:
+                    raise env.ImmutableBindingError(f'Cannot rebind immutable binding: {name}')
+                group.metadata = metadata
+                # C2b is local, reads current shared state under this same lock,
+                # and may allocate. It precedes the single C3 linearization store.
+                immutable_names = scope._immutable | {name}
+                if group._state == 'initializing':
+                    group._state = 'committed'
+                install_committed()
+                close()
+            except BaseException:
+                if group._state == 'committed':
+                    # C3 may have taken effect before its interrupted store
+                    # returned. Nothing after it can fail/roll back the callable.
+                    while True:
+                        try:
+                            install_committed()
+                            close()
+                            break
+                        except BaseException:
+                            continue
+                raise
+    except BaseException:
+        with env._BINDING_LOCK:
+            if group._state != 'committed':
+                while True:
+                    try:
+                        if group._state == 'initializing':
+                            group._state = 'failed'
+                        if group._state == 'failed':
+                            frame.values[name] = group
+                        # Building groups were never reachable: discard them.
+                        close()
+                        break
+                    except BaseException:
+                        continue
+        raise
+    return group
 
 
 def _lineage_stack() -> list[Any]:

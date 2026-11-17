@@ -522,8 +522,8 @@ class GeniaClosedFunction(GeniaFunctionGroup):
     `_from_records` retains the construction seam's shared-record identity;
     `_with_self_frame` builds owned guarded records for lifecycle consumers.
     Neither publishes a declaring-scope binding or activates closed source syntax.
-    Host fixtures supply states and descriptors. Private E2.1 windows admit
-    invocation only; atomic publication and source activation remain unavailable.
+    The private transaction driver owns publication states and descriptors;
+    windows admit invocation only. Closed source evaluation remains unavailable.
     """
 
     def __post_init__(self) -> None:
@@ -563,7 +563,7 @@ class GeniaClosedFunction(GeniaFunctionGroup):
         Reuses whole-group duplicate/doc validation before exposing any result.
         Original records and closures are untouched; IR and debug settings retain
         their ordinary meaning. The private frame inherits lexical/module lookup.
-        The immutable-name set is fixed while private. E2.3 must install the
+        The immutable-name set is fixed while private. The driver installs the
         strict slot at T4 and the terminal ordinary binding at C5/F2; this builder
         publishes neither. The frame preserves module identity and debugger depth.
         """
