@@ -1,0 +1,11 @@
+name: r29-records-not-sheet
+category: error
+requires: [sheet_values]
+description: R29 T1 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    [1] |> sheet_records
+expected:
+  stdout: ""
+  stderr: "Error: sheet_records expected a Sheet\n"
+  exit_code: 1

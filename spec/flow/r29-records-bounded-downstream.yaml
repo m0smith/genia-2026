@@ -1,0 +1,17 @@
+name: r29-records-bounded-downstream
+category: flow
+requires: [flow_phase_1, sheet_values]
+description: R29 T1 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    to_flow(xs) = evolve(0, inc) |> take(length(xs)) |> map((i) -> unwrap_or(nil, nth(i, xs)))
+    rs = sheet_records(sheet([["id", [1, 2, 3, 4]]]))
+    c = ref(0)
+    tick(r) = { ref_update(c, inc); r }
+    f = to_flow(rs) |> map(tick)
+    short = f |> take(2) |> collect
+    [map((r) -> r.id, short), ref_get(c), length(rs), map((r) -> r.id, rs), collect(to_flow([]))]
+expected:
+  stdout: "[[1, 2], 2, 4, [1, 2, 3, 4], []]\n"
+  stderr: ""
+  exit_code: 0

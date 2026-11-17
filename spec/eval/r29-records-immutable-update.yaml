@@ -1,0 +1,14 @@
+name: r29-records-immutable-update
+category: eval
+requires: [sheet_values]
+description: R29 T1 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    s = sheet([["n", [1, 2]]])
+    rs = sheet_records(s)
+    changed = map_put(unwrap_or(nil, nth(0, rs)), "n", 99)
+    [changed.n == 99, map((r) -> r.n, rs) == [1, 2], rows(s) == [[["n", 1]], [["n", 2]]], sheet_records(s) == rs]
+expected:
+  stdout: "[true, true, true, true]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,14 @@
+name: r29-records-zero-shapes
+category: eval
+requires: [sheet_values]
+description: R29 T1 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    z = sheet([["a", []], ["b", []]])
+    s = select([], sheet([["a", [1, 2]]]))
+    rs = sheet_records(s)
+    [sheet_records(sheet([])) == [], sheet_records(z) == [], columns(z) == ["a", "b"], collect_sheet(sheet_records(z)) == sheet([]), collect_sheet(sheet_records(z)) == z, rs == [{}, {}], collect_sheet(rs) == s]
+expected:
+  stdout: "[true, true, true, true, false, true, true]\n"
+  stderr: ""
+  exit_code: 0

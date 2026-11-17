@@ -479,3 +479,19 @@ def test_callable_rendering_is_host_text_and_equals_ordinary_command_mode_shape(
     direct = direct_command_source("print")[0]
     # Same shape (address text may differ between processes), same renderer, same host text.
     assert rendered.split(" at 0x")[0] == direct.split(" at 0x")[0]
+
+
+def test_r29_pure_sheet_records_is_explicitly_allowed_without_authority():
+    """T1 RED: pure conversion is an explicit default-deny classification."""
+    assert "sheet_records" in ALLOWED_BINDINGS
+    assert "sheet_records" not in DENIED_BINDINGS
+    assert policy_violation(_raw_ast('sheet_records(sheet([]))')) is False
+    assert policy_violation(_raw_ast('sheet_records(sheet([]))\nsecret_get("K")')) is True
+
+
+def test_r29_pure_sheet_records_executes_in_restricted_worker():
+    """T1 RED: classification must actually survive pruning and execute."""
+    reply = _worker().execute_source('sheet_records(sheet([["n", [1]]]))')
+    assert reply["status"] == "completed", reply
+    assert reply["value"] == "[{n: 1}]"
+    assert reply["stdout"] == "" and reply["stderr"] == ""
