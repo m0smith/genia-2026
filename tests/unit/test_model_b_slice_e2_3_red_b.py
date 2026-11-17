@@ -7,22 +7,31 @@ never supplies lifecycle transitions. No multi-fault/persistent-OOM claim.
 T0-T3, public activation and shared portability evidence are out of scope.
 
 Instrumentation assumptions, NOT language/implementation requirements: the
-future driver dynamically resolves the patched environment registry/slot/lock
+future driver dynamically resolves the patched environment registry/slot
 operations and publication window. It stores attributes and uses ordinary
 table subscription/update/setdefault/|= operations. Cached import aliases,
 explicit dict.update(table, ...) or replacement tables can bypass observers.
 If those are used, adapt/review these tests; a missed injection is not a
 semantic defect. Wrappers bind actual signatures and delegate original calls.
+The lock observer profiles release calls on the original C lock (including
+cached aliases), never replaces it, and has an independently passing control.
 
-Requested maintainer deferrals (not accepted or waived by this module):
-- L2 P1/C1/C2b: no distinct operations at the raise-only seam; need reviewed
+Current maintainer disposition (issue comment 6938042087):
+- C2b pre-C3 allocation (L2/T7), N1 C2b allocation (L10) and individual C4/C5
+  insertion faults (L2a) are HARD BLOCKED acceptance gates, not waived/skipped.
+  Their real operations do not exist in the scaffold. C2b allocates a local
+  before C3; the Env._immutable store is C4 after C3, never a substitute.
+- All C3-C6/success-cleanup-dependent proposals below remain hard blocked too.
+  Existing table observers are provisional harnesses, NOT allocation evidence;
+  missing/bypassed/preseeded writes require later operation-specific review.
+- Aborted-T4 PLUS a cleanup fault is two protocol faults and outside this
+  single-fault batch only. Existing single-fault T4 proposals remain required.
+- P1/C1 need reviewed
   step-local instrumentation against the eventual real implementation.
-- L2 F1/F2 single faults and failure-path K1-K4: require additional recovery
-  harness for an annotation error plus one protocol fault, without imposing
-  unspecified secondary-exception precedence. No such coverage claimed here.
-- L2/L11 aborted-T4 cleanup faults and L11 failure variants: need a faithful
-  abort trigger plus one cleanup fault and verified competing-owner setup.
-  Success-path N2 below now uses shared and same-name nested namespaces only.
+- F1/F2 and failure K1-K4 now have before/after delegated-operation oracles.
+  Induced ValueError in T5 is a normal scenario, not another protocol fault.
+  Exactly one MemoryError/KeyboardInterrupt is injected; secondary-exception
+  precedence is not prescribed. N2 shared/nested failure owners are included.
 - L1 pauses at C1/C2/C2b/C4/C5/K1-K4 and full doc/meta/help cross-product:
   further test-only observers/step-local decision required; only C3/init now.
 - L5 actual serve_http dispatch: needs real same-thread HTTP fixture/permission.
@@ -33,13 +42,17 @@ a real module-load lineage bridge but its inner declaration is host-created
 in a separate scope, not module-owned source closed evaluation. L7/T0-T3 and
 public source/direct-IR activation remain outside this entry (later E2.4).
 P2/P4/P5, P3/C2/C3, C4/C5, window-close and success K faults are authored.
-All driver oracles remain unexecuted behind NotImplementedError. No hooks or
-production edits are authorized; these deferral requests need disposition.
+All driver oracles remain unexecuted behind NotImplementedError. F-path tests
+observe existing __setattr__, dict insertion, slot removal, registry discard
+and descriptor.closed writes; no lifecycle step is supplied by a test. No
+production hooks/helpers or behavior are implemented. Outstanding rows above
+need later explicit evidence gates, not an implicit GREEN/merge clearance.
 """
 
 import ast
 from contextlib import contextmanager
 import inspect
+import sys
 import textwrap
 import threading
 
@@ -84,6 +97,8 @@ def terminal(txn, state, metadata=None):
     assert txn.closed and not txn.window_open and txn not in e._OPEN_TRANSACTIONS
     for scope in (declaring, frame):
         assert name not in (scope._provisional_slots or {})
+    # Design section 4.2 F2 explicitly binds the failed callable in this frame;
+    # section 4.1 C5 provides the corresponding successful terminal binding.
     assert frame.values[name] is frame.get(name) is group
     assert frame.immutable_names() == frozenset({name})
     if state == 'committed':
@@ -236,6 +251,34 @@ def patch_operation(monkeypatch, owner, name, selected, fault):
     monkeypatch.setattr(owner, name, delegated)
 
 
+def window_transaction(window, args, kwargs):
+    """Bind to the real window's first argument without fixing its spelling."""
+    signature = inspect.signature(window)
+    bound = signature.bind(*args, **kwargs)
+    return bound.arguments[next(iter(signature.parameters))]
+
+
+@contextmanager
+def real_lock_releases(lock):
+    """Observe original C lock releases, including cached aliases/context exit."""
+    releases = []
+    prior = sys.getprofile()
+
+    def profile(frame, event, operation):
+        """Log only real release calls; never replace or operate on the lock."""
+        if (event == 'c_call' and getattr(operation, '__self__', None) is lock
+                and getattr(operation, '__name__', '') in ('release', '__exit__')):
+            releases.append(getattr(operation, '__name__'))
+        if prior is not None:
+            prior(frame, event, operation)
+
+    sys.setprofile(profile)
+    try:
+        yield releases
+    finally:
+        sys.setprofile(prior)
+
+
 def run_success_cleanup(txn, annotations, fault):
     """Require recovery; K interrupt propagation itself is not fixed by section 4.4."""
     try:
@@ -245,6 +288,171 @@ def run_success_cleanup(txn, annotations, fault):
     else:
         assert result is txn.callable
     assert fault.hits == 1
+
+
+def install_failure_observer(monkeypatch, txn, step, fault):
+    """Observe real state writes and one chosen F/K operation, never perform it."""
+    states = []
+    original = c.GeniaClosedFunction.__setattr__
+    signature = inspect.signature(original)
+
+    def store(*args, **kwargs):
+        """Delegate state stores, distinguishing conditional F1 from other writes."""
+        bound = signature.bind(*args, **kwargs).arguments
+        selected = bound['self'] is txn.callable and bound['name'] == '_state'
+
+        def operation():
+            """Execute exactly the store attempted by production, then record it."""
+            result = original(*args, **kwargs)
+            if selected:
+                states.append(bound['value'])
+            return result
+
+        if selected and bound['value'] == 'failed':
+            # Design 4.2 F1/4.4: failure must never overwrite commitment.
+            assert txn.callable._state != 'committed'
+            if step == 'F1':
+                return fault.run(operation)
+        return operation()
+
+    monkeypatch.setattr(c.GeniaClosedFunction, '__setattr__', store)
+    if step == 'F2':
+        frame = txn.self_frame
+
+        class Values(dict):
+            """Delegate actual self-binding writes; support ordinary dict routes."""
+
+            def __setitem__(self, key, value):
+                """Inject around the real failed self binding of design 4.2 F2."""
+                if key == txn.callable.name:
+                    assert txn.callable._state == 'failed'
+                    return fault.run(lambda: super(Values, self).__setitem__(key, value))
+                return super().__setitem__(key, value)
+
+            def update(self, *args, **kwargs):
+                """Preserve normal mapping/iterable insertion order."""
+                if len(args) > 1:
+                    return super().update(*args, **kwargs)
+                if args:
+                    source = args[0]
+                    pairs = ((key, source[key]) for key in source.keys()) if hasattr(source, 'keys') else source
+                    for key, value in pairs:
+                        self[key] = value
+                for key, value in kwargs.items():
+                    self[key] = value
+
+            def setdefault(self, key, default=None):
+                """Delegate insertion only when the key is actually absent."""
+                if key not in self:
+                    self[key] = default
+                return self[key]
+
+            def __ior__(self, other):
+                """Observe bound |= as ordinary real dict insertions."""
+                self.update(other)
+                return self
+
+        monkeypatch.setattr(frame, 'values', Values(frame.values))
+    elif step in ('K1', 'K2'):
+        target = txn.declaring_scope if step == 'K1' else txn.self_frame
+        patch_operation(monkeypatch, e.Env, '_remove_provisional_slot',
+                        lambda bound: bound['self'] is target and bound['txn'] is txn, fault)
+    elif step == 'K3':
+        patch_operation(monkeypatch, e, '_unregister_open_transaction',
+                        lambda bound: bound['txn'] is txn, fault)
+    elif step == 'K4':
+        patch_operation(monkeypatch, p._PublicationTransaction, '__setattr__',
+                        lambda bound: bound['self'] is txn and bound['name'] == 'closed'
+                        and bound['value'] is True, fault)
+    return states
+
+
+def run_failure_cleanup(txn, annotations, annotation_error, fault):
+    """Require failure; preserve identity without inventing secondary precedence."""
+    try:
+        p._run_publication(txn, annotations)
+    except (ValueError, MemoryError, KeyboardInterrupt) as caught:
+        assert caught is annotation_error or caught is fault.error
+    else:
+        pytest.fail('failed annotation was suppressed')
+    # NotImplementedError is intentionally not caught: scaffold failures must
+    # remain distinguishable from an injected fault/behavioral assertion.
+    assert fault.hits == 1
+
+
+@pytest.mark.parametrize('step', ['F1', 'F2', 'K1', 'K2', 'K3', 'K4'])
+@pytest.mark.parametrize('after', [False, True])
+def test_f_path_single_fault_reaches_failed_terminal(monkeypatch, step, after):
+    """One protocol fault, before/after a real operation, during induced T5 failure."""
+    txn = world()
+    annotation_error = ValueError('ordinary annotation failure')
+    error = KeyboardInterrupt('cleanup interrupt') if step.startswith('K') else MemoryError('F allocation')
+    fault, escaped = SingleFault(after, error), []
+    states = install_failure_observer(monkeypatch, txn, step, fault)
+
+    def annotations(frame):
+        """Induce a normal annotation failure and retain its actual self identity."""
+        assert txn.callable._state == 'initializing' and txn.window_open
+        escaped.append(frame.get(txn.callable.name))
+        raise annotation_error
+
+    run_failure_cleanup(txn, annotations, annotation_error, fault)
+    assert escaped == [txn.callable]
+    assert states and states[0] == 'initializing' and 'committed' not in states
+    terminal(txn, 'failed')
+
+
+@pytest.mark.parametrize('namespace', ['shared', 'same_name_nested'])
+@pytest.mark.parametrize('step', ['F1', 'F2', 'K1', 'K2', 'K3', 'K4'])
+def test_f_path_n2_failure_cleanup_preserves_competing_owner(monkeypatch, namespace, step):
+    """A's one protocol fault occurs while B is live; both take failure paths."""
+    baseline = set(e._OPEN_TRANSACTIONS)
+    active = world()
+    scope = active.declaring_scope
+    closing = world(name='h', declaring=scope) if namespace == 'shared' else world(declaring=e.Env(scope, rebind_parent=False))
+    fault = SingleFault(True, MemoryError('A protocol fault'))
+    states = install_failure_observer(monkeypatch, closing, step, fault)
+    inner_error, outer_error = ValueError('A annotation'), ValueError('B annotation')
+    guarded = []
+    original = e.Env._get_guarded
+    signature = inspect.signature(original)
+
+    def guarded_lookup(*args, **kwargs):
+        """Count actual B guarded lookups after A exits, forwarding unchanged."""
+        bound = signature.bind(*args, **kwargs).arguments
+        if bound['name'] == 'f' and any(bound['self'] is held for held in (scope, active.self_frame)):
+            guarded.append(bound['self'])
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(e.Env, '_get_guarded', guarded_lookup)
+
+    def inner_annotations(frame):
+        """Both reservations coexist before the normal inner annotation error."""
+        assert frame.get(closing.callable.name) is closing.callable
+        assert active in e._OPEN_TRANSACTIONS and closing in e._OPEN_TRANSACTIONS
+        raise inner_error
+
+    def outer_annotations(frame):
+        """Check B's exact reservation and nonfallback answer before failing B."""
+        run_failure_cleanup(closing, inner_annotations, inner_error, fault)
+        terminal(closing, 'failed')
+        assert closing not in e._OPEN_TRANSACTIONS and active in e._OPEN_TRANSACTIONS
+        assert scope._provisional_slots['f'].transaction is active
+        assert frame._provisional_slots['f'].transaction is active
+        before = len(guarded)
+        assert scope.get('f') is frame.get('f') is active.callable
+        assert len(guarded) >= before + 2
+        assert scope.root().get('f') == 41
+        with pytest.raises(e.ImmutableBindingError):
+            scope.assign('f', 9)
+        raise outer_error
+
+    with pytest.raises(ValueError) as caught:
+        p._run_publication(active, outer_annotations)
+    assert caught.value is outer_error
+    assert 'committed' not in states and fault.hits == 1
+    terminal(active, 'failed')
+    assert e._OPEN_TRANSACTIONS == baseline
 
 
 @pytest.mark.parametrize('step', ['register', 'declaring_slot', 'self_slot'])
@@ -323,41 +531,6 @@ def test_l2a_c4_c5_allocation_rolls_forward_under_same_lock(monkeypatch, which, 
     lock_observations = []
     real_lock = e._BINDING_LOCK
 
-    class LockObserver:
-        """Delegate the original lock, counting real hold boundaries only."""
-
-        def __init__(self):
-            self.generation = 0
-            self.releases = 0
-            self.owner = None
-
-        def __enter__(self):
-            self.acquire()
-            return self
-
-        def __exit__(self, *exc):
-            self.release()
-
-        def acquire(self, *args, **kwargs):
-            """Count only a successful acquisition of the original lock."""
-            acquired = real_lock.acquire(*args, **kwargs)
-            if acquired:
-                self.generation += 1
-                self.owner = threading.get_ident()
-            return acquired
-
-        def release(self):
-            """Release exactly the original binding lock."""
-            real_lock.release()
-            self.releases += 1
-            self.owner = None
-
-        def locked(self):
-            return real_lock.locked()
-
-    observed_lock = LockObserver()
-    monkeypatch.setattr(e, '_BINDING_LOCK', observed_lock)
-
     class Writes(dict):
         """Delegate actual dict writes, including simulated allocating insertions."""
 
@@ -371,9 +544,7 @@ def test_l2a_c4_c5_allocation_rolls_forward_under_same_lock(monkeypatch, which, 
             if key == 'f':
                 assert txn.callable._state == 'committed'
                 assert real_lock.locked()
-                assert observed_lock.generation > 0, 'unobserved lock acquisition route'
-                assert observed_lock.owner == threading.get_ident()
-                lock_observations.append((observed_lock.generation, observed_lock.releases))
+                lock_observations.append(len(releases))
                 if self.selected:
                     return fault.run(lambda: super(Writes, self).__setitem__(key, value))
             return super().__setitem__(key, value)
@@ -405,10 +576,15 @@ def test_l2a_c4_c5_allocation_rolls_forward_under_same_lock(monkeypatch, which, 
         for suffix, attribute in (('metadata', 'binding_metadata'), ('values', 'values')):
             table = Writes(getattr(scope, attribute), f'{label}_{suffix}' == which)
             monkeypatch.setattr(scope, attribute, table)
-    with pytest.raises(MemoryError) as caught:
-        p._run_publication(txn, lambda frame: metadata)
+    with real_lock_releases(real_lock) as releases:
+        with pytest.raises(MemoryError) as caught:
+            p._run_publication(txn, lambda frame: metadata)
     assert caught.value is fault.error and fault.hits == 1
-    assert len(lock_observations) >= 4 and len(set(lock_observations)) == 1
+    assert releases, 'original lock release observation never reached'
+    # Do not require exactly four writes: equivalent routes may avoid an
+    # already-present binding. The chosen real insertion must still be hit;
+    # any unavailable insertion remains an instrumentation/acceptance gap.
+    assert lock_observations and len(set(lock_observations)) == 1
     terminal(txn, 'committed', metadata)
 
 
@@ -440,7 +616,7 @@ def test_l10_n1_same_scope_immutable_writer_after_t5(monkeypatch):
     @contextmanager
     def window(*args, **kwargs):
         """Delegate admission/revocation, with an interleaving after real T5."""
-        candidate = inspect.signature(original).bind(*args, **kwargs).arguments['txn']
+        candidate = window_transaction(original, args, kwargs)
         with original(*args, **kwargs):
             yield
         if candidate is txn:
@@ -545,7 +721,7 @@ def test_l12_n3_paused_state_read_retains_descriptor(monkeypatch, outcome, entry
     group, metadata = txn.callable, GeniaMap().put('doc', 'final')
     original = c.GeniaClosedFunction.__getattribute__
     paused, resume = threading.Event(), threading.Event()
-    workers, reads, observations = [], [], []
+    workers, reads, snapshots, observations = [], [], [], []
     annotation_error = ValueError('annotation')
 
     def getattribute(candidate, name):
@@ -554,7 +730,8 @@ def test_l12_n3_paused_state_read_retains_descriptor(monkeypatch, outcome, entry
         if (candidate is group and name == '_state' and workers
                 and threading.current_thread() is workers[0]):
             reads.append(value)
-            if value == 'initializing':
+            if value == 'initializing' and not paused.is_set():
+                snapshots.append(value)
                 paused.set()
                 assert resume.wait(5), 'owner did not complete publication/failure'
         return value
@@ -573,6 +750,12 @@ def test_l12_n3_paused_state_read_retains_descriptor(monkeypatch, outcome, entry
 
     def annotations(frame):
         """Start reader only in a genuine window, then let owner run to terminal."""
+        # The actual current lookup is get -> _get_guarded -> slot.resolve,
+        # whose one decision-state read is independently pinned below. Require
+        # real registration/slot ownership before waiting for that path.
+        assert txn in e._OPEN_TRANSACTIONS
+        assert txn.declaring_scope._provisional_slots['f'].transaction is txn
+        assert frame._provisional_slots['f'].transaction is txn
         worker = threading.Thread(target=reader, daemon=True)
         workers.append(worker)
         worker.start()
@@ -593,7 +776,11 @@ def test_l12_n3_paused_state_read_retains_descriptor(monkeypatch, outcome, entry
         for worker in workers:
             worker.join(5)
             assert not worker.is_alive()
-    assert reads == ['initializing'] and group._txn is txn
+    # Whole-path incidental reads are not the single decision-state invariant.
+    # Capture the paused snapshot and keep outcome/descriptor discrimination;
+    # the control below checks each actual decision operation reads once.
+    assert reads and reads[0] == 'initializing'
+    assert snapshots == ['initializing'] and group._txn is txn
     if entry == 'declaring':
         assert observations == [41]
     else:
@@ -651,7 +838,7 @@ def test_l2_window_close_fault_enters_failure_protocol(monkeypatch, error_type):
     @contextmanager
     def window(*args, **kwargs):
         """Delegate genuine window behavior, injecting only after its close."""
-        candidate = inspect.signature(original).bind(*args, **kwargs).arguments['txn']
+        candidate = window_transaction(original, args, kwargs)
         with original(*args, **kwargs):
             yield
         if candidate is txn and not closed:
@@ -689,6 +876,35 @@ def test_existing_preconditions_without_lifecycle_simulation():
     assert metadata.get('doc') == 'probe' and dict(metadata.items()) == {'doc': 'probe'}
     assert dict(frame.get_metadata('f').items()) == {'doc': 'outer'}
     assert txn.callable._state == 'building' and not txn.closed and not txn.window_open
+
+
+def test_original_lock_observer_detects_alias_and_context_release():
+    """Passing instrumentation control; no lock replacement or lifecycle effects."""
+    lock = threading.Lock()
+    acquire_alias, release_alias = lock.acquire, lock.release
+    previous = sys.getprofile()
+    with real_lock_releases(lock) as releases:
+        acquire_alias()
+        release_alias()
+        with lock:
+            assert lock.locked()
+        acquire_alias()
+        release_alias()
+    assert releases == ['release', '__exit__', 'release']
+    assert sys.getprofile() is previous and not lock.locked()
+
+
+def test_current_decision_operations_read_one_state_and_lookup_reaches_slot():
+    """Pin operation-local N3 reads, not the whole reader path's incidental reads."""
+    for method in (c.GeniaClosedFunction._check_invocation, e._ProvisionalSlot.resolve):
+        tree = ast.parse(textwrap.dedent(inspect.getsource(method)))
+        reads = [node for node in ast.walk(tree)
+                 if isinstance(node, ast.Attribute) and node.attr == '_state'
+                 and isinstance(node.ctx, ast.Load)]
+        assert len(reads) == 1
+    tree = ast.parse(textwrap.dedent(inspect.getsource(e.Env._get_guarded)))
+    assert any(isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+               and node.func.attr == 'resolve' for node in ast.walk(tree))
 
 
 def test_l8_empty_set_lookup_keeps_existing_structural_fast_path(monkeypatch):
