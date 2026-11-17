@@ -30,6 +30,7 @@ See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
 Private Python slots enforce admission/reservations. A callback-driven transaction
 publishes or fails prepared groups with terminal self bindings and owner cleanup;
 post-commit faults roll forward. Source closed declarations remain unwired.
+Interrupting private failure-lock acquisition can strand reservations.
 
 
 Python D1 module completion owns private detached ordinary clause/provenance

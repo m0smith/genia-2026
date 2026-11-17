@@ -42,6 +42,15 @@ class _PublicationTransaction:
         self.callable._txn = self
 
 
+def _stage_immutable_names(scope: "Env", name: str) -> frozenset[str]:
+    """Allocate the current immutable-name set plus name without publishing it.
+
+    The private caller holds the T6 binding lock and has not reached C3. This
+    named C2b allocation exposes before/after faults without intercepting C4.
+    """
+    return scope._immutable | {name}
+
+
 def _run_publication(
     txn: _PublicationTransaction,
     evaluate_annotations: Callable[["Env"], "GeniaMap"],
@@ -54,8 +63,9 @@ def _run_publication(
     private GeniaMap. Success returns the same committed callable. BaseException
     exits before commitment fail/discard and release only this owner's slots;
     exits after commitment finish both tables and cleanup under the same lock
-    before re-raising unchanged. Recovery covers single protocol faults, not
-    progress under persistent allocation failure. Source evaluation is unwired.
+    before re-raising unchanged. Recovery covers single faults within an acquired
+    lock, not progress under persistent failures. Interrupting failure-lock
+    acquisition can strand a provisional transaction. Source evaluation is unwired.
     """
     # Runtime imports are lazy: environment/callable already depend on lineage.
     from . import environment as env
@@ -104,7 +114,7 @@ def _run_publication(
                 group.metadata = metadata
                 # C2b is local, reads current shared state under this same lock,
                 # and may allocate. It precedes the single C3 linearization store.
-                immutable_names = scope._immutable | {name}
+                immutable_names = _stage_immutable_names(scope, name)
                 if group._state == 'initializing':
                     group._state = 'committed'
                 install_committed()
