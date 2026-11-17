@@ -1,4 +1,5 @@
 name: error-render-csv-not-sheet
+requires: [sheet_values]
 category: error
 description: render_csv rejects a non-Sheet input.
 input:

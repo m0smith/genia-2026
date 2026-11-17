@@ -1,4 +1,5 @@
 name: error-render-csv-unsupported-cell
+requires: [sheet_values]
 category: error
 description: render_csv rejects a non-scalar cell with its Sheet coordinates.
 input:
