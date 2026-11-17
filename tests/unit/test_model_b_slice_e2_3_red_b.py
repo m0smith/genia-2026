@@ -803,9 +803,13 @@ def test_l1_c3_synchronized_reader_sees_one_complete_state(monkeypatch, after):
     def observe():
         """Do not acquire owner lock; all reads must agree at this pause."""
         if after:
-            assert group(7) == 7
+            assert group._state == 'committed'
+            # _check_use/_check_invocation read only state/lineage, not Env.set.
+            group._check_invocation()
             group._check_use()
             for scope in (txn.declaring_scope, txn.self_frame):
+                # This pause is after C3 and before the first C4/C5 insertion.
+                assert 'f' not in scope.values
                 assert scope.get('f') is group
                 assert dict(scope.get_metadata('f').items()) == dict(metadata.items())
         else:
@@ -828,6 +832,9 @@ def test_l1_c3_synchronized_reader_sees_one_complete_state(monkeypatch, after):
     monkeypatch.setattr(c.GeniaClosedFunction, '__setattr__', store)
     assert p._run_publication(txn, lambda frame: metadata) is group
     assert seen == ['after' if after else 'before']
+    # Full ordinary invocation binds parameters under the global binding lock.
+    # Prove foreign-thread completion after owner release, not while paused.
+    assert join_observer(lambda: group(7)) == 7
     terminal(txn, 'committed', metadata)
 
 
