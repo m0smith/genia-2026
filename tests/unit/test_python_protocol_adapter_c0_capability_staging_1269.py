@@ -77,8 +77,10 @@ PRE_C0_CAPABILITY_MAP = {
 # Slice C GREEN (B9): the same name is `supported` and the override is empty.
 RED_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "unsupported"}
 GREEN_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "supported"}
+# Current R29 advertisement extends the frozen Slice C maps without rewriting history.
+CURRENT_R29_CAPABILITY_MAP = {**GREEN_CAPABILITY_MAP, "sheet_values": "supported"}
 PHASE_OVERRIDE = frozenset()
-PHASE_MAP = GREEN_CAPABILITY_MAP
+PHASE_MAP = CURRENT_R29_CAPABILITY_MAP
 
 
 def _stage(monkeypatch: pytest.MonkeyPatch, *names: str) -> None:
@@ -121,7 +123,10 @@ def test_override_matches_the_phase_and_is_immutable() -> None:
 def test_phase_capability_map_equals_the_expected_map_and_keeps_history_unchanged() -> None:
     claimed = _python_claimed_capabilities()
     assert claimed == PHASE_MAP
-    assert {k: v for k, v in claimed.items() if k != "default_open_functions"} == PRE_C0_CAPABILITY_MAP
+    assert {
+        k: v for k, v in claimed.items()
+        if k not in {"default_open_functions", "sheet_values"}
+    } == PRE_C0_CAPABILITY_MAP
 
 
 def test_empty_override_keeps_open_functions_and_multi_file_eval_supported() -> None:
