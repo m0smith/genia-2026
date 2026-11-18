@@ -54,6 +54,33 @@ For proposed changes, ask: **Does this make the same program easier for both a h
 
 Record a brief tradeoff answer in the relevant future strategy/preflight when material. Do **not** impose a new mandatory gate on an already-scoped release or expand R29 implicitly. Any concrete language or runtime change still follows contract, test, implementation, documentation-sync, and audit phases.
 
+## Post-R29 principle: human-owned laws, agent-produced evidence
+
+**Timing: after R29 only.** This is a non-normative design principle inspired by
+[Bend's law-driven development](https://github.com/bendlang/bend), not an R29
+requirement, release dependency, acceptance criterion, pre-flight task, or
+authorization to implement new language features. R29 scope, schedule,
+contracts, tests, audits, documentation requirements, and readiness gates
+remain exactly as already approved.
+
+**Principle:** Human-approved behavioral laws/invariants define the intended
+meaning; an AI collaborator may propose implementations and executable evidence
+but must not silently weaken, rewrite, or redefine the law to make its work pass.
+An independent review checks that the evidence actually supports the claim.
+
+After R29, evaluate whether this distinction can strengthen Genia's existing
+contract → failing-tests/specs → implementation → documentation → independent
+audit workflow, reusing current tests and shared conformance evidence first.
+Only investigate formal proofs or a dedicated law language if a separately
+approved study demonstrates a concrete need. Do not require a new `LAWS`/
+`PROOF` file convention, dependent type system, affine typing, termination
+checker, compiler/runtime feature, new MCP tool, or additional process gate.
+
+Potential later research (separate from the principle): Bend's pure,
+ownership-aware fork-join parallelism and its explicit proof boundaries.
+Do not mix this with R29, the R34 performance scope, or R38 actors without
+their own future prioritization and approval.
+
 ## Development dogfooding: post-task tool review (proposed pilot)
 
 After a substantive LLM-assisted development task, briefly inspect the *purpose* of agent-produced Python, Bash, JavaScript, jq, or similar support code. Identify data processing, validation, diagnostic, or report-generation steps that **might** have been expressed in current Genia. Do not assume Genia should replace Git, shell administration, host-specific utilities, or every working script.
