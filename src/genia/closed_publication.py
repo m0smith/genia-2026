@@ -63,9 +63,9 @@ def _run_publication(
     private GeniaMap. Success returns the same committed callable. BaseException
     exits before commitment fail/discard and release only this owner's slots;
     exits after commitment finish both tables and cleanup under the same lock
-    before re-raising unchanged. Recovery covers single faults within an acquired
-    lock, not progress under persistent failures. Interrupting failure-lock
-    acquisition can strand a provisional transaction. Source evaluation is unwired.
+    before re-raising unchanged. Single-fault recovery includes T7 lock
+    acquisition and cleanup. Persistent-fault progress is outside the recovery
+    bound. Source evaluation is unwired.
     """
     # Runtime imports are lazy: environment/callable already depend on lineage.
     from . import environment as env
@@ -132,19 +132,26 @@ def _run_publication(
                             continue
                 raise
     except BaseException:
-        with env._BINDING_LOCK:
-            if group._state != 'committed':
-                while True:
-                    try:
-                        if group._state == 'initializing':
-                            group._state = 'failed'
-                        if group._state == 'failed':
-                            frame.values[name] = group
-                        # Building groups were never reachable: discard them.
-                        close()
-                        break
-                    except BaseException:
-                        continue
+        while not txn.closed:
+            try:
+                with env._BINDING_LOCK:
+                    if group._state != 'committed':
+                        while True:
+                            try:
+                                if group._state == 'initializing':
+                                    group._state = 'failed'
+                                if group._state == 'failed':
+                                    frame.values[name] = group
+                                # Building groups were never reachable: discard them.
+                                close()
+                                break
+                            except BaseException:
+                                continue
+                break
+            except BaseException:
+                # T7 lock entry can be interrupted before any cleanup runs.
+                # Retry without replacing the original declaration exception.
+                continue
         raise
     return group
 
