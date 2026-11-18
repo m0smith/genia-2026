@@ -227,6 +227,7 @@
     "set_entry_bytes": "runtime-public",
     "shape": "runtime-public",
     "sheet": "runtime-public",
+    "sheet_records": "runtime-public",
     "sleep": "runtime-public",
     "stderr": "runtime-public",
     "stdin": "runtime-public",
