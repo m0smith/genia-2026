@@ -31,7 +31,7 @@ publication; no rename-on-use. Private Python slots enforce provisional lookup a
 self frames start reserved and unbound. A private callback driver publishes or fails
 prepared groups with terminal bindings and owner cleanup. Source closed publication
 and C++ support remain unimplemented.
-Interrupting private failure-lock acquisition can strand reservations.
+T7 recovers from one lock-acquisition or cleanup fault.
 
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
