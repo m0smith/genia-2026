@@ -7,7 +7,7 @@ T1 tests require the unimplemented boundary; T2 tests use existing operations.
 
 import pytest
 
-from genia import make_global_env, run_source
+from genia import make_global_env, make_program_env, run_source
 from genia.utf8 import format_debug
 from genia.values import GeniaMap, GeniaOptionErr
 
@@ -52,7 +52,7 @@ def test_t1_misuse_has_original_marked_type_error(source):
 
 
 def test_t1_entry_runtime_name_is_reserved_before_initializer():
-    env = make_global_env([])
+    env = make_program_env([])
     with pytest.raises(RuntimeError, match="name is reserved by the runtime"):
         run_source("sheet_records =: 5", env)
     assert run_source("sheet_records(sheet([]))", env) == []
