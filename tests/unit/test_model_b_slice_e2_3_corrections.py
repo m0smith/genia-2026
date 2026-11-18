@@ -175,3 +175,76 @@ def test_f5_interrupted_failure_lock_acquire_still_cleans_owner():
         [sys.executable, "-c", script], capture_output=True, text=True, timeout=10
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("phase", ["T4", "T5", "T6"])
+def test_f5_lock_interrupt_preserves_original_failure(phase):
+    """After a single T7 acquisition fault, propagate the exact triggering error."""
+    script = textwrap.dedent("""
+        import sys
+
+        from genia import closed_publication as p, environment as e
+        from genia.values import GeniaMap
+        from tests.unit.test_model_b_slice_e2_3_red_b import terminal, world
+
+        phase = sys.argv[1]
+        txn = world()
+        original_error = ValueError(phase)
+        original_lock = e._BINDING_LOCK
+        original_install = e.Env._install_provisional_slot
+
+        class Lock:
+            armed = False
+            fired = False
+
+            def __enter__(self):
+                if self.armed and not self.fired:
+                    self.fired = True
+                    raise KeyboardInterrupt("T7 acquisition")
+                return original_lock.__enter__()
+
+            def __exit__(self, *exc):
+                return original_lock.__exit__(*exc)
+
+            def locked(self):
+                return original_lock.locked()
+
+        lock = Lock()
+        e._BINDING_LOCK = lock
+
+        def fail():
+            lock.armed = True
+            raise original_error
+
+        def install(scope, name, owner, *, strict):
+            original_install(scope, name, owner, strict=strict)
+            if scope is txn.self_frame and owner is txn:
+                fail()
+
+        def annotations(frame):
+            assert not lock.locked()
+            if phase == "T5":
+                fail()
+            return GeniaMap()
+
+        def stage(scope, name):
+            fail()
+
+        if phase == "T4":
+            e.Env._install_provisional_slot = install
+        if phase == "T6":
+            p._stage_immutable_names = stage
+
+        try:
+            p._run_publication(txn, annotations)
+        except ValueError as caught:
+            assert caught is original_error
+        else:
+            raise AssertionError("original declaration failure was suppressed")
+        assert lock.fired and not lock.locked()
+        terminal(txn, "failed")
+    """)
+    result = subprocess.run(
+        [sys.executable, "-c", script, phase], capture_output=True, text=True, timeout=10
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
