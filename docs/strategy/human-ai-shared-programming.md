@@ -54,6 +54,32 @@ For proposed changes, ask: **Does this make the same program easier for both a h
 
 Record a brief tradeoff answer in the relevant future strategy/preflight when material. Do **not** impose a new mandatory gate on an already-scoped release or expand R29 implicitly. Any concrete language or runtime change still follows contract, test, implementation, documentation-sync, and audit phases.
 
+## Long-term principle: compilation and transpilation through Core IR
+
+**Adopted architectural direction (post-R29 consideration, non-normative).**
+Genia should be designed so that its **portable Core IR can support interpretation,
+compilation, and source-to-source translation** without changing the language's
+observable semantics. The same Genia program should have one meaning regardless
+of whether a conforming backend interprets Core IR, compiles executable code, or
+transpiles to another language.
+
+This is a design criterion for future proposals, **not a claim that native
+compilation or transpilation backends exist today**. The current Core IR
+portability/conformance boundary remains governed by `GENIA_STATE.md` and
+tests. Future implementations must account explicitly for capability/host gaps,
+Outcomes and errors, protected values, evaluation and lifecycle ordering, and
+cross-host conformance; a backend must not quietly redefine Genia semantics.
+
+Keep **R41 portable Core IR artifacts** as the planned foundation for
+compile-once, execute-on-conforming-host workflows. R41 does not automatically
+authorize or require native code generation, LLVM, WebAssembly, JavaScript,
+Python, C++, or another source-target backend. Any particular target requires
+separate justification, approval, evidence and normal process phases.
+
+**R29 is completely unaffected:** no added dependencies, implementation work,
+acceptance criteria, release gates, or delivery requirements. This principle
+does not expand R41's already approved scope either.
+
 ## Post-R29 principle: human-owned laws, agent-produced evidence
 
 **Timing: after R29 only.** This is a non-normative design principle inspired by
