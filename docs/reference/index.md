@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **300** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **301** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -249,6 +249,7 @@ Alphabetical index of the **300** out-of-the-box Genia functions available from 
 | [`set_entry_bytes`](functions/set_entry_bytes.md) | File / zip | `set_entry_bytes(entry, bytes)` | Return a zip entry with replacement bytes. |
 | [`shape`](functions/shape.md) | Sheets | `shape(sheet)` | Return a Sheet's row and column counts. |
 | [`sheet`](functions/sheet.md) | Sheets | `sheet(columns)` | Construct an immutable Sheet from ordered columns. |
+| [`sheet_records`](functions/sheet_records.md) | Sheets | `sheet_records(sheet)` | Eagerly convert a Sheet to an ordered List of row Maps, preserving raw keys and cells. Zero rows lose column schema; non-Sheet input raises TypeError. |
 | [`sleep`](functions/sleep.md) | Simulation | `sleep(milliseconds)` | Block the Python reference host for a number of milliseconds. |
 | [`some`](functions/some.md) | option | `some(..args)` | Wrap a present value in the Option success form `some(value)`. |
 | [`some?`](functions/some-p.md) | option | `some?(value)` | Check whether a value is `some(...)`. |
@@ -413,6 +414,7 @@ Alphabetical index of the **300** out-of-the-box Genia functions available from 
 - [`select`](functions/select.md) - Return a Sheet containing selected columns.
 - [`shape`](functions/shape.md) - Return a Sheet's row and column counts.
 - [`sheet`](functions/sheet.md) - Construct an immutable Sheet from ordered columns.
+- [`sheet_records`](functions/sheet_records.md) - Eagerly convert a Sheet to an ordered List of row Maps, preserving raw keys and cells. Zero rows lose column schema; non-Sheet input raises TypeError.
 - [`where`](functions/where.md) - Return a Sheet containing rows accepted by a predicate.
 
 ### Simulation

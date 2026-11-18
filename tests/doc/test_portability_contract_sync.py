@@ -192,6 +192,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "`-p`": "cli_pipe_mode",
         "REPL": "repl",
         "Flow phase 1": "flow_phase_1",
+        "Sheet values / `sheet_values`": "sheet_values",
         "configuration environment snapshot": "configuration_environment_snapshot",
         "configuration `.env` snapshot": "configuration_dotenv_snapshot",
         "deterministic model fixture": "model_deterministic_fixture",
