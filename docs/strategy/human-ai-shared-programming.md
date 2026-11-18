@@ -80,6 +80,39 @@ separate justification, approval, evidence and normal process phases.
 acceptance criteria, release gates, or delivery requirements. This principle
 does not expand R41's already approved scope either.
 
+## Long-term principle: preserve safety across execution backends
+
+**Adopted architectural direction (non-normative; apply to future backend
+proposals after R29).** Every conforming Genia backend should preserve the
+language's *defined* ownership, lifetime, concurrency, failure, and resource
+safety guarantees. A backend must reject an unsupported or unsafe operation
+rather than silently weaken the applicable contract. This applies whether it
+interprets Core IR, compiles executable code, or transpiles to source in
+another language.
+
+This is a future design objective, **not a claim that Genia currently provides
+Rust-style memory safety, static borrow checking, data-race freedom, or
+cross-backend proof of safety**. Define the precise portable guarantees and
+their scope before promising them. Distinguish language guarantees from
+host-runtime implementation properties, tests, and unsupported host capabilities.
+Future FFI/native boundaries, concurrency, resource lifetimes, optimizations,
+and generated-code targets need explicit safety obligations and appropriate
+negative, adversarial, and cross-host evidence where relevant.
+
+**Process implication to evaluate after R29, not enacted here:** consider a
+risk-triggered security review within the existing pre-flight / independent
+review workflow for changes affecting untrusted inputs, execution authority,
+protected values, declassification, filesystem/network/process effects,
+deserialization, concurrency/FFI, or generated-code trust boundaries. A review
+should identify assets, threat actors, trust boundaries, abuse cases, mitigations,
+and residual risks with focused tests or analysis. Routine documentation and
+low-risk internal changes should not require a heavyweight threat model.
+Avoid a second approval bureaucracy or claiming an audit proves general safety.
+
+**R29 has no new prerequisites, gates, review obligations, acceptance criteria,
+or scope changes.** Any future process rule must be separately approved under
+the existing process-change discipline.
+
 ## Post-R29 principle: human-owned laws, agent-produced evidence
 
 **Timing: after R29 only.** This is a non-normative design principle inspired by
