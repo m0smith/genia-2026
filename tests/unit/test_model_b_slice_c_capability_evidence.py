@@ -32,7 +32,7 @@ from tests.spec.test_model_b_slice_c_red import (
 )
 
 # The historical 35-name pre-C0 map is kept in the C0 test file; GREEN adds one supported name.
-GREEN_CAPABILITY_MAP_NAMES = 36
+GREEN_CAPABILITY_MAP_NAMES = 37
 
 
 def _specs():
