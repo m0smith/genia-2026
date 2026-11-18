@@ -99,19 +99,35 @@ Future FFI/native boundaries, concurrency, resource lifetimes, optimizations,
 and generated-code targets need explicit safety obligations and appropriate
 negative, adversarial, and cross-host evidence where relevant.
 
-**Process implication to evaluate after R29, not enacted here:** consider a
-risk-triggered security review within the existing pre-flight / independent
-review workflow for changes affecting untrusted inputs, execution authority,
-protected values, declassification, filesystem/network/process effects,
-deserialization, concurrency/FFI, or generated-code trust boundaries. A review
-should identify assets, threat actors, trust boundaries, abuse cases, mitigations,
-and residual risks with focused tests or analysis. Routine documentation and
-low-risk internal changes should not require a heavyweight threat model.
-Avoid a second approval bureaucracy or claiming an audit proves general safety.
+**Approved direction — post-R29 pilot, not a mandatory rule yet:**
+After R29, pilot risk-triggered security reviews *within* the existing
+pre-flight and independent-review workflow. Do not add a universal security
+gate or start the pilot during R29. Candidate triggers include untrusted input,
+execution authority, protected values/declassification, filesystem/network/
+process effects, deserialization, concurrency/FFI, native memory, and
+generated-code trust boundaries.
+
+Pilot design (to be scoped and approved after R29):
+- **Low risk:** keep the existing review; no extra security paperwork.
+- **Medium risk:** a concise security-impact assessment documenting relevant
+  trust boundaries, abuse cases, and mitigations.
+- **High risk:** a focused threat model and independent adversarial security
+  review, with negative/security-focused evidence proportional to the change.
+- **Evaluation:** log relevant vulnerabilities and design defects detected,
+  missed issues, review effort, noise/false positives, and avoidable delays.
+  Use findings to recommend ADOPT / REVISE / DO NOT ADOPT.
+- **Decision:** require a separate explicit approval before turning the pilot
+  into standing mandatory process policy. Do not silently change
+  `AGENTS.md`, the pre-flight template, or PR/CI gates as part of this
+  strategy-only decision.
+
+A review should identify assets, potential attackers, trust boundaries,
+abuse cases, mitigations, and residual risk. It must not claim that passing
+an audit proves broad program or memory safety.
 
 **R29 has no new prerequisites, gates, review obligations, acceptance criteria,
-or scope changes.** Any future process rule must be separately approved under
-the existing process-change discipline.
+or scope changes.** R41 and other existing release plans are unchanged.
+Any future process change follows the existing process-change discipline.
 
 ## Post-R29 principle: human-owned laws, agent-produced evidence
 
