@@ -48,7 +48,7 @@ See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
 Private Python slots enforce admission/reservations. A callback-driven transaction
 publishes or fails prepared groups with terminal self bindings and owner cleanup;
 post-commit faults roll forward. Source closed declarations remain unwired.
-Private recovery tolerates a single fault during T7 lock acquisition or owner cleanup.
+T7 recovers from one lock-acquisition or cleanup fault.
 
 
 ## Quick start
