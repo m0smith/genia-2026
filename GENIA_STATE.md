@@ -749,7 +749,7 @@ Capture/cache publication synchronizes with writers; live calls are unchanged.
 Python explicitly links completed ordinary interfaces (section 4.7).
 Private Python has sealed callables/guarded records, opaque failed markers and lineage/reservation guards.
 Prepared-group transactions publish/fail with post-commit roll-forward.
-Interrupted failure-lock acquisition can strand reservations.
+Private recovery tolerates a single fault during T7 lock acquisition or owner cleanup.
 Closed-source evaluation/annotations remain unavailable.
 Unfinished `=:` keeps REPL input incomplete; completed submissions end groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
