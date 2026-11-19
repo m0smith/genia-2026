@@ -107,6 +107,7 @@ _PUBLIC_DOCS = (
     _public("set_entry_bytes", "Return a zip entry with replacement bytes.", "File / zip", "set_entry_bytes(entry, bytes)"),
     _public("shape", "Return a Sheet's row and column counts.", "Sheets", "shape(sheet)", stability="Experimental"),
     _public("sheet", "Construct an immutable Sheet from ordered columns.", "Sheets", "sheet(columns)", stability="Experimental"),
+    _public("sheet_records", "Eagerly convert a Sheet to an ordered List of row Maps, preserving raw keys and cells. Zero rows lose column schema; non-Sheet input raises TypeError.", "Sheets", "sheet_records(sheet)", stability="Experimental"),
     _public("sleep", "Block the Python reference host for a number of milliseconds.", "Simulation", "sleep(milliseconds)"),
     _public("stdin", "Return the Python-host standard-input source capability.", "I/O", "stdin()"),
     _public("strip_representation", "Remove one matching representation facet from a represented value.", "Value templates", "strip_representation(format, value)", stability="Experimental"),

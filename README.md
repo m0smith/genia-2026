@@ -1817,6 +1817,28 @@ report = collect_sheet([
 render_csv(report)
 ```
 
+### Explicit Sheet records (**Experimental R29 candidate, Python reference host**)
+
+Implemented on this unmerged candidate branch, not released: `sheet_records(s)`
+purely materializes a reusable ordered List of distinct row Maps. Raw column
+keys and cell references, including protected carriers and Outcomes, are preserved
+in column/row order without mutation, coercion, unwrapping, callbacks or IO.
+For example, `sheet_records(sheet([["n", [1, 2]]]))` gives `[{n: 1}, {n: 2}]`.
+
+Zero rows yield `[]` and lose column schema; r zero-column rows yield r distinct
+empty Maps. Unchanged nonempty records reconstruct the Sheet through
+`collect_sheet`; zero-row column schema does not round-trip. Wrong input raises
+marked `TypeError("sheet_records expected a Sheet")`; ordinary arity, aliases,
+module/parameter rules and entry runtime-name reservation still apply.
+
+Sheet remains non-Seq. Conversion is eager even if a later application-built Flow
+is bounded; no implicit Sheet-to-Flow or new List-to-Flow builtin is added.
+Compose the List with existing filter/map/validation. Bind
+`validated = collect_validated(results)`, then call `collect_sheet(validated.clean)`. Existing
+protected sinks, Outcome data and lifecycle envelopes retain their own rules.
+C++ `sheet_values` is **UNSUPPORTED**, tracked in #1330. R29 release completion
+still requires #1251 integrated signoff and post-integration verification.
+
 ### row_get ergonomic row access (**Experimental**, issue #363)
 
 - `row_get(row, column_name)` returns the value paired with `column_name` in a row — a `list` of `[name, value]` pairs, the same shape `rows(sheet)` returns and `where`/`derive` row functions already receive
@@ -1845,7 +1867,7 @@ older = people
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - data parsing helpers: `json_decode`, `json_encode`, `json_schema` (Experimental portable boundaries), `json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record` (Experimental), `parse_csv_row` (Experimental)
 - validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, `diagnostic_field` (Experimental); `collect_validated` (host-backed builtin, Experimental)
-- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`, `collect_sheet`, `render_csv` (host-backed builtins, Experimental)
+- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`, `collect_sheet`, `render_csv`, `sheet_records` (host-backed builtins, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`

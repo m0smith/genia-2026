@@ -165,8 +165,10 @@ plausible-looking `==` for free from its own language. Do not take it.
   contract.
 
 Conformance evidence: the 24 `spec/eval/r18-*` and `spec/error/r18-*` cases. Start
-with `r18-conformance-cross-family-summary.yaml`, whose failing index names the
-broken family. Full contract: `docs/design/r18-portable-value-equality-contract.md`;
+with `r18-conformance-cross-family-summary.yaml`, whose 20-entry vector covers ten families and whose failing index names the
+broken family. Sheet equality, including the same-cell renamed-column near-miss,
+is preserved separately in `r18-conformance-sheet-structural-equality.yaml`
+under optional capability `sheet_values`. Full contract: `docs/design/r18-portable-value-equality-contract.md`;
 release summary: `docs/releases/R18.md`.
 
 R18 defines no opaque-token surface reachable from Genia source, so a host is not

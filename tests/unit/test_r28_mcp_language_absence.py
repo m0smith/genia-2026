@@ -188,6 +188,7 @@ def test_a11_the_a9_fact_and_the_catalogue_are_unchanged():
         "outcomes",
         "pipelines",
         "repetition",
+        "sheet_records",
     }
 
 

@@ -585,37 +585,33 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
 - This is still not a full static type/protocol system; the coherence is semantic rather than nominal.
 ### Sheet values (Experimental)
 
-**LANGUAGE CONTRACT:**
+**LANGUAGE CONTRACT:** Immutable named columns have deterministic order, equal-length
+List storage and a row count. Sheets are neither lazy/streaming, reactive/formula-driven,
+nor Seq-compatible Lists/Flows. Transformations preserve input. Joins/grouping/sorting
+and spreadsheet UI remain absent.
 
-A Sheet is an immutable, columnar, named-column value. It is distinct from Flow, Seq, and ordinary lists.
+**PYTHON REFERENCE HOST:** `GeniaSheet` is a frozen dataclass with tuple-backed
+columns. Names follow legal Genia map-key equality. Construction requires Lists;
+`derive` rejects existing names; `where` requires booleans. Outcomes remain cells.
 
-A Sheet has:
-- zero or more named columns
-- deterministic column order
-- columns represented as ordered sequences of values
-- all columns aligned by row index
-- a deterministic row count
-- immutable update semantics; all operations return new Sheets
+### Sheet record conversion (Experimental R29 candidate)
+<!-- anchor: state:sheet-records -->
 
-A Sheet is not:
-- a lazy or streaming value
-- a reactive or formula-driven spreadsheet
-- a Seq-compatible source
-- a replacement for Flow or lists
+`sheet_records/1` is a pure eager Sheet-to-List<Map> conversion: reusable List,
+distinct Maps in row/column order, exact raw keys/cells, no mutation/coercion,
+Outcome unwrapping, callbacks or IO. Protected carriers stay opaque under existing
+sink restrictions; no declassification authority is added. Zero rows return `[]`, losing schema;
+r zero-column rows yield r distinct empty Maps. Unchanged nonempty records
+round-trip through `collect_sheet`; zero-row column schema does not.
+Non-Sheet input raises marked `TypeError("sheet_records expected a Sheet")`.
+Sheet remains non-Seq; later Flow bounds cannot reduce eager allocation. No
+implicit Flow/List bridge is added. Ordinary arity/alias/pipeline/module/parameter
+rules remain; entry `sheet_records =: expr` rejects runtime ownership. Validation
+and lifecycle envelopes remain unchanged.
 
-**PYTHON REFERENCE HOST:**
+**Experimental Python reference host, unmerged R29 candidate; not released.**
+C++ `sheet_values` is **UNSUPPORTED**, tracked by `m0smith/genia-2026#1330`.
 
-Implemented as `GeniaSheet` — a frozen dataclass with tuple-backed column storage. Column names may be any hashable Genia value (symbols are the intended default). Column order is deterministic from construction order.
-
-**Maturity:** Experimental — minimal immutable columnar core only.
-
-**Explicit limitations:**
-- No reactive cells, formula plans, joins, grouping, sorting, or spreadsheet UI semantics.
-- `some(...)`, `none(...)`, and `err(...)` are stored as ordinary cell values; no automatic Outcome propagation across columns.
-- `derive` rejects an existing column name.
-- `where` predicates must return a boolean; non-boolean predicate results fail clearly.
-- Construction requires lists as column values; other Seq-compatible values are not accepted.
-- Sheets are not Seq-compatible sources.
 ## 3) Implemented syntax and expression forms
 <!-- anchor: state:syntax-forms -->
 
@@ -1614,7 +1610,7 @@ Public helpers:
 - `collect_sheet(records)` — terminal, explicit conversion of a finite Seq-compatible source (list or Flow) of homogeneous map records into an immutable Sheet (**Experimental**); see below
 - `render_csv(sheet)` — return deterministic CSV report text for a Sheet (**Experimental**); see below
 
-All Sheet operations return new Sheet values. Existing Sheet values are never mutated.
+Sheet transformations return new Sheets; conversions return their documented values. Existing Sheets are never mutated.
 
 `row_get(row, column_name)` (**Experimental**):
 

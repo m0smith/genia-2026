@@ -1,4 +1,5 @@
 name: error-sheet-select-missing-column
+requires: [sheet_values]
 category: error
 description: select fails clearly when a requested Sheet column is absent.
 input:

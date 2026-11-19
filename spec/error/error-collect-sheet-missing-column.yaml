@@ -1,4 +1,5 @@
 name: error-collect-sheet-missing-column
+requires: [sheet_values]
 category: error
 description: collect_sheet fails clearly when a later record is missing a column established by the first record.
 input:

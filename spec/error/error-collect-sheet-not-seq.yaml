@@ -1,4 +1,5 @@
 name: error-collect-sheet-not-seq
+requires: [sheet_values]
 category: error
 description: collect_sheet fails clearly when the source is not a Seq-compatible list or Flow.
 input:

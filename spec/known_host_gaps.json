@@ -314,6 +314,50 @@
         "model-b-d1-preserve-ordinary-extension-rejection"
       ],
       "removal_condition": "Remove only after genia-cpp declares default_open_functions supported, passes every case listed here with zero failure classes on the exact final conformance YAML and pin, and the host parity gate reports the capability as PARITY_OK."
+    },
+    {
+      "capability": "sheet_values",
+      "reason": "The bounded C++ host does not implement Sheet values or the explicit Sheet-to-record boundary. Capability exclusion records non-support; it is not PASS or parity.",
+      "tracking_issue": "m0smith/genia-2026#1330",
+      "affected_host": "cpp",
+      "affected_tests": [
+        "spec/eval/collect-sheet-core.yaml",
+        "spec/eval/render-csv-core.yaml",
+        "spec/eval/row-get-core.yaml",
+        "spec/eval/sheet-derive-core.yaml",
+        "spec/eval/sheet-empty-core.yaml",
+        "spec/eval/sheet-select-immutable.yaml",
+        "spec/eval/sheet-shape-columns-rows.yaml",
+        "spec/eval/sheet-where-core.yaml",
+        "spec/eval/r18-surface-sheet-column-identity.yaml",
+        "spec/eval/r18-conformance-sheet-structural-equality.yaml",
+        "spec/error/error-collect-sheet-missing-column.yaml",
+        "spec/error/error-collect-sheet-not-seq.yaml",
+        "spec/error/error-render-csv-not-sheet.yaml",
+        "spec/error/error-render-csv-unsupported-cell.yaml",
+        "spec/error/error-row-get-missing-column.yaml",
+        "spec/error/error-row-get-not-row.yaml",
+        "spec/error/error-sheet-derive-duplicate-column.yaml",
+        "spec/error/error-sheet-select-missing-column.yaml",
+        "spec/error/error-sheet-unequal-column-lengths.yaml",
+        "spec/error/r29-existing-sheet-not-seq-each.yaml",
+        "spec/error/r29-existing-sheet-not-seq-map.yaml",
+        "spec/error/r29-existing-sheet-not-seq-reduce.yaml",
+        "spec/error/r29-existing-sheet-not-seq-scan.yaml",
+        "spec/error/r29-records-arity-0.yaml",
+        "spec/error/r29-records-arity-2.yaml",
+        "spec/error/r29-records-not-sheet.yaml",
+        "spec/eval/r29-existing-roundtrip-guards.yaml",
+        "spec/eval/r29-records-callable-composition.yaml",
+        "spec/eval/r29-records-cells-outcomes.yaml",
+        "spec/eval/r29-records-immutable-update.yaml",
+        "spec/eval/r29-records-ordered-raw-keys.yaml",
+        "spec/eval/r29-records-validated-report.yaml",
+        "spec/eval/r29-records-zero-shapes.yaml",
+        "spec/flow/r29-existing-list-flow-guards.yaml",
+        "spec/flow/r29-records-bounded-downstream.yaml"
+      ],
+      "removal_condition": "Remove when genia-cpp implements the Sheet contract, declares sheet_values supported, passes every affected shared case, and the host parity gate reports PARITY_OK."
     }
   ]
 }

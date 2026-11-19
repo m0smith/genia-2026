@@ -1,0 +1,13 @@
+name: r29-records-callable-composition
+category: eval
+requires: [sheet_values]
+description: R29 T1 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    s = sheet([[quote(a), [1, 2]]])
+    alias = sheet_records
+    [sheet_records(s) == alias(s), map(sheet_records, [s, s]) == [alias(s), alias(s)], (s |> sheet_records) == alias(s), ((sheet_records) -> sheet_records(3))((x) -> x + 1) == 4]
+expected:
+  stdout: "[true, true, true, true]\n"
+  stderr: ""
+  exit_code: 0

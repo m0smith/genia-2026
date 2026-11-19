@@ -1,0 +1,12 @@
+name: r29-existing-sheet-not-seq-map
+category: error
+requires: [sheet_values]
+description: R29 T2 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    s = sheet([["n", [1]]])
+    map((x) -> x, s)
+expected:
+  stdout: ""
+  stderr: "Error: map expected a Seq-compatible value (list or Flow); received GeniaSheet.\n"
+  exit_code: 1

@@ -22,6 +22,7 @@ from tools.spec_runner.comparator import compare_spec
 from tools.spec_runner.executor import execute_spec
 from tools.spec_runner.host_executor import execute_spec_via_host
 from tools.spec_runner.loader import discover_specs
+from tools.spec_runner.protocol import fetch_capabilities
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -85,11 +86,18 @@ def test_every_r18_case_passes_through_the_generic_host_protocol() -> None:
     declines these cases has not demonstrated R18 conformance.
     """
     host_command = shlex.split(PROTOCOL_ADAPTER_COMMAND)
+    # Sheet evidence is capability-gated separately; the mixed ten-family
+    # summary remains ungated. Fetch actual support rather than bypassing it.
+    capability_result = fetch_capabilities(host_command, timeout=60.0)
+    assert capability_result.kind == "ok", capability_result
+    capabilities = capability_result.result["capabilities"]
     declined = []
     failed = []
 
     for spec in r18_specs():
-        result = execute_spec_via_host(spec, host_command, timeout=60.0)
+        result = execute_spec_via_host(
+            spec, host_command, timeout=60.0, host_capabilities=capabilities
+        )
         if result.kind == "pass":
             continue
         if result.kind == "fail":

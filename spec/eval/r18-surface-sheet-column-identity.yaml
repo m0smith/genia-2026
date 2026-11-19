@@ -1,4 +1,5 @@
 name: r18-surface-sheet-column-identity
+requires: [sheet_values]
 category: eval
 description: >-
   R18 portable value equality: Sheet column-name identity is the same relation as

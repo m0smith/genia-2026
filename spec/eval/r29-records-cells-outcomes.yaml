@@ -1,0 +1,13 @@
+name: r29-records-cells-outcomes
+category: eval
+requires: [sheet_values]
+description: R29 T1 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    s = sheet([["v", [some(1), none("absent"), err("bad"), [1, 2], {x: 3}, " 04 ", false]]])
+    rs = sheet_records(s)
+    [map((r) -> r.v, rs) == [some(1), none("absent"), err("bad"), [1, 2], {x: 3}, " 04 ", false], rows(s) == rows(collect_sheet(rs))]
+expected:
+  stdout: "[true, true]\n"
+  stderr: ""
+  exit_code: 0

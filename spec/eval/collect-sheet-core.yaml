@@ -1,4 +1,5 @@
 name: collect-sheet-core
+requires: [sheet_values]
 category: eval
 description: collect_sheet builds an immutable Sheet from a finite list of homogeneous map records, using first-record key order for columns.
 input:

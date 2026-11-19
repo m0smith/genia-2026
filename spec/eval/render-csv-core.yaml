@@ -1,4 +1,5 @@
 name: render-csv-core
+requires: [sheet_values]
 category: eval
 description: render_csv preserves Sheet order and renders deterministic escaped CSV text.
 input:

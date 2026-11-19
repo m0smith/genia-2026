@@ -1,4 +1,5 @@
 name: sheet-derive-core
+requires: [sheet_values]
 category: eval
 description: derive appends one value per row, stores Outcome values as cells, and leaves the original Sheet unchanged.
 input:

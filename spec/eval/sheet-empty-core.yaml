@@ -1,4 +1,5 @@
 name: sheet-empty-core
+requires: [sheet_values]
 category: eval
 description: Empty Sheets have zero rows and columns and can be selected with an empty column list.
 input:

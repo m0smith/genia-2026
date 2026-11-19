@@ -1,4 +1,5 @@
 name: error-sheet-unequal-column-lengths
+requires: [sheet_values]
 category: error
 description: Sheet construction rejects columns with unequal lengths.
 input:

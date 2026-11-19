@@ -1,4 +1,5 @@
 name: row-get-core
+requires: [sheet_values]
 category: eval
 description: row_get returns the value paired with a column name in a row, and works inside where and derive.
 input:

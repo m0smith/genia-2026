@@ -1,0 +1,17 @@
+name: r29-existing-roundtrip-guards
+category: eval
+requires: [sheet_values]
+description: R29 T2 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    pairs_to_map(row) = reduce((m, kv) -> map_put(m, unwrap_or(nil, nth(0, kv)), unwrap_or(nil, nth(1, kv))), map_new(), row)
+    as_records(s) = rows(s) |> map(pairs_to_map)
+    s = sheet([[quote(name), ["Ann", "Bo"]], [quote(age), [3, 4]]])
+    z = sheet([[quote(a), []]])
+    zc = select([], s)
+    k = sheet([[1, ["a"]], [true, ["b"]], ["1", ["c"]], [[1, 2], ["d"]], [quote(sym), ["e"]], [1.5, ["f"]]])
+    [collect_sheet(as_records(s)) == s, as_records(z) == [], columns(collect_sheet(as_records(z))) == [], collect_sheet(as_records(zc)) == zc, as_records(zc) == [{}, {}], collect_sheet(as_records(k)) == k, collect_sheet([{name: "Ann"}]) != sheet([[quote(name), ["Ann"]]])]
+expected:
+  stdout: "[true, true, true, true, true, true, true]\n"
+  stderr: ""
+  exit_code: 0
