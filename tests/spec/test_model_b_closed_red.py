@@ -11,6 +11,11 @@ unimplemented behavior is visible as a real mismatch until E2.4 GREEN.
 Every case requires the optional ``closed_functions`` capability; the transitioned
 Slice C case ``model-b-c-stage-closed-rejected`` (design 10.4) is deliberately NOT part
 of this inventory and changes only in the separate transition commit.
+
+E2.4 correction (issue #1250): four consumer cases (test-mode wrong arity, failed publication in
+test mode, pattern-header ``main``, public ``web.send_annotated`` rejection) were added after
+GREEN to complete the approved shared plan. They reproduce behavior already implemented, so they
+are conformance additions and were not RED; the original 60-case RED run is preserved unchanged.
 """
 
 from __future__ import annotations
@@ -78,21 +83,25 @@ CLOSED_REQUIRES = {
     "model-b-closed-ordinary-linking-unaffected": ('closed_functions', 'multi_file_eval', 'open_functions', 'default_open_functions'),
     "model-b-closed-parameter-shadows-own-name": ('closed_functions',),
     "model-b-closed-pattern-guard-headers": ('closed_functions', 'default_open_functions'),
+    "model-b-closed-pattern-header-main-not-selected": ('closed_functions', 'default_open_functions'),
     "model-b-closed-reexported-closed-not-link-target": ('closed_functions', 'multi_file_eval', 'open_functions'),
     "model-b-closed-repl-later-submission-clause": ('closed_functions', 'repl'),
     "model-b-closed-repl-name-reuse-new-identity": ('closed_functions', 'repl', 'refs'),
     "model-b-closed-restored-name-clause-rejected": ('closed_functions', 'repl', 'refs'),
     "model-b-closed-second-group-after-statement": ('closed_functions', 'repl'),
     "model-b-closed-self-recursion": ('closed_functions', 'default_open_functions'),
+    "model-b-closed-send-annotated-rejected": ('closed_functions', 'http_outbound_transport'),
     "model-b-closed-single-clause": ('closed_functions',),
     "model-b-closed-single-clause-call": ('closed_functions',),
     "model-b-closed-test-alias-discovered": ('closed_functions',),
     "model-b-closed-test-annotation-discovered": ('closed_functions',),
+    "model-b-closed-test-failed-publication-no-discovery": ('closed_functions', 'doc_help'),
     "model-b-closed-test-meta-key-discovered": ('closed_functions',),
+    "model-b-closed-test-wrong-arity-discovery-error": ('closed_functions',),
     "model-b-closed-validation-order": ('closed_functions',),
 }
 
-EXPECTED_CASE_COUNT = 60
+EXPECTED_CASE_COUNT = 64  # 60 RED cases + 4 consumer cases added by the E2.4 correction (issue #1250)
 
 
 def _load():

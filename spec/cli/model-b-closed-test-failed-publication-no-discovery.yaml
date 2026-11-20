@@ -1,0 +1,24 @@
+name: model-b-closed-test-failed-publication-no-discovery
+id: model-b-closed-test-failed-publication-no-discovery
+category: cli
+description: "A failed closed publication in test mode stops before discovery; the test body never runs."
+requires:
+  - closed_functions
+  - doc_help
+input:
+  source: "spec/cli/model-b-closed-test-failed-publication-no-discovery.genia"
+  file: null
+  command: null
+  test: "spec/cli/model-b-closed-test-failed-publication-no-discovery.genia"
+  stdin: ''
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ''
+  stderr: |-
+    Error: @doc annotation expected a string, received int
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

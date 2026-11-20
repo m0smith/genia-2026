@@ -1,0 +1,24 @@
+name: model-b-closed-pattern-header-main-not-selected
+id: model-b-closed-pattern-header-main-not-selected
+category: cli
+description: "A closed pattern-header main is not selected in file mode; the declaration value is shown and its body never runs."
+requires:
+  - closed_functions
+  - default_open_functions
+input:
+  source: "spec/cli/model-b-closed-pattern-header-main-not-selected.genia"
+  file: "spec/cli/model-b-closed-pattern-header-main-not-selected.genia"
+  command: null
+  stdin: ''
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    loaded
+    <closed-function main>
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

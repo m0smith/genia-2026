@@ -1,0 +1,2 @@
+print("loaded")
+main(0) =: print("pattern main")

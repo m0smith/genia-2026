@@ -138,7 +138,7 @@ runner executes against the Python reference host), and evaluates `IrClosedFuncD
 groups (Experimental, optional capability `closed_functions`, shared evidence
 `spec/*/model-b-closed-*` plus the transitioned `model-b-c-stage-closed-rejected`). The Python
 protocol adapter advertises `default_open_functions` and `closed_functions` as `supported`; the 143
-`model-b-c-*` cases (52 existing-behavior guards plus 91 gated cases) and the 60
+`model-b-c-*` cases (52 existing-behavior guards plus 91 gated cases) and the 64
 `model-b-closed-*` cases pass through that adapter, and the 18 Python-host-only
 fixture/debug cases remain the only `unsupported` results of the external Python run.
 C++ does not claim `immutable_bindings`, `default_open_functions` or `closed_functions`: each is a listed

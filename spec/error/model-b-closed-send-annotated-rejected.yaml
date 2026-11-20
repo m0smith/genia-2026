@@ -1,0 +1,22 @@
+name: model-b-closed-send-annotated-rejected
+id: model-b-closed-send-annotated-rejected
+category: error
+description: "Public web.send_annotated rejects a committed closed callable whatever its metadata, before its body or any request."
+requires:
+  - closed_functions
+  - http_outbound_transport
+input:
+  source: |
+    import web
+    @meta ({http_annotation: {method: "GET", path: "/x"}})
+    ping() =: { print("body"); {headers: {}, query: {}, body: none("http-no-body")} }
+    web.send_annotated(ping, "http://127.0.0.1:9", none("nil"), 2000)
+expected:
+  stdout: ''
+  stderr: |
+    Error: send_annotated expected a function annotated with @get or @post
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.
