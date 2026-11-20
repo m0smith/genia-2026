@@ -142,17 +142,21 @@ def test_red_a_annotation_failure_preserves_exception_and_allows_name_reuse(erro
 
 
 @pytest.mark.parametrize('entry', ['source', 'direct_ir'])
-def test_public_closed_execution_remains_rejected(entry):
-    """Preserve the E2.4 gate, independently of the proposed private seam."""
+def test_public_closed_execution_publishes_without_running_the_body(entry):
+    """E2.4 transition (issue #1250) of the former `..._remains_rejected` gate.
+
+    Both public entries now publish one committed closed callable through the unchanged
+    private driver, and declaring runs no clause body.
+    """
     scope = genia.make_global_env([])
     effects = []
     scope.set_host('effect', lambda: effects.append('ran'), visibility='entry-only')
-    with pytest.raises(RuntimeError, match='^model-b-not-implemented: declaration evaluation is not available$'):
-        if entry == 'source':
-            genia.run_source('f(x) =: effect()', scope)
-        else:
-            Evaluator(scope).eval(ir.IrClosedFuncDef('f', [
-                ir.IrFuncDef('f', ['x'], None, None, ir.IrCall(ir.IrVar('effect'), [])),
-            ]))
+    if entry == 'source':
+        value = genia.run_source('f(x) =: effect()', scope)
+    else:
+        value = Evaluator(scope).eval(ir.IrClosedFuncDef('f', [
+            ir.IrFuncDef('f', ['x'], None, None, ir.IrCall(ir.IrVar('effect'), [])),
+        ]))
     assert effects == []
-    assert 'f' not in scope.values
+    assert repr(value) == '<closed-function f>' and scope.get('f') is value
+    assert 'f' in scope.immutable_names()

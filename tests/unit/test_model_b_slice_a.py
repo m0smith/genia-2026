@@ -29,14 +29,16 @@ def test_repl_missing_initializer_incomplete(source):
 
 
 @pytest.mark.parametrize('source', ['f(x) =: x'])
-def test_transitional_rejection(run, source):
-    """Slice B executes `x =: expr`; closed `=:` functions still reject execution instead of silently using legacy mutable semantics.
+def test_closed_declaration_executes_after_e2_4(run, source):
+    """Slice B executes `x =: expr`; E2.4 (issue #1250) executes closed `=:` groups.
 
-    Slice C GREEN (issue #1269, B9 phase-guard flip): the `f([x]) = x` and `f(x) ? true = x` pattern/guard
-    headers are no longer rejected; they execute as ordinary default-open clauses (see the next test).
+    Recorded transition of the former `test_transitional_rejection` guard: a closed group is no
+    longer rejected with `model-b-not-implemented`; it publishes one committed closed callable and
+    never silently uses legacy mutable semantics. Slice C GREEN (issue #1269) already moved the
+    `f([x]) = x` and `f(x) ? true = x` pattern/guard headers to ordinary default-open clauses.
     """
-    with pytest.raises(Exception, match='model-b-not-implemented'):
-        run(source)
+    value = run(source)
+    assert repr(value) == '<closed-function f>'
 
 
 @pytest.mark.parametrize('source', ['f([x]) = x\nf([7])', 'f(x) ? true = x\nf(7)'])
@@ -104,9 +106,10 @@ def test_direct_pattern_rejects_competing_header_channel():
         ir.assert_portable_core_ir([child])
 
 
-def test_transitional_rejection_precedes_body_effects(run):
-    with pytest.raises(RuntimeError, match='model-b-not-implemented'):
-        run('f(x) =: undefined_initializer()')
+def test_closed_declaration_does_not_run_its_body_at_declaration(run):
+    """E2.4 transition of `test_transitional_rejection_precedes_body_effects` (issue #1250):
+    declaring a closed function evaluates no clause body, so an undefined name inside it is inert."""
+    assert repr(run('f(x) =: undefined_initializer()')) == '<closed-function f>'
 
 
 def test_direct_evaluation_validates_before_transitional_rejection():
@@ -126,11 +129,13 @@ def test_closed_pattern_annotation_traversal_retains_source_spans():
     assert child.annotations[0] in list(ir.iter_ir_nodes(nodes))
 
 
-def test_native_discovery_explicitly_rejects_closed_test():
+def test_native_discovery_selects_a_committed_closed_test_after_e2_4():
+    """E2.4 transition (issue #1250, design 5.2 Alternative A): `@test` is permitted on a closed
+    declaration and discovery treats the committed closed callable like an ordinary function."""
     from genia.native_test_runner import identify_tests
     source = '@test "closed"\nf() =: true'
-    with pytest.raises(RuntimeError, match='model-b-not-implemented'):
-        identify_tests(Parser(lex(source)).parse_program())
+    units = identify_tests(Parser(lex(source)).parse_program())
+    assert [unit.name for unit in units] == ['f']
 
 
 @pytest.mark.parametrize('discovery', ['route', 'server', 'cors'])
