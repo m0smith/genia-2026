@@ -77,11 +77,12 @@ PRE_C0_CAPABILITY_MAP = {
 # Slice C GREEN (B9): the same name is `supported` and the override is empty.
 RED_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "unsupported"}
 GREEN_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "supported"}
-# Slice E2.4 RED (issue #1250): `closed_functions` joined the manifest vocabulary and
-# the production override stages it `unsupported` until every gated case passes
-# through the real adapter. Later GREEN removes both again (history stays above).
-PHASE_OVERRIDE = frozenset({"closed_functions"})
-PHASE_MAP = {**GREEN_CAPABILITY_MAP, "closed_functions": "unsupported"}
+# Slice E2.4 (issue #1250): `closed_functions` joined the manifest vocabulary, was staged
+# `unsupported` at RED (history: RED_E24_CAPABILITY_MAP) and is `supported` at GREEN,
+# when the production override is empty again.
+RED_E24_CAPABILITY_MAP = {**GREEN_CAPABILITY_MAP, "closed_functions": "unsupported"}
+PHASE_OVERRIDE = frozenset()
+PHASE_MAP = {**GREEN_CAPABILITY_MAP, "closed_functions": "supported"}
 
 
 def _stage(monkeypatch: pytest.MonkeyPatch, *names: str) -> None:
