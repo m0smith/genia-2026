@@ -1,0 +1,26 @@
+name: model-b-closed-annotation-order-and-atomic-metadata
+id: model-b-closed-annotation-order-and-atomic-metadata
+category: eval
+description: "Effects run in group order; metadata is the merged map after the declaration."
+requires:
+  - closed_functions
+  - doc_help
+input:
+  source: |
+    t(s) = { print(s); s }
+    @meta ({a: t("first")})
+    f(x) =: x
+    @meta ({b: t("second")})
+    f(x, y) =: x
+    meta("f")
+expected:
+  stdout: |
+    first
+    second
+    {a: "first", b: "second"}
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

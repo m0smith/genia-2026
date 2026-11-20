@@ -1,0 +1,40 @@
+name: model-b-closed-alias-mutable-name-immutable
+id: model-b-closed-alias-mutable-name-immutable
+category: cli
+description: "An alias rebinds; the defining name stays immutable; both are observed after the rejection."
+requires:
+  - closed_functions
+  - repl
+input:
+  source: |-
+    f(x) =: x
+    a = f
+    a = 7
+    f = 8
+    a
+    f(2)
+  file: null
+  command: null
+  stdin: |-
+    f(x) =: x
+    a = f
+    a = 7
+    f = 8
+    a
+    f(2)
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    <closed-function f>
+    <closed-function f>
+    7
+    7
+    2
+  stderr: |-
+    Error: Cannot assign to immutable binding: f
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

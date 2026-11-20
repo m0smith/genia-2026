@@ -1,0 +1,40 @@
+name: model-b-closed-ordinary-linking-unaffected
+id: model-b-closed-ordinary-linking-unaffected
+category: eval
+description: "D2b linking of an ordinary open function is unchanged by a closed function in the same program."
+requires:
+  - closed_functions
+  - multi_file_eval
+  - open_functions
+  - default_open_functions
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open walk("base", hop, n) = "base"
+      - path: ext.genia
+        source: |
+          import base
+          extend base.walk("x", hop, 0) = "done"
+          extend base.walk("x", hop, n) = hop(n)
+      - path: main.genia
+        source: |
+          import base
+          import ext
+          use walk from base with ext
+
+          c(x) =: x
+          hop(n) = walk("x", hop, n - 1)
+
+          walk("x", hop, 3)
+expected:
+  stdout: |
+    "done"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

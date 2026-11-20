@@ -1,0 +1,20 @@
+name: model-b-closed-mixed-operators
+id: model-b-closed-mixed-operators
+category: error
+description: "Mixing = and =: clauses of one name is a parse error; nothing runs."
+requires:
+  - closed_functions
+input:
+  source: |
+    print("sentinel")
+    f(x) = x
+    f(x, y) =: x
+expected:
+  stdout: ''
+  stderr: |
+    Error: mixed-function-declaration-operators
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

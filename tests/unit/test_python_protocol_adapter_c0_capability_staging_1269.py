@@ -77,8 +77,11 @@ PRE_C0_CAPABILITY_MAP = {
 # Slice C GREEN (B9): the same name is `supported` and the override is empty.
 RED_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "unsupported"}
 GREEN_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "supported"}
-PHASE_OVERRIDE = frozenset()
-PHASE_MAP = GREEN_CAPABILITY_MAP
+# Slice E2.4 RED (issue #1250): `closed_functions` joined the manifest vocabulary and
+# the production override stages it `unsupported` until every gated case passes
+# through the real adapter. Later GREEN removes both again (history stays above).
+PHASE_OVERRIDE = frozenset({"closed_functions"})
+PHASE_MAP = {**GREEN_CAPABILITY_MAP, "closed_functions": "unsupported"}
 
 
 def _stage(monkeypatch: pytest.MonkeyPatch, *names: str) -> None:
@@ -121,7 +124,9 @@ def test_override_matches_the_phase_and_is_immutable() -> None:
 def test_phase_capability_map_equals_the_expected_map_and_keeps_history_unchanged() -> None:
     claimed = _python_claimed_capabilities()
     assert claimed == PHASE_MAP
-    assert {k: v for k, v in claimed.items() if k != "default_open_functions"} == PRE_C0_CAPABILITY_MAP
+    assert {
+        k: v for k, v in claimed.items() if k not in ("default_open_functions", "closed_functions")
+    } == PRE_C0_CAPABILITY_MAP
 
 
 def test_empty_override_keeps_open_functions_and_multi_file_eval_supported() -> None:

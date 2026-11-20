@@ -1,0 +1,29 @@
+name: model-b-closed-committed-export-callable
+id: model-b-closed-committed-export-callable
+category: eval
+description: "A committed closed export is called across modules like an ordinary function."
+requires:
+  - closed_functions
+  - multi_file_eval
+  - open_functions
+  - default_open_functions
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          f(x) =: x + 1
+      - path: main.genia
+        source: |
+          import lib
+          lib.f(1)
+expected:
+  stdout: |
+    2
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

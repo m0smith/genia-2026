@@ -1,0 +1,2 @@
+@meta ({test: "adds"})
+t() =: 1 + 1

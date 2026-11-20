@@ -1,0 +1,41 @@
+name: model-b-closed-repl-name-reuse-new-identity
+id: model-b-closed-repl-name-reuse-new-identity
+category: cli
+description: "The name is reusable; the old reference stays failed and unequal to the new callable."
+requires:
+  - closed_functions
+  - repl
+  - refs
+input:
+  source: |-
+    r = ref(0)
+    @meta ({m: ref_set(r, f)}); @doc 7; f(x) =: x
+    f(x) =: x + 1
+    f(1)
+    ref_get(r) == f
+    ref_get(r)
+  file: null
+  command: null
+  stdin: |-
+    r = ref(0)
+    @meta ({m: ref_set(r, f)}); @doc 7; f(x) =: x
+    f(x) =: x + 1
+    f(1)
+    ref_get(r) == f
+    ref_get(r)
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    <ref 0>
+    <closed-function f>
+    2
+    false
+    <closed-function failed>
+  stderr: |-
+    Error: @doc annotation expected a string, received int
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

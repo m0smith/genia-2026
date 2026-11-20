@@ -1,0 +1,21 @@
+name: model-b-closed-self-recursion
+id: model-b-closed-self-recursion
+category: eval
+description: "A clause body reaches its own committed callable."
+requires:
+  - closed_functions
+  - default_open_functions
+input:
+  source: |
+    count(0) =: "done"
+    count(n) =: count(n - 1)
+    count(10)
+expected:
+  stdout: |
+    "done"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

@@ -31,8 +31,9 @@ from tests.spec.test_model_b_slice_c_red import (
     SLICE_C_GUARD_IDS,
 )
 
-# The historical 35-name pre-C0 map is kept in the C0 test file; GREEN adds one supported name.
-GREEN_CAPABILITY_MAP_NAMES = 36
+# The historical 35-name pre-C0 map is kept in the C0 test file; Slice C GREEN added one
+# supported name. Slice E2.4 RED (issue #1250) adds `closed_functions`, staged `unsupported`.
+GREEN_CAPABILITY_MAP_NAMES = 37
 
 
 def _specs():
@@ -44,7 +45,7 @@ def test_green_capability_map_advertises_default_open_functions_supported():
     claimed = _python_claimed_capabilities()
     assert len(claimed) == GREEN_CAPABILITY_MAP_NAMES
     assert claimed["default_open_functions"] == "supported"
-    assert [k for k, v in claimed.items() if v == "unsupported"] == []
+    assert [k for k, v in claimed.items() if v == "unsupported"] == ["closed_functions"]
     assert claimed["open_functions"] == "supported" and claimed["multi_file_eval"] == "supported"
 
 

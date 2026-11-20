@@ -1,0 +1,22 @@
+name: model-b-closed-main-selection
+id: model-b-closed-main-selection
+category: cli
+description: "A committed closed main/1 is selected like an ordinary one in file mode."
+requires:
+  - closed_functions
+input:
+  source: "spec/cli/model-b-closed-main-selection.genia"
+  file: "spec/cli/model-b-closed-main-selection.genia"
+  command: null
+  stdin: ''
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |
+    closed main
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.
