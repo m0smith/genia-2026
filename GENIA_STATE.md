@@ -745,12 +745,12 @@ Module completion privately captures detached ordinary clauses/provenance, defin
 metadata/doc (G-inline fallback) and independent G help.
 Exact-callable witnesses preserve re-exports; incomplete origins confer none.
 Capture/cache publication synchronizes with writers; live calls are unchanged.
-Python explicitly links completed ordinary interfaces (section 4.7).
 PYTHON REFERENCE HOST (Experimental `closed_functions`; C++ unsupported): a closed group validates name,
-annotations (`@doc`/`@meta`/`@since`/`@deprecated`/`@category`/`@test`) and clauses before any annotation runs, then publishes
-one sealed callable atomically (`<closed-function f>`). Unpublished use is `closed-function-not-yet-published`; a failed
-publication leaves a passable, unusable callable (`closed-function-failed-publication`); no clause is added (`closed-function-not-extensible`).
-Unfinished `=:` keeps REPL input incomplete; completed submissions end groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
+annotations (`@doc`/`@meta`/`@since`/`@deprecated`/`@category`/`@test`) and clauses first, then atomically publishes a sealed callable
+(`<closed-function f>`). Meanwhile only its synchronous annotation calls may invoke it; other use,
+`doc`/`meta`/`help` give `closed-function-not-yet-published`. A failed publication leaves a passable, unusable callable
+(`closed-function-failed-publication`). Alias clauses give `closed-function-not-extensible`; the defining name, the immutable-binding error.
+Unfinished `=:` keeps REPL input incomplete. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch
 

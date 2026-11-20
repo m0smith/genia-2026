@@ -964,7 +964,7 @@ are part of Slice E because they prove the capture exclusion.
    group. No new node, field or version. Transaction, slots and lineage are private
    runtime state.
 3. **Shared executable conformance.** §10.
-4. **Capability applicability — APPROVED (DQ-C), not yet advertised.**
+4. **Capability applicability — APPROVED (DQ-C); advertised by the Python host since E2.4.**
    The independently optional capability is **`closed_functions`**.
    - *Why.* `immutable_bindings` covers `name =: expr`; `default_open_functions`
      covers ordinary default-open clauses and pattern/guard headers. Neither implies
@@ -981,7 +981,7 @@ are part of Slice E because they prove the capture exclusion.
      clauses, `immutable_bindings` when it uses `name =: expr`, and `repl`, `refs`,
      `cell_primitives`, `process_primitives`, `multi_file_eval`, `open_functions` or
      `doc_help` only where used.
-   - *Synchronization at E2, not now:* `spec/manifest.json` (the vocabulary; the
+   - *Synchronization at E2 (done in E2.4):* `spec/manifest.json` (the vocabulary; the
      runner and the parity gate derive theirs from it),
      `hosts/python/protocol_adapter.py` (the Python claim),
      `spec/known_host_gaps.json` (a new issue-backed C++ entry with its removal

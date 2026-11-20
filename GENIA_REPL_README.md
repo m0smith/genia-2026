@@ -21,7 +21,9 @@ Atomic closed-function clause groups (`f(...) =: body`) execute on Python (Exper
 run in order and publication is one atomic commit; a failed publication leaves a failed callable that can be passed
 but not used, and no clause is added through any binding. See `GENIA_STATE.md` Model B declarations.
 In the REPL a closed declaration prints `<closed-function f>`; a completed submission ends the group, a failed
-publication leaves the name reusable, and later submissions cannot add clauses (`closed-function-not-extensible`).
+publication leaves the name reusable, and later submissions cannot add clauses: a clause under the committed
+defining name is the existing immutable-binding error (`Cannot rebind immutable binding: f`), while a clause declared
+through an alias, or through the name restored to a failed callable, is `closed-function-not-extensible`.
 Python supports explicit ordinary-base
 `extend`/`use` through completed-module witnesses; selection freezes clauses and
 metadata and validates cross-unit keys/shapes. Explicit R20 views share that
@@ -34,10 +36,10 @@ Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
 See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
-Private Python slots enforce admission/reservations. A callback-driven transaction
-publishes or fails prepared groups with terminal self bindings and owner cleanup;
-post-commit faults roll forward. Source closed declarations remain unwired.
-T7 recovers from one lock-acquisition or cleanup fault.
+Python source and direct Core IR closed declarations run T0-T7 (`GENIA_STATE.md`, section 3): the
+declaration's own synchronous annotation calls may invoke the unpublished callable, while every
+other use and all `doc`/`meta`/`help` reflection are rejected until commit. A post-commit fault
+rolls forward, and one lock-acquisition or cleanup fault in a publication step is recovered.
 
 
 ## Run

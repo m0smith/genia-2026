@@ -1,4 +1,4 @@
-"""Private closed-callable lineage and transactions; no evaluator activation.
+"""Private closed-callable lineage and the T4-T7 publication driver.
 
 Only a declaration owner may open its transaction window. Synchronous bridges
 inherit the current thread's lineage; independent host dispatchers cut it with a
@@ -57,7 +57,8 @@ def _run_publication(
 ) -> "GeniaClosedFunction":
     """Publish a prepared private group, or fail it without rolling back effects.
 
-    Caller owns T0–T3 validation/construction and supplies a fresh building txn.
+    Caller (`Evaluator._eval_closed_declaration`) owns T0–T3 validation/construction and
+    supplies a fresh building txn.
     This driver owns T4–T7. Its callback evaluates/folds annotations in the self
     frame inside the admission window, outside the binding lock, returning a
     private GeniaMap. Success returns the same committed callable. BaseException
@@ -65,7 +66,7 @@ def _run_publication(
     exits after commitment finish both tables and cleanup under the same lock
     before re-raising unchanged. Single-fault recovery includes T7 lock
     acquisition and cleanup. Persistent-fault progress is outside the recovery
-    bound. Source evaluation is unwired.
+    bound. The evaluator (T0-T3) is the only production caller.
     """
     # Runtime imports are lazy: environment/callable already depend on lineage.
     from . import environment as env
