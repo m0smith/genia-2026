@@ -24,7 +24,7 @@
     },
     {
       "path": "src/genia/values.py",
-      "exact_line": "    def consume(self) -> Iterable[Any]:"
+      "exact_line": "        return self._seq.consume()"
     },
     {
       "path": "tests/unit/test_flow_phase1.py",
