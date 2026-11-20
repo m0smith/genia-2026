@@ -25,6 +25,7 @@ expected:
   stdout: |-
     <ref 0>
     <closed-function failed>
+    none("nil")
   stderr: |-
     Error: @doc annotation expected a string, received int
   exit_code: 0

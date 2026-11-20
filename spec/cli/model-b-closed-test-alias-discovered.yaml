@@ -13,7 +13,7 @@ input:
   argv: []
   debug_stdio: false
 expected:
-  stdout: |
+  stdout: |-
     total=1 passed=1 failed=0 errored=0
     PASS u
     total=1 passed=1 failed=0 errored=0

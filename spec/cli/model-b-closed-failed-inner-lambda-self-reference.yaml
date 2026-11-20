@@ -9,7 +9,7 @@ requires:
 input:
   source: |-
     r = ref(0)
-    @meta ({m: ref_set(r, f(1))}); @doc 7; f(x) =: (y) -> f(y)
+    @meta ({m: ref_set(r, f(1))}); @doc 7; f(x) =: { (y) -> f(y) }
     f(x) =: x
     k = ref_get(r); 0
     k(2)
@@ -17,7 +17,7 @@ input:
   command: null
   stdin: |-
     r = ref(0)
-    @meta ({m: ref_set(r, f(1))}); @doc 7; f(x) =: (y) -> f(y)
+    @meta ({m: ref_set(r, f(1))}); @doc 7; f(x) =: { (y) -> f(y) }
     f(x) =: x
     k = ref_get(r); 0
     k(2)

@@ -7,9 +7,9 @@ requires:
   - default_open_functions
 input:
   source: |
-    count(0) =: "done"
-    count(n) =: count(n - 1)
-    count(10)
+    countdown(0) =: "done"
+    countdown(n) =: countdown(n - 1)
+    countdown(10)
 expected:
   stdout: |
     "done"

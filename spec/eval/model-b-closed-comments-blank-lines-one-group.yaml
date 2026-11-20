@@ -17,6 +17,7 @@ expected:
   stdout: |
     z
     n
+    "n"
   stderr: ''
   exit_code: 0
 notes: |

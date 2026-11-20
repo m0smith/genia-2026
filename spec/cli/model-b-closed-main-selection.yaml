@@ -12,8 +12,9 @@ input:
   argv: []
   debug_stdio: false
 expected:
-  stdout: |
+  stdout: |-
     closed main
+    "closed main"
   stderr: ''
   exit_code: 0
 notes: |

@@ -18,6 +18,7 @@ expected:
     zero
     pos
     other
+    "other"
   stderr: ''
   exit_code: 0
 notes: |
