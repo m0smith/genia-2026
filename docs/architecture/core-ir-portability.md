@@ -190,8 +190,9 @@ Implemented today:
 Not implemented today:
 
 - universal execution of every portable node on every host
-- Model B closed-function execution (ordinary linking uses existing carriers
-  on Python; this does not imply C++ or universal serialized-IR execution)
+- Model B closed-function execution on any host other than Python (Python executes
+  `IrClosedFuncDef` since E2.4; ordinary linking uses existing carriers; this does not
+  imply C++ or universal serialized-IR execution)
 
 ## Model B declaration carriers (Partial)
 
@@ -229,9 +230,9 @@ nested host-local optimized nodes.
 PYTHON REFERENCE HOST: parsing, lowering, normalization and validation are
 implemented. Evaluation executes `IrImmutableBind` with an Env-owned
 immutable-write policy (no Core IR change) and `IrPatternFuncDef` as an ordinary default-open
-clause (ordered group record, one shape stratum and first-match dispatch); closed declarations
-reject with `model-b-not-implemented` before child effects. This adds no linker or
-closed-publication state machine. Optimizers preserve the atomic group and retain a rewritten
+clause (ordered group record, one shape stratum and first-match dispatch); `IrClosedFuncDef`
+executes as one atomic group (Experimental, `closed_functions`) with no new Core IR node or version.
+This adds no linker state machine. Optimizers preserve the atomic group and retain a rewritten
 list-traversal declaration's original grouped case.
 C++ new-carrier support is not claimed; issue #1250 owns that follow-up.
 `core_ir_version` and R16 protocol stay unchanged; exact `contract_revision`

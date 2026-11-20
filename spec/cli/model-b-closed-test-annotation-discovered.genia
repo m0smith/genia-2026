@@ -1,0 +1,3 @@
+# Native-test fixture for discovery through @test on a closed declaration.
+@test "adds"
+t() =: "Return the sum used by the annotated test." 1 + 1

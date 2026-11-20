@@ -6,7 +6,7 @@ adapter advertised `default_open_functions` as `unsupported`, so every gated
 Slice C case was reported `unsupported` *before* any host was invoked (staging
 evidence only; an `unsupported` case is never a pass). At GREEN (B9) the staging
 is removed: the adapter advertises `default_open_functions` as `supported`
-because every one of the 143 Slice C shared cases (53 guards plus 90 gated)
+because every one of the 143 Slice C shared cases (52 guards plus 91 gated; E2.4 moved model-b-c-stage-closed-rejected, issue #1250)
 passes through the real adapter, asserted per id below.
 
 The immutable external parity assertion
@@ -31,8 +31,9 @@ from tests.spec.test_model_b_slice_c_red import (
     SLICE_C_GUARD_IDS,
 )
 
-# The historical 35-name pre-C0 map is kept in the C0 test file; GREEN adds one supported name.
-GREEN_CAPABILITY_MAP_NAMES = 36
+# The historical 35-name pre-C0 map is kept in the C0 test file; Slice C GREEN added one
+# supported name. Slice E2.4 RED (issue #1250) adds `closed_functions`, staged `unsupported`.
+GREEN_CAPABILITY_MAP_NAMES = 37
 
 
 def _specs():
@@ -45,6 +46,7 @@ def test_green_capability_map_advertises_default_open_functions_supported():
     assert len(claimed) == GREEN_CAPABILITY_MAP_NAMES
     assert claimed["default_open_functions"] == "supported"
     assert [k for k, v in claimed.items() if v == "unsupported"] == []
+    assert claimed["closed_functions"] == "supported"
     assert claimed["open_functions"] == "supported" and claimed["multi_file_eval"] == "supported"
 
 
@@ -55,7 +57,7 @@ def test_every_slice_c_case_is_applicable_to_the_python_host():
     assert [n for n in SLICE_C_CASE_IDS if not case_is_applicable(tuple(specs[n].requires), claimed)[0]] == []
     gated = [n for n in SLICE_C_ALL_GATED_IDS if "default_open_functions" in specs[n].requires]
     guards = [n for n in SLICE_C_GUARD_IDS if "default_open_functions" in specs[n].requires]
-    assert len(gated) == 90 and guards == []
+    assert len(gated) == 91 and guards == []
 
 
 @pytest.mark.slow

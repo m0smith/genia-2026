@@ -301,17 +301,17 @@ def test_declared_prelude_names_cover_new_declaration_nodes(tmp_path):
 # --- N8: effect staging around still-unimplemented declarations ------------------
 
 
-def test_earlier_statement_effects_precede_unimplemented_declaration(capsys):
+def test_earlier_statement_effects_precede_the_closed_declaration(capsys):
+    """E2.4 transition (issue #1250): earlier statements run, then the closed group publishes."""
     env = genia.make_global_env([])
-    with pytest.raises(RuntimeError, match="model-b-not-implemented"):
-        genia.run_source('print("before")\nf(x) =: x', env)
+    value = genia.run_source('print("before")\nf(x) =: x', env)
     assert "before" in capsys.readouterr().out
+    assert repr(value) == "<closed-function f>" and env.get("f") is value
 
 
-def test_closed_declarations_remain_not_implemented_and_pattern_declarations_execute():
-    """Slice C GREEN (issue #1269, phase-guard flip): only closed `=:` functions still reject."""
-    with pytest.raises(RuntimeError, match="model-b-not-implemented"):
-        genia.run_source("f(x) =: x", genia.make_global_env([]))
+def test_closed_and_pattern_declarations_execute():
+    """Slice C GREEN (#1269) executed pattern declarations; E2.4 (#1250) executes closed groups."""
+    assert repr(genia.run_source("f(x) =: x", genia.make_global_env([]))) == "<closed-function f>"
     assert genia.run_source("f([x]) = x\nf([5])", genia.make_global_env([])) == 5
 
 

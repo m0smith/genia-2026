@@ -134,15 +134,17 @@ pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
 capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`) and
 `IrPatternFuncDef` as default-open ordinary function clauses (optional capability
 `default_open_functions`, shared evidence `spec/*/model-b-c-*`, which the in-process
-runner executes against the Python reference host); closed groups are rejected with
-`model-b-not-implemented`. Closed-function execution is not claimed. The Python
-protocol adapter advertises `default_open_functions` as `supported`, and the 143
-`model-b-c-*` cases (53 existing-behavior guards plus 90 gated cases) pass through that
-adapter; the 18 Python-host-only fixture/debug cases remain the only `unsupported`
-results of the external Python run.
-C++ does not claim `immutable_bindings` or `default_open_functions`: both are listed
-gaps in `spec/known_host_gaps.json` (tracking `genia-2026#1261` and `genia-2026#1269`;
-parser/lowering owned by genia-cpp #50).
+runner executes against the Python reference host), and evaluates `IrClosedFuncDef`
+groups (Experimental, optional capability `closed_functions`, shared evidence
+`spec/*/model-b-closed-*` plus the transitioned `model-b-c-stage-closed-rejected`). The Python
+protocol adapter advertises `default_open_functions` and `closed_functions` as `supported`; the 143
+`model-b-c-*` cases (52 existing-behavior guards plus 91 gated cases) and the 64
+`model-b-closed-*` cases pass through that adapter, and the 18 Python-host-only
+fixture/debug cases remain the only `unsupported` results of the external Python run.
+C++ does not claim `immutable_bindings`, `default_open_functions` or `closed_functions`: each is a listed
+gap in `spec/known_host_gaps.json` (tracking `genia-2026#1261`, `genia-2026#1269` and
+`genia-2026#1250`; parser/lowering owned by genia-cpp #50). Every `closed_functions`
+case is `unsupported` there, never PASS; no C++ parity is claimed.
 
 Python details (`GENIA_STATE.md` section 3 is authoritative): diagnostics are
 `Cannot assign to immutable binding: x`, `Cannot rebind immutable binding: x` and

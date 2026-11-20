@@ -1,0 +1,32 @@
+name: model-b-closed-committed-export-not-link-target
+id: model-b-closed-committed-export-not-link-target
+category: error
+description: "A committed closed export is not a link target."
+requires:
+  - closed_functions
+  - multi_file_eval
+  - open_functions
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: lib.genia
+        source: |
+          f(x) =: x + 1
+      - path: ext.genia
+        source: |
+          import lib
+          extend lib.f(0) = 7
+      - path: main.genia
+        source: |
+          import lib
+          import ext
+expected:
+  stdout: ''
+  stderr: |
+    Error: open-function-target-not-open: 'lib.f' is not an open function interface
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

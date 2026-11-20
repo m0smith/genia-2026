@@ -1,0 +1,20 @@
+name: model-b-closed-annotation-forbidden-get
+id: model-b-closed-annotation-forbidden-get
+category: error
+description: "@get is rejected at T2; an earlier permitted annotation does not run."
+requires:
+  - closed_functions
+input:
+  source: |
+    @meta ({m: print("sentinel")})
+    @get "x"
+    f(x) =: x
+expected:
+  stdout: ''
+  stderr: |
+    Error: closed-function-annotation-not-permitted: @get is not permitted on closed function f
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

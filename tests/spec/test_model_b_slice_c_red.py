@@ -69,7 +69,6 @@ SLICE_C_GUARD_IDS = (
     "model-b-c-meta-three-channel-trio",
     "model-b-c-ann-later-annotation-suppressed",
     "model-b-c-ann-prior-effects-persist",
-    "model-b-c-stage-closed-rejected",
     "model-b-c-main-legacy-main1-preferred",
     "model-b-c-main-legacy-main0-fallback",
     "model-b-c-main-legacy-rest-main-selected",
@@ -91,6 +90,7 @@ SLICE_C_GUARD_IDS = (
 # Frozen Model B future-behavior inventory: every id requires
 # ``default_open_functions`` (Option B, R7-D1) and fails until GREEN.
 SLICE_C_GATED_IDS = (
+    "model-b-c-stage-closed-rejected",  # E2.4 transition (issue #1250, design 10.4): guard -> gated
     "model-b-c-own-use-ordinary-base-unchanged",
     "model-b-c-own-extend-ordinary-rejected",
     "model-b-c-open-pattern-after-plain",
@@ -297,7 +297,7 @@ SLICE_C_REQUIRES = {
     "model-b-c-ann-later-annotation-suppressed": ("doc_help",),
     "model-b-c-ann-prior-effects-persist": ("doc_help",),
     "model-b-c-ann-pattern-clause-variants": ("default_open_functions", "doc_help"),
-    "model-b-c-stage-closed-rejected": (),
+    "model-b-c-stage-closed-rejected": ("closed_functions", "default_open_functions"),
     "model-b-c-mode-file-pattern-program": ("default_open_functions",),
     "model-b-c-mode-command-pattern-program": ("default_open_functions",),
     "model-b-c-mode-import-pattern-program": ("default_open_functions", "multi_file_eval"),
@@ -351,12 +351,12 @@ _SLICE_C = {s.name: s for s in _SPECS if s.name.startswith(PREFIX)}
 
 
 def test_case_inventory_counts_are_frozen() -> None:
-    assert len(SLICE_C_GUARD_IDS) == 53
-    assert len(SLICE_C_GATED_IDS) == 84
+    assert len(SLICE_C_GUARD_IDS) == 52
+    assert len(SLICE_C_GATED_IDS) == 85
     assert len(SLICE_C_RED_CASE_IDS) == 137
     assert len(set(SLICE_C_RED_CASE_IDS)) == 137
     assert len(SLICE_C_G1_IDS) == 6
-    assert len(SLICE_C_ALL_GATED_IDS) == 90
+    assert len(SLICE_C_ALL_GATED_IDS) == 91
     assert len(SLICE_C_CASE_IDS) == 143
     assert len(set(SLICE_C_CASE_IDS)) == 143
     assert not set(SLICE_C_G1_IDS) & set(SLICE_C_RED_CASE_IDS)
@@ -385,7 +385,7 @@ def test_exact_requires_per_case() -> None:
 def test_only_future_cases_require_the_new_capability() -> None:
     gated = {n for n, s in _SLICE_C.items() if CAPABILITY in s.requires}
     assert gated == set(SLICE_C_ALL_GATED_IDS)
-    assert len(gated) == 90
+    assert len(gated) == 91
     for name in SLICE_C_GUARD_IDS:
         assert CAPABILITY not in _SLICE_C[name].requires, name
     # Option B: the P5 varargs-minima ambiguity is gated like every future case.

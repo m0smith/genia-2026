@@ -1,0 +1,27 @@
+name: model-b-closed-annotation-permitted-set
+id: model-b-closed-annotation-permitted-set
+category: eval
+description: "The six permitted annotation kinds merge in order."
+requires:
+  - closed_functions
+  - doc_help
+input:
+  source: |
+    @doc "d"
+    @meta ({k: 1})
+    @since "1.0"
+    @deprecated "no"
+    @category "c"
+    @test "t"
+    f(x) =: x
+    m = meta("f")
+    [doc("f"), m.k, m.since, m.deprecated, m.category, m.test]
+expected:
+  stdout: |
+    ["d", 1, "1.0", "no", "c", "t"]
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

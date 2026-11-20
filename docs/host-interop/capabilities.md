@@ -58,6 +58,16 @@ mechanism.
 - **portability:** `language contract` for hosts that opt into this capability
 - **notes:** This capability is independent of `open_functions`. R20 multi-file cases require both names. Protocol-v1 input shapes remain closed; advertising this capability is the explicit opt-in to the sole optional `modules` field and old v1 hosts remain valid without it.
 
+#### `closed_functions`
+
+- **name:** `closed_functions`
+- **genia_surface:** closed `f(...) =: body` clause groups (`IrClosedFuncDef` evaluation); no new syntax, builtin or Core IR node. Parsing and lowering stay under the required `parser` and `ast_lowering`
+- **input:** a shared spec case that declares `requires: [closed_functions, ...]`, run as an ordinary eval, error or cli case
+- **output:** the ordinary protocol-v1 result; a committed closed callable renders `<closed-function NAME>` and a failed one `<closed-function failed>`
+- **errors:** `closed-function-not-yet-published`, `closed-function-failed-publication`, `closed-function-annotation-not-permitted` and `closed-function-not-extensible`; a host not declaring this capability `supported` receives `UNSUPPORTED` classification, never a pass
+- **portability:** `Python-host-only` (Experimental). The Python reference host advertises it `supported` since E2.4 (issue #1250); the bounded C++ host does not declare it (known gap in `spec/known_host_gaps.json`, owner #1250), and the required C++ parser/lowering obligation stays independently owned by genia-cpp#50
+- **notes:** independent of `immutable_bindings` and `default_open_functions`; a case also requires those names only where it uses `name =: expr` or pattern/guard headers. Server discovery of closed declarations is excluded.
+
 ---
 
 ## Portability Status Terms

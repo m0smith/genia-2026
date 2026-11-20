@@ -1,0 +1,21 @@
+name: model-b-closed-validation-order
+id: model-b-closed-validation-order
+category: error
+description: "With a name collision, a forbidden annotation and a duplicate key, the name error is reported."
+requires:
+  - closed_functions
+input:
+  source: |
+    f = 1
+    @route "/x"
+    f(x) =: x
+    f(y) =: y
+expected:
+  stdout: ''
+  stderr: |
+    Error: Cannot declare immutable binding f: name is already bound in this scope
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

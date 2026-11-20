@@ -8,8 +8,10 @@ path. Explicit R20 `open` functions retain their implemented dispatch behavior.
 Model B declarations lower to three nodes: immutable bindings use
 `IrImmutableBind`, guarded/pattern-headed declarations use `IrPatternFuncDef`,
 and consecutive same-name closed clauses use one `IrClosedFuncDef`.
-`IrClosedFuncDef` rejects execution with
-`model-b-not-implemented` before child effects. `IrPatternFuncDef` executes on the
+`IrClosedFuncDef` executes on the Python host (Experimental, issue #1250): the
+name, annotation names and whole group validate before any annotation runs, and
+one sealed callable publishes atomically; see `GENIA_STATE.md` section 3.
+`IrPatternFuncDef` executes on the
 Python host as a default-open ordinary function clause: clauses of one name in one scope
 accumulate in declaration order and the first matching clause runs; see
 `GENIA_RULES.md` section 8.5.1. `IrImmutableBind`
@@ -20,18 +22,15 @@ arrows and grouped case bodies. Legacy identifier headers retain grouped bodies
 and inline documentation. Comments/blank lines/per-clause annotations do not
 split a closed group; unrelated statements and completed REPL submissions do.
 
-Classification: Python-host immutable bindings and default-open pattern/guard
-clauses execute with shared evidence. Closed groups only parse/lower and reject
-execution. Successful Python module completion privately snapshots ordinary
+Classification: Python-host immutable bindings, default-open pattern/guard
+clauses and closed groups execute with shared evidence. Successful Python module completion privately snapshots ordinary
 clauses/provenance and B1's separate defining-slot map/doc and callable help.
 Re-exports reuse only exact original completion witnesses. This does not freeze
 live callable values or expose a snapshot API. Python explicit `extend`/`use`
 selects frozen ordinary views, validating cross-unit keys/shapes before checked
-publication; no rename-on-use. Private Python slots enforce provisional lookup and immutable reservations;
-self frames start reserved and unbound. A private callback driver publishes or fails
-prepared groups with terminal bindings and owner cleanup. Source closed publication
-and C++ support remain unimplemented.
-T7 recovers from one lock-acquisition or cleanup fault.
+publication; no rename-on-use. Python publishes a closed group through private provisional slots and a transaction that
+publishes or fails it with terminal bindings and owner cleanup; one fault in a
+publication step is recovered. C++ support remains unimplemented.
 
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new

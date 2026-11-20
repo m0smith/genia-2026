@@ -1,0 +1,20 @@
+name: model-b-closed-duplicate-key-no-effects
+id: model-b-closed-duplicate-key-no-effects
+category: error
+description: "A duplicate clause key is reported before any annotation runs."
+requires:
+  - closed_functions
+input:
+  source: |
+    f(x) =: x
+    @meta ({m: print("sentinel")})
+    f(y) =: y
+expected:
+  stdout: ''
+  stderr: |
+    Error: Duplicate function definition: f/1
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

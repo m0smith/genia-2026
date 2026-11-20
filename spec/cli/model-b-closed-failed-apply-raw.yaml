@@ -1,0 +1,35 @@
+name: model-b-closed-failed-apply-raw
+id: model-b-closed-failed-apply-raw
+category: cli
+description: "apply_raw reaches the state check."
+requires:
+  - closed_functions
+  - repl
+  - refs
+input:
+  source: |-
+    r = ref(0)
+    @meta ({m: ref_set(r, f)}); @doc 7; f(x) =: x
+    g = ref_get(r)
+    apply_raw(g, [1])
+  file: null
+  command: null
+  stdin: |-
+    r = ref(0)
+    @meta ({m: ref_set(r, f)}); @doc 7; f(x) =: x
+    g = ref_get(r)
+    apply_raw(g, [1])
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    <ref 0>
+    <closed-function failed>
+  stderr: |-
+    Error: @doc annotation expected a string, received int
+    Error: closed-function-failed-publication: closed function failed publication
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

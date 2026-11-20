@@ -1,0 +1,32 @@
+name: model-b-closed-alias-clause-rejected
+id: model-b-closed-alias-clause-rejected
+category: cli
+description: "A clause declared through an alias is rejected as not extensible."
+requires:
+  - closed_functions
+  - repl
+  - refs
+input:
+  source: |-
+    f(x) =: x
+    a = f
+    a(x, y) = y
+  file: null
+  command: null
+  stdin: |-
+    f(x) =: x
+    a = f
+    a(x, y) = y
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    <closed-function f>
+    <closed-function f>
+  stderr: |-
+    Error: closed-function-not-extensible: cannot declare a/2: a refers to a closed function
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

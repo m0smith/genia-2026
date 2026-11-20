@@ -2,13 +2,12 @@
 
 Status: **APPROVED DESIGN, iteration 3. Private E1 construction, sealing, use guards,
 self-frame/guarded-record construction and rendering are implemented in Python;
-E2.1 descriptor/lineage, invocation-only admission and boundary barriers are implemented
-as private machinery. E2.2 adds guarded provisional slots, immutable reservations and
-identity-based open-transaction accounting; the self-frame builder reserves without
-binding. Live annotation evaluation and publication remain unimplemented.**
-Python parses and lowers closed `f(pattern) =: expression` groups, and evaluation
-still rejects them with `model-b-not-implemented`. `GENIA_STATE.md` remains the only
-authority on implemented behavior. Phase record for
+E2.1 descriptor/lineage, invocation-only admission and boundary barriers, E2.2 guarded
+provisional slots and E2.3 private T4-T7 publication are implemented; E2.4 (issue #1250) adds T0-T3
+and source/direct-IR activation, the §10.4 oracle transition and the Python `closed_functions`
+capability (Experimental). C++ declares no `closed_functions` (known gap, never PASS); persistent-fault
+(F4) liveness, server discovery of closed functions and C++ implementation remain excluded.**
+`GENIA_STATE.md` remains the only authority on implemented behavior. Phase record for
 [#1250](https://github.com/m0smith/genia-2026/issues/1250), authorized as a docs-only
 design by [comment 6803222025](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6803222025),
 following the [Slice E preflight](https://github.com/m0smith/genia-2026/issues/1250#issuecomment-6802507721).
@@ -965,7 +964,7 @@ are part of Slice E because they prove the capture exclusion.
    group. No new node, field or version. Transaction, slots and lineage are private
    runtime state.
 3. **Shared executable conformance.** §10.
-4. **Capability applicability — APPROVED (DQ-C), not yet advertised.**
+4. **Capability applicability — APPROVED (DQ-C); advertised by the Python host since E2.4.**
    The independently optional capability is **`closed_functions`**.
    - *Why.* `immutable_bindings` covers `name =: expr`; `default_open_functions`
      covers ordinary default-open clauses and pattern/guard headers. Neither implies
@@ -982,7 +981,7 @@ are part of Slice E because they prove the capture exclusion.
      clauses, `immutable_bindings` when it uses `name =: expr`, and `repl`, `refs`,
      `cell_primitives`, `process_primitives`, `multi_file_eval`, `open_functions` or
      `doc_help` only where used.
-   - *Synchronization at E2, not now:* `spec/manifest.json` (the vocabulary; the
+   - *Synchronization at E2 (done in E2.4):* `spec/manifest.json` (the vocabulary; the
      runner and the parity gate derive theirs from it),
      `hosts/python/protocol_adapter.py` (the Python claim),
      `spec/known_host_gaps.json` (a new issue-backed C++ entry with its removal

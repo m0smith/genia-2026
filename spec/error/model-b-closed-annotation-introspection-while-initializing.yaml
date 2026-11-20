@@ -1,0 +1,20 @@
+name: model-b-closed-annotation-introspection-while-initializing
+id: model-b-closed-annotation-introspection-while-initializing
+category: error
+description: "meta of the function inside its own annotation is rejected."
+requires:
+  - closed_functions
+  - doc_help
+input:
+  source: |
+    @meta ({p: meta("f")})
+    f(x) =: x
+expected:
+  stdout: ''
+  stderr: |
+    Error: closed-function-not-yet-published: f is not yet published
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

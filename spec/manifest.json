@@ -93,7 +93,8 @@
     "multi_file_eval",
     "execution_process",
     "immutable_bindings",
-    "default_open_functions"
+    "default_open_functions",
+    "closed_functions"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"
