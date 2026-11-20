@@ -101,7 +101,7 @@ def test_direct_ir_multiple_simultaneous_errors_report_the_name_error_first():
     """Design 12 DQ-V: name, then annotation permission, then clause structure."""
     effects = []
     env = genia.make_global_env([], output_handler=effects.append)
-    env.set('f', 1)
+    genia.run_source('f = 1', env)
     route = ir.IrAnnotation('route', lit('/x'))
     sentinel = ir.IrAnnotation('meta', ir.IrCall(ir.IrVar('print'), [lit('sentinel')]))
     node = closed('f', clause('f', annotations=[sentinel, route]), clause('f', ('y',)))
