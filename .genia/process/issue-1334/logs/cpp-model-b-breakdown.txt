@@ -1,0 +1,8 @@
+family a: total=43 cpp_pass_or_not_unsupported=5 unsupported=38
+family b: total=27 cpp_pass_or_not_unsupported=1 unsupported=26
+family c: total=143 cpp_pass_or_not_unsupported=20 unsupported=123
+family closed: total=64 cpp_pass_or_not_unsupported=0 unsupported=64
+family d1: total=4 cpp_pass_or_not_unsupported=0 unsupported=4
+family link: total=33 cpp_pass_or_not_unsupported=0 unsupported=33
+ALL model-b 314 cpp pass 26 unsupported 288
+total unsupported lines parsed 851

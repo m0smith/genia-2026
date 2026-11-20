@@ -1,0 +1,21 @@
+### uv run python tools/gen_mcp_language_profile.py --check
+exit=0
+### uv run python tools/gen_function_docs.py --check
+Function reference is up to date.
+exit=0
+### uv run python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
+--- Scan summary ---
+Files scanned: 24
+@doc strings found: 286
+Errors: 0  Warnings: 0
+exit=0
+### uv run python tools/validate_llm_instructions.py
+LLM instruction validation passed.
+exit=0
+### uv run ruff check .
+All checks passed!
+exit=0
+21:        run: |
+27:        run: |
+32:          uv run python -m tools.code_documentation "${args[@]}" --inventory code-documentation-inventory.json
+34:        run: uv run pytest -q tests/unit/test_code_documentation.py

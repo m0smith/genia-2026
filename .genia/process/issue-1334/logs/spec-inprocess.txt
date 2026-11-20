@@ -1,0 +1,6 @@
+warning: The `
+Summary: total=1146 passed=1146 failed=0 invalid=0
+
+real	4m0.830s
+user	3m38.931s
+sys	0m16.882s

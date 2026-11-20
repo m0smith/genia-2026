@@ -1,0 +1,7 @@
+warning: The `
+bringing up nodes...
+bringing up nodes...
+
+................................                                         [100%]
+32 passed in 8.75s
+exit=0

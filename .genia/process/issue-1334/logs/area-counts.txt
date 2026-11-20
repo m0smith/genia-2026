@@ -1,0 +1,10 @@
+modules/imports {'pass': 143} 8 modules
+REPL {'pass': 13} 2 modules
+CLI {'pass': 148, 'skip': 6} 21 modules
+callable reflection/introspection {'pass': 85} 5 modules
+Outcome {'pass': 57} 4 modules
+Flow {'pass': 242} 20 modules
+protected values {'pass': 103} 7 modules
+MCP policy/profile {'pass': 1356, 'skip': 8} 32 modules
+Core IR/direct IR {'pass': 270} 7 modules
+docs/semantic sync {'pass': 357, 'skip': 34} 9 modules

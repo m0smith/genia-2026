@@ -1,0 +1,8 @@
+    Start 6: genia-parser-depth-check
+6/7 Test #6: genia-parser-depth-check .........   Passed    0.01 sec
+    Start 7: genia-source-comments-check
+7/7 Test #7: genia-source-comments-check ......   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) =   0.93 sec

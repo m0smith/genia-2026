@@ -1,0 +1,13 @@
+tchpad/cpp/genia-cpp/tests/../src/ir_projection.hpp:69:10: warning: enumeration value 'Some' not handled in switch [-Wswitch]
+   69 |   switch (pattern.kind) {
+      |          ^
+In file included from /tmp/claude-0/-home-user/062ed929-3c73-5f6c-91d4-21ecbfb88ae3/scratchpad/cpp/genia-cpp/tests/../src/engine.hpp:19,
+                 from /tmp/claude-0/-home-user/062ed929-3c73-5f6c-91d4-21ecbfb88ae3/scratchpad/cpp/genia-cpp/tests/../src/adapter.hpp:15,
+                 from /tmp/claude-0/-home-user/062ed929-3c73-5f6c-91d4-21ecbfb88ae3/scratchpad/cpp/genia-cpp/tests/test_pipe_mode.cpp:6:
+/tmp/claude-0/-home-user/062ed929-3c73-5f6c-91d4-21ecbfb88ae3/scratchpad/cpp/genia-cpp/tests/../src/ir_projection.hpp: In function 'std::optional<nlohmann::json_abi_v3_11_3::basic_json<> > genia::ir_projection::project_pattern(const genia::pattern::Pattern&)':
+/tmp/claude-0/-home-user/062ed929-3c73-5f6c-91d4-21ecbfb88ae3/scratchpad/cpp/genia-cpp/tests/../src/ir_projection.hpp:69:10: warning: enumeration value 'Some' not handled in switch [-Wswitch]
+   69 |   switch (pattern.kind) {
+      |          ^
+[100%] Linking CXX executable genia-adapter-tests
+[100%] Built target genia-adapter-tests
+build exit=0

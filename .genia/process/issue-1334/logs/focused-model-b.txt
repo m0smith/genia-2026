@@ -1,0 +1,38 @@
+warning: The `
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  6%]
+........................................................................ [ 13%]
+........................................................................ [ 19%]
+........................................................................ [ 26%]
+........................................................................ [ 32%]
+........................................................................ [ 39%]
+........................................................................ [ 45%]
+........................................................................ [ 52%]
+........................................................................ [ 59%]
+........................................................................ [ 65%]
+........................................................................ [ 72%]
+........................................................................ [ 78%]
+........................................................................ [ 85%]
+........................................................................ [ 91%]
+........................................................................ [ 98%]
+.................                                                        [100%]
+=============================== warnings summary ===============================
+tests/unit/test_model_b_d2a_link_publish.py::test_d2a_08_concurrent_publication_is_observed_before_and_after_each_write
+tests/unit/test_model_b_d2a_link_publish.py::test_d2a_08_module_load_overlaps_publication_and_both_finish
+tests/unit/test_model_b_d2b_public.py::test_public_publication_overlaps_real_module_load
+  /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=291) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+tests/unit/test_model_b_d2b_public.py::test_two_public_use_writers_are_observed_during_publication
+tests/unit/test_model_b_d2b_store_synchronization.py::test_concurrent_ordinary_contributions_accumulate_without_lost_updates
+  /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=288) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1097 passed, 5 warnings in 74.14s (0:01:14)
+
+real	1m15.476s
+user	4m38.819s
+sys	0m9.245s
