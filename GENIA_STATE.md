@@ -712,7 +712,7 @@ Pipeline (Phase 2) evaluation model:
   execution (an exact argv, no shell, no PATH search) under a portable
   contract currently implemented by Python. Neither wraps or replaces the
   other.
-### Model B declarations (Partial: `=:` and default-open functions execute; closed forms parse/lower only)
+### Model B declarations (Partial: `=:`, default-open and closed functions execute on Python)
 
 LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`; consecutive
 same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
@@ -740,17 +740,16 @@ shallow: Ref/Cell mutation, parameter assignment and entry write-through are unc
 PYTHON REFERENCE HOST: Env enforces `=:` under a lock never held across user code.
 Pattern/guard declarations execute as default-open clauses (`default_open_functions`,
 `GENIA_RULES.md` 8.5.1): first match in declaration order, duplicate keys rejected,
-alias or imported declarations fail with `function-declaration-not-owner`. Closed `f(...) =: body` evaluation fails with
-`model-b-not-implemented` before initializer/annotation/guard/body effects.
+alias or imported declarations fail with `function-declaration-not-owner`.
 Module completion privately captures detached ordinary clauses/provenance, defining-slot
 metadata/doc (G-inline fallback) and independent G help.
 Exact-callable witnesses preserve re-exports; incomplete origins confer none.
 Capture/cache publication synchronizes with writers; live calls are unchanged.
 Python explicitly links completed ordinary interfaces (section 4.7).
-Private Python has sealed callables/guarded records, opaque failed markers and lineage/reservation guards.
-Prepared-group transactions publish/fail with post-commit roll-forward.
-T7 recovers from one lock-acquisition or cleanup fault.
-Closed-source evaluation/annotations remain unavailable.
+PYTHON REFERENCE HOST (Experimental `closed_functions`; C++ unsupported): a closed group validates name,
+annotations (`@doc`/`@meta`/`@since`/`@deprecated`/`@category`/`@test`) and clauses before any annotation runs, then publishes
+one sealed callable atomically (`<closed-function f>`). Unpublished use is `closed-function-not-yet-published`; a failed
+publication leaves a passable, unusable callable (`closed-function-failed-publication`); no clause is added (`closed-function-not-extensible`).
 Unfinished `=:` keeps REPL input incomplete; completed submissions end groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
 
 ## 4) Functions and dispatch
@@ -3620,7 +3619,7 @@ PYTHON REFERENCE HOST (MCP adapter):
   `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`,
   `examples` and `discovery`. Executable `gcd` and `factorial` examples return `6`
   and `120`. `idioms.clauses` runs pattern clauses by default; `name =: expr` executes (section 3);
-  closed `f(...) =: body` rejects evaluation with `model-b-not-implemented`.
+  closed `f(...) =: body` executes on Python.
 - `idioms.pipelines`, `idioms.outcomes` and `idioms.flow` restate sections 2, 3,
   5 and 6: validated pipelines, Outcome lifting/short-circuiting and explicit
   recovery, lazy single-use Flow, bounded terminals and explicit stdin adaptation.

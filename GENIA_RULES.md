@@ -16,8 +16,10 @@ same-name declarations accumulate in declaration order into one group that
 aliases share, a call selects the fixed or sole varargs shape and then the first
 matching clause, equal pattern/guard keys are duplicates, and declaring through
 an alias or imported binding is rejected with `function-declaration-not-owner`.
-Atomic closed-function clause groups (`f(...) =: body`) are accepted and
-lowered, but their evaluation fails with `model-b-not-implemented`; source-level closed publication remains unimplemented. Python
+Atomic closed-function clause groups (`f(...) =: body`) execute on Python (Experimental, capability
+`closed_functions`): the name, annotation names and whole group validate before any annotation runs, annotations then
+run in order and publication is one atomic commit; a failed publication leaves a failed callable that can be passed
+but not used, and no clause is added through any binding. See `GENIA_STATE.md` Model B declarations. Python
 supports explicit completed ordinary-base `extend`/`use`. Explicit R20 views
 share cross-unit validation and canonical ordering; reflection stays unchanged. C++ supports guards inside ordinary grouped bodies (with header capture) and
 local explicit-R20 clauses (whose grouped headers remain nonbinding), with
