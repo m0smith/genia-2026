@@ -1,0 +1,48 @@
+{
+  "name": "issue-1236-named-pipeline-composition-preflight",
+  "question": "READ-ONLY PRE-FLIGHT for issue #1236. Describe from the supplied pinned sources why existing |> is data application, not a proven stage-composition operator; identify where Core IR records the source and stage list, how the Python evaluator applies stages and handles none/err, and how the existing eval and Flow specs demonstrate behavior. Compare (as proposals, NOT implemented features) explicit ordinary-callable compose(...) versus new composition syntax. Give compatibility, Flow single-use, terminal materialization, Outcome, error-indexing, and Python/C++ parity questions that would require further evidence. Clearly separate SOURCE_READ, INFERENCE, UNKNOWN, and PROPOSAL. Do not assert that the illustrative issue syntax currently works. Do not modify Genia or claim tests were run.",
+  "evidence": [
+    {
+      "path": "src/genia/evaluator.py",
+      "exact_line": "    def eval_pipeline(self, node: IrPipeline, tail_position: bool) -> Any:"
+    },
+    {
+      "path": "src/genia/evaluator.py",
+      "exact_line": "        stage_value = self.eval(node.source)"
+    },
+    {
+      "path": "src/genia/evaluator.py",
+      "exact_line": "        for index, stage in enumerate(node.stages):"
+    },
+    {
+      "path": "src/genia/evaluator.py",
+      "exact_line": "            if is_none(stage_value) or is_err(stage_value):"
+    },
+    {
+      "path": "src/genia/evaluator.py",
+      "exact_line": "            return invoke_with_pipeline_option_lifting(fn, args, node.fn)"
+    },
+    {
+      "path": "spec/ir/pipeline-explicit.yaml",
+      "exact_line": "        node: IrPipeline"
+    },
+    {
+      "path": "spec/eval/pipeline-map-sum.yaml",
+      "exact_line": "    [1, 2, 3] |> map((x) -> x + 1) |> sum"
+    },
+    {
+      "path": "spec/flow/flow-map-filter-chain.yaml",
+      "exact_line": "    stdin |> lines |> map(trim) |> filter((line) -> line != \"\") |> collect"
+    },
+    {
+      "path": "docs/design/pipeline-semantics.md",
+      "exact_line": "- Core IR: preserves portable structure without embedding host-specific behavior."
+    }
+  ],
+  "review_focus": [
+    "Are the current data-application and Core IR claims grounded in actual provided source instead of proposed semantics?",
+    "Does the report keep proposed compose(...) and alternative syntax unimplemented and require a separate compatibility contract?",
+    "Does it distinguish Flow single-use/terminal, Outcome, diagnostics, and C++ parity questions from facts established by excerpts?",
+    "Does it stay within read-only preflight and avoid claiming tests were executed?"
+  ]
+}
