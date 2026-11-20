@@ -11,8 +11,6 @@ implementation. Closed evaluation is still rejected, so the activation tests fai
 
 from __future__ import annotations
 
-import threading
-
 import pytest
 
 import genia
@@ -20,8 +18,7 @@ from genia import environment as e
 from genia import ir
 from genia.http_annotation_binding import resolve_http_annotation
 from genia.interpreter import Evaluator
-from genia.values import GeniaMap
-from tests.unit.model_b_slice_c_support import cli, fresh_env, outcome
+from tests.unit.model_b_slice_c_support import cli, fresh_env
 
 NOT_YET = 'closed-function-not-yet-published: f is not yet published'
 BOUND = 'Cannot declare immutable binding f: name is already bound in this scope'
@@ -252,13 +249,12 @@ def test_server_discovery_still_rejects_a_closed_declaration_in_the_entry_progra
     nodes = [closed('f', clause('f'))]
     env = genia.make_global_env([])
     kwargs = dict(entry_source_identity='<entry>')
-    if walker == 'route':
-        call = lambda: server_route_binding.discover_entry_file_route_bindings(nodes, env, **kwargs)
-    elif walker == 'config':
-        call = lambda: server_config_binding.discover_entry_file_server_config_binding(nodes, env, **kwargs)
-    else:
-        call = lambda: server_cors_binding.discover_entry_file_cors_binding(
-            nodes, env, server_declaration_name='s', server_source_index=0, **kwargs)
     with pytest.raises(RuntimeError) as caught:
-        call()
+        if walker == 'route':
+            server_route_binding.discover_entry_file_route_bindings(nodes, env, **kwargs)
+        elif walker == 'config':
+            server_config_binding.discover_entry_file_server_config_binding(nodes, env, **kwargs)
+        else:
+            server_cors_binding.discover_entry_file_cors_binding(
+                nodes, env, server_declaration_name='s', server_source_index=0, **kwargs)
     assert str(caught.value) == 'model-b-not-implemented: server discovery is not available'
