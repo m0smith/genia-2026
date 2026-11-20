@@ -1,0 +1,562 @@
+62d69b730e8684a70c8b619996e8527a17614d9c
+..FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFFFFFFFFF....FFF [ 51%]
+FFFFFFFFFFFFF........................................................    [100%]
+=================================== FAILURES ===================================
+E   AssertionError: [('stdout', '<closed-function f>
+      <closed-function f>', '<function a/2>'), ('stderr', 'Error: closed-function-not-exte...closed function', 'Error: model-b-not-implemented: declaration evaluation is not available
+      Error: Undefined name: f')]
+    assert not [ComparisonFailure(field='stdout', expected='<closed-function f>\n<closed-function f>', actual='<function a/2>'), Comp...function', actual='Error: model-b-not-implemented: declaration evaluation is not available\nError: Undefined name: f')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<closed-function f>
+E   AssertionError: [('stdout', '<closed-function f>
+      <closed-function f>
+      7
+      7
+      2', '7
+      8
+      7'), ('stderr', 'Error: Cannot assign to immut...evaluation is not available
+      Error: Undefined name: f
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<closed-function f>\n<closed-function f>\n7\n7\n2', actual='7\n8\n7'), Co...evaluation is not available\nError: Undefined name: f\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<closed-function f>
+E   AssertionError: [('stdout', 'eff
+      none("missing-meta", {name: "f"})', 'none("missing-meta", {name: "f"})'), ('stderr', 'Error: @doc an...defined name: f', 'Error: model-b-not-implemented: declaration evaluation is not available
+      Error: Undefined name: f')]
+    assert not [ComparisonFailure(field='stdout', expected='eff\nnone("missing-meta", {name: "f"})', actual='none("missing-meta", {na... name: f', actual='Error: model-b-not-implemented: declaration evaluation is not available\nError: Undefined name: f')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', 'eff
+E   AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @cors is not permitted on closed function f
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: closed-function-annotation-not-permitted: @cors is not permitted on closed function f\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @cors is not permitted on closed function f
+E   AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @get is not permitted on closed function f
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: closed-function-annotation-not-permitted: @get is not permitted on closed function f\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @get is not permitted on closed function f
+E   AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @post is not permitted on closed function f
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: closed-function-annotation-not-permitted: @post is not permitted on closed function f\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @post is not permitted on closed function f
+E   AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @route is not permitted on closed function f
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: closed-function-annotation-not-permitted: @route is not permitted on closed function f\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @route is not permitted on closed function f
+E   AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @server is not permitted on closed function f
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: closed-function-annotation-not-permitted: @server is not permitted on closed function f\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @server is not permitted on closed function f
+E   AssertionError: [('stdout', '3
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='3\n', actual=''), ComparisonFailure(field='stderr', expected='', actual='...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '3
+E   AssertionError: [('stderr', 'Error: closed-function-not-yet-published: f is not yet published
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: closed-function-not-yet-published: f is not yet published\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: closed-function-not-yet-published: f is not yet published
+E   AssertionError: [('stdout', '["/x", 1]
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='["/x", 1]\n', actual=''), ComparisonFailure(field='stderr', expected='', ...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '["/x", 1]
+E   AssertionError: [('stdout', 'first
+      second
+      {a: "first", b: "second"}
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='first\nsecond\n{a: "first", b: "second"}\n', actual=''), ComparisonFailur...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', 'first
+E   AssertionError: [('stdout', '["d", 1, "1.0", "no", "c", "t"]
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='["d", 1, "1.0", "no", "c", "t"]\n', actual=''), ComparisonFailure(field='...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '["d", 1, "1.0", "no", "c", "t"]
+E   AssertionError: [('stdout', '3
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='3\n', actual=''), ComparisonFailure(field='stderr', expected='', actual='...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '3
+E   AssertionError: [('stdout', '2
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='2\n', actual=''), ComparisonFailure(field='stderr', expected='', actual='...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '2
+E   AssertionError: [('stdout', '3
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='3\n', actual=''), ComparisonFailure(field='stderr', expected='', actual='...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '3
+E   AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @bogus is not permitted on closed function f
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: closed-function-annotation-not-permitted: @bogus is not permitted on closed function f\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: closed-function-annotation-not-permitted: @bogus is not permitted on closed function f
+E   AssertionError: [('stdout', 'z
+      n
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='z\nn\n', actual=''), ComparisonFailure(field='stderr', expected='', actua...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', 'z
+E   AssertionError: [('stdout', '2
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='2\n', actual=''), ComparisonFailure(field='stderr', expected='', actual='...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '2
+E   AssertionError: [('stderr', "Error: open-function-target-not-open: 'lib.f' is not an open function interface
+      ", 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected="Error: open-function-target-not-open: 'lib.f' is not an open function interface\n", actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', "Error: open-function-target-not-open: 'lib.f' is not an open function interface
+E   AssertionError: [('stderr', "Error: Conflicting docstrings for function f: got 'b', expected 'a'
+      ", 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected="Error: Conflicting docstrings for function f: got 'b', expected 'a'\n", actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', "Error: Conflicting docstrings for function f: got 'b', expected 'a'
+E   AssertionError: [('stdout', '"done"
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='"done"\n', actual=''), ComparisonFailure(field='stderr', expected='', act...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '"done"
+E   AssertionError: [('stderr', 'Error: Duplicate function definition: f/1
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: Duplicate function definition: f/1\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: Duplicate function definition: f/1
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, ...-implemented: declaration evaluation is not available
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0'), ComparisonFailu...-implemented: declaration evaluation is not available\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, ...-implemented: declaration evaluation is not available
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0'), ComparisonFailu...-implemented: declaration evaluation is not available\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, ...-implemented: declaration evaluation is not available
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0'), ComparisonFailu...-implemented: declaration evaluation is not available\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0
+      none("nil")'), ('stderr', 'Error: @doc annotation expect...ation: closed function failed publication', 'Error: model-b-not-implemented: declaration evaluation is not available')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0\nnone("nil")'), Co...closed function failed publication', actual='Error: model-b-not-implemented: declaration evaluation is not available')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, ...-implemented: declaration evaluation is not available
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0'), ComparisonFailu...-implemented: declaration evaluation is not available\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>'), ('stderr', 'Error: @doc annotation expected a string, rec... model-b-not-implemented: declaration evaluation is not available
+      Error: cell_get expected a cell as first argument')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>'), ComparisonFailure(... model-b-not-implemented: declaration evaluation is not available\nError: cell_get expected a cell as first argument')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>
+      [<closed-function failed>]
+      true', '<ref 0>
+      0
+      [0]
+      true'), ('stderr'...nnotation expected a string, received int', 'Error: model-b-not-implemented: declaration evaluation is not available')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>\n[<closed-function failed>]\ntrue', act...on expected a string, received int', actual='Error: model-b-not-implemented: declaration evaluation is not available')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>
+      0', '<ref 0>
+      0
+      0'), ('stderr', 'Error: @doc annotation expected a string, received int', 'Error: model-b-not-implemented: declaration evaluation is not available')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>\n0', actual='<ref 0>\n0\n0'), Compariso...on expected a string, received int', actual='Error: model-b-not-implemented: declaration evaluation is not available')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, ...-implemented: declaration evaluation is not available
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0'), ComparisonFailu...-implemented: declaration evaluation is not available\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, ...-implemented: declaration evaluation is not available
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0'), ComparisonFailu...-implemented: declaration evaluation is not available\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function f>
+      0', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, re...-implemented: declaration evaluation is not available
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function f>\n0', actual='<ref 0>\n0'), ComparisonFailure...-implemented: declaration evaluation is not available\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0
+      none("missing-doc", {name: "g"})
+      {}
+      g
+      
+      g is a named ...ation: closed function failed publication', 'Error: model-b-not-implemented: declaration evaluation is not available')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0\nnone("missing-doc...closed function failed publication', actual='Error: model-b-not-implemented: declaration evaluation is not available')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, ... model-b-not-implemented: declaration evaluation is not available
+      Error: @? expected matcher function, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0'), ComparisonFailu... model-b-not-implemented: declaration evaluation is not available\nError: @? expected matcher function, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0
+      none("nil")'), ('stderr', 'Error: @doc annotation expected a string, received int', 'Error: model-b-not-implemented: declaration evaluation is not available')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0\nnone("nil")'), Co...on expected a string, received int', actual='Error: model-b-not-implemented: declaration evaluation is not available')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>
+      <function h/1>', '<ref 0>
+      0
+      <function h/1>'), ('stderr', 'Error: @do...-implemented: declaration evaluation is not available
+      Error: pipeline stage expected a callable value, received int')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>\n<function h/1>', actual='<ref 0>\n0\n<...-implemented: declaration evaluation is not available\nError: pipeline stage expected a callable value, received int')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', 'closed main
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available'), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='closed main\n', actual=''), ComparisonFailure(field='stderr', expected=''...not-implemented: declaration evaluation is not available'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', 'closed main
+E   AssertionError: [('stdout', '20
+      5
+      <closed-function f>
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='20\n5\n<closed-function f>\n', actual=''), ComparisonFailure(field='stder...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '20
+E   AssertionError: [('stderr', 'Error: Cannot declare immutable binding f: name is already bound in this scope
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: Cannot declare immutable binding f: name is already bound in this scope\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: Cannot declare immutable binding f: name is already bound in this scope
+E   AssertionError: [('stderr', 'Error: Cannot declare immutable binding lib: name is already bound in this scope
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: Cannot declare immutable binding lib: name is already bound in this scope\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: Cannot declare immutable binding lib: name is already bound in this scope
+E   AssertionError: [('stderr', 'Error: Cannot declare immutable binding print: name is reserved by the runtime
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: Cannot declare immutable binding print: name is reserved by the runtime\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: Cannot declare immutable binding print: name is reserved by the runtime
+E   AssertionError: [('stderr', 'Error: Cannot rebind immutable binding: f
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: Cannot rebind immutable binding: f\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: Cannot rebind immutable binding: f
+E   AssertionError: [('stdout', '"done"
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='"done"\n', actual=''), ComparisonFailure(field='stderr', expected='', act...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '"done"
+E   AssertionError: [('stdout', '5
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='5\n', actual=''), ComparisonFailure(field='stderr', expected='', actual='...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '5
+E   AssertionError: [('stdout', 'zero
+      pos
+      other
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='zero\npos\nother\n', actual=''), ComparisonFailure(field='stderr', expect...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', 'zero
+E   AssertionError: [('stderr', "Error: open-function-target-not-open: 'mid.g' is not an open function interface
+      ", 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected="Error: open-function-target-not-open: 'mid.g' is not an open function interface\n", actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', "Error: open-function-target-not-open: 'mid.g' is not an open function interface
+E   AssertionError: [('stdout', '<closed-function f>
+      4', '<function f/2>'), ('stderr', 'Error: Cannot rebind immutable binding: f', 'Error: model-b-not-implemented: declaration evaluation is not available
+      Error: No matching function: f/1. Available: f/2')]
+    assert not [ComparisonFailure(field='stdout', expected='<closed-function f>\n4', actual='<function f/2>'), ComparisonFailure(fiel...: model-b-not-implemented: declaration evaluation is not available\nError: No matching function: f/1. Available: f/2')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<closed-function f>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function f>
+      2
+      false
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc...model-b-not-implemented: declaration evaluation is not available
+      Error: Undefined name: f
+      Error: Undefined name: f')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function f>\n2\nfalse\n<closed-function failed>', actual...model-b-not-implemented: declaration evaluation is not available\nError: Undefined name: f\nError: Undefined name: f')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<ref 0>
+      <closed-function failed>', '<ref 0>
+      0'), ('stderr', 'Error: @doc annotation expected a string, ...declaration evaluation is not available
+      Error: Cannot define function f/2: name already bound to non-function value')]
+    assert not [ComparisonFailure(field='stdout', expected='<ref 0>\n<closed-function failed>', actual='<ref 0>\n0'), ComparisonFailu...declaration evaluation is not available\nError: Cannot define function f/2: name already bound to non-function value')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<ref 0>
+E   AssertionError: [('stdout', '<closed-function f>
+      0
+      3', '0'), ('stderr', 'Error: Cannot declare immutable binding f: name is already ... is not available
+      Error: model-b-not-implemented: declaration evaluation is not available
+      Error: Undefined name: f')]
+    assert not [ComparisonFailure(field='stdout', expected='<closed-function f>\n0\n3', actual='0'), ComparisonFailure(field='stderr'... is not available\nError: model-b-not-implemented: declaration evaluation is not available\nError: Undefined name: f')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<closed-function f>
+E   AssertionError: [('stdout', '"done"
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='"done"\n', actual=''), ComparisonFailure(field='stderr', expected='', act...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '"done"
+E   AssertionError: [('stdout', '<closed-function f>
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='<closed-function f>\n', actual=''), ComparisonFailure(field='stderr', exp...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '<closed-function f>
+E   AssertionError: [('stdout', '42
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available
+      '), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='42\n', actual=''), ComparisonFailure(field='stderr', expected='', actual=...t-implemented: declaration evaluation is not available\n'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', '42
+E   AssertionError: [('stdout', 'total=1 passed=1 failed=0 errored=0
+      PASS u
+      total=1 passed=1 failed=0 errored=0
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available'), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='total=1 passed=1 failed=0 errored=0\nPASS u\ntotal=1 passed=1 failed=0 er...not-implemented: declaration evaluation is not available'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', 'total=1 passed=1 failed=0 errored=0
+E   AssertionError: [('stdout', 'total=1 passed=1 failed=0 errored=0
+      PASS t
+      total=1 passed=1 failed=0 errored=0
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available'), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='total=1 passed=1 failed=0 errored=0\nPASS t\ntotal=1 passed=1 failed=0 er...not-implemented: declaration evaluation is not available'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', 'total=1 passed=1 failed=0 errored=0
+E   AssertionError: [('stdout', 'total=1 passed=1 failed=0 errored=0
+      PASS t
+      total=1 passed=1 failed=0 errored=0
+      ', ''), ('stderr', '', 'Error: model-b-not-implemented: declaration evaluation is not available'), ('exit_code', 0, 1)]
+    assert not [ComparisonFailure(field='stdout', expected='total=1 passed=1 failed=0 errored=0\nPASS t\ntotal=1 passed=1 failed=0 er...not-implemented: declaration evaluation is not available'), ComparisonFailure(field='exit_code', expected=0, actual=1)]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stdout', 'total=1 passed=1 failed=0 errored=0
+E   AssertionError: [('stderr', 'Error: Cannot declare immutable binding f: name is already bound in this scope
+      ', 'Error: model-b-not-implemented: declaration evaluation is not available
+      ')]
+    assert not [ComparisonFailure(field='stderr', expected='Error: Cannot declare immutable binding f: name is already bound in this scope\n', actual='Error: model-b-not-implemented: declaration evaluation is not available\n')]
+/home/user/genia-2026/tests/spec/test_model_b_closed_red.py:132: AssertionError: [('stderr', 'Error: Cannot declare immutable binding f: name is already bound in this scope
+E   AssertionError: assert RuntimeError('model-b-not-implemented: declaration evaluation is not available') is None
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:60: AssertionError: assert RuntimeError('model-b-not-implemented: declaration evaluation is not available') is None
+E   RuntimeError: model-b-not-implemented: declaration evaluation is not available
+/home/user/genia-2026/src/genia/evaluator.py:1413: RuntimeError: model-b-not-implemented: declaration evaluation is not available
+E   RuntimeError: model-b-not-implemented: declaration evaluation is not available
+/home/user/genia-2026/src/genia/evaluator.py:1413: RuntimeError: model-b-not-implemented: declaration evaluation is not available
+E   AssertionError: assert ('model-b-not-...not available' == 'Cannot decla...in this scope'
+      
+      - Cannot declare immutable binding f: name is already bound in this scope
+      + model-b-not-implemented: declaration evaluation is not available)
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:110: AssertionError: assert ('model-b-not-...not available' == 'Cannot decla...in this scope'
+E   AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+      
+      - closed-function-annotation-not-permitted: @route is not permitted on closed function f
+      + model-b-not-implemented: declaration evaluation is not available)
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:122: AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+E   AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+      
+      - closed-function-annotation-not-permitted: @get is not permitted on closed function f
+      + model-b-not-implemented: declaration evaluation is not available)
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:122: AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+E   AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+      
+      - closed-function-annotation-not-permitted: @post is not permitted on closed function f
+      + model-b-not-implemented: declaration evaluation is not available)
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:122: AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+E   AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+      
+      - closed-function-annotation-not-permitted: @server is not permitted on closed function f
+      + model-b-not-implemented: declaration evaluation is not available)
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:122: AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+E   AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+      
+      - closed-function-annotation-not-permitted: @cors is not permitted on closed function f
+      + model-b-not-implemented: declaration evaluation is not available)
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:122: AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+E   AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+      
+      - closed-function-annotation-not-permitted: @bogus is not permitted on closed function f
+      + model-b-not-implemented: declaration evaluation is not available)
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:122: AssertionError: assert ('model-b-not-...not available' == 'closed-funct...ed function f'
+E   AssertionError: assert 'model-b-not-...not available' == 'Cannot decla...in this scope'
+      
+      - Cannot declare immutable binding f: name is already bound in this scope
+      + model-b-not-implemented: declaration evaluation is not available
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:140: AssertionError: assert 'model-b-not-...not available' == 'Cannot decla...in this scope'
+E   RuntimeError: model-b-not-implemented: declaration evaluation is not available
+/home/user/genia-2026/src/genia/evaluator.py:1413: RuntimeError: model-b-not-implemented: declaration evaluation is not available
+E   RuntimeError: model-b-not-implemented: declaration evaluation is not available
+/home/user/genia-2026/src/genia/evaluator.py:1413: RuntimeError: model-b-not-implemented: declaration evaluation is not available
+E   RuntimeError: model-b-not-implemented: declaration evaluation is not available
+/home/user/genia-2026/src/genia/evaluator.py:1413: RuntimeError: model-b-not-implemented: declaration evaluation is not available
+E   RuntimeError: model-b-not-implemented: declaration evaluation is not available
+/home/user/genia-2026/src/genia/evaluator.py:1413: RuntimeError: model-b-not-implemented: declaration evaluation is not available
+E   assert (1 == 0)
+     +  where 1 = CompletedProcess(args=['/home/user/genia-2026/.venv/bin/python', '-c', 'from genia.interpreter import _main; raise Sys...("f"))\nprint(meta("f").doc)\nhelp("f")\n'], returncode=1, stdout='', stderr="Error: Unexpected character '.' at 61\n").returncode
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:209: assert (1 == 0)
+E   AssertionError: assert ('', 'Error: ...ailable\n', 1) == ('closed main/1\n', '', 0)
+      
+      At index 0 diff: '' != 'closed main/1\n'
+      Use -v to get more diff
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:219: AssertionError: assert ('', 'Error: ...ailable\n', 1) == ('closed main/1\n', '', 0)
+E   AssertionError: assert ('loaded\n' == 'loaded\n'
+      
+        loaded and 1 == 0)
+     +  where 1 = CompletedProcess(args=['/home/user/genia-2026/.venv/bin/python', '-c', 'from genia.interpreter import _main; raise Sys...], returncode=1, stdout='loaded\n', stderr='Error: model-b-not-implemented: declaration evaluation is not available\n').returncode
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:229: AssertionError: assert ('loaded\n' == 'loaded\n'
+E   AssertionError: assert ('', 'Error: ...ailable\n', 0) == ('<closed-fun...in>\n', '', 0)
+      
+      At index 0 diff: '' != '<closed-function main>\n'
+      Use -v to get more diff
+/home/user/genia-2026/tests/unit/test_model_b_slice_e2_4_source.py:234: AssertionError: assert ('', 'Error: ...ailable\n', 0) == ('<closed-fun...in>\n', '', 0)
+=========================== short test summary info ============================
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-alias-clause-rejected]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-alias-mutable-name-immutable]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-effect-then-value-failure]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-forbidden-cors]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-forbidden-get]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-forbidden-post]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-forbidden-route]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-forbidden-server]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-helper-self-call]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-introspection-while-initializing]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-meta-keys-allowed]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-order-and-atomic-metadata]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-permitted-set]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-reaches-later-clause]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-recursion]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-self-call]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-annotation-unknown-name]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-comments-blank-lines-one-group]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-committed-export-callable]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-committed-export-not-link-target]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-conflicting-docstring]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-deep-tail-call]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-duplicate-key-no-effects]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-apply-raw]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-call]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-call-err]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-call-none]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-call-wrong-arity]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-escape-transport-cell]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-escape-transport-ref]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-flow-not-pulled]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-flow-pulled]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-higher-order]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-inner-lambda-self-reference]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-introspection]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-matcher]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-pipeline-upstream-none-skips]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-failed-tail-call]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-main-selection]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-multi-clause-order]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-name-collision-existing]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-name-collision-import]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-name-reserved-runtime]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-ordinary-clause-after-closed]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-ordinary-linking-unaffected]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-parameter-shadows-own-name]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-pattern-guard-headers]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-reexported-closed-not-link-target]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-repl-later-submission-clause]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-repl-name-reuse-new-identity]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-restored-name-clause-rejected]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-second-group-after-statement]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-self-recursion]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-single-clause]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-single-clause-call]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-test-alias-discovered]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-test-annotation-discovered]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-test-meta-key-discovered]
+FAILED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-validation-order]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_direct_ir_valid_group_publishes_and_returns_the_committed_callable
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_source_and_direct_ir_publish_the_same_observable_group[f(x) =: x\n-<lambda>]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_source_and_direct_ir_publish_the_same_observable_group[f(x) =: x\nf(x, y) =: y\n-<lambda>]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_direct_ir_multiple_simultaneous_errors_report_the_name_error_first
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_direct_ir_forbidden_annotation_matches_source_and_runs_nothing[route]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_direct_ir_forbidden_annotation_matches_source_and_runs_nothing[get]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_direct_ir_forbidden_annotation_matches_source_and_runs_nothing[post]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_direct_ir_forbidden_annotation_matches_source_and_runs_nothing[server]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_direct_ir_forbidden_annotation_matches_source_and_runs_nothing[cors]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_direct_ir_forbidden_annotation_matches_source_and_runs_nothing[bogus]
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_t1_name_held_by_a_live_transaction_is_rejected_before_its_effects
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_closed_clause_body_cannot_assign_its_own_name
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_source_annotation_and_body_run_without_the_binding_lock
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_nested_source_transactions_through_a_module_load
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_send_annotated_excludes_a_committed_closed_callable_whatever_its_metadata
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_help_doc_meta_work_on_a_committed_closed_callable
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_closed_main_selection_follows_the_ordinary_rule_in_file_mode
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_pattern_header_closed_main_is_not_selected
+FAILED tests/unit/test_model_b_slice_e2_4_source.py::test_repl_never_selects_a_closed_main
+PASSED tests/spec/test_model_b_closed_red.py::test_inventory_is_frozen_and_complete
+PASSED tests/spec/test_model_b_closed_red.py::test_exact_requires_per_case
+PASSED tests/spec/test_model_b_closed_red.py::test_shared_case_passes_on_the_python_host[model-b-closed-mixed-operators]
+PASSED tests/unit/test_model_b_slice_e2_4_source.py::test_malformed_ir_is_rejected_at_t0_after_prior_statements_ran[dotted-name]
+PASSED tests/unit/test_model_b_slice_e2_4_source.py::test_malformed_ir_is_rejected_at_t0_after_prior_statements_ran[empty-group]
+PASSED tests/unit/test_model_b_slice_e2_4_source.py::test_malformed_ir_is_rejected_at_t0_after_prior_statements_ran[name-mismatch]
+PASSED tests/unit/test_model_b_slice_e2_4_source.py::test_malformed_ir_is_rejected_at_t0_after_prior_statements_ran[non-declaration]
+PASSED tests/unit/test_model_b_slice_e2_4_source.py::test_server_discovery_still_rejects_a_closed_declaration_in_the_entry_program[route]
+PASSED tests/unit/test_model_b_slice_e2_4_source.py::test_server_discovery_still_rejects_a_closed_declaration_in_the_entry_program[config]
+PASSED tests/unit/test_model_b_slice_e2_4_source.py::test_server_discovery_still_rejects_a_closed_declaration_in_the_entry_program[cors]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C1-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C1-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C2-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C2-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C2b-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C2b-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C3-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C3-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C4-metadata-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C4-metadata-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C4-immutable-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C4-immutable-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C4-binding-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C4-binding-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C5-metadata-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C5-metadata-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C5-binding-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[C5-binding-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[K1-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[K1-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[K2-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[K2-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[K3-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[K3-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[K4-before]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l1_second_thread_sees_one_state_at_every_checkpoint[K4-after]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l2_p1_fault_discards_never_reachable_callable[False-MemoryError]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l2_p1_fault_discards_never_reachable_callable[False-KeyboardInterrupt]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l2_p1_fault_discards_never_reachable_callable[True-MemoryError]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l2_p1_fault_discards_never_reachable_callable[True-KeyboardInterrupt]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l2_c1_fault_enters_failure_protocol[False-MemoryError]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l2_c1_fault_enters_failure_protocol[False-KeyboardInterrupt]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l2_c1_fault_enters_failure_protocol[True-MemoryError]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l2_c1_fault_enters_failure_protocol[True-KeyboardInterrupt]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l10_n1_two_publications_interleave_in_both_orders[f]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l10_n1_two_publications_interleave_in_both_orders[h]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l10_n1_immutable_commit_while_owner_waits_for_lock
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l11_n2_aborted_t4_close_fault_keeps_live_owner[K1]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l11_n2_aborted_t4_close_fault_keeps_live_owner[K2]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l11_n2_aborted_t4_close_fault_keeps_live_owner[K3]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[declaring_metadata-committed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[declaring_metadata-failed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[doc_ref-committed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[doc_ref-failed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[help_ref-committed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[help_ref-failed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[help_value-committed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[help_value-failed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[meta_ref-committed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[meta_ref-failed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[self_metadata-committed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l12_n3_paused_reads_of_metadata_and_introspection[self_metadata-failed]
+PASSED tests/unit/test_model_b_slice_e2_4_host_local.py::test_l5_real_serve_http_request_cannot_use_provisional_callable
+78 failed, 63 passed in 19.05s
