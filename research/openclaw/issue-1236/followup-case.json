@@ -1,0 +1,52 @@
+{
+  "name": "issue-1236-callable-flow-parity-evidence",
+  "question": "Issue #1236 FOLLOW-UP READ-ONLY evidence pass. Using pinned source only, assess whether ordinary callable invocation could implement an explicit reusable compose(...) WITHOUT presuming a new Core IR node; identify what is established, what is only plausible, and what tests are missing. Explain Flow single-use and early termination risks using actual GeniaSeq/GeniaFlow and tests; name existing 1-based pipeline error index behavior; distinguish Python-host implementation from the bounded C++ Flow phase 1 support. Compare two PROPOSED alternatives: (A) ordinary-callable compose(...) and (B) new syntax; present compatibility evidence matrix for callable-as-data, inert definition, repeated calls on fresh inputs, terminal order, Outcome propagation, stage-index diagnostics, Flow cleanup, and portable host status. Do not claim any proposed behavior works. Do not infer executed tests from test source. No code changes.",
+  "evidence": [
+    {
+      "path": "GENIA_STATE.md",
+      "exact_line": "  - `x |> f` calls `f(x)`"
+    },
+    {
+      "path": "GENIA_STATE.md",
+      "exact_line": "  - `x |> f(y)` calls `f(y, x)` (left value appended as the last argument)"
+    },
+    {
+      "path": "src/genia/callable.py",
+      "exact_line": "def invoke_callable("
+    },
+    {
+      "path": "src/genia/evaluator.py",
+      "exact_line": "    def _wrap_pipeline_stage_error(self, exc: Exception, stage_index: int, node: IrNode, stage_input: Any) -> Exception:"
+    },
+    {
+      "path": "src/genia/evaluator.py",
+      "exact_line": "        rendered = f\"pipeline stage {stage_index + 1} failed in {mode_text} at {stage_text}\""
+    },
+    {
+      "path": "src/genia/values.py",
+      "exact_line": "    def consume(self) -> Iterable[Any]:"
+    },
+    {
+      "path": "tests/unit/test_flow_phase1.py",
+      "exact_line": "def test_flow_is_single_use():"
+    },
+    {
+      "path": "tests/unit/test_flow_phase1.py",
+      "exact_line": "def test_map_fast_path_propagates_early_close_to_upstream():"
+    },
+    {
+      "path": "GENIA_STATE.md",
+      "exact_line": "  - **Flow phase 1 and pipe mode** (`flow_phase_1`, `cli_pipe_mode`): lazy single-use Flow with `lines`, `evolve`, `map`/`filter`/`take`/`drop`/"
+    },
+    {
+      "path": "spec/flow/flow-map-filter-chain.yaml",
+      "exact_line": "    stdin |> lines |> map(trim) |> filter((line) -> line != \"\") |> collect"
+    }
+  ],
+  "review_focus": [
+    "Are callable/data-pipeline facts grounded and is compose(...) marked unimplemented?",
+    "Is the single-use and early-close risk stated without inventing replayability or execution results?",
+    "Does the analysis acknowledge existing stage error indexing and qualified C++ support?",
+    "Are missing compatibility experiments and approval gates listed without claiming a contract has been accepted?"
+  ]
+}
