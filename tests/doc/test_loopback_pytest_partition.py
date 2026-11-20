@@ -1,3 +1,5 @@
+"""Verify that socket-dependent tests stay in the loopback regression partition."""
+
 from __future__ import annotations
 
 import subprocess

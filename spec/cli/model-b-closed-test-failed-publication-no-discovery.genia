@@ -1,3 +1,4 @@
+# Native-test fixture for publication failure before discovery due to a non-string @doc value.
 @doc 7
 @test "bad doc"
-t() =: print("body")
+t() =: "Print a sentinel if the test body is invoked." print("body")

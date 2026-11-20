@@ -1,2 +1,4 @@
+# File-mode fixture for excluding a closed pattern-header main.
 print("loaded")
+@doc "Print a sentinel if the pattern clause is invoked."
 main(0) =: print("pattern main")

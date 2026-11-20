@@ -1,1 +1,2 @@
-main(args) =: print("closed main")
+# File-mode fixture for selecting a closed identifier-header main.
+main(args) =: "Print the file-mode entry point sentinel." print("closed main")

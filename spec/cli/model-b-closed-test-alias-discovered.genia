@@ -1,3 +1,4 @@
-t() =: 1 + 1
+# Native-test fixture for discovery through an annotated alias of a closed function.
+t() =: "Return the sum used by the annotated alias test." 1 + 1
 @test "adds"
 u = t
