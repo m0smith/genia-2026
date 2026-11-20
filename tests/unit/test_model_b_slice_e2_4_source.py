@@ -133,12 +133,12 @@ def test_direct_ir_forbidden_annotation_matches_source_and_runs_nothing(name):
 
 def test_t1_name_held_by_a_live_transaction_is_rejected_before_its_effects():
     env, printed = fresh_env()
-    env.set_host('inner', lambda: genia.run_source('print("inner-ran")\nf(x) =: x\n', env),
-                 visibility='runtime-public')
+    env.set_host('inner', lambda: genia.run_source(
+        '@meta ({m: print("inner-effect")})\nf(x) =: x\n', env), visibility='runtime-public')
     with pytest.raises(Exception) as caught:
         genia.run_source('@meta ({m: inner()})\nf(x) =: x\n', env)
     assert str(caught.value) == BOUND
-    assert printed == [], 'the second declaration is rejected before its own statements and effects'
+    assert printed == [], 'the second declaration is rejected before any of its annotation effects'
     with pytest.raises(NameError):
         env.get('f')
     genia.run_source('f(x) =: x\n', env)  # a failed owner released the name: reusable
@@ -205,28 +205,34 @@ def test_send_annotated_excludes_a_committed_closed_callable_whatever_its_metada
 
 
 def test_help_doc_meta_work_on_a_committed_closed_callable():
-    result = cli('-c', '@doc "adds one"\nf(x) =: x + 1\nprint(doc("f"))\nprint(meta("f").doc)\nhelp("f")\n')
+    result = cli('-c', '@doc "adds one"\nf(x) =: x + 1\nprint(doc("f"))\nm = meta("f")\nprint(m.doc)\nhelp("f")\n')
     assert result.returncode == 0 and result.stderr == ''
     lines = result.stdout.splitlines()
-    assert lines[:2] == ['adds one', 'adds one']
-    assert any(line.startswith('f/1') for line in lines[2:]) and 'adds one' in lines[2:]
+    assert lines[:2] == ['adds one', 'adds one']  # doc() and meta().doc
+    assert lines[2] == 'f/1' and 'adds one' in lines[3:]  # help shows shape and the doc
 
 
 def test_closed_main_selection_follows_the_ordinary_rule_in_file_mode(tmp_path):
     path = tmp_path / 'm.genia'
     path.write_text('main(args) =: print("closed main/1")\n', encoding='utf-8')
     result = cli(str(path))
-    assert (result.stdout, result.stderr, result.returncode) == ('closed main/1\n', '', 0)
+    # An ordinary main also prints the returned value (print returns its argument).
+    assert (result.stdout, result.stderr, result.returncode) == (
+        'closed main/1\n"closed main/1"\n', '', 0)
     path.write_text('main() =: print("closed main/0")\n', encoding='utf-8')
     result = cli(str(path))
-    assert (result.stdout, result.stderr, result.returncode) == ('closed main/0\n', '', 0)
+    assert (result.stdout, result.stderr, result.returncode) == (
+        'closed main/0\n"closed main/0"\n', '', 0)
 
 
 def test_pattern_header_closed_main_is_not_selected(tmp_path):
     path = tmp_path / 'm.genia'
     path.write_text('print("loaded")\nmain(0) =: print("pattern main")\n', encoding='utf-8')
     result = cli(str(path))
-    assert result.stdout == 'loaded\n' and result.returncode == 0 and result.stderr == ''
+    # Like the ordinary twin (`<function main/1>`), the final declaration value is shown and
+    # `main` is never called: 'pattern main' must not appear.
+    assert (result.stdout, result.stderr, result.returncode) == (
+        'loaded\n<closed-function main>\n', '', 0)
 
 
 def test_repl_never_selects_a_closed_main():
