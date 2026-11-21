@@ -570,7 +570,7 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   comparisons in `tests/unit/test_model_b_slice_c_optimizer_equivalence.py`, not a general proof.
 - Implementation: `GeniaFunctionGroup` holds ordered records, the arity table is a derived index, an
   `(module identity, defining name)` owner identifies the declaring binding, and
-  `src/genia/structural_key.py` is the one pure key walker. Closed `=:` functions and application lifecycle are not implemented.
+  `src/genia/structural_key.py` is the one pure key walker. Application lifecycle is not implemented.
 
 ### Ordinary linked views (D2; Python reference host)
 
@@ -594,7 +594,7 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   precedence is unchanged. View calls share matcher Outcome/stratum awareness and
   TCO; group-only prelude-name awareness and Flow-fusion special cases do not apply.
   Shared view dispatch does not pass debug hooks/internal_access into pattern-header
-  bodies; identifier-header records retain their own hooks. Closed publication is not implemented.
+  bodies; identifier-header records retain their own hooks.
 
 ## 8.6) R21 numeric source classification invariants (Experimental)
 

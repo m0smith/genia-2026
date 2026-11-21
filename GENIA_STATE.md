@@ -1132,7 +1132,7 @@ Core IR).
   explicit-R20 reflection precedence stays unchanged. Calls retain stratum
   Outcome awareness/TCO, without group-only prelude-name awareness or Flow-fusion
   special cases. Shared view dispatch does not pass debug hooks/internal_access
-  into pattern-header bodies; identifier records keep their hooks. Closed publication is unimplemented.
+  into pattern-header bodies; identifier records keep their hooks.
 - **Core IR.** Three new portable node types —
   `IrOpenFuncDef(name, clauses, docstring, annotations)`,
   `IrOpenContribution(target_module_alias, target_name, clauses)`, and
