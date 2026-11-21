@@ -152,8 +152,8 @@ Python details (`GENIA_STATE.md` section 3 is authoritative): diagnostics are
 `name is reserved by the runtime`. Import, `open` and `use` targets are checked
 before loading or linking. Direct route/server/CORS discovery rejects closed and
 pattern carriers and a `=:` annotated `@route`/`@server`/`@cors`; an ordinary `=:`
-is a plain statement there. Earlier statements' effects stand before an
-unimplemented declaration.
+is a plain statement there. Earlier statements' effects stand before a
+rejected declaration.
 
 The C++ adapter reports the new syntax outside its supported scope. Observations
 against a binary pinned to ancestor contract
@@ -172,4 +172,5 @@ The boundary is removed only after the bounded C++ parser/lowering implementatio
 passes the affected shared cases at a current contract revision. Until then, no
 C++ conformance or parity for these new carriers is claimed. C++ does not implement
 default-open dispatch or ordinary cross-module linking; Python implements explicit
-ordinary linking. Closed publication remains unimplemented on all hosts.
+ordinary linking. Closed publication executes on Python only (Experimental
+`closed_functions`); C++ declares it `unsupported`, a listed known gap.

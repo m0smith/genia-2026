@@ -50,7 +50,7 @@ re-exports reuse only exact original completion witnesses. This introduces no
 REPL command or public snapshot API. Explicit `use f from base with ext` selects
 frozen ordinary-base views; later selections/rebindings do not alter earlier views.
 It binds the exported name without renaming; dotted import aliases stay literal.
-Closed publication remains unimplemented.
+A committed closed export is not a link target.
 
 Run the REPL:
 

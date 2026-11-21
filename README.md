@@ -59,7 +59,8 @@ Python privately snapshots ordinary clauses/provenance and three B1 metadata
 channels at successful module completion. Live callables stay unchanged;
 re-exports reuse exact original completion witnesses. There is no public snapshot
 API. Explicit `use f from base with ext` selects frozen ordinary-base views;
-there is no rename-on-use, implicit contribution activation or closed publication.
+there is no rename-on-use or implicit contribution activation, and a committed
+closed export is not a link target.
 
 Start the REPL from a source checkout:
 
