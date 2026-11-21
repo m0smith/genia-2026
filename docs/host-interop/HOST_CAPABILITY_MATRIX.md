@@ -72,12 +72,14 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`1f33886606fc94dadab679ed56182a15ca503a4b`, the independently reviewed
-local guard/capture follow-up [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60),
-merged at `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`. It includes the earlier
-[#59](https://github.com/m0smith/genia-cpp/pull/59) comment compatibility and
-[#58](https://github.com/m0smith/genia-cpp/pull/58) repairs. It ignores # line
-comments outside strings, preserves diagnostic lines and keeps annotations unsupported.
+`7cf9356577ee8853b0a5b70c839a7cdebaaab0fa`. This is the genia-cpp #50 Model B Slice A parser/lowering candidate on
+branch `issue-50-model-b-slice-a-parser`. It builds on the reviewed
+[genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) guard/capture follow-up
+(merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`, source
+`1f33886606fc94dadab679ed56182a15ca503a4b`), which includes the earlier #59/#58 work.
+This selection must be re-pinned to the independently reviewed #50 merge SHA before
+this change merges. The candidate parses and lowers Slice A carriers, executes none
+of them, and accepts annotations only on those carriers.
 It preserves the earlier
 Cell/Process quiescence correction and repairs ordinary header capture,
 duplicate/alias rejection, inline metadata, fixed-arity accumulation, complete
@@ -155,22 +157,22 @@ pattern carriers and a `=:` annotated `@route`/`@server`/`@cors`; an ordinary `=
 is a plain statement there. Earlier statements' effects stand before a
 rejected declaration.
 
-The C++ adapter reports the new syntax outside its supported scope. Observations
-against a binary pinned to ancestor contract
-`6402e668ae85a1e7efe94b3ac3d51f233b730ca4` (43 parser/lowering cases: 5 PASS /
-38 UNSUPPORTED, including all five `IrPatErr`/`IrPatNamed` IR cases) are
-compatibility/gap observations, not current-contract conformance or parity.
-Required `parser`/`ast_lowering` obligations are not hidden behind optional
-capabilities: `spec/known_host_gaps.json` admits only optional-capability gaps,
-and an adapter's `unsupported` response (including for negative parse cases)
-remains an unmet syntax obligation, not a passing diagnostic. A green
-optional-capability gate does not certify it.
+C++ (genia-cpp #50, candidate above, declared contract
+`d005c89f852ee2d27682dade272eabfd158adf12`) parses and lowers the Slice A carriers.
+That includes `IrImmutableBind`, `IrClosedFuncDef`, `IrPatternFuncDef`, prefix
+annotations on those carriers, and `IrPatErr`/`IrPatNamed` in every position, with
+`IrPatSome.context` serialized only in headers. It reports the contract SyntaxErrors.
+Of the 43 `model-b-a-*` cases, 41 PASS and 2 are UNSUPPORTED. Those two are eval
+cases that contain no Model B syntax and need the unimplemented `nil` literal. The
+full shared suite gives 1146 total / 335 PASS / 0 FAIL / 811 UNSUPPORTED.
+Parsing is not execution: every Model B carrier is refused at evaluation.
+`spec/known_host_gaps.json` admits only optional-capability gaps, and an
+`unsupported` response remains an unmet obligation, not a passing diagnostic.
 
 Owner: m0smith integration owner and C++ implementer, tracked in
 [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
-The boundary is removed only after the bounded C++ parser/lowering implementation
-passes the affected shared cases at a current contract revision. Until then, no
-C++ conformance or parity for these new carriers is claimed. C++ does not implement
+The parser/lowering boundary is met at the candidate above. That is syntax
+conformance only: no C++ execution parity for these carriers is claimed. C++ does not implement
 default-open dispatch or ordinary cross-module linking; Python implements explicit
 ordinary linking. Closed publication executes on Python only (Experimental
 `closed_functions`); C++ declares it `unsupported`, a listed known gap.

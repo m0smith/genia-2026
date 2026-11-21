@@ -219,7 +219,8 @@ resolution stays host semantics. `IrPatSome.context` is the one position-depende
 field: it is serialized only inside `IrPatternFuncDef` headers, and omitted
 elsewhere to preserve the legacy wire. Shared cases `model-b-a-pattern-err*`,
 `model-b-a-pattern-named` and `model-b-a-legacy-lambda-*` pin both positions.
-C++ support for these carriers is not claimed (issue #1250 gap).
+C++ parses, lowers and validates these carriers and both positions (genia-cpp#50); it
+executes none of them.
 
 Legacy `IrFuncDef` wire fields remain unchanged. New absent annotations and
 guards are omitted, and spans are never serialized. Patterns/guards/annotations
@@ -234,6 +235,7 @@ clause (ordered group record, one shape stratum and first-match dispatch); `IrCl
 executes as one atomic group (Experimental, `closed_functions`) with no new Core IR node or version.
 This adds no linker state machine. Optimizers preserve the atomic group and retain a rewritten
 list-traversal declaration's original grouped case.
-C++ new-carrier support is not claimed; issue #1250 owns that follow-up.
+C++ parses and lowers the new carriers (genia-cpp#50) but declares no Model B execution
+capability; issue #1250 owns any execution follow-up.
 `core_ir_version` and R16 protocol stay unchanged; exact `contract_revision`
 continues to pin evidence. Syntax support implies no optional execution claim.

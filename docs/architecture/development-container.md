@@ -194,10 +194,12 @@ checkouts, then runs:
 6. the real shared conformance runner against `genia-adapter`
 
 Both this workflow and the host-parity workflow pin the C++ source checkout to
-`1f33886606fc94dadab679ed56182a15ca503a4b`, the independently reviewed
-guard/capture implementation in [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60)
-(merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`), including #59/#58.
-It retains line-comment compatibility, source provenance, annotation rejection,
+`7cf9356577ee8853b0a5b70c839a7cdebaaab0fa`, the genia-cpp #50 Model B Slice A parser/lowering candidate.
+It builds on the reviewed guard/capture implementation in
+[genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) (merge
+`fef41e58dcd3b80aaedcac98c92943fcfbfd1945`), including #59/#58. Re-pin it to the
+reviewed #50 merge SHA before merge.
+It retains line-comment compatibility, source provenance, annotation rejection (except parse/lower on Model B carriers),
 the earlier Cell/Process quiescence correction, function/REPL repairs and parser
 nesting safety. Bounded ordinary grouped-arm guards preserve header/arm capture;
 local explicit-R20 grouped headers remain nonbinding. Both preserve
