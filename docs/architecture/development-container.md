@@ -194,7 +194,7 @@ checkouts, then runs:
 6. the real shared conformance runner against `genia-adapter`
 
 Both this workflow and the host-parity workflow pin the C++ source checkout to
-`7cf9356577ee8853b0a5b70c839a7cdebaaab0fa`, the genia-cpp #50 Model B Slice A parser/lowering candidate.
+`a4673b77486bdb88d11b44235c7316aff4b553df`, the genia-cpp #50 Model B Slice A parser/lowering candidate.
 It builds on the reviewed guard/capture implementation in
 [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) (merge
 `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`), including #59/#58. Re-pin it to the

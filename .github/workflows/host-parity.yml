@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: m0smith/genia-cpp
-          ref: 7cf9356577ee8853b0a5b70c839a7cdebaaab0fa # genia-cpp #50 Model B Slice A parser/lowering candidate (re-pin to the reviewed merge SHA before merge)
+          ref: a4673b77486bdb88d11b44235c7316aff4b553df # genia-cpp #50 Model B Slice A parser/lowering candidate (re-pin to the reviewed merge SHA before merge)
           path: workspace/genia-cpp
 
       - name: Build development image
