@@ -35,7 +35,7 @@ Browser playground adapter note:
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | parser | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 floor + Model B Slice A) | Python parser/lowering live in `src/genia/interpreter.py`; C++ also parses/lowers the bounded Model B Slice A syntax |
 | AST lowering | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 floor + Model B Slice A) | Both lower through the portable Core IR boundary; C++ validates the new Slice A carriers |
-| minimal portable Core IR contract | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 subset) | Frozen in `docs/architecture/core-ir-portability.md`; host-local optimized nodes are excluded |
+| minimal portable Core IR contract | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 floor + Model B Slice A) | Frozen in `docs/architecture/core-ir-portability.md`; C++ supports the new Slice A carriers, not their execution |
 | Core IR eval | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Partial (R24 floor) | Python remains the full semantic reference host |
 | CLI file mode | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | `genia path/to/file.genia` |
 | `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | command mode |
