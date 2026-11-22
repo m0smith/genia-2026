@@ -73,7 +73,7 @@ Browser playground adapter note:
 
 The host-parity and Docker development-environment workflows select
 `0a119f67d92cb08c2feaf975610722a2fa7555c8`, the genia-cpp #50 merged Model B Slice A parser/lowering implementation
-(reviewed PR head `0502d436286c15157ff82ababa65727202432277`). It builds on the reviewed
+(reviewed PR head `0502d436286c110b19ebbeb796f07ed4119fb06f`). It builds on the reviewed
 [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) guard/capture follow-up
 (merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`, source
 `1f33886606fc94dadab679ed56182a15ca503a4b`), which includes the earlier #59/#58 work.
