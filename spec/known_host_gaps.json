@@ -7,7 +7,9 @@
       "reason": "Deferred out of R27 by E27-3 (docs/analysis/r27-http-server-decision.md): the HTTP server is a Python-host-only blocking bridge with no shared evidence route, and the bounded C++ host lacks import, annotations, a serve mode, and sockets.",
       "tracking_issue": "m0smith/genia-2026#1041",
       "affected_host": "cpp",
-      "affected_tests": ["HTTP server requires-gated shared specs (none exist yet)"],
+      "affected_tests": [
+        "HTTP server requires-gated shared specs (none exist yet)"
+      ],
       "removal_condition": "Remove only after a separate contract-first HTTP-server release defines portable shared evidence, genia-cpp declares http_server supported, and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -15,7 +17,9 @@
       "reason": "Deferred out of R27 by E27-4 (docs/analysis/r27-outbound-http-decision.md): outbound HTTP has no Genia surface of its own, needs host-minted R10 declassification authority and runner fixture plumbing the shared protocol lacks, and the bounded C++ host lacks import, protected values, lifecycle scopes, and sockets.",
       "tracking_issue": "m0smith/genia-2026#1043",
       "affected_host": "cpp",
-      "affected_tests": ["HTTP outbound transport requires-gated shared specs (none exist yet)"],
+      "affected_tests": [
+        "HTTP outbound transport requires-gated shared specs (none exist yet)"
+      ],
       "removal_condition": "Remove only after a separate contract-first outbound-HTTP release defines portable authority and fixture evidence, genia-cpp declares http_outbound_transport supported, and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -23,7 +27,9 @@
       "reason": "Host interop is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["allowlisted host-interop requires-gated shared specs"],
+      "affected_tests": [
+        "allowlisted host-interop requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares allowlisted_host_interop supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -48,7 +54,9 @@
       "reason": "Debugger/stdio bridge is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["debugger stdio requires-gated shared specs"],
+      "affected_tests": [
+        "debugger stdio requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares debugger_stdio supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -56,7 +64,9 @@
       "reason": "Shell-stage host interop is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["shell-stage requires-gated shared specs"],
+      "affected_tests": [
+        "shell-stage requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares shell_stage supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -64,7 +74,9 @@
       "reason": "Resource I/O is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["resource I/O requires-gated shared specs"],
+      "affected_tests": [
+        "resource I/O requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares resource_io supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -72,7 +84,9 @@
       "reason": "R10/R13 configuration and secrets are not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["configuration environment snapshot requires-gated shared specs"],
+      "affected_tests": [
+        "configuration environment snapshot requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares configuration_environment_snapshot supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -80,7 +94,9 @@
       "reason": "R10/R13 configuration and secrets are not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["configuration dotenv snapshot requires-gated shared specs"],
+      "affected_tests": [
+        "configuration dotenv snapshot requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares configuration_dotenv_snapshot supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -88,7 +104,9 @@
       "reason": "R11 AI composition is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["model deterministic fixture requires-gated shared specs"],
+      "affected_tests": [
+        "model deterministic fixture requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares model_deterministic_fixture supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -96,7 +114,9 @@
       "reason": "R11 AI composition is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["model Gemini REST requires-gated shared specs"],
+      "affected_tests": [
+        "model Gemini REST requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares model_gemini_rest supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -104,7 +124,9 @@
       "reason": "R12 retrieval and grounding is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["embedding deterministic fixture requires-gated shared specs"],
+      "affected_tests": [
+        "embedding deterministic fixture requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares embedding_deterministic_fixture supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -112,7 +134,9 @@
       "reason": "R12 retrieval and grounding is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["indexing deterministic fixture requires-gated shared specs"],
+      "affected_tests": [
+        "indexing deterministic fixture requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares indexing_deterministic_fixture supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -120,7 +144,9 @@
       "reason": "R12 retrieval and grounding is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["retrieval deterministic fixture requires-gated shared specs"],
+      "affected_tests": [
+        "retrieval deterministic fixture requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares retrieval_deterministic_fixture supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -128,7 +154,9 @@
       "reason": "R12 retrieval and grounding is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["reranking deterministic fixture requires-gated shared specs"],
+      "affected_tests": [
+        "reranking deterministic fixture requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares reranking_deterministic_fixture supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -136,7 +164,11 @@
       "reason": "Cross-module open-function contribution/selection is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["shared specs using eval.input.modules", "multi_file_eval requires-gated shared specs", "error-r20-use-dotted-from-not-rename"],
+      "affected_tests": [
+        "shared specs using eval.input.modules",
+        "multi_file_eval requires-gated shared specs",
+        "error-r20-use-dotted-from-not-rename"
+      ],
       "removal_condition": "Remove when genia-cpp declares multi_file_eval supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -144,7 +176,9 @@
       "reason": "External process execution is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
       "affected_host": "cpp",
-      "affected_tests": ["execution.process requires-gated shared specs"],
+      "affected_tests": [
+        "execution.process requires-gated shared specs"
+      ],
       "removal_condition": "Remove when genia-cpp declares execution_process supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
@@ -180,7 +214,7 @@
         "model-b-b-reserved-unloaded-prelude-name",
         "model-b-b-reserved-unregistered-prelude-helper"
       ],
-      "removal_condition": "Remove when genia-cpp lowers IrImmutableBind, enforces the shared immutable-binding policy, declares immutable_bindings supported, and the host parity gate reports the capability as PARITY_OK."
+      "removal_condition": "Remove when C++ enforces the shared immutable-binding policy, declares immutable_bindings supported, and the host parity gate reports the capability as PARITY_OK."
     },
     {
       "capability": "default_open_functions",
@@ -318,7 +352,7 @@
     },
     {
       "capability": "closed_functions",
-      "reason": "E2.4 (issue #1250) evaluates closed `f(...) =:` groups in the Python reference host: whole-group build, ordered annotation evaluation, one atomic publication, the committed/failed callable and its use rules. The bounded C++ host does not declare `closed_functions`, so every case that requires it reports unsupported, never PASS. The required C++ parse/lower obligation is tracked independently at m0smith/genia-cpp#50 and is not waived here. No C++ parity is claimed.",
+      "reason": "E2.4 (issue #1250) evaluates closed `f(...) =:` groups in the Python reference host: whole-group build, ordered annotation evaluation, one atomic publication, the committed/failed callable and its use rules. The bounded C++ host (genia-cpp#50, merged at 0a119f67d92cb08c2feaf975610722a2fa7555c8) parses, lowers and validates the closed-group carriers but refuses to evaluate them. It does not declare `closed_functions`, so every case that requires it reports unsupported, never PASS. The required C++ parse/lower obligation is met; closed publication execution remains a host gap under #1250. No C++ execution parity is claimed.",
       "tracking_issue": "m0smith/genia-2026#1250",
       "affected_host": "cpp",
       "affected_tests": [
