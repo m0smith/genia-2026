@@ -215,6 +215,15 @@ CTest is 9/9 PASS. The exact reviewed C++ head's hosted CI and code-documentatio
 workflows both completed SUCCESS. These results establish Slice A syntax and
 IR projection only, not Model B execution or Python/C++ execution parity.
 
+Historical #60 guard/capture evidence remains separate: its accepted candidate
+suite was 1,044 total / 295 PASS / 749 UNSUPPORTED; a prior 294 PASS / 1 FAIL /
+749 UNSUPPORTED run remains a historical failure. The R25 fixture admission race
+tracked in [#1299](https://github.com/m0smith/genia-2026/issues/1299) was reproduced
+at 34/30 failures per 1,000 requests and repaired through [#1301](https://github.com/m0smith/genia-2026/pull/1301),
+integrated by [#1270](https://github.com/m0smith/genia-2026/pull/1270). These are
+historical #60 records, not current #50 results; the current merged-source evidence
+is the 1,146 / 335 PASS / 0 FAIL / 811 UNSUPPORTED result above.
+
 This workflow proves the development image only. It does not replace the
 existing Python compatibility matrix or `genia-cpp`'s pinned conformance CI.
 
