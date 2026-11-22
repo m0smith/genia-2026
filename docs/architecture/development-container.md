@@ -195,7 +195,7 @@ checkouts, then runs:
 
 Both this workflow and the host-parity workflow pin the C++ source checkout to
 the merged genia-cpp #50 revision `0a119f67d92cb08c2feaf975610722a2fa7555c8` (reviewed PR head
-`0502d436286c15157ff82ababa65727202432277`). This is the bounded Model B Slice A parser/lowering implementation,
+`0502d436286c110b19ebbeb796f07ed4119fb06f`). This is the bounded Model B Slice A parser/lowering implementation,
 built on the reviewed guard/capture work in
 [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) (merge
 `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`), including #59/#58.
