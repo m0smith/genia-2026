@@ -149,7 +149,7 @@
     },
     {
       "capability": "immutable_bindings",
-      "reason": "The bounded C++ host parses and lowers `=:` to IrImmutableBind (genia-cpp#50) but refuses to evaluate it and has no Env binding-policy enforcement (Model B Slice B). Python is the reference implementation; this is an honest optional-capability gap, not parity.",
+      "reason": "The bounded C++ host parses and lowers `=:` to IrImmutableBind (genia-cpp#50, merged at 0a119f67d92cb08c2feaf975610722a2fa7555c8) but refuses to evaluate it and has no Env binding-policy enforcement (Model B Slice B). Python is the reference implementation; this is an honest optional-capability gap, not parity.",
       "tracking_issue": "m0smith/genia-2026#1261",
       "affected_host": "cpp",
       "affected_tests": [
