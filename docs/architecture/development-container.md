@@ -194,37 +194,26 @@ checkouts, then runs:
 6. the real shared conformance runner against `genia-adapter`
 
 Both this workflow and the host-parity workflow pin the C++ source checkout to
-`a4673b77486bdb88d11b44235c7316aff4b553df`, the genia-cpp #50 Model B Slice A parser/lowering candidate.
-It builds on the reviewed guard/capture implementation in
+the merged genia-cpp #50 revision `0a119f67d92cb08c2feaf975610722a2fa7555c8` (reviewed PR head
+`0502d436286c15157ff82ababa65727202432277`). This is the bounded Model B Slice A parser/lowering implementation,
+built on the reviewed guard/capture work in
 [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) (merge
-`fef41e58dcd3b80aaedcac98c92943fcfbfd1945`), including #59/#58. Re-pin it to the
-reviewed #50 merge SHA before merge.
-It retains line-comment compatibility, source provenance, annotation rejection (except parse/lower on Model B carriers),
-the earlier Cell/Process quiescence correction, function/REPL repairs and parser
-nesting safety. Bounded ordinary grouped-arm guards preserve header/arm capture;
-local explicit-R20 grouped headers remain nonbinding. Both preserve
-once-per-attempt evaluation, error order and guard-sensitive duplicate keys;
-nested lambda-arm capture is tested.
-Default-open/pattern-header support, varargs and module linking are not added.
-No capability changes. Changing that
-source pin does not change the adapter's declared semantic contract revision,
-`6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. A run against newer main remains
-compatibility evidence; exact-contract conformance requires that declared
-contract checkout. The pin itself makes no validation-result claim.
-
-The accepted #60 candidate-suite run is 1,044 total / 295 PASS / 749 UNSUPPORTED,
-with all failure classes zero. Preserve the separate failing run (294 PASS /
-1 FAIL / 749 UNSUPPORTED) and independently reproduced R25 fixture race in
-[#1299](https://github.com/m0smith/genia-2026/issues/1299): prior/new binaries
-failed 34/30 of 1,000 stress requests. The separate admission-order fixture
-repair in [#1301](https://github.com/m0smith/genia-2026/pull/1301), integrated by
-[#1270](https://github.com/m0smith/genia-2026/pull/1270), gates handler failure
-on an unset Ref until all sends return. Expected results and runtime semantics
-are unchanged; historical failures remain evidence. Post-merge
-[parity](https://github.com/m0smith/genia-2026/actions/runs/41089720060) at
-`09804b565a30c2995a7d045d74faf8e880994ff4` records 295 PASS / 749 UNSUPPORTED
-with zero actual failure classes. A source pin or a green image alone does not
-certify fixture determinism or final semantic-foundation acceptance.
+`fef41e58dcd3b80aaedcac98c92943fcfbfd1945`), including #59/#58.
+It retains line-comment compatibility, source provenance, annotation rejection
+outside Model B carriers, the earlier Cell/Process quiescence correction,
+function/REPL repairs and parser nesting safety. Bounded ordinary grouped-arm
+guards preserve header/arm capture; local explicit-R20 grouped headers remain
+nonbinding. Both preserve once-per-attempt evaluation, error order and
+guard-sensitive duplicate keys; nested lambda-arm capture is tested.
+Default-open execution, ordinary pattern/guard function execution, varargs and
+module linking are not added. No capability changes. The merged C++ source
+declares semantic contract revision `d005c89f852ee2d27682dade272eabfd158adf12`.
+At that revision, the shared corpus is 1,146 total / 335 PASS / 0 FAIL /
+811 UNSUPPORTED; all 43 Model B Slice A cases are accounted for (41 PASS,
+2 UNSUPPORTED eval cases requiring the separate `nil` literal support).
+CTest is 9/9 PASS. The exact reviewed C++ head's hosted CI and code-documentation
+workflows both completed SUCCESS. These results establish Slice A syntax and
+IR projection only, not Model B execution or Python/C++ execution parity.
 
 This workflow proves the development image only. It does not replace the
 existing Python compatibility matrix or `genia-cpp`'s pinned conformance CI.
