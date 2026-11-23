@@ -1,0 +1,25 @@
+name: model-b-closed-test-wrong-arity-discovery-error
+id: model-b-closed-test-wrong-arity-discovery-error
+category: cli
+description: "A committed closed @test function with arity 1 is a discovery error and its body never runs."
+requires:
+  - closed_functions
+input:
+  source: "spec/cli/model-b-closed-test-wrong-arity-discovery-error.genia"
+  file: null
+  command: null
+  test: "spec/cli/model-b-closed-test-wrong-arity-discovery-error.genia"
+  stdin: ''
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    total=1 passed=0 failed=0 errored=1
+    ERROR t phase=discovery reason=@test functions must take zero arguments
+    total=1 passed=0 failed=0 errored=1
+  stderr: ''
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

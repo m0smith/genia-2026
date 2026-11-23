@@ -1,3 +1,5 @@
+"""Verify that socket-dependent tests stay in the loopback regression partition."""
+
 from __future__ import annotations
 
 import subprocess
@@ -25,6 +27,7 @@ EXPECTED_LOOPBACK_TESTS = {
     "tests/unit/test_http_server_client_composition.py::test_request_handler_outbound_call_failure_does_not_stop_server",
     "tests/unit/test_http_server_client_composition.py::test_request_handler_makes_two_sequential_outbound_calls",
     "tests/unit/test_http_server_client_composition.py::test_request_handler_using_send_annotated_composes_too",
+    "tests/unit/test_model_b_slice_e2_4_host_local.py::test_l5_real_serve_http_request_cannot_use_provisional_callable",
     "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_multiple_references_produce_structured_response_via_real_server",
     "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_upstream_failure_produces_deterministic_error_without_killing_server",
     "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_connect_refused_upstream_is_a_deterministic_error_not_a_crash",

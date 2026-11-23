@@ -16,8 +16,10 @@ same-name declarations accumulate in declaration order into one group that
 aliases share, a call selects the fixed or sole varargs shape and then the first
 matching clause, equal pattern/guard keys are duplicates, and declaring through
 an alias or imported binding is rejected with `function-declaration-not-owner`.
-Atomic closed-function clause groups (`f(...) =: body`) are accepted and
-lowered, but their evaluation fails with `model-b-not-implemented`; closed publication remains unimplemented. Python
+Atomic closed-function clause groups (`f(...) =: body`) execute on Python (Experimental, capability
+`closed_functions`): the name, annotation names and whole group validate before any annotation runs, annotations then
+run in order and publication is one atomic commit; a failed publication leaves a failed callable that can be passed
+but not used, and no clause is added through any binding. See `GENIA_STATE.md` Model B declarations. Python
 supports explicit completed ordinary-base `extend`/`use`. Explicit R20 views
 share cross-unit validation and canonical ordering; reflection stays unchanged. C++ supports guards inside ordinary grouped bodies (with header capture) and
 local explicit-R20 clauses (whose grouped headers remain nonbinding), with
@@ -27,8 +29,10 @@ Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
 See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
-Private Python E2.2 guarded slots reserve names and enforce admission/metadata
-visibility; they do not execute closed declarations or publish functions.
+Python source and direct Core IR closed declarations run T0-T7 (`GENIA_STATE.md`, section 3): the
+declaration's own synchronous annotation calls may invoke the unpublished callable, while every
+other use and all `doc`/`meta`/`help` reflection are rejected until commit. A post-commit fault
+rolls forward, and one lock-acquisition or cleanup fault in a publication step is recovered.
 
 
 Python D1 module completion owns private detached ordinary clause/provenance
@@ -36,7 +40,7 @@ snapshots. B1 captures the original local-slot metadata/doc with the original
 callable's inline fallback, separately from its shared help. Exact original
 completion witnesses support re-export reuse; owner text alone confers none.
 D1 snapshots stay private; D2 explicitly selects ordinary linked views from
-these witnesses. Closed-function publication remains unimplemented.
+these witnesses. Closed groups are not link targets.
 
 ## 1) Expression vs case grammar separation
 
@@ -566,7 +570,7 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   comparisons in `tests/unit/test_model_b_slice_c_optimizer_equivalence.py`, not a general proof.
 - Implementation: `GeniaFunctionGroup` holds ordered records, the arity table is a derived index, an
   `(module identity, defining name)` owner identifies the declaring binding, and
-  `src/genia/structural_key.py` is the one pure key walker. Closed `=:` functions and application lifecycle are not implemented.
+  `src/genia/structural_key.py` is the one pure key walker. Application lifecycle is not implemented.
 
 ### Ordinary linked views (D2; Python reference host)
 
@@ -590,7 +594,7 @@ parameter list or any R20 tuple pattern with an optional `? guard`.
   precedence is unchanged. View calls share matcher Outcome/stratum awareness and
   TCO; group-only prelude-name awareness and Flow-fusion special cases do not apply.
   Shared view dispatch does not pass debug hooks/internal_access into pattern-header
-  bodies; identifier-header records retain their own hooks. Closed publication is not implemented.
+  bodies; identifier-header records retain their own hooks.
 
 ## 8.6) R21 numeric source classification invariants (Experimental)
 

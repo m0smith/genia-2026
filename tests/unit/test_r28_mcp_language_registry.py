@@ -179,11 +179,10 @@ def _probe_supported_forms_evaluate():
 
 
 def _probe_open_clause_rule():
-    """Pattern clauses execute with or without `open` (Slice C); closed functions still reject."""
+    """Pattern clauses execute with or without `open` (Slice C); closed functions execute (E2.4)."""
     assert _direct("open gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)") == 6
     assert _direct("gcd(a, 0) = a\ngcd(a, b) = gcd(b, a % b)\ngcd(48, 18)") == 6
-    with pytest.raises(RuntimeError, match="model-b-not-implemented"):
-        _direct("f(0) =: 1")
+    assert repr(_direct("f(0) =: 1")) == "<closed-function f>"
 
 
 def _probe_validated_pipeline_evaluates():

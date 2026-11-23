@@ -1,0 +1,20 @@
+name: model-b-closed-conflicting-docstring
+id: model-b-closed-conflicting-docstring
+category: error
+description: "Conflicting inline documentation is reported before any annotation runs."
+requires:
+  - closed_functions
+input:
+  source: |
+    f(x) =: "a" x
+    @meta ({m: print("sentinel")})
+    f(x, y) =: "b" x
+expected:
+  stdout: ''
+  stderr: |
+    Error: Conflicting docstrings for function f: got 'b', expected 'a'
+  exit_code: 1
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

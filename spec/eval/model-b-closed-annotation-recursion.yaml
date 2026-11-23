@@ -1,0 +1,24 @@
+name: model-b-closed-annotation-recursion
+id: model-b-closed-annotation-recursion
+category: eval
+description: "An annotation calls the function recursively."
+requires:
+  - closed_functions
+  - default_open_functions
+  - doc_help
+input:
+  source: |
+    depth(0) =: 0
+    @meta ({probe: depth(2)})
+    depth(n) =: 1 + depth(n - 1)
+    m = meta("depth")
+    m.probe
+expected:
+  stdout: |
+    2
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

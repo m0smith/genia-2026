@@ -52,6 +52,7 @@ if __package__ in (None, ""):
         OpenFunctionDuplicateSelectionError, OpenFunctionIncompatibleContributionError,
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
+    from genia.closed_publication import _PublicationTransaction, _run_publication
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
     from genia.numeric_runtime import GeniaDecimal, exact_divide, exact_remainder, is_exact_numeric, is_mixed_exact_and_float64
     from genia.numeric_source import numeric_literal_payload, numeric_literal_runtime_value
@@ -97,6 +98,7 @@ else:
         OpenFunctionDuplicateSelectionError, OpenFunctionIncompatibleContributionError,
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
+    from .closed_publication import _PublicationTransaction, _run_publication
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
     from .numeric_runtime import GeniaDecimal, exact_divide, exact_remainder, is_exact_numeric, is_mixed_exact_and_float64
     from .numeric_source import numeric_literal_payload, numeric_literal_runtime_value
@@ -1409,8 +1411,8 @@ class Evaluator:
             assert_portable_core_ir([node])
             if isinstance(node, IrPatternFuncDef):
                 return self._eval_function_declaration(node)
-            if not isinstance(node, IrImmutableBind):
-                raise RuntimeError("model-b-not-implemented: declaration evaluation is not available")
+            if isinstance(node, IrClosedFuncDef):
+                return self._eval_closed_declaration(node)
             return self._eval_immutable_bind(node)
         if isinstance(node, IrShellStage):
             raise SyntaxError("shell stage $(...) is only valid as a pipeline stage")
@@ -1714,6 +1716,68 @@ class Evaluator:
             self._reject_http_annotation_metadata_replacement(node.name, metadata)
             self.env.merge_binding_metadata(node.name, metadata)
         return fn
+
+    # Annotation names a closed group may carry (design 5.1). Names are static in Core IR,
+    # so the scan below runs no user code and gives direct IR callers the source rejection.
+    _CLOSED_PERMITTED_ANNOTATIONS = frozenset({"doc", "meta", "since", "deprecated", "category", "test"})
+
+    def _eval_closed_declaration(self, node: IrClosedFuncDef) -> GeniaClosedFunction:
+        """Evaluate one closed group (Slice E design 4, T1-T7); T0 already ran in `_eval_impl`.
+
+        T1 checks the name, T2 scans annotation names of the whole group in source order, and
+        T3 builds the callable, its guarded records, descriptor and self frame privately; none of
+        them evaluates user code. T4-T7 belong to the private `_run_publication` driver, which
+        evaluates annotations in the self frame inside the admission window, publishes with one
+        linearization point or fails the callable, and releases every provisional reservation.
+        The value is the committed callable, never a clause record; effects of annotations are
+        never rolled back.
+        """
+        name = node.name
+        self.env._check_declaration(name)
+        for declaration in node.declarations:
+            for annotation in declaration.annotations:
+                if annotation.name not in self._CLOSED_PERMITTED_ANNOTATIONS:
+                    raise RuntimeError(
+                        f"closed-function-annotation-not-permitted: @{annotation.name} "
+                        f"is not permitted on closed function {name}"
+                    )
+        records = [self._closed_clause_record(declaration) for declaration in node.declarations]
+        group = GeniaClosedFunction._with_self_frame(name, records, self.env)
+        transaction = _PublicationTransaction(group)
+
+        def evaluate_annotations(frame: Env) -> GeniaMap:
+            """Fold each clause's permitted annotations, in group order, in the self frame."""
+            inner = Evaluator(frame, debug_hooks=self.debug_hooks, debug_mode=self.debug_mode)
+            metadata = GeniaMap()
+            for declaration in node.declarations:
+                if declaration.annotations:
+                    metadata = _merge_metadata_maps(
+                        metadata,
+                        inner.eval_annotations(
+                            declaration.annotations, target_name=name, target_kind="function",
+                        ),
+                    )
+            return metadata
+
+        return _run_publication(transaction, evaluate_annotations)
+
+    def _closed_clause_record(self, node: "IrFuncDef | IrPatternFuncDef") -> GeniaFunction:
+        """Build one clause record of a closed group; the self-frame builder re-closes it."""
+        if isinstance(node, IrPatternFuncDef):
+            items = node.pattern.items
+            rest = None
+            if items and isinstance(items[-1], IrPatRest):
+                rest = items[-1].name or ""
+            return GeniaFunction(
+                node.name, [], rest, None, node.body, self.env, span=node.span,
+                debug_hooks=self.debug_hooks, debug_mode=self.debug_mode,
+                internal_access=self.env.internal_access, pattern=node.pattern, guard=node.guard,
+            )
+        return GeniaFunction(
+            node.name, node.params, node.rest_param, node.docstring, node.body, self.env,
+            span=node.span, debug_hooks=self.debug_hooks, debug_mode=self.debug_mode,
+            internal_access=self.env.internal_access,
+        )
 
     def _eval_immutable_bind(self, node: IrImmutableBind) -> Any:
         """Declare a fresh immutable binding in the current lexical scope (Model B Slice B).

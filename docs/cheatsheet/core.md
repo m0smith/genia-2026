@@ -12,8 +12,9 @@ capability `immutable_bindings`; no C++ support): a fresh name in the current
 scope, rejected before its initializer if the name is already bound there or (at entry
 scope only) is runtime-owned, and later `name = ...` fails before evaluating the right-hand side.
 Ordinary pattern/guard headers execute on the Python host as default-open clauses
-(declaration order, first match). Closed `f(x) =: body` functions are
-**parse/lower only**: evaluation rejects with `model-b-not-implemented`.
+(declaration order, first match). Closed `f(x) =: body` groups also execute on Python (Experimental
+`closed_functions`; no C++ support): one atomic publication, and the committed
+callable renders `<closed-function f>`.
 
 <!-- [case: core-immutable-binding-shallow] -->
 ```genia

@@ -708,7 +708,7 @@ Pipeline (Phase 2) evaluation model:
   execution (an exact argv, no shell, no PATH search) under a portable
   contract currently implemented by Python. Neither wraps or replaces the
   other.
-### Model B declarations (Partial: `=:` and default-open functions execute; closed forms parse/lower only)
+### Model B declarations (Partial: `=:`, default-open and closed functions execute on Python)
 
 LANGUAGE CONTRACT: `name =: expr` lowers to `IrImmutableBind`; consecutive
 same-name `f(...) =: body` clauses form one ordered `IrClosedFuncDef`.
@@ -736,18 +736,17 @@ shallow: Ref/Cell mutation, parameter assignment and entry write-through are unc
 PYTHON REFERENCE HOST: Env enforces `=:` under a lock never held across user code.
 Pattern/guard declarations execute as default-open clauses (`default_open_functions`,
 `GENIA_RULES.md` 8.5.1): first match in declaration order, duplicate keys rejected,
-alias or imported declarations fail with `function-declaration-not-owner`. Closed `f(...) =: body` evaluation fails with
-`model-b-not-implemented` before initializer/annotation/guard/body effects.
+alias or imported declarations fail with `function-declaration-not-owner`.
 Module completion privately captures detached ordinary clauses/provenance, defining-slot
 metadata/doc (G-inline fallback) and independent G help.
 Exact-callable witnesses preserve re-exports; incomplete origins confer none.
 Capture/cache publication synchronizes with writers; live calls are unchanged.
-Python explicitly links completed ordinary interfaces (section 4.7).
-Private Python supports sealed callables/guarded records, opaque failed rendering,
-E2.1 invocation admission and E2.2 guarded slots, immutable-name reservations and an
-identity-based open-transaction set. Closed source, live annotations and publication
-remain unavailable.
-Unfinished `=:` keeps REPL input incomplete; completed submissions end groups. C++ supports bounded grouped-arm/local-R20 guards; `=:` (#1261) and default-open (#1269) remain unsupported.
+PYTHON REFERENCE HOST (Experimental `closed_functions`; C++ unsupported): a closed group validates name,
+annotations (`@doc`/`@meta`/`@since`/`@deprecated`/`@category`/`@test`) and clauses first, then atomically publishes a sealed callable
+(`<closed-function f>`). Meanwhile only its synchronous annotation calls may invoke it; other use,
+`doc`/`meta`/`help` give `closed-function-not-yet-published`. A failed publication leaves a passable, unusable callable
+(`closed-function-failed-publication`). Alias clauses give `closed-function-not-extensible`; the defining name, the immutable-binding error.
+Unfinished `=:` keeps REPL input incomplete. C++ (genia-cpp#50) parses/lowers/validates Slice A; `=:` and default-open execution remain unsupported; guards: grouped-arm/local-R20 only.
 
 ## 4) Functions and dispatch
 
@@ -1129,7 +1128,7 @@ Core IR).
   explicit-R20 reflection precedence stays unchanged. Calls retain stratum
   Outcome awareness/TCO, without group-only prelude-name awareness or Flow-fusion
   special cases. Shared view dispatch does not pass debug hooks/internal_access
-  into pattern-header bodies; identifier records keep their hooks. Closed publication is unimplemented.
+  into pattern-header bodies; identifier records keep their hooks.
 - **Core IR.** Three new portable node types —
   `IrOpenFuncDef(name, clauses, docstring, annotations)`,
   `IrOpenContribution(target_module_alias, target_name, clauses)`, and
@@ -3616,7 +3615,7 @@ PYTHON REFERENCE HOST (MCP adapter):
   `name`, `control_flow`, `supported_forms`, `absent_forms`, `patterns`, `idioms`,
   `examples` and `discovery`. Executable `gcd` and `factorial` examples return `6`
   and `120`. `idioms.clauses` runs pattern clauses by default; `name =: expr` executes (section 3);
-  closed `f(...) =: body` rejects evaluation with `model-b-not-implemented`.
+  closed `f(...) =: body` executes on Python.
 - `idioms.pipelines`, `idioms.outcomes` and `idioms.flow` restate sections 2, 3,
   5 and 6: validated pipelines, Outcome lifting/short-circuiting and explicit
   recovery, lazy single-use Flow, bounded terminals and explicit stdin adaptation.

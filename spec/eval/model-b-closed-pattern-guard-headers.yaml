@@ -1,0 +1,27 @@
+name: model-b-closed-pattern-guard-headers
+id: model-b-closed-pattern-guard-headers
+category: eval
+description: "Pattern and guard headers dispatch in source order as for ordinary functions."
+requires:
+  - closed_functions
+  - default_open_functions
+input:
+  source: |
+    f(0) =: "zero"
+    f(n) ? n > 0 =: "pos"
+    f(n) =: "other"
+    print(f(0))
+    print(f(7))
+    print(f(-3))
+expected:
+  stdout: |
+    zero
+    pos
+    other
+    "other"
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

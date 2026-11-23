@@ -1,0 +1,23 @@
+name: model-b-closed-annotation-reaches-later-clause
+id: model-b-closed-annotation-reaches-later-clause
+category: eval
+description: "An annotation on clause 1 dispatches to clause 2."
+requires:
+  - closed_functions
+  - doc_help
+input:
+  source: |
+    @meta ({probe: f(1, 2)})
+    f(x) =: x
+    f(x, y) =: x + y
+    m = meta("f")
+    m.probe
+expected:
+  stdout: |
+    3
+  stderr: ''
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

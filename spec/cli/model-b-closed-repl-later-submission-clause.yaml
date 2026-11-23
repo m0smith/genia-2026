@@ -1,0 +1,31 @@
+name: model-b-closed-repl-later-submission-clause
+id: model-b-closed-repl-later-submission-clause
+category: cli
+description: "A later REPL submission cannot add a clause; the first group still works."
+requires:
+  - closed_functions
+  - repl
+input:
+  source: |-
+    f(x) =: x
+    f(x, y) = y
+    f(4)
+  file: null
+  command: null
+  stdin: |-
+    f(x) =: x
+    f(x, y) = y
+    f(4)
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    <closed-function f>
+    4
+  stderr: |-
+    Error: Cannot rebind immutable binding: f
+  exit_code: 0
+notes: |
+  Kind: Model B Slice E2.4 future-behavior case (fails until E2.4 GREEN) unless noted in the RED evidence.
+  Oracle: contract-derived from the approved Slice E design (docs/design/pre-r29-model-b-slice-e-closed-publication-design.md)
+  sections 4, 5, 7 and 10.2; diagnostics that already exist for ordinary declarations were taken from the existing host.

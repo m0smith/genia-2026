@@ -31,9 +31,11 @@ same-name declarations accumulate in declaration order into one group that
 aliases share, a call selects the fixed or sole varargs shape and then the first
 matching clause, equal pattern/guard keys are duplicates, and declaring through
 an alias or imported binding is rejected with `function-declaration-not-owner`.
-Atomic closed-function clause groups (`f(...) =: body`) are accepted and
-lowered, but their evaluation fails with `model-b-not-implemented`;
-closed publication remains unimplemented. Python supports explicit ordinary-base
+Atomic closed-function clause groups (`f(...) =: body`) execute on Python (Experimental, capability
+`closed_functions`): the name, annotation names and whole group validate before any annotation runs, annotations then
+run in order and publication is one atomic commit; a failed publication leaves a failed callable that can be passed
+but not used, and no clause is added through any binding. See `GENIA_STATE.md` Model B declarations.
+Python supports explicit ordinary-base
 `extend`/`use` through completed-module witnesses; selection freezes clauses and
 metadata and validates cross-unit keys/shapes. Explicit R20 views share that
 validation and canonical contributor order; their reflection precedence is unchanged.
@@ -45,8 +47,10 @@ Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
 See `GENIA_STATE.md`, section 3, for the grammar and grouping boundary.
-Private Python E2.2 guarded slots reserve names and enforce admission/metadata
-visibility; they do not execute closed declarations or publish functions.
+Python source and direct Core IR closed declarations run T0-T7 (`GENIA_STATE.md`, section 3): the
+declaration's own synchronous annotation calls may invoke the unpublished callable, while every
+other use and all `doc`/`meta`/`help` reflection are rejected until commit. A post-commit fault
+rolls forward, and one lock-acquisition or cleanup fault in a publication step is recovered.
 
 
 ## Quick start
@@ -55,7 +59,8 @@ Python privately snapshots ordinary clauses/provenance and three B1 metadata
 channels at successful module completion. Live callables stay unchanged;
 re-exports reuse exact original completion witnesses. There is no public snapshot
 API. Explicit `use f from base with ext` selects frozen ordinary-base views;
-there is no rename-on-use, implicit contribution activation or closed publication.
+there is no rename-on-use or implicit contribution activation, and a committed
+closed export is not a link target.
 
 Start the REPL from a source checkout:
 
@@ -974,7 +979,7 @@ fact(5)
   Selection rejects equal keys or conflicting fixed/varargs shapes across units,
   including explicit R20 views. No rename-on-use or import-driven activation.
 - C++ does not support these forms (known gaps `default_open_functions` and
-  `multi_file_eval`); closed `f(...) =: body` publication remains unimplemented.
+  `multi_file_eval`); closed `f(...) =: body` groups execute on Python only (capability `closed_functions`).
 
 ### Open functions (Experimental, R20)
 

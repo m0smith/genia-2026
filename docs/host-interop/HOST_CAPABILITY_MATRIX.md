@@ -33,9 +33,9 @@ Browser playground adapter note:
 
 | Capability | Python | Node.js | Java | Rust | Go | C++ | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| parser | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 subset) | Python parser/lowering live in `src/genia/interpreter.py`; C++ supports its declared floor |
-| AST lowering | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 subset) | Both lower through the portable Core IR boundary |
-| minimal portable Core IR contract | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 subset) | Frozen in `docs/architecture/core-ir-portability.md`; host-local optimized nodes are excluded |
+| parser | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 floor + Model B Slice A) | Python parser/lowering live in `src/genia/interpreter.py`; C++ also parses/lowers the bounded Model B Slice A syntax |
+| AST lowering | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 floor + Model B Slice A) | Both lower through the portable Core IR boundary; C++ validates the new Slice A carriers |
+| minimal portable Core IR contract | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 floor + Model B Slice A) | Frozen in `docs/architecture/core-ir-portability.md`; C++ supports the new Slice A carriers, not their execution |
 | Core IR eval | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Partial (R24 floor) | Python remains the full semantic reference host |
 | CLI file mode | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | `genia path/to/file.genia` |
 | `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | command mode |
@@ -73,47 +73,32 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`1f33886606fc94dadab679ed56182a15ca503a4b`, the independently reviewed
-local guard/capture follow-up [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60),
-merged at `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`. It includes the earlier
-[#59](https://github.com/m0smith/genia-cpp/pull/59) comment compatibility and
-[#58](https://github.com/m0smith/genia-cpp/pull/58) repairs. It ignores # line
-comments outside strings, preserves diagnostic lines and keeps annotations unsupported.
-It preserves the earlier
-Cell/Process quiescence correction and repairs ordinary header capture,
-duplicate/alias rejection, inline metadata, fixed-arity accumulation, complete
-semicolon-separated REPL submissions and parser-depth safety. No capability,
-protocol or language semantics are added. Ordinary grouped-arm guards and local
-explicit-R20 guards use the bounded expression subset. Ordinary header bindings
-are visible before arm-local shadowing; guards run once after a pattern match,
-in source order, and errors stop dispatch. Guard-sensitive duplicate keys retain
-alpha-normalized pattern/lambda references. Explicit-open grouped arms still
-refuse free header capture in guards/results. Nested lambda-arm header capture
-is demonstrated; this is not ordinary pattern/guard-header or default-open support.
+`0a119f67d92cb08c2feaf975610722a2fa7555c8`, the genia-cpp #50 merged Model B Slice A parser/lowering implementation
+(reviewed PR head `0502d436286c110b19ebbeb796f07ed4119fb06f`). It builds on the reviewed
+[genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) guard/capture follow-up
+(merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`, source
+`1f33886606fc94dadab679ed56182a15ca503a4b`), which includes the earlier #59/#58 work.
+The merged C++ tree parses, lowers and validates Slice A carriers, executes none
+of them, and accepts annotations only on those carriers. It preserves the earlier
+Cell/Process quiescence correction, function/REPL repairs and parser-depth safety.
+No Model B execution capability is declared.
 
-Accepted #60 candidate-suite evidence is **1,044 total / 295 PASS / 749 UNSUPPORTED**
-with all actual failure classes zero in that run; only `pattern-guard-pass` and
-`pattern-guard-skip` become passing relative to the earlier 293/751 result.
-The R25 fixture admission race tracked in [#1299](https://github.com/m0smith/genia-2026/issues/1299)
-was repaired through [#1301](https://github.com/m0smith/genia-2026/pull/1301) and
-integrated into main by [#1270](https://github.com/m0smith/genia-2026/pull/1270).
-An unset Ref gates handler failure until all expected sends return; FIFO,
-queued-message discard, the original expected output and post-failure send
-rejection are preserved. No runtime or capability changed.
-Historical evidence remains: 294 PASS / 1 FAIL / 749 UNSUPPORTED in one full
-run, and 34/30 failures per 1,000 requests on the prior/#60 binaries.
-Post-merge [parity](https://github.com/m0smith/genia-2026/actions/runs/41089720060)
-at authority commit `09804b565a30c2995a7d045d74faf8e880994ff4` records
-1,044 total / 295 PASS / 749 UNSUPPORTED and zero actual failure classes.
-Individual issue acceptance and the separate semantic-foundation/R29 gate are
-recorded in #1299 and [#1251](https://github.com/m0smith/genia-2026/issues/1251).
+The merged C++ source declares contract revision
+`d005c89f852ee2d27682dade272eabfd158adf12`. At that revision, 41 of 43
+`model-b-a-*` cases PASS; two eval cases remain UNSUPPORTED because they require
+the separate, unimplemented `nil` literal. The full shared corpus is 1,146 total /
+335 PASS / 0 FAIL / 811 UNSUPPORTED. CTest is 9/9 PASS; exact reviewed-head
+hosted CI and code-documentation workflows both completed SUCCESS. These are
+syntax/IR-projection results only. Unsupported is not PASS, and no C++ Model B
+execution parity is claimed.
 
-The source revision is distinct from the adapter's declared semantic contract
-revision, `6402e668ae85a1e7efe94b3ac3d51f233b730ca4`. Runs using a newer
-`genia-2026` checkout provide ancestor-contract compatibility evidence, not
-exact-contract conformance or satisfaction of required Model B syntax gaps.
-Historical release counts above and below retain their original scope; selecting
-this source revision alone is not evidence of a passing workflow.
+Owner: m0smith integration owner and C++ implementer, tracked in
+[genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
+The parser/lowering boundary is met at merged revision `0a119f67d92cb08c2feaf975610722a2fa7555c8`. C++ still
+does not implement immutable-binding execution, default-open dispatch, closed
+publication or ordinary cross-module linking. Python implements explicit ordinary
+linking; closed publication executes on Python only (Experimental
+`closed_functions`); C++ declares it `unsupported`, a listed known gap.
 
 ### Model B declarations: parser/lowering, immutable-binding and default-open boundary
 
@@ -135,15 +120,17 @@ pattern/guard headers using `IrImmutableBind`, `IrClosedFuncDef` and
 capability `immutable_bindings`, shared evidence `spec/*/model-b-b-*`) and
 `IrPatternFuncDef` as default-open ordinary function clauses (optional capability
 `default_open_functions`, shared evidence `spec/*/model-b-c-*`, which the in-process
-runner executes against the Python reference host); closed groups are rejected with
-`model-b-not-implemented`. Closed-function execution is not claimed. The Python
-protocol adapter advertises `default_open_functions` as `supported`, and the 143
-`model-b-c-*` cases (53 existing-behavior guards plus 90 gated cases) pass through that
-adapter; the 18 Python-host-only fixture/debug cases remain the only `unsupported`
-results of the external Python run.
-C++ does not claim `immutable_bindings` or `default_open_functions`: both are listed
-gaps in `spec/known_host_gaps.json` (tracking `genia-2026#1261` and `genia-2026#1269`;
-parser/lowering owned by genia-cpp #50).
+runner executes against the Python reference host), and evaluates `IrClosedFuncDef`
+groups (Experimental, optional capability `closed_functions`, shared evidence
+`spec/*/model-b-closed-*` plus the transitioned `model-b-c-stage-closed-rejected`). The Python
+protocol adapter advertises `default_open_functions` and `closed_functions` as `supported`; the 143
+`model-b-c-*` cases (52 existing-behavior guards plus 91 gated cases) and the 64
+`model-b-closed-*` cases pass through that adapter, and the 18 Python-host-only
+fixture/debug cases remain the only `unsupported` results of the external Python run.
+C++ does not claim `immutable_bindings`, `default_open_functions` or `closed_functions`: each is a listed
+gap in `spec/known_host_gaps.json` (tracking `genia-2026#1261`, `genia-2026#1269` and
+`genia-2026#1250`; parser/lowering owned by genia-cpp #50). Every `closed_functions`
+case is `unsupported` there, never PASS; no C++ parity is claimed.
 
 Python details (`GENIA_STATE.md` section 3 is authoritative): diagnostics are
 `Cannot assign to immutable binding: x`, `Cannot rebind immutable binding: x` and
@@ -151,24 +138,25 @@ Python details (`GENIA_STATE.md` section 3 is authoritative): diagnostics are
 `name is reserved by the runtime`. Import, `open` and `use` targets are checked
 before loading or linking. Direct route/server/CORS discovery rejects closed and
 pattern carriers and a `=:` annotated `@route`/`@server`/`@cors`; an ordinary `=:`
-is a plain statement there. Earlier statements' effects stand before an
-unimplemented declaration.
+is a plain statement there. Earlier statements' effects stand before a
+rejected declaration.
 
-The C++ adapter reports the new syntax outside its supported scope. Observations
-against a binary pinned to ancestor contract
-`6402e668ae85a1e7efe94b3ac3d51f233b730ca4` (43 parser/lowering cases: 5 PASS /
-38 UNSUPPORTED, including all five `IrPatErr`/`IrPatNamed` IR cases) are
-compatibility/gap observations, not current-contract conformance or parity.
-Required `parser`/`ast_lowering` obligations are not hidden behind optional
-capabilities: `spec/known_host_gaps.json` admits only optional-capability gaps,
-and an adapter's `unsupported` response (including for negative parse cases)
-remains an unmet syntax obligation, not a passing diagnostic. A green
-optional-capability gate does not certify it.
+C++ (genia-cpp #50, candidate above, declared contract
+`d005c89f852ee2d27682dade272eabfd158adf12`) parses and lowers the Slice A carriers.
+That includes `IrImmutableBind`, `IrClosedFuncDef`, `IrPatternFuncDef`, prefix
+annotations on those carriers, and `IrPatErr`/`IrPatNamed` in every position, with
+`IrPatSome.context` serialized only in headers. It reports the contract SyntaxErrors.
+Of the 43 `model-b-a-*` cases, 41 PASS and 2 are UNSUPPORTED. Those two are eval
+cases that contain no Model B syntax and need the unimplemented `nil` literal. The
+full shared suite gives 1146 total / 335 PASS / 0 FAIL / 811 UNSUPPORTED.
+Parsing is not execution: every Model B carrier is refused at evaluation.
+`spec/known_host_gaps.json` admits only optional-capability gaps, and an
+`unsupported` response remains an unmet obligation, not a passing diagnostic.
 
 Owner: m0smith integration owner and C++ implementer, tracked in
 [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
-The boundary is removed only after the bounded C++ parser/lowering implementation
-passes the affected shared cases at a current contract revision. Until then, no
-C++ conformance or parity for these new carriers is claimed. C++ does not implement
+The parser/lowering boundary is met at the candidate above. That is syntax
+conformance only: no C++ execution parity for these carriers is claimed. C++ does not implement
 default-open dispatch or ordinary cross-module linking; Python implements explicit
-ordinary linking. Closed publication remains unimplemented on all hosts.
+ordinary linking. Closed publication executes on Python only (Experimental
+`closed_functions`); C++ declares it `unsupported`, a listed known gap.

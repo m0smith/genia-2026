@@ -77,9 +77,12 @@ PRE_C0_CAPABILITY_MAP = {
 # Slice C GREEN (B9): the same name is `supported` and the override is empty.
 RED_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "unsupported"}
 GREEN_CAPABILITY_MAP = {**PRE_C0_CAPABILITY_MAP, "default_open_functions": "supported"}
-# Current R29 advertisement extends the frozen Slice C maps without rewriting history.
-CURRENT_R29_CAPABILITY_MAP = {**GREEN_CAPABILITY_MAP, "sheet_values": "supported"}
+# Slice E2.4 (issue #1250): `closed_functions` joined the manifest vocabulary, was staged
+# `unsupported` at RED (history: RED_E24_CAPABILITY_MAP) and is `supported` at GREEN,
+# when the production override is empty again.
+RED_E24_CAPABILITY_MAP = {**GREEN_CAPABILITY_MAP, "closed_functions": "unsupported"}
 PHASE_OVERRIDE = frozenset()
+CURRENT_R29_CAPABILITY_MAP = {**GREEN_CAPABILITY_MAP, "closed_functions": "supported", "sheet_values": "supported"}
 PHASE_MAP = CURRENT_R29_CAPABILITY_MAP
 
 
@@ -124,8 +127,7 @@ def test_phase_capability_map_equals_the_expected_map_and_keeps_history_unchange
     claimed = _python_claimed_capabilities()
     assert claimed == PHASE_MAP
     assert {
-        k: v for k, v in claimed.items()
-        if k not in {"default_open_functions", "sheet_values"}
+        k: v for k, v in claimed.items() if k not in ("default_open_functions", "closed_functions", "sheet_values")
     } == PRE_C0_CAPABILITY_MAP
 
 

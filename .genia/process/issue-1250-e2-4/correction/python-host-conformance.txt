@@ -1,0 +1,39 @@
+warning: The `UV_NATIVE_TLS` environment variable is deprecated and will be removed in a future release. Use `UV_SYSTEM_CERTS` instead.
+Revision: pinned conformance for ac7bcb7b3c5961fb38b1485361d1b597baa54d5f (host-declared revision matches this checkout exactly)
+UNSUPPORTED eval model-fixture-structured-call (/home/user/genia-2026/spec/eval/model-fixture-structured-call.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED eval model-fixture-structured-failures (/home/user/genia-2026/spec/eval/model-fixture-structured-failures.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED eval model-fixture-text-call (/home/user/genia-2026/spec/eval/model-fixture-text-call.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED eval r11-validated-pipeline-structured-success (/home/user/genia-2026/spec/eval/r11-validated-pipeline-structured-success.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED eval r12-grounded-cross-mode (/home/user/genia-2026/spec/eval/r12-grounded-cross-mode.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED cli debug_stdio_suppression (/home/user/genia-2026/spec/cli/debug_stdio_suppression.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED cli r11-model-fixture-command (/home/user/genia-2026/spec/cli/r11-model-fixture-command.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED cli r11-model-fixture-file (/home/user/genia-2026/spec/cli/r11-model-fixture-file.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED cli r11-model-fixture-pipe (/home/user/genia-2026/spec/cli/r11-model-fixture-pipe.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED cli r11-validated-pipeline-proving-case (/home/user/genia-2026/spec/cli/r11-validated-pipeline-proving-case.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED cli r12-grounded-proving-case (/home/user/genia-2026/spec/cli/r12-grounded-proving-case.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED flow model-fixture-structured-flow (/home/user/genia-2026/spec/flow/model-fixture-structured-flow.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED flow r11-validated-pipeline-flow (/home/user/genia-2026/spec/flow/r11-validated-pipeline-flow.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED flow r12-grounded-bounded-flow (/home/user/genia-2026/spec/flow/r12-grounded-bounded-flow.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED error error-model-empty-messages (/home/user/genia-2026/spec/error/error-model-empty-messages.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED error error-model-structured-template (/home/user/genia-2026/spec/error/error-model-structured-template.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED error error-r12-grounded-provider-failure (/home/user/genia-2026/spec/error/error-r12-grounded-provider-failure.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+UNSUPPORTED error r11-validated-pipeline-structured-failure (/home/user/genia-2026/spec/error/r11-validated-pipeline-structured-failure.yaml)
+  reason: case requires a Python-host-only injected test fixture or the debug-stdio CLI mode; neither is expressible over the generic E16-1 protocol yet. Explicit capability-aware selection is E16-3 (#760); this is a minimal, clearly-labeled interim exclusion, not a capability system.
+Summary: total=1146 passed=1128 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0

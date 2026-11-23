@@ -1,7 +1,10 @@
 name: model-b-c-stage-closed-rejected
 id: model-b-c-stage-closed-rejected
 category: eval
-description: "Slice C RED (#1269): C8"
+description: "Slice C RED (#1269): C8; transitioned by E2.4 (#1250, design 10.4): a closed group now publishes"
+requires:
+  - closed_functions
+  - default_open_functions
 input:
   source: |-
     print("before")
@@ -9,10 +12,14 @@ input:
 expected:
   stdout: |
     before
-  stderr: |
-    Error: model-b-not-implemented: declaration evaluation is not available
-  exit_code: 1
+    <closed-function f>
+  stderr: ''
+  exit_code: 0
 notes: |
-  Kind: existing-behavior guard (passes on the Python reference host).
-  Oracle: observed (Python baseline main@79c073b).
-  Baseline (Python main@79c073b, gate bypassed): stdout="before\n" stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1.
+  Kind: Model B future-behavior case after the E2.4 transition (the E2.4 GREEN commit makes it pass).
+  Oracle: contract-derived (Slice E design 10.4; DQ-S and DQ-L approved); the source is unchanged.
+  Transition (issue #1250, E2.4): the declaration is the last statement, its value is the committed callable and
+  command mode prints a non-nil final value; the body is not run, so `child` is not printed.
+  Old oracle (Slice C RED, existing-behavior guard on Python main@79c073b): stdout="before\n"
+  stderr="Error: model-b-not-implemented: declaration evaluation is not available\n" exit=1, requires none.
+  New requires: closed_functions plus default_open_functions (the clause has a pattern header).

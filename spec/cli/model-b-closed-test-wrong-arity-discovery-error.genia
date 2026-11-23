@@ -1,0 +1,3 @@
+# Native-test fixture for rejecting a closed test that takes an argument.
+@test "wrong arity"
+t(a) =: "Print a sentinel if the wrong-arity test is invoked." print("body")
