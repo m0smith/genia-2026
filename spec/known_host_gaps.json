@@ -149,7 +149,7 @@
     },
     {
       "capability": "immutable_bindings",
-      "reason": "The bounded C++ host does not parse or lower the `=:` immutable-declaration token and has no Env binding-policy enforcement (Model B Slice B). Python is the reference implementation; this is an honest optional-capability gap, not parity. The C++ parser/lowering work is owned by m0smith/genia-cpp#50.",
+      "reason": "The bounded C++ host parses and lowers `=:` to IrImmutableBind (genia-cpp#50, merged at 0a119f67d92cb08c2feaf975610722a2fa7555c8) but refuses to evaluate it and has no Env binding-policy enforcement (Model B Slice B). Python is the reference implementation; this is an honest optional-capability gap, not parity.",
       "tracking_issue": "m0smith/genia-2026#1261",
       "affected_host": "cpp",
       "affected_tests": [
@@ -180,7 +180,7 @@
         "model-b-b-reserved-unloaded-prelude-name",
         "model-b-b-reserved-unregistered-prelude-helper"
       ],
-      "removal_condition": "Remove when genia-cpp lowers IrImmutableBind, enforces the shared immutable-binding policy, declares immutable_bindings supported, and the host parity gate reports the capability as PARITY_OK."
+      "removal_condition": "Remove when C++ enforces the shared immutable-binding policy, declares immutable_bindings supported, and the host parity gate reports the capability as PARITY_OK."
     },
     {
       "capability": "default_open_functions",
@@ -318,7 +318,7 @@
     },
     {
       "capability": "closed_functions",
-      "reason": "E2.4 (issue #1250) evaluates closed `f(...) =:` groups in the Python reference host: whole-group build, ordered annotation evaluation, one atomic publication, the committed/failed callable and its use rules. The bounded C++ host does not declare `closed_functions`, so every case that requires it reports unsupported, never PASS. The required C++ parse/lower obligation is tracked independently at m0smith/genia-cpp#50 and is not waived here. No C++ parity is claimed.",
+      "reason": "E2.4 (issue #1250) evaluates closed `f(...) =:` groups in the Python reference host: whole-group build, ordered annotation evaluation, one atomic publication, the committed/failed callable and its use rules. The bounded C++ host (genia-cpp#50, merged at 0a119f67d92cb08c2feaf975610722a2fa7555c8) parses, lowers and validates the closed-group carriers but refuses to evaluate them. It does not declare `closed_functions`, so every case that requires it reports unsupported, never PASS. The required C++ parse/lower obligation is met; closed publication execution remains a host gap under #1250. No C++ execution parity is claimed.",
       "tracking_issue": "m0smith/genia-2026#1250",
       "affected_host": "cpp",
       "affected_tests": [

@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: m0smith/genia-cpp
-          ref: 1f33886606fc94dadab679ed56182a15ca503a4b # Reviewed local guard/capture acceptance (genia-cpp #60, including #59/#58)
+          ref: 0a119f67d92cb08c2feaf975610722a2fa7555c8 # genia-cpp #50 merged Model B Slice A parser/lowering
           path: workspace/genia-cpp
 
       - name: Build development image
