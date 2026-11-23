@@ -1820,9 +1820,9 @@ report = collect_sheet([
 render_csv(report)
 ```
 
-### Explicit Sheet records (**Experimental R29 candidate, Python reference host**)
+### Explicit Sheet records (**Experimental, Python reference host**)
 
-Implemented on this unmerged candidate branch, not released: `sheet_records(s)`
+`sheet_records(s)`
 purely materializes a reusable ordered List of distinct row Maps. Raw column
 keys and cell references, including protected carriers and Outcomes, are preserved
 in column/row order without mutation, coercion, unwrapping, callbacks or IO.
@@ -1839,8 +1839,8 @@ is bounded; no implicit Sheet-to-Flow or new List-to-Flow builtin is added.
 Compose the List with existing filter/map/validation. Bind
 `validated = collect_validated(results)`, then call `collect_sheet(validated.clean)`. Existing
 protected sinks, Outcome data and lifecycle envelopes retain their own rules.
-C++ `sheet_values` is **UNSUPPORTED**, tracked in #1330. R29 release completion
-still requires #1251 integrated signoff and post-integration verification.
+C++ `sheet_values` is **UNSUPPORTED**, tracked in #1330. The Model B prerequisite is satisfied by [#1251 foundation acceptance](https://github.com/m0smith/genia-2026/issues/1251#issuecomment-7106114342).
+R29 release acceptance is pending post-integration verification and independent review.
 
 ### row_get ergonomic row access (**Experimental**, issue #363)
 

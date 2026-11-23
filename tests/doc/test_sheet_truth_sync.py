@@ -97,14 +97,19 @@ def test_guard_rejects_restored_column_name_promise() -> None:
         ("README.md", "### Explicit Sheet records", "\n### row_get"),
     ),
 )
-def test_sheet_record_summaries_retain_candidate_boundary(relpath, start, end):
+def test_sheet_record_summaries_retain_maturity_and_host_boundaries(relpath, start, end):
     """Pin R29 summaries to tested eager/schema/raw-value and host limits.
 
     Behavioral oracles remain in r29-records-* shared specs and the Python
     identity/security tests; these checks protect the four authority summaries.
     """
     text = (ROOT / relpath).read_text(encoding="utf-8")
-    section = text.split(start, 1)[1].split(end, 1)[0].lower()
-    for boundary in ("eager", "raw", "schema", "non-seq", "unmerged", "unsupported"):
+    section = (start + text.split(start, 1)[1]).split(end, 1)[0].lower()
+    for boundary in (
+        "experimental", "python reference host", "r29 release acceptance is pending",
+        "eager", "raw", "schema", "non-seq",
+    ):
         assert boundary in section, (relpath, boundary)
+    assert "c++ `sheet_values` is unsupported" in section.replace("**", "")
+    assert "#1330" in section
     assert "sheet_records expected a sheet" in section

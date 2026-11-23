@@ -594,7 +594,7 @@ and spreadsheet UI remain absent.
 columns. Names follow legal Genia map-key equality. Construction requires Lists;
 `derive` rejects existing names; `where` requires booleans. Outcomes remain cells.
 
-### Sheet record conversion (Experimental R29 candidate)
+### Sheet record conversion (Experimental)
 <!-- anchor: state:sheet-records -->
 
 `sheet_records/1` is a pure eager Sheet-to-List<Map> conversion: reusable List,
@@ -609,7 +609,7 @@ implicit Flow/List bridge is added. Ordinary arity/alias/pipeline/module/paramet
 rules remain; entry `sheet_records =: expr` rejects runtime ownership. Validation
 and lifecycle envelopes remain unchanged.
 
-**Experimental Python reference host, unmerged R29 candidate; not released.**
+**Experimental Python reference host.** R29 release acceptance is pending.
 C++ `sheet_values` is **UNSUPPORTED**, tracked by `m0smith/genia-2026#1330`.
 
 ## 3) Implemented syntax and expression forms
