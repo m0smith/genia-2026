@@ -200,7 +200,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R26 | C++ REPL and Data Bridges | Complete | `docs/releases/R26.md` |
 | R27 | C++ Flow and Pipe Mode | Complete | `docs/releases/R27.md` |
 | R28 | Genia MCP Server | Complete (E28-0 – E28-6; authentic VS Code + GitHub Copilot run 3 passed on macOS; ledger R28-H39 and R28-H47 closed) | `docs/releases/R28.md` |
-| R29 | Sheet Record Pipelines | Experimental on the Python reference host. Model B prerequisite accepted. R29-R release acceptance pending. | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R29 | Sheet Record Pipelines | Implementation merged. Experimental on the Python reference host. | [Release record](../releases/R29.md) |
 | R30 | Sheet Shaped Computation | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R31 | Relational Sheet Operations | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R32 | Portable Data Store Boundary | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |

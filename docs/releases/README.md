@@ -38,6 +38,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R25 — C++ Stateful Runtime and Concurrency](R25.md) — COMPLETE; E25-5 skeptical audit PASS
 - [R26 — C++ REPL and Data Bridges](R26.md) — COMPLETE; `repl`, `bytes_utf8`, `json_strict` all `PARITY_OK`
 - [R28 — Genia MCP Server](R28.md) — COMPLETE; authentic VS Code + GitHub Copilot run 3 PASS (runs 1 and 2 failed and were repaired: amendment A5, ledger R28-H47)
+- [R29 — Sheet Record Pipelines](R29.md) — implementation merged; Experimental on the Python reference host
 
 ## Process
 
