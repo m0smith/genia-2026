@@ -1,0 +1,15 @@
+name: r29-records-validated-report
+category: eval
+requires: [sheet_values]
+description: R29 T1 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    s = sheet([["id", [1, 2, 3, 4]], ["n", [10, -1, 30, 40]]])
+    rs = sheet_records(s) |> filter((r) -> r.id != 3) |> map((r) -> map_put(r, "n", r.n + 1))
+    cv = collect_validated(validate_each(rs, (r) -> validate_field("n", (v) -> v > 0, "positive", r)))
+    report = collect_sheet(cv.clean)
+    [rows(report), map((d) -> [d.index, d.kind, d.reason], cv.diagnostics), columns(s)]
+expected:
+  stdout: "[[[[\"id\", 1], [\"n\", 11]], [[\"id\", 4], [\"n\", 41]]], [[1, error, \"invalid field\"]], [\"id\", \"n\"]]\n"
+  stderr: ""
+  exit_code: 0

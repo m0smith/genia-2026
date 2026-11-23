@@ -1,4 +1,5 @@
 name: sheet-shape-columns-rows
+requires: [sheet_values]
 category: eval
 description: Minimal Sheets construct from ordered column pairs and expose shape, columns, and rows deterministically.
 input:

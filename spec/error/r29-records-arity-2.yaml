@@ -1,0 +1,11 @@
+name: r29-records-arity-2
+category: error
+requires: [sheet_values]
+description: R29 T1 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    sheet_records(sheet([]), sheet([]))
+expected:
+  stdout: ""
+  stderr: "Error: No matching function: sheet_records/2. Available: sheet_records/1\n"
+  exit_code: 1

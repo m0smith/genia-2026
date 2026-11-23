@@ -162,6 +162,7 @@ nav:
           - "select": reference/functions/select.md
           - "shape": reference/functions/shape.md
           - "sheet": reference/functions/sheet.md
+          - "sheet_records": reference/functions/sheet_records.md
           - "where": reference/functions/where.md
       - Simulation:
           - "sleep": reference/functions/sleep.md

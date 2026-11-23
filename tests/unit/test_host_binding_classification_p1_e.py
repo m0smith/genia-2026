@@ -167,3 +167,16 @@ def test_protected_worker_bootstrap_keeps_explicit_entry_only_fixture_class():
     assert calls[0].func.attr == "set_host"
     assert calls[0].args[0].value == "CARRIER"
     assert next(keyword.value.value for keyword in calls[0].keywords if keyword.arg == "visibility") == "entry-only"
+
+
+def test_r29_sheet_records_is_runtime_public():
+    """T1 RED: the new pure callable must use the existing public class."""
+    env = make_global_env([])
+    assert "sheet_records" in env.values
+    assert env.host_binding_visibility["sheet_records"] == "runtime-public"
+
+
+def test_r29_sheet_records_has_reviewed_inventory_entry():
+    """T1 RED: GREEN must add this one name without weakening exact inventory."""
+    inventory = json.loads((ROOT / "data/p1_host_binding_inventory.json").read_text())
+    assert inventory["bindings"].get("sheet_records") == "runtime-public"

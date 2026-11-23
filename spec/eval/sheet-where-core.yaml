@@ -1,4 +1,5 @@
 name: sheet-where-core
+requires: [sheet_values]
 category: eval
 description: where filters rows with boolean predicates while preserving row alignment and input immutability.
 input:

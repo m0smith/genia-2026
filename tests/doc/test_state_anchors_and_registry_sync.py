@@ -47,6 +47,7 @@ LANGUAGE_ANCHORS = {
     "state:validated-pipelines",
     "state:outcome-propagation",  # A9 (#1084)
     "state:flow-semantics",  # A10 (#1084)
+    "state:sheet-records",  # Experimental explicit Sheet conversion
 }
 
 

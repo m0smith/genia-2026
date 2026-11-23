@@ -185,6 +185,25 @@ def sheet_rows(sheet_value: Any) -> list[list[list[Any]]]:
     ]
 
 
+def sheet_records(sheet_value: Any) -> list[GeniaMap]:
+    """Eagerly materialize ordered row Maps from a Sheet without changing it.
+
+    Retain exact column-key and cell references, including opaque protected values
+    and Outcomes. Each row gets a distinct Map in column order; zero-column rows
+    become distinct empty Maps. Zero rows return an empty List and lose schema.
+    Non-Sheet input raises marked TypeError. No coercion, callbacks, IO or Flow
+    construction occurs; callers supply an already-valid Sheet.
+    """
+    sheet = _ensure_sheet(sheet_value, "sheet_records")
+    records: list[GeniaMap] = []
+    for index in range(sheet.row_count):
+        record = GeniaMap()
+        for name, values in sheet.columns:
+            record = record.put(name, values[index])
+        records.append(record)
+    return records
+
+
 def row_get_value(row_value: Any, column_name: Any) -> Any:
     """Return the first Genia-equal named cell from a list of [name, value] pairs.
 

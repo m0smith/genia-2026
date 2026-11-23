@@ -175,6 +175,7 @@ def test_a10_idioms_gain_exactly_the_flow_member():
         "outcomes",
         "pipelines",
         "repetition",
+        "sheet_records",
     }
 
 

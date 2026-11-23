@@ -1,4 +1,5 @@
 name: sheet-select-immutable
+requires: [sheet_values]
 category: eval
 description: Selecting columns returns a new Sheet in requested order without mutating the input Sheet.
 input:

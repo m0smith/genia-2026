@@ -1,4 +1,5 @@
 name: error-row-get-not-row
+requires: [sheet_values]
 category: error
 description: row_get fails clearly when the row argument is not a list.
 input:

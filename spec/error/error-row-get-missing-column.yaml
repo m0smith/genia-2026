@@ -1,4 +1,5 @@
 name: error-row-get-missing-column
+requires: [sheet_values]
 category: error
 description: row_get fails clearly when the requested column is absent from the row.
 input:

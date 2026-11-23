@@ -1,0 +1,18 @@
+name: r29-existing-list-flow-guards
+category: flow
+requires: [flow_phase_1, sheet_values]
+description: R29 T2 approved Sheet record boundary and existing-composition evidence.
+input:
+  source: |
+    pairs_to_map(row) = reduce((m, kv) -> map_put(m, unwrap_or(nil, nth(0, kv)), unwrap_or(nil, nth(1, kv))), map_new(), row)
+    as_records(s) = rows(s) |> map(pairs_to_map)
+    to_flow(xs) = evolve(0, inc) |> take(length(xs)) |> map((i) -> unwrap_or(nil, nth(i, xs)))
+    xs = as_records(sheet([["n", [1, 2, 3]]]))
+    c = ref(0)
+    tick(x) = { ref_update(c, inc); x }
+    out = to_flow(xs) |> map(tick) |> take(2) |> collect
+    [map((r) -> r.n, out), ref_get(c), length(collect(to_flow(xs))), collect(to_flow([]))]
+expected:
+  stdout: "[[1, 2], 2, 3, []]\n"
+  stderr: ""
+  exit_code: 0

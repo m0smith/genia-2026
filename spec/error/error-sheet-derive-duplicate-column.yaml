@@ -1,4 +1,5 @@
 name: error-sheet-derive-duplicate-column
+requires: [sheet_values]
 category: error
 description: derive rejects duplicate derived column names in the minimal Sheet core.
 input:

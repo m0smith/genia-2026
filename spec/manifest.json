@@ -94,7 +94,8 @@
     "execution_process",
     "immutable_bindings",
     "default_open_functions",
-    "closed_functions"
+    "closed_functions",
+    "sheet_values"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"
