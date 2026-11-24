@@ -609,7 +609,7 @@ implicit Flow/List bridge is added. Ordinary arity/alias/pipeline/module/paramet
 rules remain; entry `sheet_records =: expr` rejects runtime ownership. Validation
 and lifecycle envelopes remain unchanged.
 
-**Experimental Python reference host.** R29 release acceptance is pending.
+**Experimental Python reference host.** See the [R29 release record](https://github.com/m0smith/genia-2026/blob/main/docs/releases/R29.md).
 C++ `sheet_values` is **UNSUPPORTED**, tracked by `m0smith/genia-2026#1330`.
 
 ## 3) Implemented syntax and expression forms
