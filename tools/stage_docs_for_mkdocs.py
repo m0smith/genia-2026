@@ -46,6 +46,7 @@ STRATEGY_DOCS = [
     "docs/strategy/roadmap/sequence.md",
     "docs/strategy/roadmap/parking-lot.md",
     "docs/strategy/roadmap/multi-host-conformance-policy.md",
+    "docs/strategy/roadmap/host-parity-inventory.md",
 ]
 SKIP_FILENAMES = {"CHAPTER_TEMPLATE.md"}
 README_LINK_REWRITES = {

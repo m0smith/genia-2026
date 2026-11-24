@@ -46,6 +46,8 @@ No R27 gap remains in the delivery lane. R27 closed only capabilities it could p
 
 ## Later Release / Separate Gate
 
+Target releases for every row below, plus the registered `immutable_bindings`, `default_open_functions`, `closed_functions` (R31) and `sheet_values` (R31, #1330) gaps and gaps not represented by capability flags, are scheduled in [`host-parity-inventory.md`](host-parity-inventory.md) (#1341). "Candidate bucket" text below is historical.
+
 | Gap | Current tracking | Candidate bucket | Planned issue | Affected tests / spec area | Removal condition |
 |---|---|---|---|---|---|
 | ZIP (`zip_entries`/`zip_read`/`zip_write`/`entry_*`; no manifest capability of its own) | `m0smith/genia-2026#1024` | Removed from R26; later contract-first placement, roadmap home explicitly TBD | ZIP contract issue (not yet created): entry-name/traversal rules, duplicates, directories, compression, timestamps/determinism, resource limits, R35 authority reconciliation, dependency-policy amendment for DEFLATE, and reconciling the eager `zip_entries` vs. Flow-based `zip_read`/`zip_write` split | Remove/replace once ZIP has its own contract-first placement, a capability name is assigned, `genia-cpp` declares it supported, and the host parity gate reports `PARITY_OK`. Zero shared evidence exists today. |

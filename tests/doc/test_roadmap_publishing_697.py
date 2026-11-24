@@ -25,6 +25,7 @@ STAGED_RELATIVE_PATH = "strategy/release-roadmap.md"
 FOCUSED_ROADMAP_DOCS = [
     "docs/strategy/roadmap/README.md",
     "docs/strategy/roadmap/multi-host-conformance-policy.md",
+    "docs/strategy/roadmap/host-parity-inventory.md",
     "docs/strategy/roadmap/r15.md",
     "docs/strategy/roadmap/r16-r20.md",
     "docs/strategy/roadmap/r21-r24.md",
@@ -103,6 +104,7 @@ def test_staging_excludes_frozen_archive_and_unapproved_strategy_documents() -> 
     assert staged_roadmap_names == [
         "README.md",
         "cpp-host-gap-burndown.md",
+        "host-parity-inventory.md",
         "multi-host-conformance-policy.md",
         "parking-lot.md",
         "r15.md",

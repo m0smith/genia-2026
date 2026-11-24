@@ -127,7 +127,7 @@ Low-priority, unscheduled future direction: [small self-contained native executa
 - **R40:** [`roadmap/r40.md`](roadmap/r40.md)
 - **R41:** [`roadmap/r41.md`](roadmap/r41.md)
 - **R42 interactive-session/Jupyter branch:** [`roadmap/r42.md`](roadmap/r42.md)
-- **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
+- **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md); parity inventory and R30–R39 schedule (#1341): [`roadmap/host-parity-inventory.md`](roadmap/host-parity-inventory.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
 - **Frozen pre-split repository snapshot:** `docs/strategy/roadmap/archive/release-roadmap-pre-split.md`. This is history only; it is intentionally not published as live roadmap content.

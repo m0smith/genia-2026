@@ -84,6 +84,8 @@ Follow docs/process/extensions/portability-analysis.md.
 
 Complete this before proceeding to Contract.
 
+Supported-host parity (#1341): name each supported host's delivery release for this feature, or cite an authorized exception from `docs/strategy/roadmap/host-parity-inventory.md`.
+
 ---
 
 4. CONTRACT vs IMPLEMENTATION

@@ -163,6 +163,10 @@ At the end of a task, briefly record: task/PR link; Python, Bash, JS, or other s
 
 Once #1226 has **five distinct prospective task observations total**, stop this reminder and aggregate the evidence on #1226 for an **ADOPT / REVISE / DO NOT ADOPT** decision. Do not silently make this a permanent policy; any subsequent instruction change requires its own approved follow-up. Keep the source-of-truth and documentation-update rules above unchanged.
 
+## Supported-Host Parity (#1341)
+
+Every portable roadmap feature must have a delivery plan for every supported host (Python and `m0smith/genia-cpp`), even when the second host delivers in a later release. Temporary gaps need owner, issue, target release, evidence and removal condition; permanent host-specific features need explicit maintainer authorization. See [policy](docs/strategy/roadmap/multi-host-conformance-policy.md#mandatory-supported-host-parity-issue-1341) and [inventory](docs/strategy/roadmap/host-parity-inventory.md). Planning only; `GENIA_STATE.md` stays authoritative.
+
 ## Product Priority
 
 Before proposing or implementing new feature work, read:
