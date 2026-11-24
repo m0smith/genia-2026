@@ -62,8 +62,8 @@ host parity gate reports `PARITY_OK` (see `cpp-host-gap-burndown.md`).
 | `resource_io` | 0 shared cases observed | #1018 | R32 |
 | `configuration_environment_snapshot`, `configuration_dotenv_snapshot` | requires-gated config cases | #1018 | R32 |
 | `debugger_stdio` | debugger cases + `cli/debug_stdio_suppression` | #1018 | R33 |
-| `model_deterministic_fixture`, `model_gemini_rest` | AI cases | #1018 | R34 |
-| `embedding_/indexing_/retrieval_/reranking_deterministic_fixture` | retrieval cases | #1018 | R34 |
+| `model_deterministic_fixture`, `model_gemini_rest` | AI cases | #1018 | R34 (separately gated workstream, D-D) |
+| `embedding_/indexing_/retrieval_/reranking_deterministic_fixture` | retrieval cases | #1018 | R34 (separately gated workstream, D-D) |
 | `allowlisted_host_interop` | interop cases | #1018 | R35 (allowlist contents are host-local; the capability is not) |
 | `execution_process`, `shell_stage` | process/shell cases | #1018 | R36 |
 | `http_server`, `http_outbound_transport` | 1 combined; no dedicated shared specs | #1041, #1043 | R37 |
@@ -83,17 +83,17 @@ host parity gate reports `PARITY_OK` (see `cpp-host-gap-burndown.md`).
 
 | Family (case-id evidence) | ≈Cases | Proposed target | Notes |
 |---|---:|---|---|
-| Value templates/representations, refinement, named patterns, open/exact shapes, schema (`template-*`, `representation-*`, `exact-shape-*`, `open-shape-*`, `named-pattern-*`, `json-schema-*`, `error-template-*`) | ~95 | R31 | Prerequisite for Sheet parity. **Decision D-A** |
-| Validation/diagnostics/`collect_validated`/`validate_each`/`parse_csv` | ~60 | R31 | Killer-workflow core. **Decision D-A** |
-| Format strings (`format-*`, `error-format-*`) | ~65 | R31 | **Decision D-A** |
-| Core stdlib and patterns: Option/Outcome patterns, `apply_raw`, `as_seq`, seq-compatible, map/pair helpers, glob/list patterns, quote/quasiquote/`delay`, unary ops, call spread, lambda varargs, imports, R18 equality, R19 Unicode, R21 parse errors, R22 exact-numeric errors, Model B CLI/eval cases | ~150 | R31 | **Decision D-A** |
+| Value templates/representations, refinement, named patterns, open/exact shapes, schema (`template-*`, `representation-*`, `exact-shape-*`, `open-shape-*`, `named-pattern-*`, `json-schema-*`, `error-template-*`) | ~95 | R31 for demonstrated Sheet prerequisites; remainder R32 | D-A |
+| Validation/diagnostics/`collect_validated`/`validate_each`/`parse_csv` | ~60 | R31 for demonstrated Sheet prerequisites; remainder R32 | D-A |
+| Format strings (`format-*`, `error-format-*`) | ~65 | R31 for demonstrated Sheet prerequisites; remainder R33 | D-A |
+| Core stdlib and patterns: Option/Outcome patterns, `apply_raw`, `as_seq`, seq-compatible, map/pair helpers, glob/list patterns, quote/quasiquote/`delay`, unary ops, call spread, lambda varargs, imports, R18 equality, R19 Unicode, R21 parse errors, R22 exact-numeric errors, Model B CLI/eval cases | ~150 | R31 for demonstrated Sheet prerequisites; remainder R33 | D-A |
 | Flow beyond phase 1: `tee`/`zip`/`merge`, `rules`/`refine`, Flow `reduce`/display, `rand` flows | ~12 | R32 (Flow) | `rand` simulation flows → R36 |
 | Configuration resolution and protected values (`config-*`, `secret-*`, `protected-secret-*`, `r10-*`, `r13-*`, `r18-protected-*`) | ~30 | R32 | protected values/lifecycle per baseline |
 | Lifecycle (`r14-*`) | 2 | R32 | |
 | AI/retrieval cross-release (`model-fixture-*`, `r11-*`, `r12-*`, `chunk-*`) | ~20 | R34 | |
 | CLI file-mode argv/`--`/`main(argv)` (`file_mode_*`) | 3 | R33 | |
 | Native test runner CLI (`native_test_runner_*`) | 3 | R39 | |
-| `pipe_mode_record_pipeline_collect_validated_boundary_error` | 1 | requires `json_compat`; **Decision D-C** | |
+| `pipe_mode_record_pipeline_collect_validated_boundary_error` | 1 | R31 (separate test-only change, #1018) | D-C: re-express with strict JSON |
 
 ### D. Python surfaces without shared evidence (missing evidence)
 
@@ -104,33 +104,34 @@ host parity gate reports `PARITY_OK` (see `cpp-host-gap-burndown.md`).
 | Web helpers (R7 routing/CORS wrappers) | R37 | |
 | Actors (Python-host-only per STATE) | R38 | |
 | Native test runner and Genia MCP server (`apps/mcp/mcp.genia`) | R39 | |
-| `read_file`/`write_file` legacy bare-name helpers | **Decision D-B** | |
+| `read_file`/`write_file` legacy bare-name helpers | R32 (with `resource_io`) | D-B: no exception |
 | Interactive REPL prompt/banner/history | not a gap | host-local by R26 contract |
 
-## Dependency check and scheduling conflicts (maintainer decisions)
+## Dependency check and maintainer decisions
 
-Dependencies checked: R31 Sheet parity depends on templates/validation and
-prelude rows (C), so they cannot land later than R31 without blocking the R31
-commitment. R32 configuration snapshots depend on protected values (C);
-outbound HTTP (R37) depends on protected values (R32) and `import` (R31).
-Serving (R37) depends on annotations/`serve` (R33). R34 AI/retrieval depend on
-R32 protected values and R31 templates. No dependency points backwards.
+Dependencies checked: R31 Sheet parity depends on whichever template,
+validation, prelude and core-library cases the `sheet_values` shared cases
+actually exercise. R32 configuration snapshots depend on protected values;
+outbound HTTP (R37) depends on protected values (R32) and `import`; serving
+(R37) depends on annotations/`serve` (R33); R34 AI/retrieval depend on R32
+protected values and the R31/R32 template rows. No dependency points backwards.
 
-- **D-A (material conflict):** placing ~370 ungated core-language cases in R31
-  alongside the four baseline R31 rows makes R31 materially larger than the
-  approved baseline. Options: accept in R31; split core-library parity into a
-  dedicated R31 lane gated before Sheet parity; or move non-Sheet-prerequisite
-  families (format, quote, misc stdlib) to R32/R33. **Not decided here.**
-- **D-B:** `read_file`/`write_file` — schedule with `resource_io` in R32, or
-  classify as a legacy host-local surface like `json_compat` (needs explicit
-  authorization; not granted here).
-- **D-C:** the one pipe-mode case requiring `json_compat` — re-express with
-  strict JSON (portable) or accept as covered by the `json_compat` exception.
-- **D-D:** R34 is themed performance; baseline puts AI/retrieval parity there.
-  Recorded as a parity lane only; it does not retitle R34.
-- **D-E:** splitting #1018 — this record keeps #1018 as the owner for
-  unregistered rows; split per release only when a release pre-flight needs
-  actionable ownership.
+Maintainer decisions recorded on #1341 (2026-11-24):
+
+- **D-A — R31 is not enlarged by ~370 cases.** R31 acceptance requires only
+  C-family cases that the R31 pre-flight *demonstrates* are Sheet
+  prerequisites. Remaining template/validation parity targets R32; remaining
+  format-string and core-stdlib/pattern parity targets R33. Either target may
+  move only by a later maintainer decision.
+- **D-B — `read_file`/`write_file`** parity is scheduled with R32 `resource_io`.
+  No new permanent exception.
+- **D-C — the pipe-mode case requiring `json_compat`** is re-expressed with
+  portable strict JSON in a separate test-only change that preserves the
+  original pipe-mode error contract (not part of this planning PR).
+- **D-D — AI/retrieval parity keeps the R34 target** as a separately gated
+  workstream; it does not expand R34's performance-optimization scope.
+- **D-E — #1018 stays the tracking umbrella**; split only when a release
+  pre-flight needs a separately actionable issue.
 
 ## Exception register
 
@@ -141,5 +142,4 @@ R32 protected values and R31 templates. No dependency points backwards.
 
 Audit result: no other historical "Python-host-only" label (shell stage,
 host interop, actors, HTTP, `read_file`/`write_file`, MCP) carries an explicit
-permanent-exception authorization; each is scheduled above or listed as a
-maintainer decision. None is grandfathered.
+permanent-exception authorization; each is scheduled above. None is grandfathered.
