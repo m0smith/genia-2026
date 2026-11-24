@@ -77,23 +77,35 @@ host parity gate reports `PARITY_OK` (see `cpp-host-gap-burndown.md`).
 | `prelude_autoload` `partial` | 7 combined unsupported | #1018 | R31 (prerequisite for core-library rows below) |
 | `core_ir_eval` `partial`, `shared_spec_runner` `partial` | umbrella flags; resolved by rows in C | #1018 | closes when C rows close |
 | `open_functions` hidden partial | 26 cases tagged only `open_functions` still unsupported: `extend`/`use` selection, mutual tail calls, Option-aware strata, varargs precedence, help provenance, grouped-header capture errors | #1018 | R31 (with default-open/closed functions) |
-| `json_strict` hidden partial | `flow/json-representation-template-flow` | #1018 | R31 (follows Templates row) |
+| `json_strict` hidden partial | `flow/json-representation-template-flow` | #1018 | R32 (with Templates), unless demonstrated to be an R31 prerequisite or separately approved earlier |
 
 ### C. Ungated shared cases unsupported on C++ (493; no capability flag)
 
-| Family (case-id evidence) | ≈Cases | Proposed target | Notes |
-|---|---:|---|---|
-| Value templates/representations, refinement, named patterns, open/exact shapes, schema (`template-*`, `representation-*`, `exact-shape-*`, `open-shape-*`, `named-pattern-*`, `json-schema-*`, `error-template-*`) | ~95 | R31 for demonstrated Sheet prerequisites; remainder R32 | D-A |
-| Validation/diagnostics/`collect_validated`/`validate_each`/`parse_csv` | ~60 | R31 for demonstrated Sheet prerequisites; remainder R32 | D-A |
-| Format strings (`format-*`, `error-format-*`) | ~65 | R31 for demonstrated Sheet prerequisites; remainder R33 | D-A |
-| Core stdlib and patterns: Option/Outcome patterns, `apply_raw`, `as_seq`, seq-compatible, map/pair helpers, glob/list patterns, quote/quasiquote/`delay`, unary ops, call spread, lambda varargs, imports, R18 equality, R19 Unicode, R21 parse errors, R22 exact-numeric errors, Model B CLI/eval cases | ~150 | R31 for demonstrated Sheet prerequisites; remainder R33 | D-A |
-| Flow beyond phase 1: `tee`/`zip`/`merge`, `rules`/`refine`, Flow `reduce`/display, `rand` flows | ~12 | R32 (Flow) | `rand` simulation flows → R36 |
-| Configuration resolution and protected values (`config-*`, `secret-*`, `protected-secret-*`, `r10-*`, `r13-*`, `r18-protected-*`) | ~30 | R32 | protected values/lifecycle per baseline |
-| Lifecycle (`r14-*`) | 2 | R32 | |
-| AI/retrieval cross-release (`model-fixture-*`, `r11-*`, `r12-*`, `chunk-*`) | ~20 | R34 | |
-| CLI file-mode argv/`--`/`main(argv)` (`file_mode_*`) | 3 | R33 | |
-| Native test runner CLI (`native_test_runner_*`) | 3 | R39 | |
-| `pipe_mode_record_pipeline_collect_validated_boundary_error` | 1 | R31 (separate test-only change, #1018) | D-C: re-express with strict JSON |
+Exact per-case assignment: [`host-parity-ungated-cases.json`](https://github.com/m0smith/genia-2026/blob/main/docs/strategy/roadmap/host-parity-ungated-cases.json)
+(every case in exactly one family; ordered case-id rules, first match wins).
+Under D-A, any case in these rows that the R31 pre-flight demonstrates to be an
+actual Sheet prerequisite moves to R31; all others keep the target shown.
+
+| Family (JSON key) | Cases | Target |
+|---|---:|---|
+| Templates, representations, refinement, named patterns, open/exact shapes, schema, validation, diagnostics, `collect_validated`, `parse_csv`, R9/R15 cross-mode (`template_validation`) | 199 | R32 |
+| Format strings (`format`) | 73 | R33 |
+| Core stdlib and patterns: Option/Outcome, `apply_raw`, `as_seq`, seq-compatible, map/pair helpers, glob/list patterns, quote/quasiquote/`delay`, unary ops, call spread, varargs, imports, annotated funcdef IR, R18 equality, R19 Unicode, R21 parse errors, R22 exact-numeric errors, Model B (`core`) | 137 | R33 |
+| Configuration resolution and protected values, R10/R13 (`config_protected`) | 38 | R32 |
+| AI/retrieval cross-release: model fixture, R11, R12, `chunk` (`ai_retrieval`) | 24 | R34 (separately gated workstream, D-D) |
+| Flow beyond phase 1: `tee`/`zip`, `rules`/`refine`, Flow `reduce` (`flow_ext`) | 10 | R32 |
+| CLI file-mode argv/`--`/`main(argv)`, debug-stdio suppression (`cli_argv`) | 4 | R33 |
+| Native test runner CLI (`native_test`) | 3 | R39 |
+| Lifecycle, R14 (`lifecycle`) | 2 | R32 |
+| `rand` simulation flows (`simulation`) | 2 | R36 |
+| `pipe_mode_record_pipeline_collect_validated_boundary_error` (`compat_pipe`) | 1 | D-C: separate test-only change re-expressing it with strict JSON (#1018) |
+| **Total** | **493** | |
+
+**Reconciliation of the 827 current-main unsupported cases:** 307 with at
+least one unmet `requires:` tag (sections A/B; their sole/combined figures
+count a case once per unmet tag) + 27 hidden partials whose tags are all
+declared supported (26 `open_functions`, 1 `json_strict`) + 493 untagged
+(this section) = 827.
 
 ### D. Python surfaces without shared evidence (missing evidence)
 
@@ -118,11 +130,13 @@ protected values and the R31/R32 template rows. No dependency points backwards.
 
 Maintainer decisions recorded on #1341 (2026-11-24):
 
-- **D-A — R31 is not enlarged by ~370 cases.** R31 acceptance requires only
-  C-family cases that the R31 pre-flight *demonstrates* are Sheet
-  prerequisites. Remaining template/validation parity targets R32; remaining
-  format-string and core-stdlib/pattern parity targets R33. Either target may
-  move only by a later maintainer decision.
+- **D-A — approved, committed targets** ([decision](https://github.com/m0smith/genia-2026/issues/1341#issuecomment-7139205101)).
+  R30 is unchanged (Python-first Sheet shaped computation). R31 carries its
+  existing parity commitments plus only section-C cases the R31 pre-flight
+  *demonstrates* are actual Sheet prerequisites; it is not enlarged by the 409
+  `template_validation`/`format`/`core` cases. Remaining template/validation
+  parity is R32; remaining format-string, core-stdlib and pattern parity is
+  R33. These targets change only by a later explicit maintainer decision.
 - **D-B — `read_file`/`write_file`** parity is scheduled with R32 `resource_io`.
   No new permanent exception.
 - **D-C — the pipe-mode case requiring `json_compat`** is re-expressed with
