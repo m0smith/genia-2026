@@ -189,6 +189,7 @@ def test_a11_the_a9_fact_and_the_catalogue_are_unchanged():
         "pipelines",
         "repetition",
         "sheet_records",
+        "map2",
     }
 
 

@@ -1,0 +1,11 @@
+name: r30-map2-global-alias
+category: eval
+description: Obtain and invoke the unshadowed runtime-public List helper.
+input:
+  source: |
+    combine = map2
+    combine((x, y) -> x + y, [1], [2])
+expected:
+  stdout: "[3]\n"
+  stderr: ""
+  exit_code: 0
