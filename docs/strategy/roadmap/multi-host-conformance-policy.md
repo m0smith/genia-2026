@@ -59,9 +59,16 @@ R16 should distinguish two different questions:
 
 Pinned conformance is the release/certification claim. Current-main compatibility is a forward-drift signal. A host can therefore remain correctly conforming to its declared revision while being visibly behind current `main`.
 
-## Capability-aware synchronization
+## Mandatory supported-host parity (issue #1341)
 
-Hosts are not required to expose identical capability sets. Synchronization means identical observable behavior for every capability a host claims, not forced support for every Python-host-only surface.
+Every supported host (currently the Python reference host and `m0smith/genia-cpp`) must have a delivery plan for every portable roadmap feature. A capability set that differs between hosts is a **scheduled temporary gap**, never a permanent default. Synchronization still means identical observable behavior for every capability a host claims.
+
+- **Temporary gap:** allowed only with an owner, a tracking issue, a target release, evidence (pinned and current-main conformance), and a removal condition. Delivery may land in a later release than the first host.
+- **Permanent host-specific feature:** requires explicit maintainer authorization with documented scope and reason. Historical "Python-host-only" labels are not grandfathered.
+- **Host implementation freedom** (internal representation, build, REPL prompt/history, interop allowlist contents, CI mechanics) is not a feature exemption.
+- Pinned conformance, truthful `unsupported` accounting, and `GENIA_STATE.md` authority are unchanged; `unsupported` is never `pass`.
+
+The canonical inventory, release assignments, open scheduling decisions and exception register live in [`host-parity-inventory.md`](host-parity-inventory.md). A new portable feature's pre-flight must name each supported host's delivery release or cite an authorized exception.
 
 The conformance report should make at least these states explicit:
 
@@ -73,7 +80,7 @@ PROTOCOL ERROR
 CRASH/TIMEOUT
 ```
 
-Future public host status may use maturity labels such as Reference, Conforming, Experimental, or Stale, but exact labels belong to the R16 contract/design gate. Status must be derived from evidence rather than manually optimistic documentation.
+Status must be derived from evidence rather than manually optimistic documentation.
 
 ## Drift handling rule
 

@@ -257,6 +257,10 @@ The completed R7 boundary excludes:
 - parser, lexer, Core IR, or unrelated host-adapter changes
 - unapproved optional or deferred candidates from `docs/strategy/release-roadmap.md`
 
+## Supported-host parity (#1341)
+
+Plan every portable roadmap feature for every supported host; treat host capability differences as scheduled temporary gaps (owner, issue, target release, evidence, removal condition) unless an explicit maintainer-authorized exception exists. Do not label new work Python-only by default. See `docs/strategy/roadmap/multi-host-conformance-policy.md` and `docs/strategy/roadmap/host-parity-inventory.md`.
+
 ## Genia MCP server (R28)
 
 R28 delivered a local stdio MCP server for Genia (`apps/mcp/mcp.genia`; `GENIA_STATE.md` section 9.49; `docs/releases/R28.md`),

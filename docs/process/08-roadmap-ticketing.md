@@ -73,6 +73,7 @@ Each ticket must state:
 - how it will be tested
 - which docs may need updates
 - what must not change
+- for portable features, each supported host's target release or an authorized exception (`docs/strategy/roadmap/multi-host-conformance-policy.md`); reuse existing parity tracking issues before creating new ones
 
 ## Ticket Ordering
 
