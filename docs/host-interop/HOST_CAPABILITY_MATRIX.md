@@ -164,5 +164,6 @@ ordinary linking. Closed publication executes on Python only (Experimental
 ### Standalone core library gap
 
 Experimental `map2/3` is implemented on the Python reference host. The pinned
-C++ adapter classifies all 13 R30 cases as unsupported. The core-library lane
-tracks C++ delivery for R33 under #1018.
+C++ adapter misclassifies the unshadowed alias as an undefined name. The
+catalogue candidate reports all 14 standalone shared cases as unsupported.
+The core-library lane tracks C++ delivery for R33 under #1018.

@@ -121,20 +121,28 @@ declared supported (26 `open_functions`, 1 `json_strict`) + 493 untagged
 
 ## R30 incremental evidence
 
-The earlier tables retain the inventoried baseline. The R30 run used C++
-`0a119f67d92cb08c2feaf975610722a2fa7555c8` (CI pin and remote main) against
-GREEN `f520145d8827c0d63daf1d190c8dc3d5d78e213b`. It classified 1,185 cases
-as 335 pass and 850 unsupported, with every failure-class count zero.
-All 23 R30 cases were unsupported.
+The earlier tables retain the inventoried baseline. The follow-up tested the
+authoritative shared corpus at `45f77fe72adb679568b8cd913de106ce3498b30b`:
+
+| C++ revision | PASS | UNSUPPORTED | FAIL |
+|---|---:|---:|---:|
+| CI pin `0a119f67d92cb08c2feaf975610722a2fa7555c8` | 335 | 850 | 1 |
+| Catalogue candidate `6c88ef858a25172281e908f891ac7fdfa6748df3` | 335 | 851 | 0 |
+
+Both runs classified 1,186 cases. Every other failure-class count was zero.
+Only `r30-map2-global-alias` changed classification. The pin returned
+`Error: Undefined name: map2` on the unshadowed alias. The catalogue candidate
+reports all 24 R30 cases unsupported, including that alias. The genuine
+undefined-name control still passes. CI remains on the original pin pending
+C++ review and maintainer integration.
 
 | C++ gap | Owner lane | Track | Target | Removal condition |
 |---|---|---|---|---|
 | `sheet_values` (10 additional shared cases, 45 total) | genia-cpp Sheet | #1330 | R31 | C++ declares `sheet_values` supported, every affected case passes, and parity reports `PARITY_OK`. |
-| Standalone `map2` (13 cases) | genia-cpp core stdlib | #1018 | R33 per D-A | Every case passes on C++ without a `map2` exclusion and parity reports `PARITY_OK`. |
+| Standalone `map2` (14 cases) | genia-cpp core stdlib | #1018 | R33 per D-A | Every case passes on C++ without a `map2` exclusion and parity reports `PARITY_OK`. |
 
-Standalone `map2` needs no `sheet_values` tag or catalogue change at the
-measured pin. R31 can take it only if its pre-flight demonstrates an actual
-Sheet prerequisite.
+Standalone `map2` cases have no `sheet_values` requirement. R31 can take
+`map2` only if its pre-flight demonstrates an actual Sheet prerequisite.
 
 ### Sheet extraction and attachment
 
@@ -161,6 +169,7 @@ Sheet prerequisite.
 - `spec/error/r30-map2-second-list.yaml`
 - `spec/eval/r30-map2-callables.yaml`
 - `spec/eval/r30-map2-closed.yaml`
+- `spec/eval/r30-map2-global-alias.yaml`
 - `spec/eval/r30-map2-outcomes.yaml`
 - `spec/eval/r30-map2-results.yaml`
 - `spec/eval/r30-map2-zip.yaml`
