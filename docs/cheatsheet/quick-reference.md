@@ -79,6 +79,17 @@ Common helpers:
 
 ## Lists
 
+`map2(f, xs, ys)` applies a callback to corresponding elements of equal-length
+Lists in order. Experimental on the Python reference host. C++ is tracked
+under #1018.
+
+<!-- [case: quick-r30-map2] -->
+```genia
+map2((q, p) -> q * p, [2, 4], [3, 1/2])
+```
+
+Classification: **Valid** (Experimental, Python reference host)
+
 - `first(xs)`, `last(xs)`, `rest(xs)`
 - `map(f, xs)`, `filter(pred, xs)`, `reduce(f, acc, xs)`
 - `count(xs)`, `length(xs)`

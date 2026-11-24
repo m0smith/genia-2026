@@ -161,6 +161,7 @@
     "chunk": "runtime-public",
     "collect_sheet": "runtime-public",
     "collect_validated": "runtime-public",
+    "column": "runtime-public",
     "columns": "runtime-public",
     "config_args": "runtime-public",
     "config_get": "runtime-public",
@@ -198,6 +199,7 @@
     "lifecycle_repeat": "runtime-public",
     "lifecycle_scope": "runtime-public",
     "log": "runtime-public",
+    "map2": "runtime-public",
     "meta": "runtime-public",
     "model": "runtime-public",
     "nil": "runtime-public",
@@ -241,6 +243,7 @@
     "utf8_decode": "runtime-public",
     "utf8_encode": "runtime-public",
     "where": "runtime-public",
+    "with_column": "runtime-public",
     "zip_entries": "runtime-public"
   },
   "internal": {

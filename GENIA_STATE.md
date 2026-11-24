@@ -594,6 +594,51 @@ and spreadsheet UI remain absent.
 columns. Names follow legal Genia map-key equality. Construction requires Lists;
 `derive` rejects existing names; `where` requires booleans. Outcomes remain cells.
 
+### Sheet shaped computation (Experimental)
+<!-- anchor: state:sheet-shaped-computation -->
+
+**LANGUAGE CONTRACT:** `column(name, sheet)` copies the outer List of exact stored
+cells in row order, using canonical Sheet column-name identity. `with_column(name,
+values, sheet)` appends one new column to an immutable Sheet, sharing existing
+column storage and preserving the row count. A named zero-row column extracts as
+`[]`. Attaching to a zero-column Sheet still requires its stored row count.
+
+Both validate the Sheet before name legality. `column` raises `column could not
+find column` for an absent name. After name legality, `with_column` rejects a
+canonical duplicate (`with_column expected a new column name`), a non-List
+(`with_column expected column values to be a List`), authority detected by the
+existing Sheet storage detector (`declassification authority cannot be stored
+in a Sheet`), and a mismatched row count (`with_column expected <expected>
+values; received <actual>`), in that order. Non-Sheets raise
+`column expected a Sheet` or `with_column expected a Sheet`. TypeErrors from
+these structural checks retain their messages through pipelines. Existing name
+legality and diagnostics apply, including protected-name handling. Protected
+cells stay opaque under existing sinks. The prior detector coverage limitation
+for Pair and Represented cells is tracked under #1343.
+
+**PYTHON REFERENCE HOST:** Experimental. C++ Sheet delivery is tracked for R31
+under #1330.
+
+### Pairwise List computation (Experimental)
+<!-- anchor: state:map2 -->
+
+**LANGUAGE CONTRACT:** `map2(f, xs, ys)` applies an ordinary callee to corresponding
+elements of equal-length Lists. It checks the callee category, each List in
+argument order, then length equality before the first callback. Structural
+TypeErrors are `map2 expected a function`, `map2 expected two Lists`, and
+`map2 expected equal lengths; received <left> and <right>`; ordinary pipeline
+wrapping applies. It checks callback arity and invocation state only through
+ordinary invocation, so two empty Lists return `[]` after category validation.
+Lists are processed in order with one raw invocation per pair and a fresh List
+of exact results. Raw invocation passes Outcome elements unchanged, including
+`none`, and retains returned Outcomes as elements. An ordinary outer call still
+propagates the first `none` argument before the helper runs. Callback exceptions
+stop iteration, preserve preceding explicit effects and return no partial List.
+Flow inputs fail the List check without consumption.
+
+**PYTHON REFERENCE HOST:** Experimental. Standalone C++ delivery is tracked
+for R33 under #1018, subject to the R31 Sheet prerequisite rule.
+
 ### Sheet record conversion (Experimental)
 <!-- anchor: state:sheet-records -->
 
@@ -1606,6 +1651,8 @@ Public helpers:
 - `derive(name, function, sheet)` — return a new Sheet with a new column appended; row function receives each row as a list of `[name, value]` pairs; rejects existing column names
 - `rows(sheet)` — return a list of rows, each row as a list of `[name, value]` pairs
 - `row_get(row, column_name)` — return the value paired with `column_name` in a row (**Experimental**); see below
+- `column(name, sheet)` — extract a fresh List of exact stored cells in row order
+- `with_column(name, values, sheet)` — append an explicit List with exactly the stored row count
 - `collect_sheet(records)` — terminal, explicit conversion of a finite Seq-compatible source (list or Flow) of homogeneous map records into an immutable Sheet (**Experimental**); see below
 - `render_csv(sheet)` — return deterministic CSV report text for a Sheet (**Experimental**); see below
 

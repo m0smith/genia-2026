@@ -91,6 +91,8 @@ nav:
           - "model": reference/functions/model.md
       - CLI:
           - "argv": reference/functions/argv.md
+      - Collections:
+          - "map2": reference/functions/map2.md
       - Configuration:
           - "config_args": reference/functions/config_args.md
           - "config_get": reference/functions/config_get.md
@@ -154,6 +156,7 @@ nav:
           - "retrieve": reference/functions/retrieve.md
       - Sheets:
           - "collect_sheet": reference/functions/collect_sheet.md
+          - "column": reference/functions/column.md
           - "columns": reference/functions/columns.md
           - "derive": reference/functions/derive.md
           - "render_csv": reference/functions/render_csv.md
@@ -164,6 +167,7 @@ nav:
           - "sheet": reference/functions/sheet.md
           - "sheet_records": reference/functions/sheet_records.md
           - "where": reference/functions/where.md
+          - "with_column": reference/functions/with_column.md
       - Simulation:
           - "sleep": reference/functions/sleep.md
       - Testing:

@@ -123,5 +123,10 @@
     "id": "core-immutable-binding-shallow",
     "source": "r =: ref(0)\nref_set(r, 5)\nref_get(r)",
     "expected_result": "5"
+  },
+  {
+    "id": "core-r30-sheet-column",
+    "source": "s = sheet([[\"x\", [2, 4]]])\nt = s |> with_column(\"double\", [4, 8])\nt |> column(\"double\")",
+    "expected_result": "[4, 8]"
   }
 ]

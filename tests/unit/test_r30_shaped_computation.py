@@ -13,6 +13,7 @@ SENTINEL = "R30_SYNTHETIC_PROTECTED_SENTINEL"
 
 @pytest.fixture
 def protected_env():
+    """Construct a synthetic protected cell and inject authority through the host."""
     env = make_global_env([])
     provider = run_source(
         f'p = config_provider([{{kind: quote(values), values: {{K: "{SENTINEL}"}}}}]) |> unwrap_or(nil)\n'

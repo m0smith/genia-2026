@@ -1820,6 +1820,16 @@ report = collect_sheet([
 render_csv(report)
 ```
 
+### Shaped computation (**Experimental, Python reference host**)
+
+Read a column as an eager List with `column(name, sheet)`. Attach computed
+values with `with_column(name, values, sheet)`, which returns a new Sheet and
+requires exactly one value per stored row. `map2(f, xs, ys)` combines two
+equal-length Lists in order. Callbacks receive exact elements, including
+Outcomes, and returned Outcomes remain in the result List. Ordinary outer call
+propagation of `none` still applies. C++ Sheet support is tracked for R31 (#1330).
+Standalone C++ `map2` support is tracked for R33 (#1018).
+
 ### Explicit Sheet records (**Experimental, Python reference host**)
 
 `sheet_records(s)`
@@ -1870,7 +1880,7 @@ older = people
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - data parsing helpers: `json_decode`, `json_encode`, `json_schema` (Experimental portable boundaries), `json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record` (Experimental), `parse_csv_row` (Experimental)
 - validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, `diagnostic_field` (Experimental); `collect_validated` (host-backed builtin, Experimental)
-- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`, `collect_sheet`, `render_csv`, `sheet_records` (host-backed builtins, Experimental)
+- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`, `collect_sheet`, `render_csv`, `sheet_records`, `column`, `with_column` (host-backed builtins, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`
