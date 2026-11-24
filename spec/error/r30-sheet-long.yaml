@@ -1,0 +1,10 @@
+name: r30-sheet-long
+category: error
+requires: [sheet_values]
+input:
+  source: |
+    with_column("a", [1], sheet([["b", []]]))
+expected:
+  stdout: ""
+  stderr: "Error: with_column expected 0 values; received 1\n"
+  exit_code: 1

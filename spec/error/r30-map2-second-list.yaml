@@ -1,0 +1,10 @@
+name: r30-map2-second-list
+category: error
+requires: [flow_phase_1]
+input:
+  source: |
+    map2((a, b) -> a, [], evolve(0, (x) -> { print(x); x + 1 }))
+expected:
+  stdout: ""
+  stderr: "Error: map2 expected two Lists\n"
+  exit_code: 1

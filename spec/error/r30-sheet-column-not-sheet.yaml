@@ -1,0 +1,10 @@
+name: r30-sheet-column-not-sheet
+category: error
+requires: [sheet_values]
+input:
+  source: |
+    0 |> column(some(1))
+expected:
+  stdout: ""
+  stderr: "Error: column expected a Sheet\n"
+  exit_code: 1

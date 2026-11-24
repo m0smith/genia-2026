@@ -1,0 +1,11 @@
+name: r30-map2-callables
+category: eval
+input:
+  source: |
+    f(x, y) = x * y
+    f(x) = x
+    [map2(f, [2], [3]), map2((x, y) -> x + y, [2], [3]), map2({a: 4}, ["a", "b"], [0, 5]), map2("a", [{a: 7}, {}], [0, 8]), map2("a", [], [])]
+expected:
+  stdout: "[[6], [5], [4, 5], [7, 8], []]\n"
+  stderr: ""
+  exit_code: 0

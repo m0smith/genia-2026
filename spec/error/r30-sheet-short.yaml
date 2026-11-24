@@ -1,0 +1,10 @@
+name: r30-sheet-short
+category: error
+requires: [sheet_values]
+input:
+  source: |
+    with_column("a", [], select([], sheet([["b", [1, 2]]])))
+expected:
+  stdout: ""
+  stderr: "Error: with_column expected 2 values; received 0\n"
+  exit_code: 1

@@ -1,0 +1,9 @@
+name: r30-map2-callback-first
+category: error
+input:
+  source: |
+    map2(err("ordinary"), 1, 2)
+expected:
+  stdout: ""
+  stderr: "Error: map2 expected a function\n"
+  exit_code: 1

@@ -1,0 +1,10 @@
+name: r30-sheet-not-list
+category: error
+requires: [sheet_values]
+input:
+  source: |
+    with_column("a", 0, sheet([]))
+expected:
+  stdout: ""
+  stderr: "Error: with_column expected column values to be a List\n"
+  exit_code: 1

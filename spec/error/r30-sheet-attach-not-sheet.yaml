@@ -1,0 +1,10 @@
+name: r30-sheet-attach-not-sheet
+category: error
+requires: [sheet_values]
+input:
+  source: |
+    with_column({bad: 1}, 0, 1)
+expected:
+  stdout: ""
+  stderr: "Error: with_column expected a Sheet\n"
+  exit_code: 1

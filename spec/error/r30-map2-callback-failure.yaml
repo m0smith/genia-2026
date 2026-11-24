@@ -1,0 +1,10 @@
+name: r30-map2-callback-failure
+category: error
+input:
+  source: |
+    f(x, y) = { print(x); x / y }
+    map2(f, [1, 2, 3], [1, 0, 1])
+expected:
+  stdout: "1\n2\n"
+  stderr: "Error: exact division by zero\n"
+  exit_code: 1
