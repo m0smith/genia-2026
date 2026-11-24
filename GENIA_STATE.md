@@ -597,47 +597,24 @@ columns. Names follow legal Genia map-key equality. Construction requires Lists;
 ### Sheet shaped computation (Experimental)
 <!-- anchor: state:sheet-shaped-computation -->
 
-**LANGUAGE CONTRACT:** `column(name, sheet)` copies the outer List of exact stored
-cells in row order, using canonical Sheet column-name identity. `with_column(name,
-values, sheet)` appends one new column to an immutable Sheet, sharing existing
-column storage and preserving the row count. A named zero-row column extracts as
-`[]`. Attaching to a zero-column Sheet still requires its stored row count.
-
-Both validate the Sheet before name legality. `column` raises `column could not
-find column` for an absent name. After name legality, `with_column` rejects a
-canonical duplicate (`with_column expected a new column name`), a non-List
-(`with_column expected column values to be a List`), authority detected by the
-existing Sheet storage detector (`declassification authority cannot be stored
-in a Sheet`), and a mismatched row count (`with_column expected <expected>
-values; received <actual>`), in that order. Non-Sheets raise
-`column expected a Sheet` or `with_column expected a Sheet`. TypeErrors from
-these structural checks retain their messages through pipelines. Existing name
-legality and diagnostics apply, including protected-name handling. Protected
-cells stay opaque under existing sinks. The prior detector coverage limitation
-for Pair and Represented cells is tracked under #1343.
-
-**PYTHON REFERENCE HOST:** Experimental. C++ Sheet delivery is tracked for R31
-under #1330.
+`column(name, sheet)` returns a fresh List of exact cells in row order.
+`with_column(name, values, sheet)` appends a canonically distinct List
+column, retaining old columns and the stored row count even with zero
+columns. Named zero-row columns extract as `[]`. Both validate Sheet before
+name. Attachment then checks duplicate, List, authority detected by the
+existing storage detector (#1343), and length. Existing name errors and
+protected sinks apply. Python Experimental. C++ R31 (#1330).
 
 ### Pairwise List computation (Experimental)
 <!-- anchor: state:map2 -->
 
-**LANGUAGE CONTRACT:** `map2(f, xs, ys)` applies an ordinary callee to corresponding
-elements of equal-length Lists. It checks the callee category, each List in
-argument order, then length equality before the first callback. Structural
-TypeErrors are `map2 expected a function`, `map2 expected two Lists`, and
-`map2 expected equal lengths; received <left> and <right>`; ordinary pipeline
-wrapping applies. It checks callback arity and invocation state only through
-ordinary invocation, so two empty Lists return `[]` after category validation.
-Lists are processed in order with one raw invocation per pair and a fresh List
-of exact results. Raw invocation passes Outcome elements unchanged, including
-`none`, and retains returned Outcomes as elements. An ordinary outer call still
-propagates the first `none` argument before the helper runs. Callback exceptions
-stop iteration, preserve preceding explicit effects and return no partial List.
-Flow inputs fail the List check without consumption.
-
-**PYTHON REFERENCE HOST:** Experimental. Standalone C++ delivery is tracked
-for R33 under #1018, subject to the R31 Sheet prerequisite rule.
+`map2(f, xs, ys)` validates ordinary callee category, each List in argument
+order, then equal lengths. Flow inputs remain unconsumed. Each pair invokes
+the callback once in order, passing exact elements and storing exact results
+in a fresh List, including Outcomes. Outer calls propagate the first `none`
+before validation. Arity and publication are checked only at invocation,
+so valid categories with empty Lists yield `[]`. Callback failure propagates
+with prior effects retained. Python Experimental. C++ R33 (#1018).
 
 ### Sheet record conversion (Experimental)
 <!-- anchor: state:sheet-records -->
@@ -1639,24 +1616,17 @@ Representation System entry points (#185, implemented):
 - Runtime capability values and function-like values may have host-specific opaque debug/display text unless a later contract explicitly stabilizes them.
 ### Sheet builtins (Experimental)
 
-Sheet public helpers are registered directly as arity-specific `GeniaFunctionGroup` builtins in the global environment (not autoloaded). This allows coexistence with user-defined functions at other arities (for example, user-defined `rows/0` may coexist with `rows(sheet)`).
+Sheet builtins use fixed-arity runtime-public groups, allowing user functions
+at other arities. Transformations return fresh Sheets.
 
-Public helpers:
-
-- `sheet(columns)` — construct a Sheet from a list of `[name, values]` column pairs; column values must be lists; column names must be unique; all columns must have equal length. Column-name uniqueness uses Genia equality (R18 E18-4), and the legal column-name family is the same as the legal map-key family; see "Portable value equality" above
-- `shape(sheet)` — return `[[rows, n], [columns, n]]`
-- `columns(sheet)` — return column names in deterministic order
-- `select(names, sheet)` — return a new Sheet with requested columns in requested order; rejects duplicate or missing names
-- `where(predicate, sheet)` — return a new Sheet of rows where predicate returns `true`; predicate receives each row as a list of `[name, value]` pairs; predicate must return boolean
-- `derive(name, function, sheet)` — return a new Sheet with a new column appended; row function receives each row as a list of `[name, value]` pairs; rejects existing column names
-- `rows(sheet)` — return a list of rows, each row as a list of `[name, value]` pairs
-- `row_get(row, column_name)` — return the value paired with `column_name` in a row (**Experimental**); see below
-- `column(name, sheet)` — extract a fresh List of exact stored cells in row order
-- `with_column(name, values, sheet)` — append an explicit List with exactly the stored row count
-- `collect_sheet(records)` — terminal, explicit conversion of a finite Seq-compatible source (list or Flow) of homogeneous map records into an immutable Sheet (**Experimental**); see below
-- `render_csv(sheet)` — return deterministic CSV report text for a Sheet (**Experimental**); see below
-
-Sheet transformations return new Sheets; conversions return their documented values. Existing Sheets are never mutated.
+- `sheet(columns)` accepts `[name, values]` pairs with unique canonical names and equal-length Lists.
+- `shape(sheet)` returns `[[rows, n], [columns, n]]`.
+- `columns(sheet)` returns ordered names.
+- `select(names, sheet)` selects in requested order, rejecting missing or duplicate names.
+- `rows(sheet)` returns ordered rows of `[name, value]` pairs.
+- `where(predicate, sheet)` keeps rows whose predicate returns `true` and requires boolean results.
+- `derive(name, function, sheet)` appends a distinct column computed from those rows.
+- `column(name, sheet)` and `with_column(name, values, sheet)` use the shaped computation rules above.
 
 `row_get(row, column_name)` (**Experimental**):
 
@@ -1687,17 +1657,23 @@ Sheet transformations return new Sheets; conversions return their documented val
 
 `render_csv(sheet)` (**Experimental**):
 
-- accepts a Sheet; performs no I/O. Emit returned text with `write` or `writeln`.
-- emits headers in Sheet column order and data records in Sheet row order
-- accepts string contents, symbol names, Integer/Decimal/Rational/Float64 scalar text, boolean `true`/`false`, and empty fields for nil. Composite and non-nil Outcome headers/cells are runtime misuse errors; no coercion.
-- separates fields with `,` and records with `\n`. Comma, double quote, newline or carriage return triggers double-quoting; embedded quotes double. Other content, including whitespace, is preserved.
-- zero columns render as `""`; otherwise include a header and end every record with `\n`.
-- preserves immutability; no Seq compatibility or implicit Outcome unwrapping.
-- errors (all `TypeError`, opting out of generic pipeline error wrapping):
-  - non-Sheet input: `"render_csv expected a Sheet"`
-  - unsupported header: `"render_csv expected CSV scalar header at column <n>; received <type>"`
-  - unsupported cell: `"render_csv expected CSV scalar cell at row <r>, column <c>; received <type>"`
-- row/column error indexes are zero-based; failure returns no partial string and performs no output
+- Returns text in column/row order. Use `write` or `writeln` for output.
+- Accepts string, symbol, Integer, Decimal, Rational, Float64, boolean and nil (empty field). Composite and non-nil Outcome fields fail.
+- Separates fields with commas and records with `\n`. Comma, double quote, newline or carriage return triggers quoting, and embedded quotes double. Other text is preserved.
+- Zero columns give `""`. Otherwise output starts with headers and ends in `\n`.
+- Marked TypeErrors carry zero-based indexes and return no partial text:
+  - `render_csv expected a Sheet`
+  - `render_csv expected CSV scalar header at column <n>; received <type>`
+  - `render_csv expected CSV scalar cell at row <r>, column <c>; received <type>`
+
+R30 marked Sheet TypeErrors are `column expected a Sheet`,
+`column could not find column`, `with_column expected a Sheet`,
+`with_column expected a new column name`, `with_column expected column values
+to be a List`, `declassification authority cannot be stored in a Sheet`, and
+`with_column expected <expected> values; received <actual>`.
+Ordinary pipeline wrapping applies to structural `map2` TypeErrors:
+`map2 expected a function`, `map2 expected two Lists`, and
+`map2 expected equal lengths; received <left> and <right>`.
 
 Construction example:
 

@@ -466,12 +466,12 @@
           {
             "kind": "state_text",
             "anchor": "state:sheet-shaped-computation",
-            "fragment": "`column(name, sheet)` copies the outer List of exact stored"
+            "fragment": "`column(name, sheet)` returns a fresh List of exact cells"
           },
           {
             "kind": "state_text",
             "anchor": "state:map2",
-            "fragment": "`map2(f, xs, ys)` applies an ordinary callee to corresponding"
+            "fragment": "`map2(f, xs, ys)` validates ordinary callee category"
           },
           {
             "kind": "state_text",
