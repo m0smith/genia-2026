@@ -73,7 +73,9 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`0a119f67d92cb08c2feaf975610722a2fa7555c8`, the genia-cpp #50 merged Model B Slice A parser/lowering implementation
+`0c4dbb1c1ee290d41777bcf52c68e62a7a22e059` ([genia-cpp #62](https://github.com/m0smith/genia-cpp/pull/62)).
+The catalogue update builds on the Model B Slice A parser/lowering revision
+`0a119f67d92cb08c2feaf975610722a2fa7555c8`
 (reviewed PR head `0502d436286c110b19ebbeb796f07ed4119fb06f`). It builds on the reviewed
 [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) guard/capture follow-up
 (merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`, source
@@ -164,6 +166,6 @@ ordinary linking. Closed publication executes on Python only (Experimental
 ### Standalone core library gap
 
 Experimental `map2/3` is implemented on the Python reference host. The pinned
-C++ adapter misclassifies the unshadowed alias as an undefined name. The
-catalogue candidate reports all 14 standalone shared cases as unsupported.
+C++ adapter reports all 14 standalone shared cases as unsupported, including
+the unshadowed alias.
 The core-library lane tracks C++ delivery for R33 under #1018.

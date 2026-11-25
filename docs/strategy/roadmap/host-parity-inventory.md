@@ -126,15 +126,16 @@ authoritative shared corpus at `45f77fe72adb679568b8cd913de106ce3498b30b`:
 
 | C++ revision | PASS | UNSUPPORTED | FAIL |
 |---|---:|---:|---:|
-| CI pin `0a119f67d92cb08c2feaf975610722a2fa7555c8` | 335 | 850 | 1 |
+| Previous CI pin `0a119f67d92cb08c2feaf975610722a2fa7555c8` | 335 | 850 | 1 |
 | Catalogue candidate `6c88ef858a25172281e908f891ac7fdfa6748df3` | 335 | 851 | 0 |
 
 Both runs classified 1,186 cases. Every other failure-class count was zero.
 Only `r30-map2-global-alias` changed classification. The pin returned
 `Error: Undefined name: map2` on the unshadowed alias. The catalogue candidate
 reports all 24 R30 cases unsupported, including that alias. The genuine
-undefined-name control still passes. CI remains on the original pin pending
-C++ review and maintainer integration.
+undefined-name control still passes. The CI pin is now `0c4dbb1c1ee290d41777bcf52c68e62a7a22e059`
+([genia-cpp #62](https://github.com/m0smith/genia-cpp/pull/62)). The merge tree
+matches the reviewed head `5d00e181f3eddc51f4e4e080631065b65bac29cd`.
 
 | C++ gap | Owner lane | Track | Target | Removal condition |
 |---|---|---|---|---|
