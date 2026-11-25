@@ -139,7 +139,16 @@ def test_the_idiom_example_in_the_contract_is_valid_genia_with_the_documented_re
 
 def test_a9_idioms_gain_exactly_the_outcomes_member():
     idioms = _profile()["idioms"]
-    assert set(idioms) == {"branching", "clauses", "flow", "outcomes", "pipelines", "repetition", "sheet_records"}  # A10 adds `flow`; R29 adds `sheet_records`
+    assert set(idioms) == {
+        "branching",
+        "clauses",
+        "flow",
+        "map2",
+        "outcomes",
+        "pipelines",
+        "repetition",
+        "sheet_records",
+    }
 
 
 def test_a9_outcomes_idiom_is_the_exact_contract_text():
