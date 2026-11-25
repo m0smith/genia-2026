@@ -139,7 +139,7 @@ matches the reviewed head `5d00e181f3eddc51f4e4e080631065b65bac29cd`.
 
 | C++ gap | Owner lane | Track | Target | Removal condition |
 |---|---|---|---|---|
-| `sheet_values` (10 additional shared cases, 45 total) | genia-cpp Sheet | #1330 | R31 | C++ declares `sheet_values` supported, every affected case passes, and parity reports `PARITY_OK`. |
+| `sheet_values` (11 additional shared cases, 46 total) | genia-cpp Sheet | #1330 | R31 | C++ declares `sheet_values` supported, every affected case passes, and parity reports `PARITY_OK`. |
 | Standalone `map2` (14 cases) | genia-cpp core stdlib | #1018 | R33 per D-A | Every case passes on C++ without a `map2` exclusion and parity reports `PARITY_OK`. |
 
 Standalone `map2` cases have no `sheet_values` requirement. R31 can take
@@ -157,6 +157,7 @@ Standalone `map2` cases have no `sheet_values` requirement. R31 can take
 - `spec/error/r30-sheet-short.yaml`
 - `spec/eval/r30-sheet-columns.yaml`
 - `spec/eval/r30-sheet-empty-shapes.yaml`
+- `spec/eval/r30-sheet-validated-report.yaml`
 
 ### Standalone List computation
 

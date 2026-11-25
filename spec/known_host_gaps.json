@@ -440,7 +440,8 @@
         "spec/error/r30-sheet-reserved.yaml",
         "spec/error/r30-sheet-short.yaml",
         "spec/eval/r30-sheet-columns.yaml",
-        "spec/eval/r30-sheet-empty-shapes.yaml"
+        "spec/eval/r30-sheet-empty-shapes.yaml",
+        "spec/eval/r30-sheet-validated-report.yaml"
       ],
       "removal_condition": "Remove when genia-cpp implements the Sheet contract, declares sheet_values supported, passes every affected shared case, and the host parity gate reports PARITY_OK."
     }

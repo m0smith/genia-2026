@@ -1,0 +1,19 @@
+name: r30-sheet-validated-report
+category: eval
+requires: [sheet_values]
+description: Validate input records, compute exact total and share columns, and render a stable report.
+input:
+  source: |
+    records = [{sku: "a", qty: 2, price: 3}, {sku: "bad", qty: -1, price: 5}, {sku: "c", qty: 4, price: 1/2}]
+    checked = validate_each(records, (r) -> validate_field("qty", (q) -> q > 0, "positive", r))
+    validated = collect_validated(checked)
+    source = collect_sheet(validated.clean)
+    totals = map2((q, p) -> q * p, column("qty", source), column("price", source))
+    grand_total = reduce((acc, total) -> acc + total, 0, totals)
+    shares = map((total) -> total / grand_total, totals)
+    report = source |> with_column("total", totals) |> with_column("share", shares)
+    [render_csv(report), grand_total, validated.diagnostics, render_csv(source)]
+expected:
+  stdout: "[\"sku,qty,price,total,share\\na,2,3,6,3/4\\nc,4,1/2,2,1/4\\n\", 8, [{index: 1, kind: error, reason: \"invalid field\", context: some({field: \"qty\", expected: \"positive\", actual: -1, reason: \"invalid field\"})}], \"sku,qty,price\\na,2,3\\nc,4,1/2\\n\"]\n"
+  stderr: ""
+  exit_code: 0
