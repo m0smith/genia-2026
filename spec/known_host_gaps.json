@@ -392,7 +392,7 @@
     },
     {
       "capability": "sheet_values",
-      "reason": "The bounded C++ host does not implement Sheet values or the explicit Sheet-to-record boundary. Capability exclusion records non-support; it is not PASS or parity.",
+      "reason": "The bounded C++ host does not implement Sheet values, explicit Sheet-to-record conversion or shaped column extraction and attachment (owner genia-cpp Sheet lane, target R31). Capability exclusion records non-support; it is not PASS or parity.",
       "tracking_issue": "m0smith/genia-2026#1330",
       "affected_host": "cpp",
       "affected_tests": [
@@ -430,7 +430,17 @@
         "spec/eval/r29-records-validated-report.yaml",
         "spec/eval/r29-records-zero-shapes.yaml",
         "spec/flow/r29-existing-list-flow-guards.yaml",
-        "spec/flow/r29-records-bounded-downstream.yaml"
+        "spec/flow/r29-records-bounded-downstream.yaml",
+        "spec/error/r30-sheet-attach-not-sheet.yaml",
+        "spec/error/r30-sheet-column-not-sheet.yaml",
+        "spec/error/r30-sheet-duplicate.yaml",
+        "spec/error/r30-sheet-long.yaml",
+        "spec/error/r30-sheet-missing.yaml",
+        "spec/error/r30-sheet-not-list.yaml",
+        "spec/error/r30-sheet-reserved.yaml",
+        "spec/error/r30-sheet-short.yaml",
+        "spec/eval/r30-sheet-columns.yaml",
+        "spec/eval/r30-sheet-empty-shapes.yaml"
       ],
       "removal_condition": "Remove when genia-cpp implements the Sheet contract, declares sheet_values supported, passes every affected shared case, and the host parity gate reports PARITY_OK."
     }

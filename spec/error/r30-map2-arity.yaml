@@ -1,0 +1,9 @@
+name: r30-map2-arity
+category: error
+input:
+  source: |
+    map2((x) -> x, [1], [2])
+expected:
+  stdout: ""
+  stderr: "Error: lambda expected 1 args, got 2\n"
+  exit_code: 1

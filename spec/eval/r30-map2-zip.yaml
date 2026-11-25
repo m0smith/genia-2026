@@ -1,0 +1,11 @@
+name: r30-map2-zip
+category: eval
+requires: [flow_phase_1]
+input:
+  source: |
+    zs = zip(lines(["1", "2"]), lines(["3", "4", "5"])) |> collect
+    [map2((x, y) -> x + y, [1, 2], [3, 4]), zs]
+expected:
+  stdout: "[[4, 6], [[\"1\", \"3\"], [\"2\", \"4\"]]]\n"
+  stderr: ""
+  exit_code: 0

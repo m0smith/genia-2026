@@ -119,6 +119,62 @@ declared supported (26 `open_functions`, 1 `json_strict`) + 493 untagged
 | `read_file`/`write_file` legacy bare-name helpers | R32 (with `resource_io`) | D-B: no exception |
 | Interactive REPL prompt/banner/history | not a gap | host-local by R26 contract |
 
+## R30 incremental evidence
+
+The earlier tables retain the inventoried baseline. The follow-up tested the
+authoritative shared corpus at `45f77fe72adb679568b8cd913de106ce3498b30b`:
+
+| C++ revision | PASS | UNSUPPORTED | FAIL |
+|---|---:|---:|---:|
+| Previous CI pin `0a119f67d92cb08c2feaf975610722a2fa7555c8` | 335 | 850 | 1 |
+| Catalogue candidate `6c88ef858a25172281e908f891ac7fdfa6748df3` | 335 | 851 | 0 |
+
+Both runs classified 1,186 cases. Every other failure-class count was zero.
+Only `r30-map2-global-alias` changed classification. The pin returned
+`Error: Undefined name: map2` on the unshadowed alias. The catalogue candidate
+reports all 24 R30 cases unsupported, including that alias. The genuine
+undefined-name control still passes. The CI pin is now `0c4dbb1c1ee290d41777bcf52c68e62a7a22e059`
+([genia-cpp #62](https://github.com/m0smith/genia-cpp/pull/62)). The merge tree
+matches the reviewed head `5d00e181f3eddc51f4e4e080631065b65bac29cd`.
+
+| C++ gap | Owner lane | Track | Target | Removal condition |
+|---|---|---|---|---|
+| `sheet_values` (10 additional shared cases, 45 total) | genia-cpp Sheet | #1330 | R31 | C++ declares `sheet_values` supported, every affected case passes, and parity reports `PARITY_OK`. |
+| Standalone `map2` (14 cases) | genia-cpp core stdlib | #1018 | R33 per D-A | Every case passes on C++ without a `map2` exclusion and parity reports `PARITY_OK`. |
+
+Standalone `map2` cases have no `sheet_values` requirement. R31 can take
+`map2` only if its pre-flight demonstrates an actual Sheet prerequisite.
+
+### Sheet extraction and attachment
+
+- `spec/error/r30-sheet-attach-not-sheet.yaml`
+- `spec/error/r30-sheet-column-not-sheet.yaml`
+- `spec/error/r30-sheet-duplicate.yaml`
+- `spec/error/r30-sheet-long.yaml`
+- `spec/error/r30-sheet-missing.yaml`
+- `spec/error/r30-sheet-not-list.yaml`
+- `spec/error/r30-sheet-reserved.yaml`
+- `spec/error/r30-sheet-short.yaml`
+- `spec/eval/r30-sheet-columns.yaml`
+- `spec/eval/r30-sheet-empty-shapes.yaml`
+
+### Standalone List computation
+
+- `spec/error/r30-map2-arity.yaml`
+- `spec/error/r30-map2-callback-failure.yaml`
+- `spec/error/r30-map2-callback-first.yaml`
+- `spec/error/r30-map2-first-list.yaml`
+- `spec/error/r30-map2-mismatch.yaml`
+- `spec/error/r30-map2-noncallable.yaml`
+- `spec/error/r30-map2-reserved.yaml`
+- `spec/error/r30-map2-second-list.yaml`
+- `spec/eval/r30-map2-callables.yaml`
+- `spec/eval/r30-map2-closed.yaml`
+- `spec/eval/r30-map2-global-alias.yaml`
+- `spec/eval/r30-map2-outcomes.yaml`
+- `spec/eval/r30-map2-results.yaml`
+- `spec/eval/r30-map2-zip.yaml`
+
 ## Dependency check and maintainer decisions
 
 Dependencies checked: R31 Sheet parity depends on whichever template,

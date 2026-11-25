@@ -81,6 +81,7 @@ if __package__ in (None, ""):
         GeniaFunctionGroup, GeniaClosedFunction,
         GeniaLinkedOpenFunction,
         GeniaOpenFunction,
+        _is_ordinary_callee,
     )
     from genia.environment import Env
     from genia.utf8 import (
@@ -121,6 +122,8 @@ if __package__ in (None, ""):
         sheet_columns,
         sheet_derive,
         sheet_records,
+        sheet_column,
+        sheet_with_column,
         sheet_rows,
         sheet_select,
         sheet_shape,
@@ -211,6 +214,7 @@ else:
         GeniaFunctionGroup, GeniaClosedFunction,
         GeniaLinkedOpenFunction,
         GeniaOpenFunction,
+        _is_ordinary_callee,
     )
     from .environment import Env
     from .utf8 import (
@@ -251,6 +255,8 @@ else:
         sheet_columns,
         sheet_derive,
         sheet_records,
+        sheet_column,
+        sheet_with_column,
         sheet_rows,
         sheet_select,
         sheet_shape,
@@ -4307,6 +4313,21 @@ def make_global_env(
             skip_none_propagation=True,
         )
 
+    def map2_fn(function: Any, xs: Any, ys: Any) -> list[Any]:
+        """Apply an ordinary callee once per pair of equal-length Lists in order.
+
+        Validate category, List types and lengths before calls. Pass exact elements
+        through raw invocation and retain results, including Outcomes. Callback
+        errors propagate immediately with earlier effects retained.
+        """
+        if not _is_ordinary_callee(function):
+            raise TypeError("map2 expected a function")
+        if not isinstance(xs, list) or not isinstance(ys, list):
+            raise TypeError("map2 expected two Lists")
+        if len(xs) != len(ys):
+            raise TypeError(f"map2 expected equal lengths; received {len(xs)} and {len(ys)}")
+        return [_invoke_raw_from_builtin(function, [x, y]) for x, y in zip(xs, ys)]
+
     def where_fn(predicate: Any, sheet_value: Any) -> Any:
         return sheet_where(predicate, sheet_value, _invoke_raw_from_builtin)
 
@@ -6197,6 +6218,9 @@ def make_global_env(
     env.set_host("where", _host_function_group("where", 2, where_fn), visibility="runtime-public")
     env.set_host("derive", _host_function_group("derive", 3, derive_fn), visibility="runtime-public")
     env.set_host("rows", _host_function_group("rows", 1, sheet_rows), visibility="runtime-public")
+    env.set_host("column", _host_function_group("column", 2, sheet_column), visibility="runtime-public")
+    env.set_host("with_column", _host_function_group("with_column", 3, sheet_with_column), visibility="runtime-public")
+    env.set_host("map2", _host_function_group("map2", 3, map2_fn), visibility="runtime-public")
     env.set_host("sheet_records", _host_function_group("sheet_records", 1, sheet_records), visibility="runtime-public")
     env.set_host("row_get", _host_function_group("row_get", 2, row_get_value), visibility="runtime-public")
     env.set_host("render_csv", _host_function_group("render_csv", 1, render_sheet_csv), visibility="runtime-public")

@@ -1,0 +1,11 @@
+name: r30-map2-closed
+category: eval
+requires: [closed_functions]
+input:
+  source: |
+    f(x, y) =: x + y
+    map2(f, [2], [3])
+expected:
+  stdout: "[5]\n"
+  stderr: ""
+  exit_code: 0

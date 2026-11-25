@@ -1727,6 +1727,11 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: Optional
 # Module-level invocation dispatcher — issue #237
 # ---------------------------------------------------------------------------
 
+def _is_ordinary_callee(value: Any) -> bool:
+    """Recognize dispatcher callee categories without checking arity or publication."""
+    return isinstance(value, (GeniaMap, str)) or callable(value)
+
+
 def invoke_callable(
     fn: Any,
     args: list[Any],

@@ -41,7 +41,7 @@ Browser playground adapter note:
 | `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | command mode |
 | `-p` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | pipe mode; C++ (R27 E27-2) passes the 16 `requires: [cli_pipe_mode]` shared cases, with no trailing script arguments and no config/model/Template/`json_compat` pipelines |
 | REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | portable `repl` contract in `../design/r26-cpp-repl-contract.md`; C++ implements the scripted-session observations, including complete semicolon-separated submissions without implicit main dispatch, and declares `repl` supported; interactive terminal mechanics remain host-local |
-| Sheet values / `sheet_values` | Implemented (Experimental) | Not Implemented | Not Implemented | Not Implemented | Not Implemented | UNSUPPORTED | Immutable Sheets and pure eager `sheet_records/1` are implemented on the Python reference host; 19 existing and 16 R29 shared cases are capability-gated, with exact paths in issue-backed #1330. See the [R29 release record](../releases/R29.md). Zero rows lose schema. Sheet stays non-Seq, with no implicit Flow conversion. |
+| Sheet values / `sheet_values` | Implemented (Experimental) | Not Implemented | Not Implemented | Not Implemented | Not Implemented | UNSUPPORTED | Immutable Sheets, pure eager `sheet_records/1`, `column/2` and `with_column/3` are implemented on the Python reference host; 45 shared cases (including 10 R30 cases) are capability-gated, with exact paths in issue-backed #1330. See the [R29 release record](../releases/R29.md). Sheet record conversion loses schema at zero rows. Sheet stays non-Seq, with no implicit Flow conversion. |
 | Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | lazy pull-based single-use Flow; C++ (R27 E27-1, E27-5) passes the 37 `requires: [flow_phase_1]` shared cases; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan` and Flow display are not implemented in C++ |
 | configuration environment snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python snapshots `os.environ` only during explicit immutable provider construction; portable hosts may report capability unavailable; E13-7 verifies public portability wording |
 | configuration `.env` snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python reads bytes from one exact explicit path once during provider construction; portable hosts may report capability unavailable; E13-7 verifies public portability wording |
@@ -73,7 +73,9 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`0a119f67d92cb08c2feaf975610722a2fa7555c8`, the genia-cpp #50 merged Model B Slice A parser/lowering implementation
+`0c4dbb1c1ee290d41777bcf52c68e62a7a22e059` ([genia-cpp #62](https://github.com/m0smith/genia-cpp/pull/62)).
+The catalogue update builds on the Model B Slice A parser/lowering revision
+`0a119f67d92cb08c2feaf975610722a2fa7555c8`
 (reviewed PR head `0502d436286c110b19ebbeb796f07ed4119fb06f`). It builds on the reviewed
 [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) guard/capture follow-up
 (merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`, source
@@ -160,3 +162,10 @@ conformance only: no C++ execution parity for these carriers is claimed. C++ doe
 default-open dispatch or ordinary cross-module linking; Python implements explicit
 ordinary linking. Closed publication executes on Python only (Experimental
 `closed_functions`); C++ declares it `unsupported`, a listed known gap.
+
+### Standalone core library gap
+
+Experimental `map2/3` is implemented on the Python reference host. The pinned
+C++ adapter reports all 14 standalone shared cases as unsupported, including
+the unshadowed alias.
+The core-library lane tracks C++ delivery for R33 under #1018.

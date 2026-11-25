@@ -1,0 +1,9 @@
+name: r30-map2-noncallable
+category: error
+input:
+  source: |
+    map2(5, [], [])
+expected:
+  stdout: ""
+  stderr: "Error: map2 expected a function\n"
+  exit_code: 1

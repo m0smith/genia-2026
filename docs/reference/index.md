@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **301** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **304** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -66,6 +66,7 @@ Alphabetical index of the **301** out-of-the-box Genia functions available from 
 | [`collect`](functions/collect.md) | flow | `collect(source)` | Return list data from a list or by materializing a Flow. |
 | [`collect_sheet`](functions/collect_sheet.md) | Sheets | `collect_sheet(records)` | Collect homogeneous map records into an immutable Sheet. |
 | [`collect_validated`](functions/collect_validated.md) | Validation | `collect_validated(results)` | Collect Outcome values into clean values and diagnostics. |
+| [`column`](functions/column.md) | Sheets | `column(name, sheet)` | Extract exact Sheet cells into a fresh List in row order using canonical name identity. Reject missing names. |
 | [`columns`](functions/columns.md) | Sheets | `columns(sheet)` | Return a Sheet's column names in deterministic order. |
 | [`compose`](functions/compose.md) | fn | `compose(..fns)` | Compose functions right-to-left into one callable. |
 | [`concat`](functions/concat.md) | string | `concat(left, right)` | Concatenate two strings. |
@@ -158,6 +159,7 @@ Alphabetical index of the **301** out-of-the-box Genia functions available from 
 | [`lookup`](functions/lookup.md) | eval | `lookup(env, name)` | Look up a symbol in a metacircular evaluation environment. |
 | [`lower`](functions/lower.md) | string | `lower(value)` | Convert a string to lowercase. |
 | [`map`](functions/map.md) | list | `map(f, xs)` | Apply a function to every list element. |
+| [`map2`](functions/map2.md) | Collections | `map2(f, xs, ys)` | Apply an ordinary callee pairwise to equal-length Lists in order. Raw calls pass exact elements and retain Outcome results. |
 | [`map_count`](functions/map_count.md) | map | `map_count(map)` | Return the number of entries in a map. |
 | [`map_get`](functions/map_get.md) | map | `map_get(map, key)` | Return the stored value for `key`, or `none("missing-key", {key: key})` when absent. |
 | [`map_has?`](functions/map_has-p.md) | map | `map_has?(map, key)` | Report whether a map contains `key`. |
@@ -300,6 +302,7 @@ Alphabetical index of the **301** out-of-the-box Genia functions available from 
 | [`validate_record`](functions/validate_record.md) | validation | `validate_record(record, validators)` | Compose field validators over one record and return a record-level Outcome. |
 | [`validate_required`](functions/validate_required.md) | validation | `validate_required(field, record)` | Require a record field and return an Outcome. |
 | [`where`](functions/where.md) | Sheets | `where(sheet, predicate)` | Return a Sheet containing rows accepted by a predicate. |
+| [`with_column`](functions/with_column.md) | Sheets | `with_column(name, values, sheet)` | Append a canonically distinct column to a fresh Sheet. The values List must match the stored row count. |
 | [`write`](functions/write.md) | io | `write(sink, value)` | Write the display form of `value` to `sink` without a trailing newline. |
 | [`write_file`](functions/write_file.md) | file | `write_file(path, text)` | Write UTF-8 text content to `path`. |
 | [`writeln`](functions/writeln.md) | io | `writeln(sink, value)` | Write the display form of `value` to `sink` followed by a newline. |
@@ -317,6 +320,10 @@ Alphabetical index of the **301** out-of-the-box Genia functions available from 
 ### CLI
 
 - [`argv`](functions/argv.md) - Return the trailing command-line arguments as a list of strings.
+
+### Collections
+
+- [`map2`](functions/map2.md) - Apply an ordinary callee pairwise to equal-length Lists in order. Raw calls pass exact elements and retain Outcome results.
 
 ### Configuration
 
@@ -406,6 +413,7 @@ Alphabetical index of the **301** out-of-the-box Genia functions available from 
 ### Sheets
 
 - [`collect_sheet`](functions/collect_sheet.md) - Collect homogeneous map records into an immutable Sheet.
+- [`column`](functions/column.md) - Extract exact Sheet cells into a fresh List in row order using canonical name identity. Reject missing names.
 - [`columns`](functions/columns.md) - Return a Sheet's column names in deterministic order.
 - [`derive`](functions/derive.md) - Return a Sheet with one derived column.
 - [`render_csv`](functions/render_csv.md) - Render an immutable Sheet as deterministic CSV text.
@@ -416,6 +424,7 @@ Alphabetical index of the **301** out-of-the-box Genia functions available from 
 - [`sheet`](functions/sheet.md) - Construct an immutable Sheet from ordered columns.
 - [`sheet_records`](functions/sheet_records.md) - Eagerly convert a Sheet to an ordered List of row Maps, preserving raw keys and cells. Zero rows lose column schema; non-Sheet input raises TypeError.
 - [`where`](functions/where.md) - Return a Sheet containing rows accepted by a predicate.
+- [`with_column`](functions/with_column.md) - Append a canonically distinct column to a fresh Sheet. The values List must match the stored row count.
 
 ### Simulation
 

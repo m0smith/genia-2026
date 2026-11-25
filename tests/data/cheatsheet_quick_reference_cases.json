@@ -59,5 +59,10 @@
     "id": "quick-actor-call",
     "source": "handler(state, msg, _ctx) = [\"reply\", state + msg, state + msg]\na = actor(0, handler)\nactor_call(a, 5)",
     "expected_result": "5"
+  },
+  {
+    "id": "quick-r30-map2",
+    "source": "map2((q, p) -> q * p, [2, 4], [3, 1/2])",
+    "expected_result": "[6, 2]"
   }
 ]

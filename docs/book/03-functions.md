@@ -43,3 +43,14 @@ capture, fixed-arity accumulation and duplicate rejection, and short inline
 same-line docstrings as metadata. Explicit-open header capture retains its
 separate R20 restriction. These repairs do not implement default-open ordinary
 functions, `doc_help`, annotations, or cross-module linking in C++.
+
+## Pairwise List callbacks and Sheet columns
+
+On the Python reference host, Experimental `map2(f, xs, ys)` validates both
+List lengths before calling `f`, then calls it once per pair in index order.
+Callbacks receive Outcome elements unchanged and may return Outcome elements.
+An outer `none` argument still follows ordinary call propagation before
+`map2` runs. Use `column(name, sheet)` to obtain a List and
+`with_column(name, values, sheet)` to attach an explicitly computed List of
+the stored row count to a fresh Sheet. C++ Sheet and List delivery are tracked
+for R31 (#1330) and R33 (#1018), respectively.

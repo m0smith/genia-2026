@@ -1,0 +1,9 @@
+name: r30-map2-mismatch
+category: error
+input:
+  source: |
+    map2((x, y) -> print(x), [1], [2, 3])
+expected:
+  stdout: ""
+  stderr: "Error: map2 expected equal lengths; received 1 and 2\n"
+  exit_code: 1

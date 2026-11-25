@@ -172,6 +172,39 @@ def sheet_columns(sheet_value: Any) -> list[Any]:
     return list(sheet.column_names)
 
 
+def sheet_column(name: Any, sheet_value: Any) -> list[Any]:
+    """Extract exact cells in row order into a fresh List using canonical name lookup.
+
+    Require a Sheet before validating the name. Missing names raise a marked
+    TypeError without including the requested name in the diagnostic.
+    """
+    sheet = _ensure_sheet(sheet_value, "column")
+    key = _freeze_column_name(name)
+    cells = sheet.name_to_values.get(key)
+    if cells is None:
+        raise _sheet_error("column could not find column")
+    return list(cells)
+
+
+def sheet_with_column(name: Any, values: Any, sheet_value: Any) -> GeniaSheet:
+    """Append a new column, sharing existing columns and retaining the row count.
+
+    Validate Sheet, canonical name and uniqueness, List type, detected authority,
+    then length. Store exact cell references in a fresh tuple, including opaque cells.
+    """
+    sheet = _ensure_sheet(sheet_value, "with_column")
+    key = _freeze_column_name(name)
+    if key in sheet.name_to_values:
+        raise _sheet_error("with_column expected a new column name")
+    if not isinstance(values, list):
+        raise _sheet_error("with_column expected column values to be a List")
+    if contains_declassification_authority(values):
+        raise _sheet_error("declassification authority cannot be stored in a Sheet")
+    if len(values) != sheet.row_count:
+        raise _sheet_error(f"with_column expected {sheet.row_count} values; received {len(values)}")
+    return GeniaSheet(sheet.columns + ((name, tuple(values)),), sheet.row_count)
+
+
 def sheet_rows(sheet_value: Any) -> list[list[list[Any]]]:
     """Materialize fresh ordered row lists containing fresh [name, cell] pairs.
 

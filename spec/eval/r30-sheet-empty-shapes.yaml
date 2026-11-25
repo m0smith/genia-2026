@@ -1,0 +1,15 @@
+name: r30-sheet-empty-shapes
+category: eval
+requires: [sheet_values]
+input:
+  source: |
+    empty = sheet([])
+    named = with_column("a", [], empty)
+    both = with_column("b", [], named)
+    retained = select([], sheet([["x", [2, 3]]]))
+    filled = with_column("y", [5, 6], retained)
+    [column("a", both), columns(both), shape(both), shape(retained), shape(filled), column("y", filled)]
+expected:
+  stdout: "[[], [\"a\", \"b\"], [[rows, 0], [columns, 2]], [[rows, 2], [columns, 0]], [[rows, 2], [columns, 1]], [5, 6]]\n"
+  stderr: ""
+  exit_code: 0

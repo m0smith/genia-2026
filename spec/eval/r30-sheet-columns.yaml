@@ -1,0 +1,17 @@
+name: r30-sheet-columns
+category: eval
+requires: [sheet_values]
+input:
+  source: |
+    column(x) = x + 1
+    with_column(x, y) = x * y
+    extract = column
+    attach = with_column
+    cells = [some(1), none("missing"), err("bad"), {n: 2}]
+    s = sheet([[1/2, cells], [true, [0, 0, 0, 0]]])
+    t = s |> attach(1, [1, 2, 3, 4])
+    [(s |> extract(0.5)) == cells, column(true, t), column(1, t), columns(s), columns(t), column(4), with_column(2, 3)]
+expected:
+  stdout: "[true, [0, 0, 0, 0], [1, 2, 3, 4], [1/2, true], [1/2, true, 1], 5, 6]\n"
+  stderr: ""
+  exit_code: 0

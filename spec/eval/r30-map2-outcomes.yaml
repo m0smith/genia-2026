@@ -1,0 +1,10 @@
+name: r30-map2-outcomes
+category: eval
+input:
+  source: |
+    f(x, y) = [x, y]
+    [map2(f, [none("x"), some(1), err("e")], [some(2), err("d"), none("y")]), map2((x, y) -> x, [none("x"), some(1), err("e")], [0, 0, 0]), map2(none("first"), none("second"), []), map2(f, none("left"), 5)]
+expected:
+  stdout: "[[[none(\"x\"), some(2)], [some(1), err(\"d\")], [err(\"e\"), none(\"y\")]], [none(\"x\"), some(1), err(\"e\")], none(\"first\"), none(\"left\")]\n"
+  stderr: ""
+  exit_code: 0

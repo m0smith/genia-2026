@@ -1,0 +1,9 @@
+name: r30-map2-first-list
+category: error
+input:
+  source: |
+    map2((a, b) -> a, some([]), [])
+expected:
+  stdout: ""
+  stderr: "Error: map2 expected two Lists\n"
+  exit_code: 1

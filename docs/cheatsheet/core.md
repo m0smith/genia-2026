@@ -182,6 +182,22 @@ collect_validated([some(1), some(2)])
 ```
 Classification: **Valid** (directly tested, Experimental)
 
+## Sheet columns
+
+Experimental on the Python reference host. Use `column(name, sheet)` to
+read exact cells in row order and `with_column(name, values, sheet)` to
+append a distinct column with one value per row. C++ Sheet support is tracked
+under #1330.
+
+<!-- [case: core-r30-sheet-column] -->
+```genia
+s = sheet([["x", [2, 4]]])
+t = s |> with_column("double", [4, 8])
+t |> column("double")
+```
+
+Classification: **Valid** (Experimental, Python reference host)
+
 ## Representation
 
 | Helper | Shape |

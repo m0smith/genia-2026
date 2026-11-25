@@ -1,0 +1,10 @@
+name: r30-sheet-duplicate
+category: error
+requires: [sheet_values]
+input:
+  source: |
+    sheet([[1/2, [1]]]) |> with_column(0.5, 0)
+expected:
+  stdout: ""
+  stderr: "Error: with_column expected a new column name\n"
+  exit_code: 1

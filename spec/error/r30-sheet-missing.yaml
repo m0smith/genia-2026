@@ -1,0 +1,10 @@
+name: r30-sheet-missing
+category: error
+requires: [sheet_values]
+input:
+  source: |
+    select([], sheet([["a", [1]]])) |> column("secret-name")
+expected:
+  stdout: ""
+  stderr: "Error: column could not find column\n"
+  exit_code: 1
