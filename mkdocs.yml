@@ -63,6 +63,7 @@ nav:
       - "R23 — Numeric Representation and Interchange": releases/R23.md
       - "R24 — C++ Minimal Conforming Host": releases/R24.md
       - "R25 — C++ Stateful Runtime and Concurrency": releases/R25.md
+      - "R30 — Sheet Shaped Computation": releases/R30.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md
