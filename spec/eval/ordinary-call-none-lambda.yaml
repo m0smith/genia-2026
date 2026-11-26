@@ -1,0 +1,10 @@
+name: ordinary-call-none-lambda
+category: eval
+input:
+  source: |
+    f = (x) -> 5
+    [f(none("a"))]
+expected:
+  stdout: "[none(\"a\")]\n"
+  stderr: ""
+  exit_code: 0

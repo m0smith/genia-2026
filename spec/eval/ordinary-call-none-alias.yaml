@@ -1,0 +1,11 @@
+name: ordinary-call-none-alias
+category: eval
+input:
+  source: |
+    g(x) = 5
+    k = g
+    [k(none("a"))]
+expected:
+  stdout: "[none(\"a\")]\n"
+  stderr: ""
+  exit_code: 0

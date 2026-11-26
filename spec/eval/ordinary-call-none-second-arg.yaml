@@ -1,0 +1,10 @@
+name: ordinary-call-none-second-arg
+category: eval
+input:
+  source: |
+    h(a, b) = 5
+    [h(1, none("b"))]
+expected:
+  stdout: "[none(\"b\")]\n"
+  stderr: ""
+  exit_code: 0
