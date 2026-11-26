@@ -46,7 +46,7 @@ No R27 gap remains in the delivery lane. R27 closed only capabilities it could p
 
 ## Later Release / Separate Gate
 
-Target releases for every row below, plus the registered `immutable_bindings`, `default_open_functions`, `closed_functions` (R31) and `sheet_values` (R31, #1330) gaps and gaps not represented by capability flags, are scheduled in [`host-parity-inventory.md`](host-parity-inventory.md) (#1341). "Candidate bucket" text below is historical.
+Target releases for every row below, plus the registered `immutable_bindings`, `default_open_functions`, `closed_functions` (R31-B1), `multi_file_eval` (R31-B2) and `sheet_values` (R31-A, #1330) gaps and gaps not represented by capability flags, are scheduled in [`host-parity-inventory.md`](host-parity-inventory.md) (#1341). "Candidate bucket" text below is historical.
 
 | Gap | Current tracking | Candidate bucket | Planned issue | Affected tests / spec area | Removal condition |
 |---|---|---|---|---|---|

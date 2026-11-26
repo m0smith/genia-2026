@@ -314,7 +314,7 @@
         "model-b-d1-preserve-ordinary-extension-rejection",
         "model-b-c-stage-closed-rejected"
       ],
-      "removal_condition": "Remove only after genia-cpp declares default_open_functions supported, passes every case listed here with zero failure classes on the exact final conformance YAML and pin, and the host parity gate reports the capability as PARITY_OK."
+      "removal_condition": "Remove only after genia-cpp declares default_open_functions supported, passes every listed case whose other required capabilities genia-cpp supports, with zero failure classes on the exact final conformance YAML and pin, accounts every remaining co-tagged case under its outstanding capability in docs/strategy/roadmap/host-parity-cotagged-cases.json, and the host parity gate reports the capability as PARITY_OK."
     },
     {
       "capability": "closed_functions",
@@ -388,7 +388,7 @@
         "model-b-closed-test-wrong-arity-discovery-error",
         "model-b-closed-validation-order"
       ],
-      "removal_condition": "Remove only after genia-cpp declares closed_functions supported, passes every case listed here with zero failure classes on the exact final conformance YAML and pin, and the host parity gate reports the capability as PARITY_OK."
+      "removal_condition": "Remove only after genia-cpp declares closed_functions supported, passes every listed case whose other required capabilities genia-cpp supports, with zero failure classes on the exact final conformance YAML and pin, accounts every remaining co-tagged case under its outstanding capability in docs/strategy/roadmap/host-parity-cotagged-cases.json, and the host parity gate reports the capability as PARITY_OK."
     },
     {
       "capability": "sheet_values",

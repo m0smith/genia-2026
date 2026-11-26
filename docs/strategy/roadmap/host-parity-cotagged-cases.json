@@ -1,0 +1,944 @@
+{
+ "status": "Planning record, non-authoritative. GENIA_STATE.md remains final authority. Accounts every shared case that requires a registered port capability (immutable_bindings, default_open_functions, closed_functions, multi_file_eval) and at least one other capability genia-cpp does not yet support, so that none disappears from the inventory when the removal conditions of those capabilities are read as 'every listed case whose other required capabilities genia-cpp supports'.",
+ "decision": "m0smith/genia-2026#1346 maintainer decision F3 (2026-11-26); design 0932542b6f67478e955aa74a7206f74836b70b67",
+ "baseline": {
+  "genia_2026": "b759c20f97334da14d1b15bdf8a70b87d6e0d2c8",
+  "genia_cpp": "0c4dbb1c1ee290d41777bcf52c68e62a7a22e059"
+ },
+ "derivation": "Computed with tools.spec_runner.loader.discover_specs: cases whose requires intersect the four port capabilities and which contain at least two capabilities not declared supported in the C++ capability map of the baseline run.",
+ "capabilities": {
+  "closed_functions": {
+   "owner": "genia-cpp port lane",
+   "issue": "m0smith/genia-2026#1250",
+   "target": "R31-B1",
+   "evidence": "genia-cpp 0c4dbb1c1ee290d41777bcf52c68e62a7a22e059 against genia-2026 b759c20f97334da14d1b15bdf8a70b87d6e0d2c8: the case reports unsupported (1187 cases: 335 pass, 852 unsupported, 0 failure classes)",
+   "removal_condition": "The case passes on genia-cpp with every capability listed in its requires declared supported, and the host parity gate reports PARITY_OK for each of them."
+  },
+  "default_open_functions": {
+   "owner": "genia-cpp port lane",
+   "issue": "m0smith/genia-2026#1269",
+   "target": "R31-B1",
+   "evidence": "genia-cpp 0c4dbb1c1ee290d41777bcf52c68e62a7a22e059 against genia-2026 b759c20f97334da14d1b15bdf8a70b87d6e0d2c8: the case reports unsupported (1187 cases: 335 pass, 852 unsupported, 0 failure classes)",
+   "removal_condition": "The case passes on genia-cpp with every capability listed in its requires declared supported, and the host parity gate reports PARITY_OK for each of them."
+  },
+  "doc_help": {
+   "owner": "genia-cpp doc/help lane",
+   "issue": "m0smith/genia-2026#1018",
+   "target": "R33",
+   "evidence": "genia-cpp 0c4dbb1c1ee290d41777bcf52c68e62a7a22e059 against genia-2026 b759c20f97334da14d1b15bdf8a70b87d6e0d2c8: the case reports unsupported (1187 cases: 335 pass, 852 unsupported, 0 failure classes)",
+   "removal_condition": "The case passes on genia-cpp with every capability listed in its requires declared supported, and the host parity gate reports PARITY_OK for each of them."
+  },
+  "http_outbound_transport": {
+   "owner": "genia-cpp HTTP lane",
+   "issue": "m0smith/genia-2026#1043",
+   "target": "R37",
+   "evidence": "genia-cpp 0c4dbb1c1ee290d41777bcf52c68e62a7a22e059 against genia-2026 b759c20f97334da14d1b15bdf8a70b87d6e0d2c8: the case reports unsupported (1187 cases: 335 pass, 852 unsupported, 0 failure classes)",
+   "removal_condition": "The case passes on genia-cpp with every capability listed in its requires declared supported, and the host parity gate reports PARITY_OK for each of them."
+  },
+  "immutable_bindings": {
+   "owner": "genia-cpp port lane",
+   "issue": "m0smith/genia-2026#1261",
+   "target": "R31-B1",
+   "evidence": "genia-cpp 0c4dbb1c1ee290d41777bcf52c68e62a7a22e059 against genia-2026 b759c20f97334da14d1b15bdf8a70b87d6e0d2c8: the case reports unsupported (1187 cases: 335 pass, 852 unsupported, 0 failure classes)",
+   "removal_condition": "The case passes on genia-cpp with every capability listed in its requires declared supported, and the host parity gate reports PARITY_OK for each of them."
+  },
+  "multi_file_eval": {
+   "owner": "genia-cpp port lane",
+   "issue": "m0smith/genia-2026#1018",
+   "target": "R31-B2",
+   "evidence": "genia-cpp 0c4dbb1c1ee290d41777bcf52c68e62a7a22e059 against genia-2026 b759c20f97334da14d1b15bdf8a70b87d6e0d2c8: the case reports unsupported (1187 cases: 335 pass, 852 unsupported, 0 failure classes)",
+   "removal_condition": "The case passes on genia-cpp with every capability listed in its requires declared supported, and the host parity gate reports PARITY_OK for each of them."
+  },
+  "prelude_autoload": {
+   "owner": "genia-cpp core-library lane",
+   "issue": "m0smith/genia-2026#1018",
+   "target": "R31-B2",
+   "evidence": "genia-cpp 0c4dbb1c1ee290d41777bcf52c68e62a7a22e059 against genia-2026 b759c20f97334da14d1b15bdf8a70b87d6e0d2c8: the case reports unsupported (1187 cases: 335 pass, 852 unsupported, 0 failure classes)",
+   "removal_condition": "The case passes on genia-cpp with every capability listed in its requires declared supported, and the host parity gate reports PARITY_OK for each of them."
+  }
+ },
+ "cases": {
+  "spec/cli/model-b-c-ann-repl-recovery.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help",
+    "repl"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help"
+   ]
+  },
+  "spec/cli/model-b-c-mode-repl-failed-declaration-leaves-group.yaml": {
+   "requires": [
+    "default_open_functions",
+    "immutable_bindings",
+    "repl"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "immutable_bindings"
+   ]
+  },
+  "spec/cli/model-b-closed-annotation-effect-then-value-failure.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help",
+    "repl"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/cli/model-b-closed-failed-introspection.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help",
+    "refs",
+    "repl"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/cli/model-b-closed-pattern-header-main-not-selected.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions"
+   ]
+  },
+  "spec/cli/model-b-closed-test-failed-publication-no-discovery.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/error/model-b-c-ann-pattern-clause-variants.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help"
+   ]
+  },
+  "spec/error/model-b-c-imm-rebind-as-pattern-function.yaml": {
+   "requires": [
+    "default_open_functions",
+    "immutable_bindings"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "immutable_bindings"
+   ]
+  },
+  "spec/error/model-b-c-own-alias-annotation-not-evaluated.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help"
+   ]
+  },
+  "spec/error/model-b-c-own-extend-ordinary-rejected.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-c-own-imported-alias-rejected.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-c-own-use-ordinary-base-unchanged.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-closed-annotation-introspection-while-initializing.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/error/model-b-closed-committed-export-not-link-target.yaml": {
+   "requires": [
+    "closed_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-closed-reexported-closed-not-link-target.yaml": {
+   "requires": [
+    "closed_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-closed-send-annotated-rejected.yaml": {
+   "requires": [
+    "closed_functions",
+    "http_outbound_transport"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "http_outbound_transport"
+   ]
+  },
+  "spec/error/model-b-d1-preserve-ordinary-extension-rejection.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-authority-builtin.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-authority-lambda.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-authority-nonfunction.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-catchall-base-ambiguity.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-contributor-duplicate-key.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-cross-unit-duplicate-key.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-duplicate-selection-two-aliases.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-explicit-shape-conflict.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-key-shadow-and-free-names.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-local-lambda-alias.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-non-export.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-overlap-ambiguity-distinct-keys.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-ownership-declaration.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-shape-conflict-disjoint.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-some-admits-none.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-unselected-contribution.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-varargs-minima-ambiguity.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/error/model-b-link-view-not-target.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/f2-meta-reflection-does-not-use-module-fallback.yaml": {
+   "requires": [
+    "doc_help",
+    "multi_file_eval",
+    "prelude_autoload"
+   ],
+   "outstanding": [
+    "doc_help",
+    "multi_file_eval",
+    "prelude_autoload"
+   ]
+  },
+  "spec/eval/f2-module-entry-isolation-explicit-passing-and-local-writes.yaml": {
+   "requires": [
+    "multi_file_eval",
+    "prelude_autoload"
+   ],
+   "outstanding": [
+    "multi_file_eval",
+    "prelude_autoload"
+   ]
+  },
+  "spec/eval/f2-module-reflection-cannot-name-entry-binding.yaml": {
+   "requires": [
+    "doc_help",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "doc_help",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/f2-module-reflection-resolves-in-module-scope.yaml": {
+   "requires": [
+    "doc_help",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "doc_help",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-b-import-alias-blocks-declaration.yaml": {
+   "requires": [
+    "immutable_bindings",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "immutable_bindings",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-b-import-alias-collision-before-load.yaml": {
+   "requires": [
+    "immutable_bindings",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "immutable_bindings",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-b-module-binding-separation.yaml": {
+   "requires": [
+    "immutable_bindings",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "immutable_bindings",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-b-module-internal-reassignment-rejected.yaml": {
+   "requires": [
+    "immutable_bindings",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "immutable_bindings",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-b-reserved-unloaded-prelude-name.yaml": {
+   "requires": [
+    "immutable_bindings",
+    "prelude_autoload"
+   ],
+   "outstanding": [
+    "immutable_bindings",
+    "prelude_autoload"
+   ]
+  },
+  "spec/eval/model-b-b-reserved-unregistered-prelude-helper.yaml": {
+   "requires": [
+    "immutable_bindings",
+    "prelude_autoload"
+   ],
+   "outstanding": [
+    "immutable_bindings",
+    "prelude_autoload"
+   ]
+  },
+  "spec/eval/model-b-c-meta-pattern-clause-annotations.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-c-mode-import-pattern-program.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-c-own-two-modules-independent.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-c-pat-string-body-is-body.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-c-stage-closed-rejected.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions"
+   ]
+  },
+  "spec/eval/model-b-closed-annotation-helper-self-call.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-closed-annotation-meta-keys-allowed.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-closed-annotation-order-and-atomic-metadata.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-closed-annotation-permitted-set.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-closed-annotation-reaches-later-clause.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-closed-annotation-recursion.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-closed-annotation-self-call.yaml": {
+   "requires": [
+    "closed_functions",
+    "doc_help"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "doc_help"
+   ]
+  },
+  "spec/eval/model-b-closed-comments-blank-lines-one-group.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions"
+   ]
+  },
+  "spec/eval/model-b-closed-committed-export-callable.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-closed-deep-tail-call.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions"
+   ]
+  },
+  "spec/eval/model-b-closed-name-collision-import.yaml": {
+   "requires": [
+    "closed_functions",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-closed-ordinary-linking-unaffected.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-closed-pattern-guard-headers.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions"
+   ]
+  },
+  "spec/eval/model-b-closed-self-recursion.yaml": {
+   "requires": [
+    "closed_functions",
+    "default_open_functions"
+   ],
+   "outstanding": [
+    "closed_functions",
+    "default_open_functions"
+   ]
+  },
+  "spec/eval/model-b-d1-preserve-binding-channels.yaml": {
+   "requires": [
+    "doc_help",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "doc_help",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-d1-preserve-reexport.yaml": {
+   "requires": [
+    "doc_help",
+    "multi_file_eval"
+   ],
+   "outstanding": [
+    "doc_help",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-alias-and-reexport.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-b1-slot-replaced.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-consumer-midinit.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-contributor-closure.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-explicit-view-metadata-unchanged.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-import-inert.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-key-true-vs-one.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-later-view-same-snapshot.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-meta-doc-channels.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-order-independence.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-outcome-awareness.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-positive-extend-use.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-projected-doc-not-binding-meta.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-shape-same-unit-ok.yaml": {
+   "requires": [
+    "default_open_functions",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/model-b-link-view-alias-no-overlay.yaml": {
+   "requires": [
+    "default_open_functions",
+    "doc_help",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "default_open_functions",
+    "doc_help",
+    "multi_file_eval"
+   ]
+  },
+  "spec/eval/r20-cross-module-view-reports-base-metadata.yaml": {
+   "requires": [
+    "doc_help",
+    "multi_file_eval",
+    "open_functions"
+   ],
+   "outstanding": [
+    "doc_help",
+    "multi_file_eval"
+   ]
+  }
+ }
+}
