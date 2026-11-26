@@ -1,0 +1,10 @@
+name: r31-sort-rows-none-args
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    [sort_rows(none("before"), sheet([["id", [2, 1]]])), sort_rows(0, none("sheet")), sort_rows(none("first"), none("second"))]
+expected:
+  stdout: "[none(\"before\"), none(\"sheet\"), none(\"first\")]\n"
+  stderr: ""
+  exit_code: 0

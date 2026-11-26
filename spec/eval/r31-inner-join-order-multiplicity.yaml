@@ -1,0 +1,13 @@
+name: r31-inner-join-order-multiplicity
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    left = sheet([["id", [2, 1, 2, 4]], ["a", ["a", "b", "c", "d"]]])
+    right = sheet([["rk", [2, 3, 2, 1]], ["b", ["x", "y", "z", "w"]]])
+    joined = left |> inner_join("id", "rk", right)
+    [columns(joined), column("id", joined), column("a", joined), column("b", joined), column("id", left), column("rk", right)]
+expected:
+  stdout: "[[\"id\", \"a\", \"b\"], [2, 2, 1, 2, 2], [\"a\", \"a\", \"b\", \"c\", \"c\"], [\"x\", \"z\", \"w\", \"x\", \"z\"], [2, 1, 2, 4], [2, 3, 2, 1]]\n"
+  stderr: ""
+  exit_code: 0

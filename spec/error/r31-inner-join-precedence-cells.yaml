@@ -1,0 +1,12 @@
+name: r31-inner-join-precedence-cells
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    left = sheet([["id", [0, nil]]])
+    right = sheet([["id", [nil]]])
+    inner_join("id", "id", right, left)
+expected:
+  stdout: ""
+  stderr: "Error: inner_join expected a legal key at left row 1\n"
+  exit_code: 1

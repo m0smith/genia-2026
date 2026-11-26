@@ -1,0 +1,10 @@
+name: r31-sort-rows-arity-two-rows
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    sort_rows((a) -> a, sheet([["id", [2, 1]]]))
+expected:
+  stdout: ""
+  stderr: "Error: lambda expected 1 args, got 2\n"
+  exit_code: 1

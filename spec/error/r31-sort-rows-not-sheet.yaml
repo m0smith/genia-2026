@@ -1,0 +1,10 @@
+name: r31-sort-rows-not-sheet
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    sort_rows(0, 0)
+expected:
+  stdout: ""
+  stderr: "Error: sort_rows expected a Sheet\n"
+  exit_code: 1

@@ -1,0 +1,10 @@
+name: r31-sort-rows-non-boolean
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    sort_rows((a, b) -> some(true), sheet([["id", [2, 1]]]))
+expected:
+  stdout: ""
+  stderr: "Error: sort_rows expected comparator to return boolean\n"
+  exit_code: 1

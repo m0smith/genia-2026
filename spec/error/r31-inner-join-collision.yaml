@@ -1,0 +1,11 @@
+name: r31-inner-join-collision
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    s = sheet([["id", [1]], ["v", [2]]])
+    inner_join("id", "id", s, s)
+expected:
+  stdout: ""
+  stderr: "Error: inner_join expected distinct output column names\n"
+  exit_code: 1

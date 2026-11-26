@@ -1,0 +1,10 @@
+name: r31-inner-join-precedence-left-name
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    inner_join("missing", {}, sheet([["id", [2, 1]]]), sheet([["id", [2, 1]]]))
+expected:
+  stdout: ""
+  stderr: "Error: inner_join could not find left key column\n"
+  exit_code: 1

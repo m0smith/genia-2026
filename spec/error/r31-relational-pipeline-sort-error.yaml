@@ -1,0 +1,10 @@
+name: r31-relational-pipeline-sort-error
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    sheet([["id", [2, 1]]]) |> sort_rows(0)
+expected:
+  stdout: ""
+  stderr: "Error: sort_rows expected a function\n"
+  exit_code: 1

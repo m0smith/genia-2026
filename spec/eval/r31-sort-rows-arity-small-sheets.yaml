@@ -1,0 +1,10 @@
+name: r31-sort-rows-arity-small-sheets
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    [columns(sort_rows((a) -> a, sheet([["id", []]]))), column("id", sort_rows((a) -> a, sheet([["id", [1]]])))]
+expected:
+  stdout: "[[\"id\"], [1]]\n"
+  stderr: ""
+  exit_code: 0

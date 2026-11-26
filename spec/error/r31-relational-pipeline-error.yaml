@@ -1,0 +1,10 @@
+name: r31-relational-pipeline-error
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    sheet([["id", [2, 1]]]) |> inner_join("id", "missing", sheet([["id", [2, 1]]]))
+expected:
+  stdout: ""
+  stderr: "Error: inner_join could not find right key column\n"
+  exit_code: 1

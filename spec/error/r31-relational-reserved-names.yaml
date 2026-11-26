@@ -1,0 +1,11 @@
+name: r31-relational-reserved-names
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    @meta ({m: print("sentinel")})
+    sort_rows(x) =: x
+expected:
+  stdout: ""
+  stderr: "Error: Cannot declare immutable binding sort_rows: name is reserved by the runtime\n"
+  exit_code: 1

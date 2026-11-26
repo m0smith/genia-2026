@@ -1,0 +1,12 @@
+name: r31-inner-join-contract-example
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    left = collect_sheet([{region: "west", total: 8.3}, {region: "east", total: 10.0}, {region: "north", total: 4.0}])
+    right = collect_sheet([{region: "east", manager: "Okafor"}, {region: "west", manager: "Ng"}, {region: "east", manager: "Park"}])
+    render_csv(left |> inner_join("region", "region", right))
+expected:
+  stdout: "\"region,total,manager\\nwest,8.3,Ng\\neast,10.0,Okafor\\neast,10.0,Park\\n\"\n"
+  stderr: ""
+  exit_code: 0

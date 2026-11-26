@@ -1,0 +1,12 @@
+name: r31-inner-join-precedence-collision
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    left = sheet([["id", [nil]]])
+    right = sheet([["rk", [nil]], ["id", [0]]])
+    inner_join("id", "rk", right, left)
+expected:
+  stdout: ""
+  stderr: "Error: inner_join expected distinct output column names\n"
+  exit_code: 1
