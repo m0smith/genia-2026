@@ -55,7 +55,9 @@ def test_unregistered_helper_is_resolvable_but_not_promoted_into_help(tmp_path):
     """16.2/A1: map_acc is runtime-owned and documentable on demand, yet absent from the help catalogue."""
     s = separated_scopes(tmp_path)
     run_source("length([1])", s.entry)
-    assert isinstance(run_source('doc("map_acc")', s.entry), GeniaOptionNone)
+    documentation = run_source('doc("map_acc")', s.entry)
+    assert isinstance(documentation, str)
+    assert documentation.startswith("Append one callback result per input element to a list accumulator.")
     s.output.clear()
     run_source("help()", s.entry)
     assert "map_acc" not in "".join(s.output)

@@ -1,3 +1,6 @@
+# List prelude for construction, inspection, and eager list transformations.
+# `reduce` also delegates Seq-compatible Flow inputs to the host reducer.
+
 @doc """Build a list from all provided arguments.
 
 ## Arguments
@@ -131,6 +134,21 @@ reduce(f, acc, xs) =
 @category "list"
 map(f, xs) = map_acc(f, xs, [])
 
+@doc """Append one callback result per input element to a list accumulator.
+
+## Arguments
+
+* `f`: unary callable invoked as `apply_raw(f, [x])` for each element, so `none(...)` elements reach the callback as data
+* `xs`: remaining input list, processed from left to right
+* `acc`: list of already accumulated results, used as the output prefix
+
+## Returns
+
+* `acc` followed by the callback results in input order, or `acc` itself when `xs` is empty
+
+## Notes
+
+* A non-list input that reaches the helper raises the `map` input type error. Callback exceptions propagate."""
 map_acc(f, xs, acc) =
   (f, [], acc) -> acc |
   (f, [x, ..rest], acc) -> map_acc(f, rest, [..acc, apply_raw(f, [x])]) |
