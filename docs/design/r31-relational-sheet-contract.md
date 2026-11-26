@@ -1,6 +1,6 @@
 # R31 — Relational Sheet Operations Contract
 
-**Status: candidate contract; maintainer decisions M1–M7 recorded 2026-11-26; exact text awaits independent review and acceptance. Not implemented.** GENIA_STATE.md remains the authority for implemented behavior.
+**Status: accepted by the maintainer at exact commit `1d82be1b303a90462cd1da3de71f72858192b580` (maintainer decisions M1–M7 recorded 2026-11-26). This status line is the only change since that commit; the semantic text is identical. Not implemented.** GENIA_STATE.md remains the authority for implemented behavior.
 
 Scope: [#1346](https://github.com/m0smith/genia-2026/issues/1346), the [formal pre-flight](https://github.com/m0smith/genia-2026/issues/1346#issuecomment-7178710654), the [decision record](https://github.com/m0smith/genia-2026/issues/1346#issuecomment-7182982272), the R30 accepted boundary, and the supported-host policy [#1341](https://github.com/m0smith/genia-2026/issues/1341). Baseline main: `b759c20f97334da14d1b15bdf8a70b87d6e0d2c8`. This document defines proposed observable behavior only, not design, implementation or executable tests. The public names below are candidates that this contract proposes; accepting the contract accepts them.
 
