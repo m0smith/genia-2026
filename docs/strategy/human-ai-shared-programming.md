@@ -54,6 +54,108 @@ For proposed changes, ask: **Does this make the same program easier for both a h
 
 Record a brief tradeoff answer in the relevant future strategy/preflight when material. Do **not** impose a new mandatory gate on an already-scoped release or expand R29 implicitly. Any concrete language or runtime change still follows contract, test, implementation, documentation-sync, and audit phases.
 
+## Long-term principle: compilation and transpilation through Core IR
+
+**Adopted architectural direction (post-R29 consideration, non-normative).**
+Genia should be designed so that its **portable Core IR can support interpretation,
+compilation, and source-to-source translation** without changing the language's
+observable semantics. The same Genia program should have one meaning regardless
+of whether a conforming backend interprets Core IR, compiles executable code, or
+transpiles to another language.
+
+This is a design criterion for future proposals, **not a claim that native
+compilation or transpilation backends exist today**. The current Core IR
+portability/conformance boundary remains governed by `GENIA_STATE.md` and
+tests. Future implementations must account explicitly for capability/host gaps,
+Outcomes and errors, protected values, evaluation and lifecycle ordering, and
+cross-host conformance; a backend must not quietly redefine Genia semantics.
+
+Keep **R41 portable Core IR artifacts** as the planned foundation for
+compile-once, execute-on-conforming-host workflows. R41 does not automatically
+authorize or require native code generation, LLVM, WebAssembly, JavaScript,
+Python, C++, or another source-target backend. Any particular target requires
+separate justification, approval, evidence and normal process phases.
+
+**R29 is completely unaffected:** no added dependencies, implementation work,
+acceptance criteria, release gates, or delivery requirements. This principle
+does not expand R41's already approved scope either.
+
+## Long-term principle: preserve safety across execution backends
+
+**Adopted architectural direction (non-normative; apply to future backend
+proposals after R29).** Every conforming Genia backend should preserve the
+language's *defined* ownership, lifetime, concurrency, failure, and resource
+safety guarantees. A backend must reject an unsupported or unsafe operation
+rather than silently weaken the applicable contract. This applies whether it
+interprets Core IR, compiles executable code, or transpiles to source in
+another language.
+
+This is a future design objective, **not a claim that Genia currently provides
+Rust-style memory safety, static borrow checking, data-race freedom, or
+cross-backend proof of safety**. Define the precise portable guarantees and
+their scope before promising them. Distinguish language guarantees from
+host-runtime implementation properties, tests, and unsupported host capabilities.
+Future FFI/native boundaries, concurrency, resource lifetimes, optimizations,
+and generated-code targets need explicit safety obligations and appropriate
+negative, adversarial, and cross-host evidence where relevant.
+
+**Approved direction — post-R29 pilot, not a mandatory rule yet:**
+After R29, pilot risk-triggered security reviews *within* the existing
+pre-flight and independent-review workflow. Do not add a universal security
+gate or start the pilot during R29. Candidate triggers include untrusted input,
+execution authority, protected values/declassification, filesystem/network/
+process effects, deserialization, concurrency/FFI, native memory, and
+generated-code trust boundaries.
+
+Pilot design (to be scoped and approved after R29):
+- **Low risk:** keep the existing review; no extra security paperwork.
+- **Medium risk:** a concise security-impact assessment documenting relevant
+  trust boundaries, abuse cases, and mitigations.
+- **High risk:** a focused threat model and independent adversarial security
+  review, with negative/security-focused evidence proportional to the change.
+- **Evaluation:** log relevant vulnerabilities and design defects detected,
+  missed issues, review effort, noise/false positives, and avoidable delays.
+  Use findings to recommend ADOPT / REVISE / DO NOT ADOPT.
+- **Decision:** require a separate explicit approval before turning the pilot
+  into standing mandatory process policy. Do not silently change
+  `AGENTS.md`, the pre-flight template, or PR/CI gates as part of this
+  strategy-only decision.
+
+A review should identify assets, potential attackers, trust boundaries,
+abuse cases, mitigations, and residual risk. It must not claim that passing
+an audit proves broad program or memory safety.
+
+**R29 has no new prerequisites, gates, review obligations, acceptance criteria,
+or scope changes.** R41 and other existing release plans are unchanged.
+Any future process change follows the existing process-change discipline.
+
+## Post-R29 principle: human-owned laws, agent-produced evidence
+
+**Timing: after R29 only.** This is a non-normative design principle inspired by
+[Bend's law-driven development](https://github.com/bendlang/bend), not an R29
+requirement, release dependency, acceptance criterion, pre-flight task, or
+authorization to implement new language features. R29 scope, schedule,
+contracts, tests, audits, documentation requirements, and readiness gates
+remain exactly as already approved.
+
+**Principle:** Human-approved behavioral laws/invariants define the intended
+meaning; an AI collaborator may propose implementations and executable evidence
+but must not silently weaken, rewrite, or redefine the law to make its work pass.
+An independent review checks that the evidence actually supports the claim.
+
+After R29, evaluate whether this distinction can strengthen Genia's existing
+contract → failing-tests/specs → implementation → documentation → independent
+audit workflow, reusing current tests and shared conformance evidence first.
+Only investigate formal proofs or a dedicated law language if a separately
+approved study demonstrates a concrete need. Do not require a new `LAWS`/
+`PROOF` file convention, dependent type system, affine typing, termination
+checker, compiler/runtime feature, new MCP tool, or additional process gate.
+
+Potential later research (separate from the principle): Bend's pure,
+ownership-aware fork-join parallelism and its explicit proof boundaries.
+Do not mix this with R29, the R34 performance scope, or R38 actors without
+their own future prioritization and approval.
+
 ## Development dogfooding: post-task tool review (proposed pilot)
 
 After a substantive LLM-assisted development task, briefly inspect the *purpose* of agent-produced Python, Bash, JavaScript, jq, or similar support code. Identify data processing, validation, diagnostic, or report-generation steps that **might** have been expressed in current Genia. Do not assume Genia should replace Git, shell administration, host-specific utilities, or every working script.
