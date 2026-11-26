@@ -22,6 +22,7 @@ def test_comparator_gets_fresh_rows_and_pairs_with_exact_cells():
     retained = []
 
     def before(left, right):
+        """Keep both rows alive while comparing their ranks."""
         retained.extend((left, right))
         return left[0][1] < right[0][1]
 

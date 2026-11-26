@@ -1135,6 +1135,7 @@ class Evaluator:
             return RuntimeError(rendered)
 
     def eval_pipeline(self, node: IrPipeline, tail_position: bool) -> Any:
+        """Apply stages in order, chaining new wrappers and keeping preserved errors intact."""
         stage_value = self.eval(node.source)
         for index, stage in enumerate(node.stages):
             if is_none(stage_value) or is_err(stage_value):

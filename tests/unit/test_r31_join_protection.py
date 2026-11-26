@@ -21,10 +21,12 @@ FACET = "r31-synthetic-facet"
 
 @pytest.fixture
 def carrier():
+    """Build an opaque carrier from synthetic fixture data."""
     return GeniaProtected(SENTINEL, object(), symbol("fixture"))
 
 
 def _represented(value):
+    """Wrap a fixture without reading its payload."""
     return GeniaRepresented(FACET, value)
 
 

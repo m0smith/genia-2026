@@ -29,6 +29,7 @@ def test_already_wrapped_pipeline_error_keeps_its_existing_chain():
     wrapped.__cause__ = original
 
     def fail(value):
+        """Raise the original wrapper with its established cause."""
         raise wrapped
 
     env.set_host("fail_fixture", fail, visibility="entry-only")
@@ -44,6 +45,7 @@ def test_ordinary_error_still_gets_a_chained_wrapper():
     original = TypeError("ordinary error")
 
     def fail(value):
+        """Raise an ordinary error so the evaluator supplies its wrapper."""
         raise original
 
     env.set_host("fail_fixture", fail, visibility="entry-only")

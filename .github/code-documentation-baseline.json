@@ -1064,7 +1064,6 @@
     "src/genia/evaluator.py::binding::Evaluator.eval_annotations": "6fa708f10d31cd4316a09b62ef68ac67b436bb0df327f232d08e600bef05aa4a",
     "src/genia/evaluator.py::binding::Evaluator.eval_binary": "f70e4f8689327c2423bba269bef48ac66084019b9e7ee65cd1bc22159cdb2a94",
     "src/genia/evaluator.py::binding::Evaluator.eval_case_expr": "b68e3a6a58a34a9fd077649432f02aa7d660777de1e32424827c630a289ad713",
-    "src/genia/evaluator.py::binding::Evaluator.eval_pipeline": "388078f81dfa37a9a9eb2417ad45420bd882f089763a1f591812f2819bbf65a4",
     "src/genia/evaluator.py::binding::Evaluator.eval_pipeline_stage.invoke_with_pipeline_option_lifting": "5ce2eae43d973a0fa982b4233a8955042b8bc06d8301cdae1a969f458bc367d8",
     "src/genia/evaluator.py::binding::Evaluator.eval_program": "2d901bf97c2ff3e62d52b55da6e7c50492ae5a2da4d0b36d6bc12c25e1937bd7",
     "src/genia/evaluator.py::binding::Evaluator.eval_tail": "4772b30f3d47635d6b7bd3cdff3dac3ef26da48990b0a522693b174d4839f71d",
