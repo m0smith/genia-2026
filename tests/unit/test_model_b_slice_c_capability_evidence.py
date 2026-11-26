@@ -33,7 +33,7 @@ from tests.spec.test_model_b_slice_c_red import (
 
 # The historical 35-name pre-C0 map is kept in the C0 test file; Slice C GREEN added one
 # supported name. Slice E2.4 RED (issue #1250) adds `closed_functions`, staged `unsupported`.
-GREEN_CAPABILITY_MAP_NAMES = 38
+GREEN_CAPABILITY_MAP_NAMES = 39
 
 
 def _specs():
