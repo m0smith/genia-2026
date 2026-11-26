@@ -263,15 +263,24 @@ def test_unregistered_helper_missing_before_autoload_then_directly_visible_but_n
         root.get("map_acc")
     assert run_source('doc("map_acc")', root).reason == "missing-doc"
     assert isinstance(run_source('doc("map")', root), str)
-    assert root.get("map_acc").get(3).closure is root
-    assert run_source('doc("map_acc")', root).reason == "missing-doc"
-    assert run_source('meta("map_acc")', root).count() == 0
+    group = root.get("map_acc")
+    assert group.get(3).closure is root
+    summary = "Append one callback result per input element to a list accumulator."
+    documentation = run_source('doc("map_acc")', root)
+    assert isinstance(documentation, str)
+    assert documentation.startswith(summary)
+    metadata = run_source('meta("map_acc")', root)
+    assert metadata is root.get_metadata("map_acc")
+    assert metadata.count() == 1
+    assert metadata.get("doc") == documentation
     run_source('help("map_acc")', root)
     assert "map_acc" in "".join(output)
+    assert summary in "".join(output)
     output.clear()
     run_source("help()", root)
     assert "map_acc" not in "".join(output)
     assert all(name != "map_acc" for name, _arity in root.autoloads)
+    assert root.get("map_acc") is group
 
 
 def test_metacircular_empty_environment_reads_live_entry_root_but_owns_writes():
