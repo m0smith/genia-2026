@@ -121,10 +121,12 @@ if __package__ in (None, ""):
         row_get_value,
         sheet_columns,
         sheet_derive,
+        sheet_inner_join,
         sheet_records,
         sheet_column,
         sheet_with_column,
         sheet_rows,
+        sheet_sort_rows,
         sheet_select,
         sheet_shape,
         sheet_where,
@@ -254,10 +256,12 @@ else:
         row_get_value,
         sheet_columns,
         sheet_derive,
+        sheet_inner_join,
         sheet_records,
         sheet_column,
         sheet_with_column,
         sheet_rows,
+        sheet_sort_rows,
         sheet_select,
         sheet_shape,
         sheet_where,
@@ -4328,6 +4332,10 @@ def make_global_env(
             raise TypeError(f"map2 expected equal lengths; received {len(xs)} and {len(ys)}")
         return [_invoke_raw_from_builtin(function, [x, y]) for x, y in zip(xs, ys)]
 
+    def sort_rows_fn(before: Any, sheet_value: Any) -> Any:
+        """Order Sheet rows with the ordinary raw comparator call path."""
+        return sheet_sort_rows(before, sheet_value, _invoke_raw_from_builtin)
+
     def where_fn(predicate: Any, sheet_value: Any) -> Any:
         return sheet_where(predicate, sheet_value, _invoke_raw_from_builtin)
 
@@ -6217,6 +6225,8 @@ def make_global_env(
     env.set_host("select", _host_function_group("select", 2, sheet_select), visibility="runtime-public")
     env.set_host("where", _host_function_group("where", 2, where_fn), visibility="runtime-public")
     env.set_host("derive", _host_function_group("derive", 3, derive_fn), visibility="runtime-public")
+    env.set_host("sort_rows", _host_function_group("sort_rows", 2, sort_rows_fn), visibility="runtime-public")
+    env.set_host("inner_join", _host_function_group("inner_join", 4, sheet_inner_join), visibility="runtime-public")
     env.set_host("rows", _host_function_group("rows", 1, sheet_rows), visibility="runtime-public")
     env.set_host("column", _host_function_group("column", 2, sheet_column), visibility="runtime-public")
     env.set_host("with_column", _host_function_group("with_column", 3, sheet_with_column), visibility="runtime-public")
