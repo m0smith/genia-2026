@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **304** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **306** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -129,6 +129,7 @@ Alphabetical index of the **304** out-of-the-box Genia functions available from 
 | [`http_operation`](functions/http_operation.md) | HTTP | `http_operation(method, base_url, path, headers, query, body)` | Construct one inert, closed HTTP operation value with no network IO. |
 | [`inc`](functions/inc.md) | math | `inc(x)` | Increment a number by one. |
 | [`index`](functions/index.md) | Retrieval | `index(provider, config, credential, authority)` | Construct an opaque retrieval index through an explicit provider boundary. |
+| [`inner_join`](functions/inner_join.md) | Sheets | `inner_join(left_key, right_key, right, left)` | Join matching Sheet keys in left-then-right row order, retaining duplicate matches and the left key. |
 | [`input`](functions/input.md) | I/O | `input()` | Read one line from standard input. |
 | [`inspect`](functions/inspect.md) | fn | `inspect(value)` | Log `value` for debugging and return it unchanged. |
 | [`is_empty`](functions/is_empty.md) | string | `is_empty(value)` | Check whether a string is empty. |
@@ -255,6 +256,7 @@ Alphabetical index of the **304** out-of-the-box Genia functions available from 
 | [`sleep`](functions/sleep.md) | Simulation | `sleep(milliseconds)` | Block the Python reference host for a number of milliseconds. |
 | [`some`](functions/some.md) | option | `some(..args)` | Wrap a present value in the Option success form `some(value)`. |
 | [`some?`](functions/some-p.md) | option | `some?(value)` | Check whether a value is `some(...)`. |
+| [`sort_rows`](functions/sort_rows.md) | Sheets | `sort_rows(before, sheet)` | Stably order Sheet rows with a strict-boolean comparator over row pairs. |
 | [`spawn`](functions/spawn.md) | process | `spawn(handler)` | Create a process handle backed by a host-thread mailbox worker. |
 | [`split`](functions/split.md) | string | `split(value, sep)` | Split `value` on the explicit separator `sep`. |
 | [`split_whitespace`](functions/split_whitespace.md) | string | `split_whitespace(value)` | Split a string on runs of whitespace. |
@@ -416,6 +418,7 @@ Alphabetical index of the **304** out-of-the-box Genia functions available from 
 - [`column`](functions/column.md) - Extract exact Sheet cells into a fresh List in row order using canonical name identity. Reject missing names.
 - [`columns`](functions/columns.md) - Return a Sheet's column names in deterministic order.
 - [`derive`](functions/derive.md) - Return a Sheet with one derived column.
+- [`inner_join`](functions/inner_join.md) - Join matching Sheet keys in left-then-right row order, retaining duplicate matches and the left key.
 - [`render_csv`](functions/render_csv.md) - Render an immutable Sheet as deterministic CSV text.
 - [`row_get`](functions/row_get.md) - Read one named value from a Sheet row representation.
 - [`rows`](functions/rows.md) - Return a Sheet's rows as ordered name/value pairs.
@@ -423,6 +426,7 @@ Alphabetical index of the **304** out-of-the-box Genia functions available from 
 - [`shape`](functions/shape.md) - Return a Sheet's row and column counts.
 - [`sheet`](functions/sheet.md) - Construct an immutable Sheet from ordered columns.
 - [`sheet_records`](functions/sheet_records.md) - Eagerly convert a Sheet to an ordered List of row Maps, preserving raw keys and cells. Zero rows lose column schema; non-Sheet input raises TypeError.
+- [`sort_rows`](functions/sort_rows.md) - Stably order Sheet rows with a strict-boolean comparator over row pairs.
 - [`where`](functions/where.md) - Return a Sheet containing rows accepted by a predicate.
 - [`with_column`](functions/with_column.md) - Append a canonically distinct column to a fresh Sheet. The values List must match the stored row count.
 

@@ -343,7 +343,7 @@ def test_validated_pipeline_registry_entries_are_anchored_and_probed():
     idioms = REGISTRY["language"]["idioms"]
     assert "pipelines" in idioms["value"]
     assert any(i.get("anchor") == "state:validated-pipelines" for i in idioms["evidence"])
-    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 15  # A10 (#1084): 14 -> 15
+    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 16  # PY-1 adds Sheet relational discovery.
 
 
 def test_the_direct_evaluation_helper_really_evaluates():

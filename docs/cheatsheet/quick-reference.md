@@ -77,6 +77,20 @@ Common helpers:
 - `then_get`, `then_first`, `then_nth`, `then_find`
 - `unwrap_or(default, opt)`
 
+## Relational Sheets
+
+Use `inner_join(left_key, right_key, right, left)` to keep all matches in left-then-right order. Experimental on the Python reference host. C++ support is tracked
+under #1346 and #1330.
+
+<!-- [case: quick-r31-inner-join] -->
+```genia
+left = sheet([["id", [2, 1]]])
+right = sheet([["key", [1, 2, 2]], ["label", ["one", "two", "second two"]]])
+left |> inner_join("id", "key", right) |> column("label")
+```
+
+Classification: **Valid** (Experimental, Python reference host)
+
 ## Lists
 
 `map2(f, xs, ys)` applies a callback to corresponding elements of equal-length

@@ -160,6 +160,7 @@ nav:
           - "column": reference/functions/column.md
           - "columns": reference/functions/columns.md
           - "derive": reference/functions/derive.md
+          - "inner_join": reference/functions/inner_join.md
           - "render_csv": reference/functions/render_csv.md
           - "row_get": reference/functions/row_get.md
           - "rows": reference/functions/rows.md
@@ -167,6 +168,7 @@ nav:
           - "shape": reference/functions/shape.md
           - "sheet": reference/functions/sheet.md
           - "sheet_records": reference/functions/sheet_records.md
+          - "sort_rows": reference/functions/sort_rows.md
           - "where": reference/functions/where.md
           - "with_column": reference/functions/with_column.md
       - Simulation:

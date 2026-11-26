@@ -177,6 +177,8 @@ def test_a10_idioms_gain_exactly_the_flow_member():
         "repetition",
         "map2",
         "sheet_records",
+        "sort_rows",
+        "inner_join",
     }
 
 
@@ -218,16 +220,16 @@ def test_a10_existing_idioms_are_unchanged():
     assert idioms["outcomes"] == A9_IDIOM  # A9 survives byte for byte
 
 
-def test_a10_discovery_grows_from_14_to_exactly_15_facts_with_the_new_fact_last():
+def test_a10_discovery_keeps_earlier_facts_and_ordinal():
     facts = _profile()["discovery"]["facts"]
-    assert [f["id"] for f in facts][-2:] == ["outcome_pipeline_propagation", "flow_semantics"]
-    assert len(facts) == 15 and len({f["id"] for f in facts}) == 15
+    assert [f["id"] for f in facts][13:15] == ["outcome_pipeline_propagation", "flow_semantics"]
+    assert len(facts) == 16 and len({f["id"] for f in facts}) == 16
     assert facts[:14] == DISCOVERY_FACTS[:14]  # the first 14 rows are untouched
     assert facts[13] == A9_FACT
 
 
 def test_a10_new_fact_is_exact_and_closed():
-    fact = _profile()["discovery"]["facts"][-1]
+    fact = _profile()["discovery"]["facts"][14]
     assert fact == A10_FACT
     assert set(fact) == {"id", "scope", "status", "maturity", "summary", "state_sections"}
     assert 0 < len(fact["summary"].encode("utf-8")) <= 256
@@ -235,7 +237,7 @@ def test_a10_new_fact_is_exact_and_closed():
 
 
 def test_a10_fact_does_not_overclaim_portability_or_coverage():
-    summary = _profile()["discovery"]["facts"][-1]["summary"].lower()
+    summary = _profile()["discovery"]["facts"][14]["summary"].lower()
     for overclaim in ("fully", "complete", "all hosts", "portable", "shared coverage"):
         assert overclaim not in summary, overclaim
     assert "c++" in summary and "bounded" in summary
@@ -252,8 +254,8 @@ def test_a10_discovery_stays_closed_and_within_its_byte_bound():
 
 def test_a10_golden_snapshot_carries_exactly_the_two_additions():
     assert GOLDEN["idioms"]["flow"] == A10_IDIOM
-    assert GOLDEN["discovery"]["facts"][-1] == A10_FACT
-    assert len(GOLDEN["discovery"]["facts"]) == 15
+    assert GOLDEN["discovery"]["facts"][14] == A10_FACT
+    assert len(GOLDEN["discovery"]["facts"]) == 16
 
 
 def test_a10_whole_profile_still_equals_the_golden_except_the_launch_revision():
@@ -276,7 +278,7 @@ def test_a10_plain_file_mode_carries_the_same_new_content():
     (response,) = responses(run_messages([PROFILE_CALL], args=(REVISION,)))
     language = structured(response)[1]["result"]["language"]
     assert language["idioms"]["flow"] == A10_IDIOM
-    assert language["discovery"]["facts"][-1] == A10_FACT
+    assert language["discovery"]["facts"][14] == A10_FACT
 
 
 def test_a10_output_is_deterministic_across_calls():
@@ -315,9 +317,9 @@ def _fact():
     return next((f for f in REGISTRY["discovery"]["facts"] if f["id"] == "flow_semantics"), None)
 
 
-def test_a10_registry_holds_15_facts_the_generator_expects_15_and_a9_is_untouched():
-    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 15
-    assert [f["id"] for f in REGISTRY["discovery"]["facts"]][-2:] == [
+def test_registry_fact_count_and_a9_a10_order():
+    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 16
+    assert [f["id"] for f in REGISTRY["discovery"]["facts"]][13:15] == [
         "outcome_pipeline_propagation",
         "flow_semantics",
     ]
@@ -359,7 +361,7 @@ def test_a10_registry_validates_and_its_projection_matches_the_committed_block()
     projection = gen.wire_projection(REGISTRY)
     assert projection["idioms"]["flow"] == A10_IDIOM
     assert projection["idioms"]["outcomes"] == A9_IDIOM
-    assert projection["discovery"]["facts"][-1] == A10_FACT
+    assert projection["discovery"]["facts"][14] == A10_FACT
 
 
 def test_a10_the_new_content_is_not_hand_copied_outside_the_generated_block():

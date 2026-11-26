@@ -128,5 +128,10 @@
     "id": "core-r30-sheet-column",
     "source": "s = sheet([[\"x\", [2, 4]]])\nt = s |> with_column(\"double\", [4, 8])\nt |> column(\"double\")",
     "expected_result": "[4, 8]"
+  },
+  {
+    "id": "core-r31-sort-rows",
+    "source": "s = sheet([[\"total\", [2, 3, 1]]])\nbefore = (a, b) -> row_get(a, \"total\") < row_get(b, \"total\")\ns |> sort_rows(before) |> column(\"total\")",
+    "expected_result": "[1, 2, 3]"
   }
 ]

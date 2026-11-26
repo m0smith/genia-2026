@@ -64,5 +64,10 @@
     "id": "quick-r30-map2",
     "source": "map2((q, p) -> q * p, [2, 4], [3, 1/2])",
     "expected_result": "[6, 2]"
+  },
+  {
+    "id": "quick-r31-inner-join",
+    "source": "left = sheet([[\"id\", [2, 1]]])\nright = sheet([[\"key\", [1, 2, 2]], [\"label\", [\"one\", \"two\", \"second two\"]]])\nleft |> inner_join(\"id\", \"key\", right) |> column(\"label\")",
+    "expected_result": "[\"two\", \"second two\", \"one\"]"
   }
 ]

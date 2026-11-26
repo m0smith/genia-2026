@@ -198,6 +198,20 @@ t |> column("double")
 
 Classification: **Valid** (Experimental, Python reference host)
 
+## Relational Sheets
+
+Use `sort_rows(before, sheet)` with a Boolean row comparator. Ties stay in input order. Experimental on the Python reference host. C++ support is tracked
+under #1346 and #1330.
+
+<!-- [case: core-r31-sort-rows] -->
+```genia
+s = sheet([["total", [2, 3, 1]]])
+before = (a, b) -> row_get(a, "total") < row_get(b, "total")
+s |> sort_rows(before) |> column("total")
+```
+
+Classification: **Valid** (Experimental, Python reference host)
+
 ## Representation
 
 | Helper | Shape |

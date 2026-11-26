@@ -145,6 +145,17 @@ matches the reviewed head `5d00e181f3eddc51f4e4e080631065b65bac29cd`.
 Standalone `map2` cases have no `sheet_values` requirement. R31 can take
 `map2` only if its pre-flight demonstrates an actual Sheet prerequisite.
 
+### Relational Sheets
+
+The Python reference host implements Experimental `sort_rows/2` and
+`inner_join/4`. The 39 relational shared cases require both `sheet_values`
+and `sheet_relational`. The pinned C++ host does not declare
+`sheet_relational`. The genia-cpp Sheet lane tracks this gap under #1346
+and #1330 for R31-A. Remove the gap when C++ declares the capability,
+applicable shared cases pass, and parity reports `PARITY_OK`. Under F6,
+the Python host tests cover protected-key precedence and shared evidence
+remains accounted under `config_protected` for R32.
+
 ### Sheet extraction and attachment
 
 - `spec/error/r30-sheet-attach-not-sheet.yaml`
