@@ -1148,7 +1148,10 @@ class Evaluator:
             except GeniaQuietBrokenPipe:
                 raise
             except Exception as exc:  # noqa: BLE001
-                raise self._wrap_pipeline_stage_error(exc, index, stage, stage_value) from exc
+                wrapped = self._wrap_pipeline_stage_error(exc, index, stage, stage_value)
+                if wrapped is exc:
+                    raise
+                raise wrapped from exc
         return stage_value
 
     def eval_pipeline_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:
