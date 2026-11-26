@@ -38,7 +38,7 @@ Each key cell is checked in the order of section 3. The existing recursive prote
 
 Neither callable is none-aware. Under ordinary outer-call propagation, if any argument is `none(...)` the call returns the first such argument unchanged, in argument order, before validation, with no callback and no output. `some(...)` and `err(...)` arguments are not propagated; they fail validation as non-Sheets, non-callables or illegal key names. Outcome cells in non-key columns are carried unchanged and never unwrapped; an Outcome key cell is illegal. A comparator result that is an Outcome is not a boolean and fails.
 
-Protected carriers remain opaque. They may be carried in non-key cells and are delivered inside rows to the comparator without declassification; a protected key cell is rejected (section 6). Neither operation adds authority-related behavior: results contain only cells of already-valid input Sheets, no additional detection pass and no new failure mode is added, no stronger detection claim is made than the existing Sheet storage rules provide, and the open follow-up #1343 is unaffected.
+Protected carriers remain opaque. They may be carried in non-key cells and are delivered inside rows to the comparator without declassification; a protected key cell is rejected (section 6). Neither operation adds authority-related behavior: results contain only cells of already-valid input Sheets, no additional authority-detection pass and no new failure mode is added, no stronger detection claim is made than the existing Sheet storage rules provide, and the open follow-up #1343 is unaffected.
 
 ## 6. Failure
 
@@ -53,10 +53,10 @@ The new structural failures in the table below are marked, normalized `TypeError
 | `inner_join`: illegal or protected key name | existing Sheet column-name validation errors (inherited; see above) |
 | `inner_join`: missing left or right key column | `inner_join could not find left key column` / `inner_join could not find right key column` |
 | `inner_join`: repeated output column name | `inner_join expected distinct output column names` |
-| `inner_join`: protected key cell (checked first) | `protected-value: inner-join key at <side> row <r>` |
+| `inner_join`: protected key cell (checked first, per cell) | `protected-value: inner-join key at <side> row <r>` |
 | `inner_join`: illegal key cell | `inner_join expected a legal key at <side> row <r>` |
 
-Arity and callable arity errors follow existing ordinary-call rules: arity is checked only at invocation, so a comparator is never checked for a Sheet of fewer than two rows.
+Arity and callable arity errors follow existing ordinary-call rules: arity is checked only at invocation, so a comparator's arity is never checked for a Sheet of fewer than two rows (the callable check of the table still runs).
 
 ## 7. Empty shapes
 
