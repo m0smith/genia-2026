@@ -1,0 +1,12 @@
+name: r31-inner-join-bool-not-numeric
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    left = sheet([["id", [true, 1]]])
+    right = sheet([["id", [1, true]], ["tag", ["number", "boolean"]]])
+    column("tag", inner_join("id", "id", right, left))
+expected:
+  stdout: "[\"boolean\", \"number\"]\n"
+  stderr: ""
+  exit_code: 0

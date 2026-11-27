@@ -1,0 +1,10 @@
+name: r31-inner-join-none-args
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    [inner_join(none("left key"), "id", sheet([["id", [2, 1]]]), sheet([["id", [2, 1]]])), inner_join("id", none("right key"), sheet([["id", [2, 1]]]), sheet([["id", [2, 1]]])), inner_join("id", "id", none("right"), sheet([["id", [2, 1]]])), inner_join("id", "id", sheet([["id", [2, 1]]]), none("left")), inner_join("id", none("first"), none("second"), none("third"))]
+expected:
+  stdout: "[none(\"left key\"), none(\"right key\"), none(\"right\"), none(\"left\"), none(\"first\")]\n"
+  stderr: ""
+  exit_code: 0

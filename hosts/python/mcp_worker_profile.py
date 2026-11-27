@@ -73,6 +73,7 @@ ALLOWED_BINDINGS = frozenset(
     'log', 'map2', 'meta', 'nil', 'none', 'null?', 'open_shape', 'open_shape_match', 'pair?', 'pi',
     'print', 'protected_match', 'rational', 'recursive_template', 'refinement',
     'refinement_match', 'render_csv', 'represent', 'representation_match', 'row_get', 'rows',
+    'inner_join', 'sort_rows',
     'select', 'set_entry_bytes', 'shape', 'sheet', 'sheet_records', 'sleep', 'stderr', 'stdin', 'stdout',
     'strip_representation', 'template_description', 'template_schema', 'true',
     'update_entry_bytes', 'utf8_decode', 'utf8_encode', 'where', 'with_column', 'zip_entries',

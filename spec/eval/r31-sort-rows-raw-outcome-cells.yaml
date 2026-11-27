@@ -1,0 +1,12 @@
+name: r31-sort-rows-raw-outcome-cells
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    s = sheet([["v", [some(8), none("missing"), err("bad")]]])
+    before = (a, b) -> none?(row_get(a, "v")) && (none?(row_get(b, "v")) == false)
+    [column("v", sort_rows(before, s)) == [none("missing"), some(8), err("bad")], column("v", s) == [some(8), none("missing"), err("bad")]]
+expected:
+  stdout: "[true, true]\n"
+  stderr: ""
+  exit_code: 0

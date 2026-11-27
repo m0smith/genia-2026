@@ -54,11 +54,11 @@ host parity gate reports `PARITY_OK` (see `cpp-host-gap-burndown.md`).
 
 | Capability | Current-main unsupported (cases whose only unmet tags include it) | Tracking | Target release |
 |---|---|---|---|
-| `immutable_bindings` | 24 sole + 8 combined | #1261 | R31 |
-| `default_open_functions` | 78 sole + 54 combined | #1269 | R31 |
-| `closed_functions` | 42 sole + 23 combined | #1250 | R31 |
-| `multi_file_eval` | 18 sole + 55 combined | #1018 | R31 |
-| `sheet_values` (not declared by C++ at all) | 35 | #1330 | R31 (D7: R30 Python-first; R31 Sheet parity commitment, #1340) |
+| `immutable_bindings` | 24 sole + 8 combined | #1261 | R31-B1 (#1346 M7) |
+| `default_open_functions` | 78 sole + 54 combined | #1269 | R31-B1 (#1346 M7) |
+| `closed_functions` | 42 sole + 23 combined | #1250 | R31-B1 (#1346 M7) |
+| `multi_file_eval` | 18 sole + 55 combined | #1018 | R31-B2 (#1346 M7) |
+| `sheet_values` (not declared by C++ at all) | 35 | #1330 | R31-A (D7: R30 Python-first; R31 Sheet parity commitment, #1340; #1346 M7) |
 | `resource_io` | 0 shared cases observed | #1018 | R32 |
 | `configuration_environment_snapshot`, `configuration_dotenv_snapshot` | requires-gated config cases | #1018 | R32 |
 | `debugger_stdio` | debugger cases + `cli/debug_stdio_suppression` | #1018 | R33 |
@@ -74,9 +74,9 @@ host parity gate reports `PARITY_OK` (see `cpp-host-gap-burndown.md`).
 | Item | Evidence | Tracking | Target |
 |---|---|---|---|
 | `doc_help` (a *required* manifest capability) declared `unsupported` by C++ | 17 sole + 29 combined unsupported | #1018 | R33 |
-| `prelude_autoload` `partial` | 7 combined unsupported | #1018 | R31 (prerequisite for core-library rows below) |
+| `prelude_autoload` `partial` | 7 combined unsupported | #1018 | R31-B2 (prerequisite for core-library rows below; #1346 M7) |
 | `core_ir_eval` `partial`, `shared_spec_runner` `partial` | umbrella flags; resolved by rows in C | #1018 | closes when C rows close |
-| `open_functions` hidden partial | 26 cases tagged only `open_functions` still unsupported: `extend`/`use` selection, mutual tail calls, Option-aware strata, varargs precedence, help provenance, grouped-header capture errors | #1018 | R31 (with default-open/closed functions) |
+| `open_functions` hidden partial | 26 cases tagged only `open_functions` still unsupported: `extend`/`use` selection, mutual tail calls, Option-aware strata, varargs precedence, help provenance, grouped-header capture errors | #1018 | R31-B2 (#1346 M7; the six `r20-option-*` cases overlap #1347) |
 | `json_strict` hidden partial | `flow/json-representation-template-flow` | #1018 | R32 (with Templates), unless demonstrated to be an R31 prerequisite or separately approved earlier |
 
 ### C. Ungated shared cases unsupported on C++ (493; no capability flag)
@@ -145,6 +145,17 @@ matches the reviewed head `5d00e181f3eddc51f4e4e080631065b65bac29cd`.
 Standalone `map2` cases have no `sheet_values` requirement. R31 can take
 `map2` only if its pre-flight demonstrates an actual Sheet prerequisite.
 
+### Relational Sheets
+
+The Python reference host implements Experimental `sort_rows/2` and
+`inner_join/4`. The 39 relational shared cases require both `sheet_values`
+and `sheet_relational`. The pinned C++ host does not declare
+`sheet_relational`. The genia-cpp Sheet lane tracks this gap under #1346
+and #1330 for R31-A. Remove the gap when C++ declares the capability,
+applicable shared cases pass, and parity reports `PARITY_OK`. Under F6,
+the Python host tests cover protected-key precedence and shared evidence
+remains accounted under `config_protected` for R32.
+
 ### Sheet extraction and attachment
 
 - `spec/error/r30-sheet-attach-not-sheet.yaml`
@@ -203,6 +214,13 @@ Maintainer decisions recorded on #1341 (2026-11-24):
   workstream; it does not expand R34's performance-optimization scope.
 - **D-E — #1018 stays the tracking umbrella**; split only when a release
   pre-flight needs a separately actionable issue.
+
+Maintainer decisions recorded on [#1346](https://github.com/m0smith/genia-2026/issues/1346) (2026-11-26; contract `1d82be1b303a90462cd1da3de71f72858192b580`, design `0932542b6f67478e955aa74a7206f74836b70b67`):
+
+- **M7 — separate R31 acceptance gates.** **R31-A**: relational operations, the C++ Sheet lane (#1330, 46 cases and its demonstrated prerequisites), C++ relational parity (new optional capability `sheet_relational`, provisional name; a temporary gap entry is added with the Python RED commit and removed within R31-A) and defect #1347. **R31-B1**: #1261, #1269, #1250. **R31-B2**: #1018 `multi_file_eval`, `prelude_autoload` partial, hidden `open_functions` partial. R31-A may be accepted independently; R31 is complete only when all three gates are accepted unless a later explicit maintainer decision revises these targets. No commitment is removed or deferred by this split.
+- **F1 — `r30-sheet-reserved`.** The prerequisite is a declaration-time runtime-owned-name rejection for entry-scope `IrClosedFuncDef` (slice CPP-5 under #1330), not general annotation evaluation; #1261 moves to R31-B1. General annotation evaluation remains #1018 debt (the 20 annotation-using `doc_help` cases, R33).
+- **F3 — removal condition of `default_open_functions` and `closed_functions`:** every listed case whose other required capabilities genia-cpp supports must pass. Every remaining co-tagged case is accounted under its outstanding capability, with owner, issue, target, evidence and removal condition, in [`host-parity-cotagged-cases.json`](https://github.com/m0smith/genia-2026/blob/88e8575ad4f83b77d6ad002c9aeda55dee47a47e/docs/strategy/roadmap/host-parity-cotagged-cases.json) (82 cases at the baseline).
+- **F6 — protected-key evidence.** R31 protected-key and precedence observations are Python host-specific tests; the shared evidence is deferred to R32 under the `config_protected` family tracking.
 
 ## Exception register
 

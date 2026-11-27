@@ -1,0 +1,14 @@
+name: r31-inner-join-list-key
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    left = sheet([["id", [1, 2]], ["zone", ["x", "x"]]])
+    left = left |> derive("key", (row) -> [row_get(row, "id"), row_get(row, "zone")])
+    right = sheet([["id", [2.0, 1]], ["area", ["x", "y"]]])
+    reference = right |> derive("key", (row) -> [row_get(row, "id"), row_get(row, "area")])
+    column("id", inner_join("key", "key", select(["key", "area"], reference), left))
+expected:
+  stdout: "[2]\n"
+  stderr: ""
+  exit_code: 0

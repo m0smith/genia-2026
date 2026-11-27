@@ -368,7 +368,9 @@ LANGUAGE_IDIOMS = {
   pipelines: "Build data pipelines with |>: lines makes a Flow, map transforms, keep_some keeps only some results, and some, none, and err Outcomes carry validation; callers define the parse and validate functions.",
   repetition: "Use recursion; tail-recursive calls are optimized in tail position.",
   sheet_records: "Experimental on the Python reference host: sheet_records(sheet) eagerly returns an ordered reusable List<Map> with exact raw keys and cells. Zero rows lose schema; zero-column rows give distinct empty Maps. Sheet stays non-Seq: no implicit Flow bridge. Use ordinary filter/map/validate, bind validated = collect_validated(results), then call collect_sheet(validated.clean); callers supply validation. Protected carriers/Outcome cells stay data under existing sinks. C++ sheet_values is unsupported (#1330). Use column(name, sheet) for exact cells and with_column(name, values, sheet) to append one List matching the stored row count.",
-  map2: "Experimental on the Python reference host: map2(f, xs, ys) combines equal-length Lists in order with raw callback arguments and exact results, including Outcome elements. Ordinary outer none arguments still propagate before validation. C++ map2 is unsupported (#1018)."
+  map2: "Experimental on the Python reference host: map2(f, xs, ys) combines equal-length Lists in order with raw callback arguments and exact results, including Outcome elements. Ordinary outer none arguments still propagate before validation. C++ map2 is unsupported (#1018).",
+  sort_rows: "Experimental Python reference host: use s |> sort_rows(before). The Boolean comparator receives fresh row pairs with exact cells. A strict weak ordering keeps tied rows in input order.",
+  inner_join: "Experimental Python reference host: use left |> inner_join(left_key, right_key, right). Legal matching keys produce all matches in left-then-right order. Keep the left key and full schema even with zero matches. C++ sheet_relational is unsupported."
 }
 
 # A7: static curated facts; nil encodes as JSON null. No live discovery.
@@ -494,6 +496,14 @@ LANGUAGE_DISCOVERY = {
       maturity: "Experimental",
       summary: "Experimental: Flow is lazy, pull-based and single-use; lines takes a list of strings; bound unbounded sources with take; the C++ host supports only a bounded Flow subset.",
       state_sections: ["6", "0"]
+    },
+    {
+      id: "sheet_relational_operations",
+      scope: "language",
+      status: "implemented",
+      maturity: "Experimental",
+      summary: "Experimental on the Python reference host: sort_rows stably orders Sheet rows and inner_join matches legal keys in left-then-right order. C++ sheet_relational is unsupported.",
+      state_sections: ["2"]
     }
   ]
 }

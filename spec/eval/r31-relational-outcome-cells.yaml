@@ -1,0 +1,14 @@
+name: r31-relational-outcome-cells
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    cells = [some(1), none("missing"), err("bad")]
+    left = sheet([["id", [1, 2, 3]], ["v", cells]])
+    right = sheet([["id", [1, 2, 3]], ["w", cells]])
+    out = inner_join("id", "id", right, left)
+    [column("v", out) == cells, column("w", out) == cells, column("v", left) == cells, column("w", right) == cells]
+expected:
+  stdout: "[true, true, true, true]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,10 @@
+name: r31-sort-rows-callback-failure
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    sort_rows((a, b) -> 1 / 0, sheet([["id", [2, 1]]]))
+expected:
+  stdout: ""
+  stderr: "Error: exact division by zero\n"
+  exit_code: 1

@@ -1,0 +1,10 @@
+name: r31-relational-reserved-join-name
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    inner_join(x) =: x
+expected:
+  stdout: ""
+  stderr: "Error: Cannot declare immutable binding inner_join: name is reserved by the runtime\n"
+  exit_code: 1

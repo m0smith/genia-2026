@@ -1,0 +1,10 @@
+name: r31-sort-rows-noncallable-category
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    sort_rows({}, sheet([["id", [2, 1]]]))
+expected:
+  stdout: ""
+  stderr: "Error: sort_rows expected a function\n"
+  exit_code: 1

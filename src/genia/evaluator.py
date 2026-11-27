@@ -1135,6 +1135,7 @@ class Evaluator:
             return RuntimeError(rendered)
 
     def eval_pipeline(self, node: IrPipeline, tail_position: bool) -> Any:
+        """Apply stages in order, chaining new wrappers and keeping preserved errors intact."""
         stage_value = self.eval(node.source)
         for index, stage in enumerate(node.stages):
             if is_none(stage_value) or is_err(stage_value):
@@ -1148,7 +1149,10 @@ class Evaluator:
             except GeniaQuietBrokenPipe:
                 raise
             except Exception as exc:  # noqa: BLE001
-                raise self._wrap_pipeline_stage_error(exc, index, stage, stage_value) from exc
+                wrapped = self._wrap_pipeline_stage_error(exc, index, stage, stage_value)
+                if wrapped is exc:
+                    raise
+                raise wrapped from exc
         return stage_value
 
     def eval_pipeline_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:

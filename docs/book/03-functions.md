@@ -54,3 +54,15 @@ An outer `none` argument still follows ordinary call propagation before
 `with_column(name, values, sheet)` to attach an explicitly computed List of
 the stored row count to a fresh Sheet. C++ Sheet and List delivery are tracked
 for R31 (#1330) and R33 (#1018), respectively.
+
+## Ordering and joining Sheets
+
+On the Python reference host, Experimental `sort_rows(before, sheet)` takes
+an ordinary comparator over two rows. Read each row with `row_get` and return
+a Boolean. For a strict weak ordering, rows that tie keep their input order.
+
+Experimental `inner_join(left_key, right_key, right, left)` matches by legal
+map-key equality. It retains left columns and appends right non-key columns.
+Duplicate matches appear in left-then-right input order. Empty results keep
+their schema. Either operation can be a data-last pipeline stage. C++
+`sheet_relational` is unsupported (#1346, #1330).

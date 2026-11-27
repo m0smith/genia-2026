@@ -49,6 +49,7 @@ LANGUAGE_ANCHORS = {
     "state:flow-semantics",  # A10 (#1084)
     "state:sheet-records",  # Experimental explicit Sheet conversion
     "state:sheet-shaped-computation",
+    "state:sheet-relational",
     "state:map2",
 }
 

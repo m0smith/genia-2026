@@ -174,12 +174,12 @@ def test_a11_output_is_deterministic_across_calls():
 def test_a11_a10_flow_content_is_byte_identical():
     language = _profile()
     assert language["idioms"]["flow"] == A10_IDIOM
-    assert language["discovery"]["facts"][-1] == A10_FACT
+    assert language["discovery"]["facts"][14] == A10_FACT
 
 
 def test_a11_the_a9_fact_and_the_catalogue_are_unchanged():
     facts = _profile()["discovery"]["facts"]
-    assert len(facts) == 15 and len({f["id"] for f in facts}) == 15
+    assert len(facts) == 16 and len({f["id"] for f in facts}) == 16
     assert facts[13] == A9_FACT
     assert set(_profile()["idioms"]) == {
         "branching",
@@ -189,6 +189,8 @@ def test_a11_the_a9_fact_and_the_catalogue_are_unchanged():
         "pipelines",
         "repetition",
         "sheet_records",
+        "sort_rows",
+        "inner_join",
         "map2",
     }
 
@@ -202,11 +204,11 @@ def test_a11_the_mcp_surface_stays_the_closed_four_tools():
 # --- A11 registry (RED until implementation) ------------------------------------------------------
 
 
-def test_a11_registry_holds_the_corrected_idiom_and_still_15_facts():
+def test_registry_preserves_the_corrected_a11_idiom():
     body = REGISTRY["language"]["idioms"]
     assert body["value"]["outcomes"] == A11_IDIOM
     assert body["value"]["flow"] == A10_IDIOM
-    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 15
+    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 16
 
 
 def test_a11_registry_pins_the_full_state_exception_and_a_probe():

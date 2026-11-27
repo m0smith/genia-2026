@@ -148,6 +148,8 @@ def test_a9_idioms_gain_exactly_the_outcomes_member():
         "pipelines",
         "repetition",
         "sheet_records",
+        "sort_rows",
+        "inner_join",
     }
 
 
@@ -205,7 +207,7 @@ def test_a9_discovery_stays_closed_and_within_its_byte_bound():
 def test_a9_golden_snapshot_carries_exactly_the_two_additions():
     assert GOLDEN["idioms"]["outcomes"] == A9_IDIOM
     assert GOLDEN["discovery"]["facts"][13] == A9_FACT
-    assert len(GOLDEN["discovery"]["facts"]) == 15  # A10 (#1084): 14 -> 15
+    assert len(GOLDEN["discovery"]["facts"]) == 16  # PY-1 adds Sheet relational discovery.
 
 
 def test_a9_whole_profile_still_equals_the_golden_except_the_launch_revision():
@@ -271,7 +273,7 @@ def _fact(registry=REGISTRY):
 
 
 def test_a9_registry_keeps_its_fact_14th_in_the_catalogue():
-    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 15  # A10 (#1084): 14 -> 15
+    assert len(REGISTRY["discovery"]["facts"]) == gen.DISCOVERY_FACT_COUNT == 16  # PY-1 adds Sheet relational discovery.
     assert [f["id"] for f in REGISTRY["discovery"]["facts"]][13] == "outcome_pipeline_propagation"
 
 

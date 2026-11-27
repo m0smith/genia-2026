@@ -6,7 +6,18 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .numeric_runtime import GeniaDecimal, GeniaRational
-from .values import GeniaMap, GeniaSymbol, _is_nil_none, _runtime_type_name, symbol
+from .values import (
+    GeniaMap,
+    GeniaOptionErr,
+    GeniaOptionNone,
+    GeniaOptionSome,
+    GeniaPair,
+    GeniaRepresented,
+    GeniaSymbol,
+    _is_nil_none,
+    _runtime_type_name,
+    symbol,
+)
 from .configuration import contains_declassification_authority, contains_protected
 
 
@@ -339,6 +350,142 @@ def sheet_derive(name: Any, function: Any, sheet_value: Any, invoke: Callable[[A
 
     derived_values = tuple(invoke(function, [row]) for row in sheet_rows(sheet))
     return GeniaSheet((*sheet.columns, (name, derived_values)), sheet.row_count)
+
+
+def sheet_sort_rows(before: Any, sheet_value: Any, invoke: Callable[[Any, list[Any]], Any]) -> GeniaSheet:
+    """Stably permute row indexes using a raw, strict-boolean comparator.
+
+    Check the Sheet before the comparator. Each comparison receives fresh row
+    and pair containers with the exact stored cells. No callback runs for fewer
+    than two rows. Propagate callback failures and return a fresh Sheet on success.
+    """
+    sheet = _ensure_sheet(sheet_value, "sort_rows")
+    if not callable(before):
+        raise _sheet_error("sort_rows expected a function")
+
+    class RowOrder:
+        """Compare row indexes without retaining callback-visible containers."""
+
+        def __init__(self, index: int):
+            """Keep only the index into the immutable Sheet columns."""
+            self.index = index
+
+        def __lt__(self, other: RowOrder) -> bool:
+            """Call the comparator on two fresh rows and require a boolean."""
+            rows = [
+                [[name, values[index]] for name, values in sheet.columns]
+                for index in (self.index, other.index)
+            ]
+            result = invoke(before, rows)
+            if not isinstance(result, bool):
+                raise _sheet_error("sort_rows expected comparator to return boolean")
+            return result
+
+    indexes = sorted(range(sheet.row_count), key=RowOrder)
+    columns = tuple(
+        (name, tuple(values[index] for index in indexes))
+        for name, values in sheet.columns
+    )
+    return GeniaSheet(columns, sheet.row_count)
+
+
+def _join_key_contains_protected(value: Any) -> bool:
+    """Check supported key-cell containers, including represented payloads.
+
+    Visit container references once by identity. Delegate opaque leaf detection
+    to the existing helper without unwrapping or inspecting protected carriers.
+    Identity-bearing values, callables and lazy sources remain opaque.
+    """
+    pending = [value]
+    seen: set[int] = set()
+    while pending:
+        cell = pending.pop()
+        identity = id(cell)
+        if identity in seen:
+            continue
+        seen.add(identity)
+        if isinstance(cell, GeniaRepresented):
+            pending.append(cell.value)
+        elif isinstance(cell, GeniaPair):
+            pending.extend((cell.head, cell.tail))
+        elif isinstance(cell, (GeniaOptionNone, GeniaOptionErr)):
+            pending.extend((cell.reason, cell.context))
+        elif isinstance(cell, GeniaOptionSome):
+            pending.extend((cell.value, cell.context))
+        elif isinstance(cell, GeniaMap):
+            for key, item in cell.items():
+                pending.extend((key, item))
+        elif isinstance(cell, GeniaSheet):
+            pending.append(cell.columns)
+        elif isinstance(cell, (list, tuple)):
+            pending.extend(cell)
+        elif contains_protected(cell):
+            return True
+    return False
+
+
+def _join_keys(cells: tuple[Any, ...], side: str) -> list[Any]:
+    """Validate each cell in row order, checking protection before key legality."""
+    from .equality import canonical_map_key
+
+    keys = []
+    for index, cell in enumerate(cells):
+        if _join_key_contains_protected(cell):
+            raise _sheet_error(f"protected-value: inner-join key at {side} row {index}")
+        try:
+            keys.append(canonical_map_key(cell))
+        except TypeError:
+            raise _sheet_error(f"inner_join expected a legal key at {side} row {index}") from None
+    return keys
+
+
+def sheet_inner_join(left_key: Any, right_key: Any, right: Any, left: Any) -> GeniaSheet:
+    """Return exact matching cells in left-major, then right-major row order.
+
+    Check both Sheets, left then right names, collisions, and left then right
+    keys before matching. Keep every left column and only right non-key columns.
+    Duplicate keys multiply and empty results retain their output schema.
+    """
+    if not isinstance(left, GeniaSheet) or not isinstance(right, GeniaSheet):
+        raise _sheet_error("inner_join expected two Sheets")
+
+    left_name = _freeze_column_name(left_key)
+    left_columns = left.name_to_values
+    if left_name not in left_columns:
+        raise _sheet_error("inner_join could not find left key column")
+    right_name = _freeze_column_name(right_key)
+    right_columns = right.name_to_values
+    if right_name not in right_columns:
+        raise _sheet_error("inner_join could not find right key column")
+
+    right_output = []
+    for name, values in right.columns:
+        frozen_name = _freeze_column_name(name)
+        if frozen_name == right_name:
+            continue
+        if frozen_name in left_columns:
+            raise _sheet_error("inner_join expected distinct output column names")
+        right_output.append((name, values))
+
+    left_keys = _join_keys(left_columns[left_name], "left")
+    right_keys = _join_keys(right_columns[right_name], "right")
+    right_index: dict[Any, list[int]] = {}
+    for index, key in enumerate(right_keys):
+        right_index.setdefault(key, []).append(index)
+
+    left_positions = []
+    right_positions = []
+    for index, key in enumerate(left_keys):
+        matches = right_index.get(key, ())
+        left_positions.extend([index] * len(matches))
+        right_positions.extend(matches)
+
+    columns = tuple(
+        (name, tuple(values[index] for index in positions))
+        for source, positions in ((left.columns, left_positions), (right_output, right_positions))
+        for name, values in source
+    )
+    return GeniaSheet(columns, len(left_positions))
 
 
 def _csv_scalar_text(value: Any, location: str) -> str:

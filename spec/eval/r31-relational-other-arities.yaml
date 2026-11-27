@@ -1,0 +1,13 @@
+name: r31-relational-other-arities
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    sort_rows(x, y, z) = x + y + z
+    inner_join(x) = x + 1
+    s = sheet([["id", [1]]])
+    [sort_rows(1, 2, 3), inner_join(4), column("id", sort_rows((a, b) -> false, s)), column("id", inner_join("id", "id", s, s))]
+expected:
+  stdout: "[6, 5, [1], [1]]\n"
+  stderr: ""
+  exit_code: 0

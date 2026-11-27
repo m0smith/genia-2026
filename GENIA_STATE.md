@@ -587,8 +587,7 @@ opaque capabilities and deterministic offline fixtures; shared/multi-host confor
 
 **LANGUAGE CONTRACT:** Immutable named columns have deterministic order, equal-length
 List storage and a row count. Sheets are neither lazy/streaming, reactive/formula-driven,
-nor Seq-compatible Lists/Flows. Transformations preserve input. Joins/grouping/sorting
-and spreadsheet UI remain absent.
+nor Seq-compatible Lists/Flows. Transformations preserve input. Grouping and aggregation remain absent.
 
 **PYTHON REFERENCE HOST:** `GeniaSheet` is a frozen dataclass with tuple-backed
 columns. Names follow legal Genia map-key equality. Construction requires Lists;
@@ -604,6 +603,33 @@ columns. Named zero-row columns extract as `[]`. Both validate Sheet before
 name. Attachment then checks duplicate, List, authority detected by the
 existing storage detector (#1343), and length. Existing name errors and
 protected sinks apply. Python Experimental. C++ R31 (#1330).
+
+### Relational Sheet operations (Experimental)
+<!-- anchor: state:sheet-relational -->
+
+`sort_rows(before, sheet)` stably orders rows for a strict weak ordering.
+Check Sheet, then callable. Raw comparisons receive two fresh row Lists
+with fresh pairs and exact cells, including Outcomes and protected carriers.
+Require Boolean results. Ties keep input order. Zero or one row invokes
+nothing. Larger Sheets invoke the comparator at least once. The exact count
+and order are unspecified. Inconsistent comparators yield unspecified
+permutations. Failures propagate without partial results or effect rollback.
+
+`inner_join(left_key, right_key, right, left)` matches one named key column
+per Sheet by legal map-key equality. Emit every match in left-then-right
+row order. Discard unmatched rows and retain all duplicate matches. Keep
+left columns and exact left keys, then right non-key columns.
+Empty results retain schema. Validate Sheets, names and lookups left first,
+output name uniqueness, then keys left first in row order. Check recursive
+protection before legality per cell, even when either side is empty. Carry
+exact non-key cells. New marked diagnostics omit names, payloads and types.
+Key-cell errors give side and zero-based row.
+
+Both return fresh Sheets without changing their inputs. Outer calls propagate
+the first `none` in argument order before validation.
+Experimental on the Python reference host. C++ `sheet_relational` is
+**UNSUPPORTED** (#1346, #1330). F6 keeps protection tests Python-only
+until shared R32 evidence.
 
 ### Pairwise List computation (Experimental)
 <!-- anchor: state:map2 -->
@@ -1627,33 +1653,29 @@ at other arities. Transformations return fresh Sheets.
 - `where(predicate, sheet)` keeps rows whose predicate returns `true` and requires boolean results.
 - `derive(name, function, sheet)` appends a distinct column computed from those rows.
 - `column(name, sheet)` and `with_column(name, values, sheet)` use the shaped computation rules above.
+- `sort_rows(before, sheet)` and `inner_join(left_key, right_key, right, left)` use the relational Sheet rules above.
 
-`row_get(row, column_name)` (**Experimental**):
+`row_get(row, column_name)` (**Experimental**) scans a List of
+`[name, value]` pairs using Sheet name identity, returning the first match
+without mutation. It is an ordinary call on rows from `rows`, `where`,
+`derive` or `sort_rows`. Marked TypeErrors:
 
-- takes any row value shaped like the existing `where`/`derive`/`rows` row contract: a `list` of two-item `[name, value]` pairs
-- does not take a Sheet; it reads a single already-extracted row, which is why `where` and `derive` row functions can call it directly on the row argument they receive
-- returns the value paired with `column_name`, matched using the same column-name identity rules as `sheet`/`select` (`GeniaSymbol`, string, number, boolean, nil, tuple, and list names compare by value; other name types must be hashable)
-- performs a first-match linear scan; a row with duplicate names for a requested column returns the first matching pair's value and is not itself flagged as an error — well-formed rows produced by `rows`, `where`, and `derive` never contain duplicate names, so this case only arises from hand-built rows, which is out of scope
-- pure and read-only: never mutates the row, its source Sheet, or any cell value
-- errors (all `TypeError`, opting out of generic pipeline error wrapping):
-  - row is not a `list`: `"row_get expected a row (list of [name, value] pairs)"`
-  - a row entry is not a two-item `list`: `"row_get expected a row (list of [name, value] pairs); malformed entry at index <n>"`
-  - `column_name` absent from the row: `"row_get could not find column <name>"`
-- introduces no new syntax; `row_get(row, quote(age))` is an ordinary function call using the existing pair-list row representation, not a new access form
+- `row_get expected a row (list of [name, value] pairs)`
+- `row_get expected a row (list of [name, value] pairs); malformed entry at index <n>`
+- `row_get could not find column <name>`
 
-`collect_sheet(records)` (**Experimental**):
+`collect_sheet(records)` (**Experimental**) consumes a finite List or Flow
+of Maps. Empty input yields `sheet([])`. The first Map's raw keys determine
+column names and order. Every later Map needs exactly those keys, in any order.
+Literal identifier keys are strings, distinct from quoted symbols. Cells stay
+exact, including Outcomes. For a source of Outcomes, pass `collect_validated`'s
+`clean` List. There is no union, padding, default, projection or schema argument.
+Marked TypeErrors:
 
-- consumes a finite `list` or `GeniaFlow` of `GeniaMap` records, the same Seq-compatible source types accepted by `collect` and `collect_validated`
-- empty input returns the same zero-row/zero-column Sheet as `sheet([])`
-- for non-empty input, the first record's map entry order becomes the Sheet's column order; column names are the record's raw keys, unchanged and uncoerced (map-literal keys such as `{name: "Ann"}` are plain strings, not symbols, so resulting column names render as strings, unlike `sheet()`'s symbol-keyed columns)
-- every later record must have exactly the first record's key set (order-independent); values are copied as ordinary cell values with no coercion, and Outcome values (`some`/`none`/`err`) stored as a field are kept as plain cell values, not unwrapped
-- it does **not** process Outcome items itself: a bare `some(...)`/`none(...)`/`err(...)` passed as a top-level record item is rejected as "not a map," matching `collect_validated`'s separate, explicit aggregation step — use `collect_validated` first and pass its `clean` list into `collect_sheet`
-- errors (all `TypeError`, opting out of generic pipeline error wrapping):
-  - non-Seq-compatible source: `"collect_sheet expected a Seq-compatible value (list or Flow); received <type>."`
-  - non-map item at index `<n>`: `"collect_sheet expected map records; received <type> at index <n>"`
-  - later record missing a first-row column: `"collect_sheet expected column <name> at row <n>"`
-  - later record with an extra column: `"collect_sheet expected only column(s) from the first record; found unexpected column <name> at row <n>"`
-- no column union, padding, default values, dropped fields, schema parameter, or type coercion
+- `collect_sheet expected a Seq-compatible value (list or Flow); received <type>.`
+- `collect_sheet expected map records; received <type> at index <n>`
+- `collect_sheet expected column <name> at row <n>`
+- `collect_sheet expected only column(s) from the first record; found unexpected column <name> at row <n>`
 
 `render_csv(sheet)` (**Experimental**):
 
@@ -1675,31 +1697,12 @@ Ordinary pipeline wrapping applies to structural `map2` TypeErrors:
 `map2 expected a function`, `map2 expected two Lists`, and
 `map2 expected equal lengths; received <left> and <right>`.
 
-Construction example:
+Unequal column lengths at construction: `TypeError("sheet expected all columns to have equal length")`.
+Sheet operations reject non-Sheets where required. `select` and `derive`
+identify missing or existing columns respectively. Marked Sheet errors
+preserve their diagnostics and cause through pipelines
+(`_genia_preserve_pipeline_error = True`).
 
-```genia
-people = sheet([
-  [quote(name), ["Ann", "Bob", "Cara"]],
-  [quote(age), [30, 22, 41]]
-])
-shape(people)
-```
-
-Returns `[[rows, 3], [columns, 2]]`.
-Error behavior:
-
-- non-Sheet value passed to a Sheet-only operation: `TypeError`
-- unequal column lengths at construction: `TypeError("sheet expected all columns to have equal length")`
-- duplicate column names at construction or in `select`: `TypeError`
-- missing column in `select`: `TypeError` naming the column
-- non-boolean predicate result in `where`: `TypeError`
-- existing column name in `derive`: `TypeError` naming the column
-- Sheet errors opt out of generic pipeline error wrapping (`_genia_preserve_pipeline_error = True`)
-
-Implementation files:
-- `src/genia/sheet.py` — `GeniaSheet` runtime value and pure helper functions
-- `src/genia/builtins.py` — builtin registration
-- `src/genia/utf8.py` — deterministic Sheet rendering
 ### Flow runtime (Phase 1)
 <!-- anchor: state:flow-semantics -->
 

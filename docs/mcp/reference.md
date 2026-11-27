@@ -128,7 +128,10 @@ language model and selected maturity/host gaps for assistants. It is MCP adapter
   optional), and the profile examples keep the explicit `open` spelling.
 
 Amendment A7 (#1086) also returns `discovery`, exactly `{coverage, facts}`:
-`coverage: "curated_non_exhaustive"` and an ordered array of 15 static facts (A8, #1119, appends `validated_data_pipelines`, Experimental, STATE section 6; A9, #1084, appends `outcome_pipeline_propagation`, Experimental, STATE sections 2 and 3; A10, #1084, appends `flow_semantics`, Experimental, STATE sections 6 and 0, whose summary alone states that the C++ host supports only a bounded Flow subset; contract sections 21, 22, and 23).
+`coverage: "curated_non_exhaustive"` and an ordered array of 16 static facts (A8, #1119, appends `validated_data_pipelines`, Experimental, STATE section 6; A9, #1084, appends `outcome_pipeline_propagation`, Experimental, STATE sections 2 and 3; A10, #1084, appends `flow_semantics`, Experimental, STATE sections 6 and 0, whose summary alone states that the C++ host supports only a bounded Flow subset; contract sections 21, 22, and 23).
+R31 PY-1 adds the `sort_rows` and `inner_join` idioms and the Experimental
+`sheet_relational_operations` fact. Both operations run on the Python reference
+host, with C++ `sheet_relational` unsupported (#1346, #1330).
 Each fact has exactly `id`, `scope`, `status`, `maturity`, `summary`, and
 `state_sections` (ordered strings referencing STATE at `contract_revision`).
 The IDs, scopes, statuses, maturity labels, summaries, and section mappings are defined in the
@@ -137,7 +140,7 @@ The IDs, scopes, statuses, maturity labels, summaries, and section mappings are 
 
 Status is one of `implemented`, `partial`, `planned`, `scaffolded`,
 `unsupported`, within the stated scope. Maturity is `Experimental`, `Partial`,
-`Stable`, or JSON null for unspecified; none of these 15 facts is Stable.
+`Stable`, or JSON null for unspecified; none of these 16 facts is Stable.
 Partial shared Flow coverage does not mean missing Python Flow, bounded C++
 language support does not mean C++ MCP, and browser scaffolding is docs only.
 The A10 `flow` idiom describes the language, not the `genia_run` environment: a program run

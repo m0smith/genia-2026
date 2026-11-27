@@ -1,0 +1,10 @@
+name: r31-inner-join-zero-column
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    inner_join("id", "id", sheet([["id", [2, 1]]]), select([], sheet([["id", [2, 1]]])))
+expected:
+  stdout: ""
+  stderr: "Error: inner_join could not find left key column\n"
+  exit_code: 1

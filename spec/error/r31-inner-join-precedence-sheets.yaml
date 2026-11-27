@@ -1,0 +1,10 @@
+name: r31-inner-join-precedence-sheets
+category: error
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    inner_join({}, {}, 0, sheet([]))
+expected:
+  stdout: ""
+  stderr: "Error: inner_join expected two Sheets\n"
+  exit_code: 1

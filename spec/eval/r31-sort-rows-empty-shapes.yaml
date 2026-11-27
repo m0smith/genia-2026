@@ -1,0 +1,13 @@
+name: r31-sort-rows-empty-shapes
+category: eval
+requires: [sheet_values, sheet_relational]
+input:
+  source: |
+    empty = sheet([["id", []]])
+    single = sheet([["id", [1]]])
+    zero_columns = select([], sheet([["id", [2, 1]]]))
+    [columns(sort_rows((a, b) -> false, empty)), rows(sort_rows((a, b) -> false, single)), rows(sort_rows((a, b) -> false, zero_columns)), rows(zero_columns)]
+expected:
+  stdout: "[[\"id\"], [[[\"id\", 1]]], [[], []], [[], []]]\n"
+  stderr: ""
+  exit_code: 0
