@@ -1,0 +1,11 @@
+name: ordinary-call-none-first-arg
+category: eval
+input:
+  source: |
+    g(x) = 5
+    y = g(none("a"))
+    [y]
+expected:
+  stdout: "[none(\"a\")]\n"
+  stderr: ""
+  exit_code: 0

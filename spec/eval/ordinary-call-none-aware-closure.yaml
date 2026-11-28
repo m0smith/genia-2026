@@ -1,0 +1,11 @@
+name: ordinary-call-none-aware-closure
+category: eval
+input:
+  source: |
+    f(none(r)) = r
+    f(x) = 5
+    [f(none("a"))]
+expected:
+  stdout: "[\"a\"]\n"
+  stderr: ""
+  exit_code: 0

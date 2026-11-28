@@ -41,8 +41,9 @@ metadata and validates cross-unit keys/shapes. Explicit R20 views share that
 validation and canonical contributor order; their reflection precedence is unchanged.
 C++ supports guards inside ordinary grouped bodies (with header capture) and
 local explicit-R20 clauses (whose grouped headers remain nonbinding), with
-guard-sensitive duplicate keys. It does not
-support ordinary pattern/guard headers, default-open functions or `=:`.
+guard-sensitive duplicate keys. C++ also executes local unguarded fixed-arity
+`none(reason)` pattern declarations with same-arity ordinary fallbacks.
+General pattern and guard headers, `default_open_functions` and `=:` remain unsupported.
 Historical ordinary `=` dotted targets remain literal binding names (including
 function declaration targets), not property writes. New `=:` targets and new
 pattern/guard declaration targets require simple names.
@@ -978,8 +979,9 @@ fact(5)
   frozen selections retain closures and independent doc/meta/help channels.
   Selection rejects equal keys or conflicting fixed/varargs shapes across units,
   including explicit R20 views. No rename-on-use or import-driven activation.
-- C++ does not support these forms (known gaps `default_open_functions` and
-  `multi_file_eval`); closed `f(...) =: body` groups execute on Python only (capability `closed_functions`).
+- C++ supports the local fixed-arity absence-pattern subset above. The
+  `default_open_functions` and `multi_file_eval` capabilities remain unsupported.
+  Closed `f(...) =: body` groups execute on Python (capability `closed_functions`).
 
 ### Open functions (Experimental, R20)
 

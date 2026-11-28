@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: m0smith/genia-cpp
-          ref: 0c4dbb1c1ee290d41777bcf52c68e62a7a22e059 # genia-cpp #62 R30 known-global catalogue
+          ref: 7e32938f2c4695378562f6c2fc8131a243482291 # genia-cpp #64 ordinary-call absence propagation
           path: workspace/genia-cpp
 
       - name: Build development image

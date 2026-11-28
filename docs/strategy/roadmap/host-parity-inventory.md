@@ -133,7 +133,7 @@ Both runs classified 1,186 cases. Every other failure-class count was zero.
 Only `r30-map2-global-alias` changed classification. The pin returned
 `Error: Undefined name: map2` on the unshadowed alias. The catalogue candidate
 reports all 24 R30 cases unsupported, including that alias. The genuine
-undefined-name control still passes. The CI pin is now `0c4dbb1c1ee290d41777bcf52c68e62a7a22e059`
+undefined-name control still passes. The R30 CI pin was `0c4dbb1c1ee290d41777bcf52c68e62a7a22e059`
 ([genia-cpp #62](https://github.com/m0smith/genia-cpp/pull/62)). The merge tree
 matches the reviewed head `5d00e181f3eddc51f4e4e080631065b65bac29cd`.
 

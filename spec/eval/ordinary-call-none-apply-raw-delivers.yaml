@@ -1,0 +1,10 @@
+name: ordinary-call-none-apply-raw-delivers
+category: eval
+input:
+  source: |
+    g(x) = 5
+    [apply_raw(g, [none("a")])]
+expected:
+  stdout: "[5]\n"
+  stderr: ""
+  exit_code: 0

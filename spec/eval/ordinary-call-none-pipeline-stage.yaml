@@ -1,0 +1,10 @@
+name: ordinary-call-none-pipeline-stage
+category: eval
+input:
+  source: |
+    g(x) = 5
+    [none("a") |> g]
+expected:
+  stdout: "[none(\"a\")]\n"
+  stderr: ""
+  exit_code: 0
