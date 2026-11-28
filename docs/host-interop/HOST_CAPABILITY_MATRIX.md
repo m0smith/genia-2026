@@ -74,19 +74,29 @@ Browser playground adapter note:
 ### C++ integration source revision
 
 The host-parity and Docker development-environment workflows select
-`0c4dbb1c1ee290d41777bcf52c68e62a7a22e059` ([genia-cpp #62](https://github.com/m0smith/genia-cpp/pull/62)).
+`7e32938f2c4695378562f6c2fc8131a243482291` ([genia-cpp #64](https://github.com/m0smith/genia-cpp/pull/64)).
+The pinned adapter implements ordinary-call `none(...)` propagation and the local
+unguarded fixed-arity `none(reason)` declaration subset with same-arity ordinary
+fallbacks. The ten `ordinary-call-none-*` shared eval cases cover propagation,
+none-aware dispatch, pipeline input, raw argument delivery, and ordinary Err
+handling. The broader `default_open_functions` capability remains unsupported
+([#1269](https://github.com/m0smith/genia-2026/issues/1269)). C++ `sheet_relational`
+remains a known gap ([#1346](https://github.com/m0smith/genia-2026/issues/1346)).
+
+#### Historical Slice A evidence
+
 The catalogue update builds on the Model B Slice A parser/lowering revision
 `0a119f67d92cb08c2feaf975610722a2fa7555c8`
 (reviewed PR head `0502d436286c110b19ebbeb796f07ed4119fb06f`). It builds on the reviewed
 [genia-cpp #60](https://github.com/m0smith/genia-cpp/pull/60) guard/capture follow-up
 (merge `fef41e58dcd3b80aaedcac98c92943fcfbfd1945`, source
 `1f33886606fc94dadab679ed56182a15ca503a4b`), which includes the earlier #59/#58 work.
-The merged C++ tree parses, lowers and validates Slice A carriers, executes none
+The historical Slice A tree parses, lowers and validates Slice A carriers, executes none
 of them, and accepts annotations only on those carriers. It preserves the earlier
 Cell/Process quiescence correction, function/REPL repairs and parser-depth safety.
 No Model B execution capability is declared.
 
-The merged C++ source declares contract revision
+That Slice A source declares contract revision
 `d005c89f852ee2d27682dade272eabfd158adf12`. At that revision, 41 of 43
 `model-b-a-*` cases PASS; two eval cases remain UNSUPPORTED because they require
 the separate, unimplemented `nil` literal. The full shared corpus is 1,146 total /
@@ -97,9 +107,8 @@ execution parity is claimed.
 
 Owner: m0smith integration owner and C++ implementer, tracked in
 [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
-The parser/lowering boundary is met at merged revision `0a119f67d92cb08c2feaf975610722a2fa7555c8`. C++ still
-does not implement immutable-binding execution, default-open dispatch, closed
-publication or ordinary cross-module linking. Python implements explicit ordinary
+The parser/lowering boundary was met at merged revision `0a119f67d92cb08c2feaf975610722a2fa7555c8`. The pinned adapter still lacks immutable-binding execution, general default-open
+dispatch, closed publication and ordinary cross-module linking. Python implements explicit ordinary
 linking; closed publication executes on Python only (Experimental
 `closed_functions`); C++ declares it `unsupported`, a listed known gap.
 
@@ -144,7 +153,7 @@ pattern carriers and a `=:` annotated `@route`/`@server`/`@cors`; an ordinary `=
 is a plain statement there. Earlier statements' effects stand before a
 rejected declaration.
 
-C++ (genia-cpp #50, candidate above, declared contract
+The historical C++ Slice A baseline (genia-cpp #50, declared contract
 `d005c89f852ee2d27682dade272eabfd158adf12`) parses and lowers the Slice A carriers.
 That includes `IrImmutableBind`, `IrClosedFuncDef`, `IrPatternFuncDef`, prefix
 annotations on those carriers, and `IrPatErr`/`IrPatNamed` in every position, with
@@ -152,16 +161,16 @@ annotations on those carriers, and `IrPatErr`/`IrPatNamed` in every position, wi
 Of the 43 `model-b-a-*` cases, 41 PASS and 2 are UNSUPPORTED. Those two are eval
 cases that contain no Model B syntax and need the unimplemented `nil` literal. The
 full shared suite gives 1146 total / 335 PASS / 0 FAIL / 811 UNSUPPORTED.
-Parsing is not execution: every Model B carrier is refused at evaluation.
+At that baseline, evaluation refused every Model B carrier.
 `spec/known_host_gaps.json` admits only optional-capability gaps, and an
 `unsupported` response remains an unmet obligation, not a passing diagnostic.
 
 Owner: m0smith integration owner and C++ implementer, tracked in
 [genia-cpp #50](https://github.com/m0smith/genia-cpp/issues/50) under #1250.
-The parser/lowering boundary is met at the candidate above. That is syntax
-conformance only: no C++ execution parity for these carriers is claimed. C++ does not implement
-default-open dispatch or ordinary cross-module linking; Python implements explicit
-ordinary linking. Closed publication executes on Python only (Experimental
+The pinned adapter retains that parser/lowering boundary and executes the local
+absence-pattern subset described above. General default-open dispatch and
+ordinary cross-module linking remain unsupported on C++. Python implements
+explicit ordinary linking. Closed publication executes on Python only (Experimental
 `closed_functions`); C++ declares it `unsupported`, a listed known gap.
 
 ### Standalone core library gap

@@ -1,0 +1,9 @@
+name: ordinary-call-none-none-predicate-aware
+category: eval
+input:
+  source: |
+    [none?(none("a"))]
+expected:
+  stdout: "[true]\n"
+  stderr: ""
+  exit_code: 0

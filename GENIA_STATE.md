@@ -794,7 +794,7 @@ annotations (`@doc`/`@meta`/`@since`/`@deprecated`/`@category`/`@test`) and clau
 (`<closed-function f>`). Meanwhile only its synchronous annotation calls may invoke it; other use,
 `doc`/`meta`/`help` give `closed-function-not-yet-published`. A failed publication leaves a passable, unusable callable
 (`closed-function-failed-publication`). Alias clauses give `closed-function-not-extensible`; the defining name, the immutable-binding error.
-Unfinished `=:` keeps REPL input incomplete. C++ (genia-cpp#50) parses/lowers/validates Slice A; `=:` and default-open execution remain unsupported; guards: grouped-arm/local-R20 only.
+Unfinished `=:` keeps REPL input incomplete. C++ validates Slice A and executes local unguarded fixed-arity `none(reason)` headers with same-arity ordinary fallbacks (#1347). `=:` and `default_open_functions` remain unsupported.
 
 ## 4) Functions and dispatch
 

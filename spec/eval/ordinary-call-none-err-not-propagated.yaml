@@ -1,0 +1,10 @@
+name: ordinary-call-none-err-not-propagated
+category: eval
+input:
+  source: |
+    g(x) = 5
+    [g(err("e"))]
+expected:
+  stdout: "[5]\n"
+  stderr: ""
+  exit_code: 0

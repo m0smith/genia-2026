@@ -1,0 +1,10 @@
+name: ordinary-call-none-first-wins
+category: eval
+input:
+  source: |
+    h(a, b) = 5
+    [h(none("p"), none("q"))]
+expected:
+  stdout: "[none(\"p\")]\n"
+  stderr: ""
+  exit_code: 0
